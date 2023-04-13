@@ -1,4 +1,3 @@
-=================================================
-CHANGES IN VERSION 0.1.0.0000
+# midar 0.1.0.0000
 
-* First release
+* Added a `NEWS.md` file to track changes to the package.
