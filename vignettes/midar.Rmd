@@ -1,0 +1,80 @@
+---
+title: "Getting Started"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{Getting Started}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(midar)
+```
+
+`MiDAR` is an R package to manage, post-process, inspect and analyze small-molecule mass spectrometry (MS) raw datasets. Such datasets include pre-processed datasets from targeted lipidomics and metabolomics experiments.
+
+`MiDAR` is tailored to handle a range of different real-life analytical designs, data types and processing strategies. One focus of `MiDAR` is on using data formats from different MS instrument types and data pre-processing softwares, and to collected all required metadata in structures tidy format.
+
+`MiDAR` provides functions are provided to inspect and visualize the data sets, before and after processing steps, to inspect quality of the data, and effects of data processing steps. A basic set of exploratory data analysis and vizualization options is also provided. Finally, this package includes function to report the processed datasets, quality control results, and processing details to Excel, PowerPoint and interactive HTML-based reports.
+
+## Example Workflow
+
+```{r}
+
+library(midar)
+#masshunter_file <- here::here("inst/extdata/Example_MHQuant_1.csv")
+#metadata_file <- here::here("inst/extdata/Example_Metadata_MSTemplateCreator_1.xlsm")
+
+# Get paths of example files included with this package
+masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
+metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar", mustWork = TRUE)
+
+# Create a MidarExperiment object (S4)
+mexp <- MidarExperiment()
+
+# Load data and metadata
+mexp <- loadMasshunterCSV(data = mexp, filename = masshunter_file)
+mexp <- loadMSOrganizerXLM(data = mexp, filename = metadata_file)
+
+# Normalize and quantitate each feature by internal standards
+mexp <- normalize_by_istd(mexp)
+mexp <- quantitate_by_istd(mexp)
+
+# Get QC metrics for each feature
+mexp <- calculate_qc_metrics(mexp)
+
+# Filter features according to QC criteria
+mexp <- apply_qc_filter(data = mexp,
+                        CV_BQC_max = 30,
+                        Intensity_BQC_min = 100,
+                        SB_RATIO_min = 5,
+                        R2_min = 0.8,
+                        RQC_CURVE = 1)
+
+# Plot the intensities (peak areas) of the internal standards
+plot_runscatter(data = mexp, 
+  y_var = "Intensity",
+  transition_filter = "ISTD",
+  show_driftcorrection = FALSE,
+  QC_TYPE_fit = "BQC",
+  show_batches = TRUE, 
+  cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
+  outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
+
+
+```
+
+## Contributor Code of Conduct
+
+Please note that the midar project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.

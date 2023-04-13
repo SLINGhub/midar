@@ -1,0 +1,79 @@
+---
+title: "WaiKin Nof"
+output: html_notebook
+---
+
+```{r setup}
+#library(midar)
+devtools::load_all()
+library(here)
+library(tidyverse)
+```
+
+## Proccess
+
+```{r}
+mexp <- MidarExperiment()
+
+mexp <- loadMasshunterCSV(data = mexp, filename = here(".testing/WaiKin/WK_20230206_Nof1/data/Nof (burger).csv"))
+mexp <- loadMSOrganizerXLM(data = mexp, filename = here(".testing/WaiKin/WK_20230206_Nof1/data/MSTemplate_Creator_Nof1(Burger study).xlsm"))
+
+mexp <- normalize_by_istd(mexp)
+mexp <- quantitate_by_istd(mexp)
+mexp <- calculate_qc_metrics(mexp)
+
+# Drift correction WITHIN batch
+mexp_corr <- drift_corr_loess(
+  data = mexp,
+  qc_types = c("TQC"),
+  smooth_by_batch = TRUE, loess_span = 0.75, apply_only_if_smpl_cv_lower = FALSE, treshold_smpl_cv_delta = 0)
+
+# BETWEEN-batch median centering (applies to all species only currently)
+mexp_corr <- batch_corr_center(data = mexp_corr, qc_types = c("TQC"), center_by_fun = "median")
+
+mexp_corr <- apply_qc_filter(
+  data = mexp_corr,
+  CV_BQC_max = 25,
+  Intensity_BQC_min = 100,
+  SB_RATIO_min = 3,
+  R2_min = 0.8,
+  RQC_CURVE = 1)
+
+writeReportXLS(data = mexp_corr, filename = here(".testing/WaiKin/WK_20230206_Nof1/output/Nof_BatchCorrected_Report.xlsx"))
+```
+
+# Plots
+
+```{r}
+# Raw areas
+midar::plot_runscatter(
+  data = mexp_corr, y_var = "Intensity", transition_filter = "",show_driftcorrection = FALSE,QC_TYPE_fit = "TQC",
+  show_batches = TRUE, batches_as_shades = FALSE, after_correction = FALSE, 
+  cap_values = TRUE,cap_SPL_SD = 3, cap_QC_SD = 3,cap_top_n = 1,
+  cols_page = 5, rows_page = 4,point_size = 1,
+  annot_scale = 0.8, batch_line_color = "grey40",
+  outputPDF = TRUE, filename = here(".testing/WaiKin/WK_20230206_Nof1/output/Nof_RunScatter_raw-areas.pdf"), return_plot_list = FALSE)
+
+# Drift/batch corrected areas
+midar::plot_runscatter(
+  data = mexp_corr, y_var = "CONC_FINAL", transition_filter = "IS",filter_exclude = TRUE, show_driftcorrection = FALSE,QC_TYPE_fit = "TQC",
+  show_batches = TRUE, batches_as_shades = FALSE, after_correction = FALSE, 
+  cap_values = TRUE,cap_SPL_SD = 3, cap_QC_SD = 3,cap_top_n = 1,
+  cols_page = 5, rows_page = 4,point_size = 1,
+  annot_scale = 0.8, batch_line_color = "grey40",
+  outputPDF = TRUE, filename = here(".testing/WaiKin/WK_20230206_Nof1/output/Nof_RunScatter_Conc-Corrected.pdf"), return_plot_list = FALSE)
+
+plot_responsecurves(
+  data = mexp_corr, 
+  output_PDF = TRUE,
+  pdf_file_name = here(".testing/WaiKin/WK_20230206_Nof1/output/Nof_ResponseCurves2.pdf"),
+  response_variable = "Intensity", 
+  regr_max_percent = 200, 
+  include_features_containing = "", 
+  exclude_features_containing = "")
+
+
+
+
+```
+

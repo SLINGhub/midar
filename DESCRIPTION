@@ -1,0 +1,51 @@
+Package: midar
+Title: Small Molecule Mass Spectrometry Data Post-Processing, Quality Control, Exploration and Reporting
+Version: 0.1.0.0000
+Authors@R: 
+    person("Bo", "Burla", , "bo.burla@nus.edu.sg", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-5918-3249"))
+Description: R functions to facilitate managing, processing and evaluating lipidomics data.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    ggforce,
+    ggbeeswarm,
+    cowplot,
+    ggrepel,
+    ggsignif
+Config/testthat/edition: 3
+URL: https://github.com/SLINGhub/midar
+BugReports: https://github.com/SLINGhub/midar/issues
+Depends:
+    R (>= 4.1.0)
+Imports: 
+    broom,
+    dplyr,
+    ggpmisc,
+    glue,
+    lubridate,
+    magrittr,
+    MASS,
+    methods,
+    purrr,
+    readr,
+    readxl,
+    rlang,
+    scales,
+    stats,
+    stringr,
+    tibble,
+    tidyr,
+    tidyselect,
+    forcats,
+    ggplot2,
+    fs, 
+    ComplexHeatmap,
+    openxlsx,
+    ggh4x
+VignetteBuilder: knitr

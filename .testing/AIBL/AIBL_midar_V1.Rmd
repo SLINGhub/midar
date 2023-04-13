@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#library(midar)
+
+devtools::load_all()
+library(here)
+library(tidyverse)
+library(readxl)
+```
+
+# Check datasets for consistency
+
+Note:
+- All External IDs in the LIMS Analytical Results  have entries in the protein table
+- Duplicate External IDs entries in the LIMS Analytical Results, likely worklist generated in duplicate
+
+```{r}
+d_lims_db <- readxl::read_excel(here(".testing/data/AIBL/P21011_LIMS_WorklistResultList_bo_Nov-25-2022-04-35-20.xls"),sheet = "Analytical Results", trim_ws = TRUE) |> 
+  dplyr::select(ANALYSIS_ID = Datafilename, QC_TYPE = `QC Sample Type`, EXT_ID = `External Sample ID`, 
+                dplyr::everything()) |> 
+  mutate(ExternalID = stringr::str_squish(EXT_ID))
+
+d_sample_metadata <- readxl::read_excel(here(".testing/data/AIBL/ProteinConc_in_50ul_AIBL_platelets_FL_2022-12-01.xlsx"), sheet = "ug_per_50uL",  trim_ws = TRUE) |> 
+  dplyr::select(EXT_ID = `External Sample ID`, protein_conc, protein_conc_low) |> 
+ mutate(ExternalID = stringr::str_squish(EXT_ID))
+
+setdiff(d_lims_db$EXT_ID[d_lims_db$QC_TYPE == "SPL"], d_sample_metadata$EXT_ID)
+setdiff(d_sample_metadata$EXT_ID, d_lims_db$EXT_ID)
+```
+
+```{r}
+
+mexp <- MidarExperiment()
+
+mexp <- read_MRMkit_results(
+  data = mexp, 
+  raw_area_file = here(".testing/data/AIBL/AIBL_Batch1_Repeat_compileAllGroups_FL.csv"),
+  final_results_file =  "")
+
+mexp <- loadMSOrganizerXLM(mexp, here(".testing/data/HealthyAthletes/MSTemplate_ExerciseStudy_20221202.xlsm"))
+mexp <- normalize_by_istd(mexp) 
+mexp <- quantitate_by_istd(mexp) 
+mexp <- calculate_qc_metrics(mexp)
+
+```
+

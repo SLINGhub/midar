@@ -1,0 +1,31 @@
+---
+title: "Untitled"
+author: "SLING"
+format: pptx
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+
+## Bullets
+
+When you click the **Render** button a document will be generated that includes:
+
+-   Content authored with markdown
+-   Output from executable code
+
+## Code
+
+When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+library(here)
+
+mexp3 <- readRDS(here(".testing/HealthyAthletes/output", paste0("P20036_HealthyAthletes_Baker2_MiQARreport.rds")))
+
+plot_pca_sling(mexp3,variable = "CONC_FINAL", log_transform = TRUE, dim_x = 1, dim_y = 2, grouping = TRUE, fill_alpha = .1)
+
+```

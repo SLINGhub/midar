@@ -1,0 +1,98 @@
+---
+title: "Daniel"
+subtitle: "Data Analysis"
+author: "SingMass"
+output: html_document
+date: "2023-02-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(here)
+library(patchwork)
+library(scales)
+devtools::load_all()
+```
+
+```{r data-import}
+d_orig <- read_xlsx(here(".testing/FTT/SingMass-Daniel/data/20230116-FFP-Daniel-Quantification_V20220301.xlsx"), 
+                    sheet = "Final quantification results", 
+                    trim_ws = TRUE)
+
+d_metadata <- read_xlsx(here(".testing/FTT/SingMass-Daniel/data/20230116-FFP-Daniel-Quantification_V20220301.xlsx"), 
+                    sheet = "Sample Metadata", 
+                    trim_ws = TRUE) 
+
+d_long <- d_orig |> 
+  rename(FEATURE_NAME = Name) |> 
+  filter(!is.na(FEATURE_NAME)) |>  # Remove rows with other info (protein conc etc)
+  select(-`Precursor Ion`, -`Product Ion`, -RT) |> 
+  pivot_longer(-FEATURE_NAME, names_to = "ANALYSIS_ID", values_to = "Concentration") |> 
+  filter(!str_detect(FEATURE_NAME, "IS"))
+
+```
+
+
+```{r}
+d_datannot <- d_long |> left_join(d_metadata, by = c("ANALYSIS_ID"="SAMPLE_ID"))
+
+
+d_stats1 <- get_stats(d_datannot, feature = "FEATURE_NAME", grouping = "ExpGroup", group_case = "BaP 1uM", group_ref = "CTRL", paired = FALSE)
+p_volcano1 <- volcano_plot(d_FC = d_stats1, p_adjust = FALSE, sig_FC_min = 1.1, sig_p_value_min = 0.05, symmetric_x = TRUE, point_size = 1, point_transparency = 0.5, scale_factor = 1, scale_factor_species_label = .5, axistick = 1)
+
+d_stats2 <- get_stats(d_datannot, feature = "FEATURE_NAME", grouping = "ExpGroup", group_case = "BaP 2uM", group_ref = "CTRL", paired = FALSE)
+p_volcano2 <- volcano_plot(d_FC = d_stats2, p_adjust = FALSE, sig_FC_min = 1.1, sig_p_value_min = 0.05, symmetric_x = TRUE, point_size = 1, point_transparency = 0.5, scale_factor = 1, scale_factor_species_label = .5, axistick = 1)
+
+p_fig1 <- (p_volcano1 + ggtitle("1 \U003BCmol/L BaP vs CTRL")) + (p_volcano2+ ggtitle(" 2 \U003BCmol/L BaP vs CTRL"))
+
+
+ggsave(filename = "volcano1.png",  plot = p_fig1, width = 200, height = 100, units = "mm", dpi = 600)
+
+
+```
+
+```{r heatmap}
+devtools::load_all()
+
+annot_colors <- list(
+  ExpGroup = c("CTRL" = "cyan3", "BaP 1uM" = "darkred", "BaP 2uM" = "red")
+)
+
+
+p_hm <- plot_heatmap(data = d_long, d_metadata = d_metadata |>  select(ANALYSIS_ID = SAMPLE_ID, ExpGroup), 
+                     annot_color = annot_colors, log_transform = FALSE, split_variable = NULL, 
+                     clust_rows = FALSE, clust_columns = TRUE,row_names_size = 6, col_names_size = 8) 
+
+png(file="heatmap.png", width=150,height=150 ,units="mm",res=600)
+draw(p_hm)
+dev.off()
+```
+
+```{r pca}
+devtools::load_all()
+p_pca <- plot_pca_sling2(data = d_long, d_metadata = d_metadata |>  select(ANALYSIS_ID = SAMPLE_ID, ExpGroup), log_transform = FALSE, dim_x = 1, dim_y = 2, grouping = "ExpGroup", annot_color = annot_colors$ExpGroup, point_size = 5, fill_alpha = 0.05, ellipse = FALSE, mark_ellipse = TRUE) 
+
+ggsave(filename = "pca.png",  plot = p_pca, width = 100, height = 100, units = "mm", dpi = 600)
+
+```
+
+```{r}
+
+d_metadata$ExpGroup <- forcats::fct_relevel(d_metadata$ExpGroup, c("CTRL", "BaP 1uM", "BaP 2uM"))
+d_metadata$Exp = "A"
+d_metadata$Exp <- factor(d_metadata$Exp)
+plot_dotboxplus(data = d_long, d_metadata = d_metadata, inner_group = ExpGroup, outer_group = Exp, 
+                contrasts = list(c("BaP 1uM", "CTRL"), c("BaP 2uM", "CTRL"), c("BaP 2uM", "BaP 1uM")), inner_group_colors = annot_colors$ExpGroup, 
+                rows_page = 5, columns_page = 6, class_per_page = FALSE, save_pdf = TRUE, filename = "dotplots.pdf", paired = FALSE)
+
+d_sign1 <- d_stats1 |> filter(p_value < 0.05, abs(log2FC) > log2(1.1)) |> select(FEATURE_NAME)
+d_sign2 <- d_stats2 |> filter(p_value < 0.05, abs(log2FC) > log2(1.1)) |> select(FEATURE_NAME)
+d_long_sign <- d_long |> inner_join(bind_rows(d_sign1, d_sign2)) 
+
+plot_dotboxplus(data = d_long_sign, d_metadata = d_metadata, inner_group = ExpGroup, outer_group = Exp, 
+                contrasts = list(c("BaP 1uM", "CTRL"), c("BaP 2uM", "CTRL"), c("BaP 2uM", "BaP 1uM")), inner_group_colors = annot_colors$ExpGroup, 
+                rows_page = 4, columns_page = 6, class_per_page = FALSE, save_pdf = TRUE, filename = "dotplotsSIGN.pdf", paired = FALSE)
+```
+

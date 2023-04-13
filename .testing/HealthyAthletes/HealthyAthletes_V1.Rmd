@@ -1,0 +1,170 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+devtools::load_all()
+library(here)
+library(tidyverse)
+#library(midar)
+devtools::load_all()
+```
+
+```{r}
+mexp <- MidarExperiment()
+
+mexp <- read_MRMkit_results(data = mexp,
+  raw_area_file = here(".testing/HealthyAthletes/data/P20036_BakerPanel_2022-11-25_MRMkit_quant_raw.csv"),final_results_file = "")
+mexp <- loadMSOrganizerXLM(mexp, here(".testing/HealthyAthletes/data/MSTemplate_ExerciseStudy_20221202.xlsm"))
+
+mexp <- normalize_by_istd(mexp) 
+mexp2 <- quantitate_by_istd(mexp) 
+
+mexp3 <- drift_corr_loess(mexp2, qc_types = c("TQC", "BQC"), smooth_by_batch = TRUE, log2_transform = TRUE, loess_span = 0.5, apply_only_if_smpl_cv_lower = FALSE, treshold_smpl_cv_delta = 0)
+mexp3@dataset$Concentration = mexp3@dataset$CONC_FINAL
+
+mexp3 <- calculate_qc_metrics(mexp3)
+
+mexp3 <- apply_qc_filter(
+  data = mexp3, 
+  Intensity_BQC_min = 1,
+  CV_BQC_max = 25,
+  SB_RATIO_min = 3,
+  R2_min = 0.8,
+  RQC_CURVE = 1 
+)
+writeReportXLS(mexp3, here(".testing/HealthyAthletes/output", paste0("P20036_HealthyAthletes_Baker2_MiQARreport_", Sys.Date(), "_V1.xlsx")))
+
+#saveRDS(mexp3, here(".testing/HealthyAthletes/output", paste0##("P20036_HealthyAthletes_Baker2_MiQARreport.rds")))
+
+```
+
+```{r ISTD}
+p <- plot_runscatter(
+  data = mexp3,
+  y_var = "CONC_FINAL", 
+  cap_values = TRUE,
+  cap_top_n = 20,
+  cap_SPL_SD =5 ,
+  cap_QC_SD = 3,
+  QC_TYPE_fit = "BQC", 
+  transition_filter = "CAR 18:1|DG 38:4 [-20:4]|PC 34:1|PC 38:4|PI 38:3|PC 38:6|S1P d18:1$|CE 16:0|CE 20:4|^Cer d18:1/24:0|^Cer d18:1/16:0|LPC 16:1 (b)|PE 34:1|PS 38:4|TG 50:4",
+  filter_exclude = FALSE,
+  show_driftcorrection = FALSE,
+  after_correction = FALSE, 
+  show_batches = TRUE,
+  batches_as_shades = FALSE,
+  batch_line_color = "bisque2"  ,
+  batch_shading_color = "grey80", 
+  outputPDF = FALSE,
+  filename = here(".testing/HealthyAthletes/output/", paste0("P20036_HealthyAthletes_Baker2_Scatter_ALLspecies_CONC_CORR", Sys.Date(), "_V1.pdf")),
+  cols_page = 5,
+  rows_page = 4,
+  point_size = 0.5,
+  annot_scale = .35,
+  paper_orientation  = "LANDSCAPE",
+  point_transparency = 0.86, 
+  page_no = NA,
+  silent = FALSE, 
+  return_plot_list = FALSE) 
+
+```
+
+# Map IDs
+
+```{r}
+d_annot_lims <- read_csv(file = here(".testing/HealthyAthletes/data/LIMS_Worklist_Results_Map.csv")) |> 
+  dplyr::select(Datafilename, LIMS_Sample_ID,	LIMS_Subject_ID, LIMS_Timepoint_ID)
+
+d_annot_ids <- read_csv(file = here(".testing/HealthyAthletes/data/P20036_HealthyAtheletes_Old_ID_to_new_SampleID_25June2021.csv")) 
+
+
+d_annot <- d_annot_lims |>
+  left_join(d_annot_ids, by=c("LIMS_Subject_ID"="SUBJECT_ID_OLD")) |> 
+  mutate(SUBJECT_ID = if_else(is.na(SUBJECT_ID), LIMS_Subject_ID, SUBJECT_ID)) |> 
+  unite(SAMPLE_ID, SUBJECT_ID, LIMS_Timepoint_ID, sep = "_", remove = FALSE)
+
+d_conc <- mexp3@dataset_QC_filtered |> 
+  filter(QC_TYPE == "SPL") |> 
+  select(ANALYSIS_ID, FEATURE_NAME, Concentration) |> 
+  pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
+
+
+d_final <- d_annot |> select(Datafilename, SAMPLE_ID) |> 
+  left_join(d_conc, by = c("Datafilename"="ANALYSIS_ID")) |> 
+  select(-Datafilename)
+
+write_csv(d_final, here(".testing/HealthyAthletes/output/", paste0("P20036_HealthyAthletes_Baker2_Conc_Filt_Mapped_", Sys.Date(), "_V1.csv")))
+
+```
+
+```{r message=FALSE, warning=FALSE}
+##### 
+devtools::load_all()
+p <- plot_runscatter(
+  data = mexp3,
+  y_var = "Concentration", 
+  cap_values = TRUE,
+  cap_top_n = 20,
+  cap_SPL_SD =5 ,
+  cap_QC_SD = 3,
+  QC_TYPE_fit = "BQC", 
+  transition_filter = "",
+  filter_exclude = FALSE,
+  show_driftcorrection = FALSE,
+  after_correction = FALSE, 
+  show_batches = TRUE,
+  batches_as_shades = FALSE,
+  batch_line_color = "bisque2"  ,
+  batch_shading_color = "grey80", 
+  outputPDF = TRUE,
+  filename = here(".testing/HealthyAthletes/output/", paste0("P20036_HealthyAthletes_Baker2_Scatter_ALLspecies_CONC_CORR", Sys.Date(), "_V1.pdf")),
+  cols_page = 5,
+  rows_page = 4,
+  point_size = 0.5,
+  annot_scale = .75,
+  paper_orientation  = "LANDSCAPE",
+  point_transparency = 0.86, 
+  page_no = NA,
+  silent = FALSE, 
+  return_plot_list = FALSE)
+
+```
+
+```{r}
+plot_responsecurves(
+  data = mexp3,
+  response_variable = "Intensity", 
+  output_PDF = FALSE,
+  pdf_file_name = here(".testing/output", paste0("HealthyAthletes/P20036_HealthyAthletes_Baker2_RQCs_", Sys.Date(), "_V1.pdf")),
+  include_features_containing = "",
+  exclude_features_containing = "",
+  regr_max_percent = 100, 
+  columns_page = 6,
+  rows_page = 5,
+  point_size = 1.0,
+  line_width = 0.5,
+  text_scale_factor = 0.8,
+  return_plot_list = TRUE
+) ->a
+a$plt[[1]]
+
+```
+
+```{r plot-cv-vs-area}
+qplot(x = mexp3@d_QC$Int_med_BQC *30, y =  mexp3@d_QC$conc_CV_BQC) + 
+  scale_x_log10() + geom_smooth() + theme_bw() + labs(x = "Peak Area BQC", y="%CV of BQC")
+```
+
+```{r}
+
+plot_pca_pairs(mexp3,variable = "CONC_FINAL" , dim_range = c(1,8), log_transform = TRUE, grouping = "QC_TYPE", sliding = FALSE, ncol = 2, legend_pos = "none")
+
+
+plot_pca_sling(mexp3,variable = "CONC_FINAL", log_transform = TRUE, dim_x = 1, dim_y = 2, grouping = TRUE, fill_alpha = .1)
+
+plot_pca_loading_coord(mexp3, variable = "CONC_ADJ", log_transform = TRUE, dim_x = 1, dim_y = 2, top_n = 80, text_size = 1)
+
+plot_pca_loading(data = mexp3,variable = "CONC_ADJ", log_transform = TRUE, pc_dimensions = c(1,2,3,4), top_n = 30)
+```
