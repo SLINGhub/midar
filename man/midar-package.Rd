@@ -12,6 +12,7 @@ R functions to facilitate managing, processing and evaluating lipidomics data.
 Useful links:
 \itemize{
   \item \url{https://github.com/SLINGhub/midar}
+  \item \url{https://slinghub.github.io/midar/}
   \item Report bugs at \url{https://github.com/SLINGhub/midar/issues}
 }
 

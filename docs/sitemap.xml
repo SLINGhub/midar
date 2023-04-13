@@ -13,7 +13,16 @@
     <loc>https://slinghub.github.io/midar/LICENSE.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/articles/01_Overview.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/articles/02_QualityControl.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/articles/midar.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/articles/plot_illustration.html</loc>
@@ -37,7 +46,13 @@
     <loc>https://slinghub.github.io/midar/reference/SLINGtools-package.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/reference/apply_qc_filter.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/reference/batch_corr_center.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/calcQC.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/calculate_qc_metrics.html</loc>
@@ -55,7 +70,7 @@
     <loc>https://slinghub.github.io/midar/reference/exportWideCSV.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/apply_qc_filter.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/getDatasetFilteredQC.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/get_stats.html</loc>
@@ -73,6 +88,12 @@
     <loc>https://slinghub.github.io/midar/reference/loadMasshunterCSV.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/reference/midar-package.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/normalizeByISTD.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/reference/normalize_by_istd.html</loc>
   </url>
   <url>
@@ -86,6 +107,9 @@
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/plot_runscatter.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/quantitateByISTD.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/quantitate_by_istd.html</loc>
