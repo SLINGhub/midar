@@ -9,6 +9,9 @@ calculate_qc_metrics(data)
 \arguments{
 \item{data}{MidarExperiment object}
 }
+\value{
+MidarExperiment object
+}
 \description{
 Calculate QC metrics for each feature
 }

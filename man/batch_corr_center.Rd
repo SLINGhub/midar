@@ -13,6 +13,9 @@ batch_corr_center(data, qc_types, center_by_fun = "median")
 
 \item{center_by_fun}{Function used to center. Default is "median".}
 }
+\value{
+MidarExperiment object
+}
 \description{
 Combines a list of MidarExperiments into one
 }

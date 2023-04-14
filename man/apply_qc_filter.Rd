@@ -32,6 +32,9 @@ apply_qc_filter(
 
 \item{RQC_CURVE}{= RQC_CURVE}
 }
+\value{
+MidarExperiment object
+}
 \description{
 QC-filter dataset
 }

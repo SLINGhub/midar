@@ -32,6 +32,9 @@ drift_corr_loess(
 
 \item{treshold_smpl_cv_delta}{Maximum sample CV change for correction to be applied}
 }
+\value{
+MidarExperiment object
+}
 \description{
 Performs drift correction based on LOESS smoothing
 }

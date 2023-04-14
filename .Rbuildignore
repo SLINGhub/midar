@@ -8,3 +8,4 @@
 ^\.github$
 ^\.testing$
 ^vignettes/articles$
+^codecov\.yml$
