@@ -46,8 +46,9 @@ Imports:
     tidyselect,
     forcats,
     ggplot2,
-    fs, 
+    fs,
     ComplexHeatmap,
     openxlsx,
-    ggh4x
+    ggh4x,
+    crayon
 VignetteBuilder: knitr

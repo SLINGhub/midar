@@ -205,63 +205,79 @@ check_integrity <-  function(object) {
     TRUE
   }
 }
+
+
 #' @importFrom methods setValidity
 #'
 methods::setValidity("MidarExperiment", check_integrity)
 
 
+get_status_flag <- function(x) if_else(x > 0, crayon::green('\u2713'), crayon::red('\u2717'))
+
+
+setMethod("show", "MidarExperiment", function(object) {
+  cat("\n", is(object)[[1]], "\n",
+      "\n",
+      "  Data: ", "\n",
+      "  \u2022 Samples: ", length(unique(object@dataset_orig$DataFileName)), "\n",
+      "  \u2022 Features:  ", length(unique(object@dataset_orig$FEATURE_NAME)), "\n",
+      "\n",
+      "  Metadata: ", "\n",
+      "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses)), "\n",
+      "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features)), "\n",
+      "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd)), "\n",
+      "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves)), "\n",
+      "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples)), "\n",
+      "\n",
+      "  Processing status: Unknown", "\n",
+      "\n",
+      "  Processing: ", "\n",
+      "  \u2022 ISTD-normalized: ", "\n",
+      "  \u2022 ISTD-quantitated: ", "\n",
+      "  \u2022 Drift corrected: ", "\n",
+      "  \u2022 Batch corrected: ", "\n"
+  )
+})
 
 
 
-#' loadMasshunterCSV
-#'
+#' @title Reads an Agilent MassHunter Quant CSV file
+#' @description
+#' Imports a .csv file with `Agilent MassHunter Quantitative Analysis` results.
+#' Samples should be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
+#' Additional columns, such as RT (rentention time), FWHM, PrecursorMZ, and CE will be imported and available from the `MidarExperiment` object for downstream analyses
 #' @param data MidarExperiment object
-#' @param filename file name of the MH CSV file
+#' @param filename filename
 #'
 #' @importFrom methods validObject
 #'
 #' @return MidarExperiment object
+#' @examples
+#' csvfile <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+#' mexp <- MidarExperiment()
+#' mexp <- read_masshunter_csv(mexp, csvfile)
+#' mexp
+
 #' @export
-#'
-#'
-loadMasshunterCSV <- function(data, filename) {
-  data@dataset_orig <- read_MassHunterCSV(filename, silent = FALSE)
+
+read_masshunter_csv <- function(data, filename) {
+  data@dataset_orig <- import_masshunter_csv(filename, silent = FALSE)
   data@dataset_orig <- data@dataset_orig %>% dplyr::rename(Intensity = "Area")
   stopifnot(methods::validObject(data))
   data
 }
 
-#' #' load_MRMkit_csv
-#' #'
-#' #' @param data MidarExperiment object
-#' #' @param filename file name of the MH CSV file
-#' #'
-#' #' @importFrom methods validObject
-#' #'
-#' #' @return MidarExperiment object
-#' #' @export
-#' #'
-#' #'
-#' load_MRMkit_csv <- function(data, filename) {
-#'   data@dataset_orig <- read_MRMkitCSV(filename, silent = FALSE)
-#'   data@dataset <- data@dataset_orig  %>%
-#'     dplyr::left_join(data@annot_analyses, by = c("ANALYSIS_ID"="ANALYSIS_ID"))
-#'   stopifnot(methods::validObject(data))
-#'   data
-#' }
 
 
-#' Import metadata from the MSOrganizer template (.XLM)
+#' @title Import metadata from the MSOrganizer template (.XLM)
 #' @param data MidarExperiment object
 #' @param filename file name and path
-
-
 #' @return MidarExperiment object
 #' @export
 #'
 
-loadMSOrganizerXLM <- function(data, filename) {
-  d_annot <- import_MSOrganizerXLM(filename)
+read_msorganizer_xlm <- function(data, filename) {
+  d_annot <- import_msorganizer_xlm(filename)
 
   data@annot_analyses <- data@dataset_orig %>%
     dplyr::select("ANALYSIS_ID") %>%

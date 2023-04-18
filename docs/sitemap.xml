@@ -85,6 +85,15 @@
     <loc>https://slinghub.github.io/midar/reference/import_MSOrganizerXLM.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/reference/import_masshunter_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/import_masshunter_csv_wide.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/import_msorganizer_xlm.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/reference/index.html</loc>
   </url>
   <url>
@@ -134,6 +143,12 @@
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/read_long_table_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/read_masshunter_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/read_msorganizer_xlm.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/read_table_wide.html</loc>

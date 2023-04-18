@@ -6,11 +6,12 @@
 
 <!-- badges: end -->
 
-`MiDAR` is an R package to manage, post-process, inspect and analyze small-molecule mass spectrometry (MS) raw datasets. Such datasets include pre-processed datasets from targeted lipidomics and metabolomics experiments.
+`MiDAR` is an R package to reproducibly manage, post-process, visualize, apply quality control, and analyze small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
 
-`MiDAR` is tailored to handle a range of different real-life analytical designs, data types and processing strategies. One focus of MiDAR is on using data formats from diferent MS instrument types and data pre-processing softwares, and to collected all required metadata in structures tidy format.
+`MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source tools. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.  
 
-`MiDAR` provides functions are provided to inspect and visualize the data sets, before and after processing steps, to inspect quality of the data, and effects of data processing steps. A basic set of exploratory data analysis and vizualization options is also provided. Finally, this package includes function to report the processed datasets, quality control results, and processing details to Excel, PowerPoint and interactive HTML-based reports.
+Datasets and processing steps are tracked, and can be saved as `MiDAR` S4 class object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting the of all data, metadata and applied data processing steps.
+
 
 ## Installation
 
@@ -34,8 +35,8 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- loadMasshunterCSV(data = mexp, filename = masshunter_file)
-mexp <- loadMSOrganizerXLM(data = mexp, filename = metadata_file)
+mexp <- read_masshunter_csv(data = mexp, filename = masshunter_file)
+mexp <- read_msorganizer_xlm(data = mexp, filename = metadata_file)
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)

@@ -9,7 +9,7 @@
 #' @return A tibble in the long format
 #' @export
 
-read_MassHunterCSV <- function(filename, silent = FALSE) {
+import_masshunter_csv <- function(filename, silent = FALSE) {
 
   if(!silent) print(glue::glue("Reading [{basename(filename)}] ..."))
   # if (shiny::isRunning())
@@ -173,7 +173,7 @@ read_MassHunterCSV <- function(filename, silent = FALSE) {
 #' @return A tibble in the long format
 #' @export
 
-read_MassHunterCSV_wide <- function(file, field, silent = FALSE) {
+import_masshunter_csv_wide <- function(file, field, silent = FALSE) {
   sample_def_cols = c(
     "DataFileName",
     "SampleName",
@@ -183,7 +183,7 @@ read_MassHunterCSV_wide <- function(file, field, silent = FALSE) {
     "InjVolume",
     "SampleType"
   )
-  d <- read_MassHunterCSV(file, silent) %>%
+  d <- import_masshunter_csv(file, silent) %>%
     dplyr::select(tidyselect::any_of(sample_def_cols), "FEATURE_NAME", {{field}})
 
   d %>% tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = {{field}})

@@ -9,7 +9,7 @@
 #' @importFrom dplyr recode
 #' @return A list of tibbles with different metadata
 #' @export
-import_MSOrganizerXLM <- function(filename, trim_ws = TRUE){
+import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
   d_annot <- list()
   d_annot$annot_analyses <- readxl::read_excel(filename, sheet = "Sample_Annot") |>
     dplyr::mutate(
