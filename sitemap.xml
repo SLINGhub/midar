@@ -64,16 +64,16 @@
     <loc>https://slinghub.github.io/midar/reference/get_stats.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/import_MSOrganizerXLM.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/import_masshunter_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/import_masshunter_csv_wide.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/import_msorganizer_xlm.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://slinghub.github.io/midar/reference/loadMSOrganizerXLM.html</loc>
-  </url>
-  <url>
-    <loc>https://slinghub.github.io/midar/reference/loadMasshunterCSV.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/midar-package.html</loc>
@@ -103,13 +103,13 @@
     <loc>https://slinghub.github.io/midar/reference/read_MRMkit_results.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/read_MassHunterCSV.html</loc>
-  </url>
-  <url>
-    <loc>https://slinghub.github.io/midar/reference/read_MassHunterCSV_wide.html</loc>
-  </url>
-  <url>
     <loc>https://slinghub.github.io/midar/reference/read_long_table_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/read_masshunter_csv.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/read_msorganizer_xlm.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/read_table_wide.html</loc>

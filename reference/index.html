@@ -116,37 +116,19 @@
         <dd>Get FC and p values from a t test contrast</dd>
       </dl><dl><dt>
           
-          <code><a href="import_MSOrganizerXLM.html">import_MSOrganizerXLM()</a></code> 
+          <code><a href="import_masshunter_csv.html">import_masshunter_csv()</a></code> 
+        </dt>
+        <dd>Read and convert an Agilent MassHunter Quant CSV result file</dd>
+      </dl><dl><dt>
+          
+          <code><a href="import_masshunter_csv_wide.html">import_masshunter_csv_wide()</a></code> 
+        </dt>
+        <dd>Reads a wide CSV file with Feature Intensities</dd>
+      </dl><dl><dt>
+          
+          <code><a href="import_msorganizer_xlm.html">import_msorganizer_xlm()</a></code> 
         </dt>
         <dd>Imports metadata provided by an MSOrganizer EXCEL template</dd>
-      </dl><dl><dt>
-          
-          <code><a href="loadMSOrganizerXLM.html">loadMSOrganizerXLM()</a></code> 
-        </dt>
-        <dd>#' load_MRMkit_csv
-#'
-#' @param data MidarExperiment object
-#' @param filename file name of the MH CSV file
-#'
-#' @importFrom methods validObject
-#'
-#' @return MidarExperiment object
-#' @export
-#'
-#'
-load_MRMkit_csv &lt;- function(data, filename) 
-data@dataset_orig &lt;- read_MRMkitCSV(filename, silent = FALSE)
-data@dataset &lt;- data@dataset_orig  %&gt;%
-dplyr::left_join(data@annot_analyses, by = c("ANALYSIS_ID"="ANALYSIS_ID"))
-stopifnot(methods::validObject(data))
-data
-
-Import metadata from the MSOrganizer template (.XLM)</dd>
-      </dl><dl><dt>
-          
-          <code><a href="loadMasshunterCSV.html">loadMasshunterCSV()</a></code> 
-        </dt>
-        <dd>loadMasshunterCSV</dd>
       </dl><dl><dt>
           
           <code><a href="normalize_by_istd.html">normalize_by_istd()</a></code> 
@@ -184,19 +166,19 @@ Import metadata from the MSOrganizer template (.XLM)</dd>
         <dd>Reads a long CSV file with Feature Intensities</dd>
       </dl><dl><dt>
           
-          <code><a href="read_MassHunterCSV.html">read_MassHunterCSV()</a></code> 
-        </dt>
-        <dd>Read and convert an Agilent MassHunter Quant CSV result file</dd>
-      </dl><dl><dt>
-          
-          <code><a href="read_MassHunterCSV_wide.html">read_MassHunterCSV_wide()</a></code> 
-        </dt>
-        <dd>Reads a wide CSV file with Feature Intensities</dd>
-      </dl><dl><dt>
-          
           <code><a href="read_long_table_csv.html">read_long_table_csv()</a></code> 
         </dt>
         <dd>Reads a long CSV file with Feature Intensities</dd>
+      </dl><dl><dt>
+          
+          <code><a href="read_masshunter_csv.html">read_masshunter_csv()</a></code> 
+        </dt>
+        <dd>Reads an Agilent MassHunter Quant CSV file</dd>
+      </dl><dl><dt>
+          
+          <code><a href="read_msorganizer_xlm.html">read_msorganizer_xlm()</a></code> 
+        </dt>
+        <dd>Import metadata from the MSOrganizer template (.XLM)</dd>
       </dl><dl><dt>
           
           <code><a href="read_table_wide.html">read_table_wide()</a></code> 

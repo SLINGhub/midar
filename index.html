@@ -85,9 +85,9 @@
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p><code>MiDAR</code> is an R package to manage, post-process, inspect and analyze small-molecule mass spectrometry (MS) raw datasets. Such datasets include pre-processed datasets from targeted lipidomics and metabolomics experiments.</p>
-<p><code>MiDAR</code> is tailored to handle a range of different real-life analytical designs, data types and processing strategies. One focus of MiDAR is on using data formats from diferent MS instrument types and data pre-processing softwares, and to collected all required metadata in structures tidy format.</p>
-<p><code>MiDAR</code> provides functions are provided to inspect and visualize the data sets, before and after processing steps, to inspect quality of the data, and effects of data processing steps. A basic set of exploratory data analysis and vizualization options is also provided. Finally, this package includes function to report the processed datasets, quality control results, and processing details to Excel, PowerPoint and interactive HTML-based reports.</p>
+<p><code>MiDAR</code> is an R package to reproducibly manage, post-process, visualize, apply quality control, and analyze small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.</p>
+<p><code>MiDAR</code> is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source tools. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.</p>
+<p>Datasets and processing steps are tracked, and can be saved as <code>MiDAR</code> S4 class object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting the of all data, metadata and applied data processing steps.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -110,8 +110,8 @@
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Load data and metadata</span></span>
-<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/loadMasshunterCSV.html">loadMasshunterCSV</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, filename <span class="op">=</span> <span class="va">masshunter_file</span><span class="op">)</span></span>
-<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/loadMSOrganizerXLM.html">loadMSOrganizerXLM</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, filename <span class="op">=</span> <span class="va">metadata_file</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_masshunter_csv.html">read_masshunter_csv</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, filename <span class="op">=</span> <span class="va">masshunter_file</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/read_msorganizer_xlm.html">read_msorganizer_xlm</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, filename <span class="op">=</span> <span class="va">metadata_file</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Normalize and quantitate each feature by internal standards</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
