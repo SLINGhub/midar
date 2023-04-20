@@ -400,7 +400,8 @@ plot_responsecurves <- function(data,
 #' @export
 plot_pca_qc <- function(data, variable, log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1) {
 
-  d_wide = data@dataset  %>% filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS") ) %>%
+  d_wide = data@dataset_QC_filtered  %>%
+    filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS"), .data$isQUANTIFIER ) %>%
     dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
 
   d_filt <- d_wide %>%
