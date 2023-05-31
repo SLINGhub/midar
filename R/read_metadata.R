@@ -28,7 +28,11 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       "VALID_ANALYSIS"
     ) |>
     dplyr::group_by(.data$BATCH_ID) |>
-    dplyr::mutate(BATCH_NO = dplyr::cur_group_id()) |>
+    dplyr::mutate(BATCH_NO = dplyr::cur_group_id(),
+                  ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
+                  ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, ".mzML|.d"),
+                  QC_TYPE = if_else(QC_TYPE == "Sample" | is.na(QC_TYPE), "SPL", QC_TYPE)
+                  ) |>
     dplyr::ungroup() %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
@@ -76,6 +80,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       RELATIVE_SAMPLE_AMOUNT = "Relative_Sample_Amount_[%]",
       INJECTION_VOL = "Injection_Volume_[uL]") |>
     dplyr::mutate(
+      ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, ".mzML|.d"),
       ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
       RQC_SERIES_ID = stringr::str_squish(as.character(.data$RQC_SERIES_ID)),
       RELATIVE_SAMPLE_AMOUNT = .data$RELATIVE_SAMPLE_AMOUNT/100) %>%
