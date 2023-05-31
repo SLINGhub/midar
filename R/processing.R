@@ -143,11 +143,11 @@ calculate_qc_metrics <- function(data) {
       Int_med_NIST = median(.data$Intensity[.data$QC_TYPE == "NIST"], na.rm = TRUE),
       Int_med_LTR = median(.data$Intensity[.data$QC_TYPE == "LTR"], na.rm = TRUE),
 
-      conc_median_TQC = median(.data$Concentration[.data$QC_TYPE == "TQC"]),
-      conc_median_BQC = median(.data$Concentration[.data$QC_TYPE == "BQC"]),
-      conc_median_SPL = median(.data$Concentration[.data$QC_TYPE == "SPL"]),
-      conc_median_NIST = median(.data$Concentration[.data$QC_TYPE == "NIST"]),
-      conc_median_LTR = median(.data$Concentration[.data$QC_TYPE == "LTR"]),
+      conc_median_TQC = median(.data$Concentration[.data$QC_TYPE == "TQC"], na.rm = TRUE),
+      conc_median_BQC = median(.data$Concentration[.data$QC_TYPE == "BQC"], na.rm = TRUE),
+      conc_median_SPL = median(.data$Concentration[.data$QC_TYPE == "SPL"], na.rm = TRUE),
+      conc_median_NIST = median(.data$Concentration[.data$QC_TYPE == "NIST"], na.rm = TRUE),
+      conc_median_LTR = median(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE),
 
       SB_Ratio_Q10 = quantile(.data$Intensity[.data$QC_TYPE == "SPL"], probs  = 0.1, na.rm = TRUE, names = FALSE)/median(.data$Intensity[.data$QC_TYPE == "PBLK"], na.rm = TRUE, names = FALSE),
 
@@ -164,8 +164,6 @@ calculate_qc_metrics <- function(data) {
       conc_CV_SPL = sd(.data$Concentration[.data$QC_TYPE == "SPL"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "SPL"], na.rm = TRUE) * 100,
       conc_CV_NIST = sd(.data$Concentration[.data$QC_TYPE == "NIST"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "NIST"], na.rm = TRUE) * 100,
       conc_CV_LTR = sd(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE) * 100)
-
-
 
   data@d_QC <- ds1
 
