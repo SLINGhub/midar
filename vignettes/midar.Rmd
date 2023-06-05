@@ -60,15 +60,15 @@ mexp <- apply_qc_filter(data = mexp,
                         R2_min = 0.8,
                         RQC_CURVE = 1)
 
-# Plot the intensities (peak areas) of the internal standards
-# plot_runscatter(data = mexp, 
-#   y_var = "Intensity",
-#   transition_filter = "ISTD",
-#   show_driftcorrection = FALSE,
-#   QC_TYPE_fit = "BQC",
-#   show_batches = TRUE, 
-#   cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
-#   outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
+#Plot the intensities (peak areas) of the internal standards
+plot_runscatter(data = mexp,
+  y_var = "Intensity",
+  transition_filter = "ISTD",
+  show_driftcorrection = FALSE,
+  QC_TYPE_fit = "BQC",
+  show_batches = TRUE,
+  cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
+  outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
 
 ```
 
