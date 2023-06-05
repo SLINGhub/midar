@@ -256,11 +256,11 @@ plot_responsecurves_page <- function(dataset,
                   ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
              y = !!y_var,
              color = .data$RQC_SERIES_ID)) +
-    # ggpmisc::stat_poly_line(data = subset(dataset, dataset$RELATIVE_SAMPLE_AMOUNT<= (regr_max_percent/100)),
-    #                         ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
-    #                    y  = !!y_var,
-    #                    color = .data$RQC_SERIES_ID),
-    #                se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE) +
+    ggpmisc::stat_poly_line(data = subset(dataset, dataset$RELATIVE_SAMPLE_AMOUNT<= (regr_max_percent/100)),
+                            ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
+                       y  = !!y_var,
+                       color = .data$RQC_SERIES_ID),
+                   se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE) +
     # ggpmisc::stat_poly_eq(
     #   ggplot2::aes(group = .data$RQC_SERIES_ID, label = ggplot2::after_stat(.data$rr.label)),
     #   size = 2* text_scale_factor, rr.digits = 3, vstep = .1) +
