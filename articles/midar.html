@@ -33,7 +33,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.0000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -115,7 +115,7 @@ a MassHunter CSV file, metadata in an Excel template</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SLINGhub/midar" class="external-link">midar</a></span><span class="op">)</span></span>
 <span><span class="co">#masshunter_file &lt;- here::here("inst/extdata/Example_MHQuant_1.csv")</span></span>
-<span><span class="co">#metadata_file &lt;- here::here("inst/extdata/Example_Metadata_MSTemplateCreator_1.xlsm")</span></span>
+<span><span class="co">#metadata_file &lt;- here::here("inst/extdata/Example_Metadata_1.xlsm")</span></span>
 <span></span>
 <span><span class="co"># Get paths of example files included with this package</span></span>
 <span><span class="va">masshunter_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Example_MHQuant_1.csv"</span>, package <span class="op">=</span> <span class="st">"midar"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -150,13 +150,13 @@ a MassHunter CSV file, metadata in an Excel template</p>
 <span>                        RQC_CURVE <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 171 of 428 features passed QC filtering.</span></span>
 <span></span>
-<span><span class="co"># Plot the intensities (peak areas) of the internal standards</span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, </span>
+<span><span class="co">#Plot the intensities (peak areas) of the internal standards</span></span>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>  y_var <span class="op">=</span> <span class="st">"Intensity"</span>,</span>
 <span>  transition_filter <span class="op">=</span> <span class="st">"ISTD"</span>,</span>
 <span>  show_driftcorrection <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  QC_TYPE_fit <span class="op">=</span> <span class="st">"BQC"</span>,</span>
-<span>  show_batches <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  show_batches <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  cap_values <span class="op">=</span> <span class="cn">TRUE</span>, cols_page <span class="op">=</span> <span class="fl">4</span>, rows_page <span class="op">=</span> <span class="fl">4</span>,point_size <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  outputPDF <span class="op">=</span> <span class="cn">FALSE</span>, filename <span class="op">=</span> <span class="st">"RunScatter_Areas_ISTD.pdf"</span>, return_plot_list <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Plotting 1 pages..."</span></span>
