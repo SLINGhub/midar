@@ -40,7 +40,6 @@ combine_experiments <- function(..., ordered_by_runsequence){
 
   mexp@annot_batch_info <- mexp@annot_analyses %>%
     dplyr::group_by(.data$BATCH_ID) %>%
-    dplyr::mutate(BATCH_NO = dplyr::cur_group_id()) %>%
     dplyr::summarise(
       BATCH_ID = .data$BATCH_ID[1],
       BATCH_NO = .data$BATCH_NO[1],
@@ -48,10 +47,9 @@ combine_experiments <- function(..., ordered_by_runsequence){
       id_batch_end = dplyr::last(.data$RUN_ID_ANNOT)) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(.data$id_batch_start) %>%
+    dplyr::mutate(BATCH_NO = dplyr::row_number()) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
-
   mexp
-
 }
 
 
