@@ -114,7 +114,7 @@ plot_runscatter <- function(data, y_var, transition_filter, filter_exclude = FAL
   on.exit(if(outputPDF) {dev.off()})
   if(return_plot_list) return(p_list)
 }
-#' @importFrom ggplot2
+#' @importFrom ggplot2 Stat
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, QC_TYPE_fit,cap_values,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, trend_samples_fun, trend_samples_col, plot_other_qc,
@@ -256,11 +256,11 @@ plot_responsecurves_page <- function(dataset,
                   ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
              y = !!y_var,
              color = .data$RQC_SERIES_ID)) +
-    # ggpmisc::stat_poly_line(data = subset(dataset, dataset$RELATIVE_SAMPLE_AMOUNT<= (regr_max_percent/100)),
-    #                         ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
-    #                    y  = !!y_var,
-    #                    color = .data$RQC_SERIES_ID),
-    #                se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE) +
+    ggpmisc::stat_poly_line(data = subset(dataset, dataset$RELATIVE_SAMPLE_AMOUNT<= (regr_max_percent/100)),
+                            ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
+                       y  = !!y_var,
+                       color = .data$RQC_SERIES_ID),
+                   se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE ) +
     ggpmisc::stat_poly_eq(
       ggplot2::aes(group = .data$RQC_SERIES_ID, label = ggplot2::after_stat(.data$rr.label)),
       size = 2* text_scale_factor, rr.digits = 3, vstep = .1) +
