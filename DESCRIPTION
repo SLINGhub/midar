@@ -1,6 +1,6 @@
 Package: midar
 Title: Small Molecule Mass Spectrometry Data Post-Processing, Quality Control, Exploration and Reporting
-Version: 0.1.0.0000
+Version: 0.1.0.1
 Authors@R: 
     person("Bo", "Burla", , "bo.burla@nus.edu.sg", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5918-3249"))
