@@ -167,7 +167,6 @@ calculate_qc_metrics <- function(data) {
 
   data@d_QC <- ds1
 
-
   if ("RQC" %in% data@dataset$QC_TYPE){
     model <- as.formula("Intensity ~ RELATIVE_SAMPLE_AMOUNT")
     ds2 <- data@dataset %>%

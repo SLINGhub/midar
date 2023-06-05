@@ -155,9 +155,6 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
   if(!silent) {
     print(glue::glue("Imported {length(unique(datLong$DataFileName))} samples with {length(unique(datLong$FEATURE_NAME))} transitions. \n"))
   }
-
-
-
   datLong
 }
 
