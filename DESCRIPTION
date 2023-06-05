@@ -50,5 +50,6 @@ Imports:
     fs,
     openxlsx,
     ggh4x,
-    crayon
+    crayon,
+    ComplexHeatmap
 VignetteBuilder: knitr
