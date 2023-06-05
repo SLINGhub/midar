@@ -15,6 +15,7 @@
 #' @importFrom methods is
 #' @importFrom purrr map_dfr
 #' @importFrom stats as.formula lm median na.exclude sd quantile na.omit setNames p.adjust t.test
+#' @importFrom ggpmisc stat_poly_line stat_poly_eq
 #'
 ## usethis namespace: end
 NULL
