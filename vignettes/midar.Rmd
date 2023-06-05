@@ -31,7 +31,7 @@ Below is example of a simple data processing workflow, starting with a MassHunte
 ```{r}
 library(midar)
 #masshunter_file <- here::here("inst/extdata/Example_MHQuant_1.csv")
-#metadata_file <- here::here("inst/extdata/Example_Metadata_MSTemplateCreator_1.xlsm")
+#metadata_file <- here::here("inst/extdata/Example_Metadata_1.xlsm")
 
 # Get paths of example files included with this package
 masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
@@ -61,15 +61,14 @@ mexp <- apply_qc_filter(data = mexp,
                         RQC_CURVE = 1)
 
 # Plot the intensities (peak areas) of the internal standards
-plot_runscatter(data = mexp, 
-  y_var = "Intensity",
-  transition_filter = "ISTD",
-  show_driftcorrection = FALSE,
-  QC_TYPE_fit = "BQC",
-  show_batches = TRUE, 
-  cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
-  outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
-
+# plot_runscatter(data = mexp, 
+#   y_var = "Intensity",
+#   transition_filter = "ISTD",
+#   show_driftcorrection = FALSE,
+#   QC_TYPE_fit = "BQC",
+#   show_batches = TRUE, 
+#   cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
+#   outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
 
 ```
 

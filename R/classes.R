@@ -178,7 +178,6 @@ MidarExperiment <- function() {
 }
 
 check_integrity <-  function(object) {
-browser()
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
     d_xy <- length(setdiff(object@dataset_orig$ANALYSIS_ID %>% unique(), object@annot_analyses$ANALYSIS_ID))
     d_yx <- length(setdiff(object@annot_analyses$ANALYSIS_ID,object@dataset_orig$ANALYSIS_ID %>% unique()))
