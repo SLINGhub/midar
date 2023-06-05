@@ -30,7 +30,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
     dplyr::group_by(.data$BATCH_ID) |>
     dplyr::mutate(BATCH_NO = dplyr::cur_group_id(),
                   ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
-                  ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, ".mzML|.d"),
+                  ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, "\\.mzML|\\.d"),
                   QC_TYPE = if_else(QC_TYPE == "Sample" | is.na(QC_TYPE), "SPL", QC_TYPE)
                   ) |>
     dplyr::ungroup() %>%
