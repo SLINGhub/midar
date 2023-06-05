@@ -295,7 +295,7 @@ read_MRMkit_raw_area_CSV<- function(filename, use_mrmkit_normdata = FALSE, silen
     dplyr::mutate(RUN_ID = dplyr::row_number(), .before = .data$name) %>%
     tidyr::pivot_longer(-.data$RUN_ID:-.data$name, names_to = "FEATURE_NAME", values_to = "Intensity") %>%
     dplyr::rename(ANALYSIS_ID  = .data$name) %>%
-    dplyr::mutate(ANALYSIS_ID = stringr::str_squish(stringr::str_replace(.data$ANALYSIS_ID, stringr::fixed("\\.mzML"), ""))) %>%
+    dplyr::mutate(ANALYSIS_ID = stringr::str_squish(stringr::str_replace(.data$ANALYSIS_ID, "\\.mzML", ""))) %>%
     dplyr::mutate(FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$FEATURE_NAME, ".*(?= RT)")),.data$FEATURE_NAME)) %>%
     dplyr::mutate(dplyr::across(.data$Intensity, as.numeric)) %>%
     dplyr::left_join(d_mrmkit_featureinfo, by = "FEATURE_NAME") %>%
