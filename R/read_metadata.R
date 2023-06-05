@@ -80,7 +80,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       RELATIVE_SAMPLE_AMOUNT = "Relative_Sample_Amount_[%]",
       INJECTION_VOL = "Injection_Volume_[uL]") |>
     dplyr::mutate(
-      ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, ".mzML|.d"),
+      ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, "\\.mzML|\\.d"),
       ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
       RQC_SERIES_ID = stringr::str_squish(as.character(.data$RQC_SERIES_ID)),
       RELATIVE_SAMPLE_AMOUNT = .data$RELATIVE_SAMPLE_AMOUNT/100) %>%
