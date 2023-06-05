@@ -8,7 +8,7 @@ testthat::test_that("import_msorganizer_xlm: Template with all information", {
   mexp <- midar::calculate_qc_metrics(mexp)
 
   dd <- readRDS("21_MidarExperiment_1.rds")
-expect_equal(all.equal(mexp@d_QC, dd@d_QC), TRUE) &
+  expect_equal(all.equal(mexp@d_QC, dd@d_QC), TRUE) &
   expect_equal(all.equal(mexp@dataset, dd@dataset), TRUE)
 })
 
