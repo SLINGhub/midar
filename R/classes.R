@@ -210,15 +210,15 @@ check_integrity <-  function(object) {
 methods::setValidity("MidarExperiment", check_integrity)
 
 
-get_status_flag <- function(x) if_else(x > 0, crayon::green('\u2713'), crayon::red('\u2717'))
+get_status_flag <- function(x) if_else(x > 0, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
 
 
 setMethod("show", "MidarExperiment", function(object) {
   cat("\n", is(object)[[1]], "\n",
       "\n",
       "  Data: ", "\n",
-      "  \u2022 Samples: ", length(unique(object@dataset_orig$DataFileName)), "\n",
-      "  \u2022 Features:  ", length(unique(object@dataset_orig$FEATURE_NAME)), "\n",
+      "  \u2022 Samples: ", length(unique(object@dataset$ANALYSIS_ID)), "\n",
+      "  \u2022 Features:  ", length(unique(object@dataset$FEATURE_NAME)), "\n",
       "\n",
       "  Metadata: ", "\n",
       "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses)), "\n",
