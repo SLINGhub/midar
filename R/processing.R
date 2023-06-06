@@ -173,7 +173,7 @@ calculate_qc_metrics <- function(data) {
       conc_CV_NIST = sd(.data$Concentration[.data$QC_TYPE == "NIST"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "NIST"], na.rm = TRUE) * 100,
       conc_CV_LTR = sd(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE) * 100)
 
-  data@d_QC <- ds1
+  data@metrics_qc <- ds1
 
   if ("RQC" %in% data@dataset$QC_TYPE){
     model <- as.formula("Intensity ~ RELATIVE_SAMPLE_AMOUNT")
@@ -192,7 +192,7 @@ calculate_qc_metrics <- function(data) {
       dplyr::select("FEATURE_NAME", "RQC_SERIES_ID", R2 = "r.squared", Y0 = "sigma") %>%
       tidyr::pivot_wider(names_from = "RQC_SERIES_ID", values_from = c("R2", "Y0"), names_prefix = "RQC_")
 
-    data@d_QC <- data@d_QC  %>% dplyr::left_join(ds2, by = "FEATURE_NAME")
+    data@metrics_qc <- data@metrics_qc  %>% dplyr::left_join(ds2, by = "FEATURE_NAME")
   }
   data
 
@@ -210,10 +210,10 @@ calculate_qc_metrics <- function(data) {
 
 saveQCinfo <- function(data, filename) {
 
-  if (nrow(data@d_QC)== 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+  if (nrow(data@metrics_qc)== 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
 
-  readr::write_csv(data@d_QC, file = filename, num_threads = 4, col_names = TRUE)
-  invisible(data@d_QC)
+  readr::write_csv(data@metrics_qc, file = filename, num_threads = 4, col_names = TRUE)
+  invisible(data@metrics_qc)
 
 }
 
@@ -241,7 +241,7 @@ apply_qc_filter <-  function(data,
                    ){
 
 
-  if (nrow(data@d_QC)== 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+  if (nrow(data@metrics_qc)== 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
 
   if(is.na(Intensity_BQC_min)) Intensity_BQC_min <- -Inf
   if(is.na(CV_BQC_max)) CV_BQC_max <- Inf
@@ -250,7 +250,7 @@ apply_qc_filter <-  function(data,
   if(is.na(SB_RATIO_min)) SB_RATIO_min <- 0
   if(is.na(R2_min)) R2_min <- 0
 
-  d_filt <-  data@d_QC %>% filter(is.na(.data$Int_med_BQC)|.data$Int_med_BQC > Intensity_BQC_min,
+  d_filt <-  data@metrics_qc %>% filter(is.na(.data$Int_med_BQC)|.data$Int_med_BQC > Intensity_BQC_min,
                                   is.na(.data$Int_med_TQC)|.data$Int_med_TQC > Intensity_TQC_min,
                                   is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < CV_BQC_max,
                                   is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < CV_TQC_max,
@@ -259,14 +259,14 @@ apply_qc_filter <-  function(data,
 
   if ((!is.na(R2_min))&is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values")
   if(is.numeric(RQC_CURVE)) {
-    rqc_r2_col <- names(data@d_QC)[which(stringr::str_detect(names(data@d_QC), "R2_RQC"))[RQC_CURVE]]
+    rqc_r2_col <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))[RQC_CURVE]]
   } else {
     rqc_r2_col <- paste0("R2_RQC_", RQC_CURVE)
   }
 
-  if(rqc_r2_col %in% names(data@d_QC)) d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col))|!!ensym(rqc_r2_col) > R2_min)
+  if(rqc_r2_col %in% names(data@metrics_qc)) d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col))|!!ensym(rqc_r2_col) > R2_min)
 
-  print(glue::glue("{nrow(d_filt)} of {nrow(data@d_QC)} features passed QC filtering."))
+  print(glue::glue("{nrow(d_filt)} of {nrow(data@metrics_qc)} features passed QC filtering."))
   data@dataset_QC_filtered <- data@dataset %>% dplyr::right_join(d_filt|> dplyr::select("FEATURE_NAME"), by = "FEATURE_NAME")
   data
 }

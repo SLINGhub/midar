@@ -31,8 +31,16 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{annot_batch_info}}{Annotation of batches. Required fields:}
 
-\item{\code{d_QC}}{QC information for each measured feature}
+\item{\code{metrics_qc}}{QC information for each measured feature}
 
 \item{\code{status_processing}}{Status within the data processing workflow}
+
+\item{\code{is_istd_normalized}}{Flag if data has been ISTD normalized}
+
+\item{\code{is_quantitated}}{Flag if data has been quantitated using ISTD and sample amount}
+
+\item{\code{is_drift_corrected}}{Flag if data has been drift corrected}
+
+\item{\code{is_batch_corrected}}{Flag if data has been batch corrected}
 }}
 

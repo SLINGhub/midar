@@ -131,7 +131,7 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @slot annot_responsecurves Annotation of  Response curves (RQC). Required fields
 #' @slot annot_studysamples Annotation of study samples. Required fields:
 #' @slot annot_batch_info Annotation of batches. Required fields:
-#' @slot d_QC QC information for each measured feature
+#' @slot metrics_qc QC information for each measured feature
 #' @slot status_processing Status within the data processing workflow
 #' @slot is_istd_normalized Flag if data has been ISTD normalized
 #' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
@@ -153,7 +153,7 @@ setClass("MidarExperiment",
            annot_responsecurves= "tbl_df",
            annot_studysamples = "tbl_df",
            annot_batch_info = "tbl_df",
-           d_QC = "tbl_df",
+           metrics_qc = "tbl_df",
            status_processing = "character",
            is_istd_normalized = "logical",
            is_quantitated = "logical",
@@ -170,7 +170,7 @@ setClass("MidarExperiment",
            annot_responsecurves= pkg.env$dataset_templates$annot_responsecurves_template,
            annot_studysamples = tibble::tibble(),
            annot_batch_info = tibble::tibble(),
-           d_QC = tibble::tibble(),
+           metrics_qc = tibble::tibble(),
            status_processing = "No Data",
            is_istd_normalized = FALSE,
            is_quantitated = FALSE,

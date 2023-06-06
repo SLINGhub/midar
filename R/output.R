@@ -54,7 +54,7 @@ writeReportXLS <- function(data, filename) {
             "Intensities_All" = d_intensity_wide,
             "Conc_All" = d_conc_wide,
             "Conc_QCfilt" = d_conc_wide_QC,
-            "QC" = data@d_QC,
+            "QC" = data@metrics_qc,
             "Info" = d_info,
             "SampleMetadata" = data@annot_analyses,
             "FeatureMetadata" = data@annot_features,
