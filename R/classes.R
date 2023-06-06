@@ -151,7 +151,11 @@ setClass("MidarExperiment",
            annot_studysamples = "tbl_df",
            annot_batch_info = "tbl_df",
            d_QC = "tbl_df",
-           status_processing = "character"
+           status_processing = "character",
+           is_istd_normalized = "logical",
+           is_quantitated = "logical",
+           is_drift_corrected = "logical",
+           is_batch_corrected = "logical"
          ),
          prototype = list(
            dataset_orig = pkg.env$dataset_templates$annot_analyses_template,
@@ -164,7 +168,11 @@ setClass("MidarExperiment",
            annot_studysamples = tibble::tibble(),
            annot_batch_info = tibble::tibble(),
            d_QC = tibble::tibble(),
-           status_processing = "No Data"
+           status_processing = "No Data",
+           is_istd_normalized = FALSE,
+           is_quantitated = FALSE,
+           is_drift_corrected = FALSE,
+           is_batch_corrected = FALSE
          )
 )
 
@@ -210,7 +218,7 @@ check_integrity <-  function(object) {
 methods::setValidity("MidarExperiment", check_integrity)
 
 
-get_status_flag <- function(x) if_else(x > 0, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
+get_status_flag <- function(x) if_else(x, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
 
 
 setMethod("show", "MidarExperiment", function(object) {
@@ -221,22 +229,21 @@ setMethod("show", "MidarExperiment", function(object) {
       "  \u2022 Features:  ", length(unique(object@dataset$FEATURE_NAME)), "\n",
       "\n",
       "  Metadata: ", "\n",
-      "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses)), "\n",
-      "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features)), "\n",
-      "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd)), "\n",
-      "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves)), "\n",
-      "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples)), "\n",
+      "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses) > 0), "\n",
+      "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features) > 0), "\n",
+      "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd) > 0), "\n",
+      "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves) > 0), "\n",
+      "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples) > 0), "\n",
       "\n",
-      "  Processing status: Unknown", "\n",
+      "  Processing status: ",object@status_processing, "\n",
       "\n",
       "  Processing: ", "\n",
-      "  \u2022 ISTD-normalized: ", "\n",
-      "  \u2022 ISTD-quantitated: ", "\n",
-      "  \u2022 Drift corrected: ", "\n",
-      "  \u2022 Batch corrected: ", "\n"
+      "  \u2022 ISTD-normalized: ", get_status_flag(object@is_istd_normalized), "\n",
+      "  \u2022 ISTD-quantitated: ", get_status_flag(object@is_quantitated), "\n",
+      "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
+      "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n"
   )
 })
-
 
 
 #' @title Reads an Agilent MassHunter Quant CSV file
@@ -262,6 +269,7 @@ read_masshunter_csv <- function(data, filename) {
   data@dataset_orig <- import_masshunter_csv(filename, silent = FALSE)
   data@dataset_orig <- data@dataset_orig %>% dplyr::rename(Intensity = "Area")
   stopifnot(methods::validObject(data))
+  data@status_processing <- "Raw Data"
   data
 }
 
@@ -322,6 +330,7 @@ read_msorganizer_xlm <- function(data, filename) {
     dplyr::right_join(d_annot$annot_features %>% dplyr::select(dplyr::any_of(c("FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "FEATURE_ID", "isQUANTIFIER"))), by = c("FEATURE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
   stopifnot(methods::validObject(data))
+  data@status_processing <- "Annotated Raw Data"
   data
 }
 

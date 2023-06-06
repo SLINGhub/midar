@@ -355,6 +355,7 @@ read_MRMkit_results <- function(data, raw_area_file, final_results_file, silent 
     data@dataset <- data@dataset_orig %>% left_join(d_results, by=c("ANALYSIS_ID", "FEATURE_NAME"))
 
   }
+  data@status_processing <- "Raw Data"
   data
 }
 

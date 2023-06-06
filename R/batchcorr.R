@@ -25,6 +25,7 @@ batch_corr_center <- function(data, qc_types, center_by_fun = "median"){
     dplyr::ungroup()
 
   data@dataset <- ds
+  data@status_processing <- "Batch-corrected Quantitated Data"
   data
 }
 
@@ -101,5 +102,6 @@ drift_corr_loess <- function(data, qc_types, smooth_by_batch = TRUE, log2_transf
 
 
   data@dataset <- data@dataset %>% dplyr::left_join(d %>% dplyr::select("ANALYSIS_ID", "FEATURE_NAME", CURVE_PREDICTED = "Y_PREDICTED", CONC_DRIFT_ADJ = "Y_ADJ", "CV_RAW_SPL", "CV_ADJ_SPL", "DRIFT_CORRECTED", CONC_FINAL = "Y_FINAL"))
+  data@status_processing <- "Drift-corrected Quantitated Data"
   data
 }
