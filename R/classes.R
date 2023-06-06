@@ -133,7 +133,10 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @slot annot_batch_info Annotation of batches. Required fields:
 #' @slot d_QC QC information for each measured feature
 #' @slot status_processing Status within the data processing workflow
-#'
+#' @slot is_istd_normalized Flag if data has been ISTD normalized
+#' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
+#' @slot is_drift_corrected Flag if data has been drift corrected
+#' @slot is_batch_corrected Flag if data has been batch corrected
 #' @export
 #'
 #' @importFrom utils tail
