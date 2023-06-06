@@ -26,12 +26,11 @@ get_conc_unit <- function(sample_amount_unit){
 normalize_by_istd <- function(data) {
   if(nrow(data@annot_features) < 1) stop("ISTD map is missing...please import transition annotations.")
   if("normIntensity" %in% names(data@dataset)) {
-    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("normIntensity", "pmol_total", "Concentration")))
-    if (all(is.na(data@dataset$normIntensity))) warning("Overwriting exiting normalized Intensities")
+    if (!all(is.na(data@dataset$normIntensity))) warning("Overwriting exiting normalized Intensities")
+    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("normIntensity", "pmol_total", "Concentration", "CONC_DRIFT_ADJ", "CONC_FINAL")))
   }
 
   d_temp <- data@dataset #%>%     dplyr::full_join(data@annot_features, by = c("FEATURE_NAME" = "FEATURE_NAME"),)
-  #browser()
   d_temp <- d_temp  %>%
     dplyr::group_by(.data$NORM_ISTD_FEATURE_NAME, .data$ANALYSIS_ID) %>%
     dplyr::mutate(normIntensity = .data$Intensity/.data$Intensity[.data$isISTD]) %>%
@@ -43,7 +42,11 @@ normalize_by_istd <- function(data) {
   n_features <- length(unique(data@annot_features$FEATURE_NAME))
   n_ISTDs <- length(unique(data@annot_features$NORM_ISTD_FEATURE_NAME))
   print(glue::glue("{n_features} features normalized with {n_ISTDs} ISTDs. \n"))
-
+  data@status_processing <- "ISTD-normalized Data"
+  data@is_istd_normalized <- TRUE
+  data@is_quantitated <- FALSE
+  data@is_drift_corrected = FALSE
+  data@is_batch_corrected = FALSE
   data
 }
 
@@ -80,6 +83,12 @@ quantitate_by_istd <- function(data) {
 
   print(glue::glue("{n_features} compounds quantitated in {nrow(data@annot_analyses)} samples using {n_ISTDs} spiked ISTDs.
                    Concentration unit: [{conc_unit}]"))
+
+  data@status_processing <- "Quantitated Data"
+  data@is_istd_normalized <- TRUE
+  data@is_quantitated <- TRUE
+  data@is_drift_corrected = FALSE
+  data@is_batch_corrected = FALSE
 
   data
 }
