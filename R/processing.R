@@ -27,7 +27,7 @@ normalize_by_istd <- function(data) {
   if(nrow(data@annot_features) < 1) stop("ISTD map is missing...please import transition annotations.")
   if("normIntensity" %in% names(data@dataset)) {
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("normIntensity", "pmol_total", "Concentration")))
-    warning("Overwriting exiting normalized Intensities")
+    if (all(is.na(data@dataset$normIntensity))) mwarning("Overwriting exiting normalized Intensities")
   }
 
 
