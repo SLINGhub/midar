@@ -241,8 +241,8 @@ setMethod("show", "MidarExperiment", function(object) {
       "  Processing status: ",object@status_processing, "\n",
       "\n",
       "  Processing: ", "\n",
-      "  \u2022 ISTD-normalized: ", get_status_flag(object@is_istd_normalized), "\n",
-      "  \u2022 ISTD-quantitated: ", get_status_flag(object@is_quantitated), "\n",
+      "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
+      "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
       "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
       "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n"
   )
