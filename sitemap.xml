@@ -43,19 +43,19 @@
     <loc>https://slinghub.github.io/midar/reference/apply_qc_filter.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/batch_corr_center.html</loc>
-  </url>
-  <url>
     <loc>https://slinghub.github.io/midar/reference/calculate_qc_metrics.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/combine_experiments.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/cvlog.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/corr_batch_centering.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/drift_corr_loess.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/corr_drift_loess.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/cvlog.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/exportWideCSV.html</loc>

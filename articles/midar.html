@@ -134,10 +134,10 @@ a MassHunter CSV file, metadata in an Excel template</p>
 <span></span>
 <span><span class="co"># Normalize and quantitate each feature by internal standards</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 428 features normalized with 15 ISTDs.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✓ 428 features normalized with 15 ISTDs. </span></span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quantitate_by_istd.html">quantitate_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 428 compounds quantitated in 215 samples using 15 spiked ISTDs.</span></span>
-<span><span class="co">#&gt; Concentration unit: [μmol/L]</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✓ 428 features quantitated in 215 samples using 15 spiked ISTDs and sample amounts.</span></span></span>
+<span><span class="co"><span style="color: #00BB00;">#&gt; Concentration unit: [μmol/L].</span></span></span>
 <span></span>
 <span><span class="co"># Get QC metrics for each feature</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_qc_metrics.html">calculate_qc_metrics</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
