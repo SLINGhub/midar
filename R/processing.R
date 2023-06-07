@@ -27,7 +27,7 @@ normalize_by_istd <- function(data) {
   if(nrow(data@annot_features) < 1) stop("ISTD map is missing...please import transition annotations.")
   if("normIntensity" %in% names(data@dataset)) {
     if (!all(is.na(data@dataset$normIntensity))) warning("Overwriting exiting normalized Intensities")
-    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("normIntensity", "pmol_total", "Concentration", "CONC_DRIFT_ADJ", "CONC_FINAL")))
+    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("normIntensity", "pmol_total", "Concentration", "CONC_DRIFT_ADJ", "CONC_ADJ")))
   }
 
   d_temp <- data@dataset #%>%     dplyr::full_join(data@annot_features, by = c("FEATURE_NAME" = "FEATURE_NAME"),)
@@ -41,7 +41,7 @@ normalize_by_istd <- function(data) {
 
   n_features <- length(unique(data@annot_features$FEATURE_NAME))
   n_ISTDs <- length(unique(data@annot_features$NORM_ISTD_FEATURE_NAME))
-  print(glue::glue("{n_features} features normalized with {n_ISTDs} ISTDs. \n"))
+  writeLines(crayon::green(glue::glue("\u2713 {n_features} features normalized with {n_ISTDs} ISTDs. \n")))
   data@status_processing <- "ISTD-normalized Data"
   data@is_istd_normalized <- TRUE
   data@is_quantitated <- FALSE
@@ -76,13 +76,15 @@ quantitate_by_istd <- function(data) {
   data@dataset <- data@dataset %>%
     dplyr::inner_join(d_temp %>% dplyr::select("ANALYSIS_ID", "FEATURE_NAME", "pmol_total", "Concentration"), by = c("ANALYSIS_ID", "FEATURE_NAME"))
 
+  data@dataset$CONC_RAW <- data@dataset$Concentration
+
   n_features <- length(unique(data@annot_features$FEATURE_NAME))
   n_ISTDs <- length(unique(data@annot_features$NORM_ISTD_FEATURE_NAME))
 
   conc_unit <- get_conc_unit(data@annot_analyses$SAMPLE_AMOUNT_UNIT)
 
-  print(glue::glue("{n_features} compounds quantitated in {nrow(data@annot_analyses)} samples using {n_ISTDs} spiked ISTDs.
-                   Concentration unit: [{conc_unit}]"))
+  writeLines(crayon::green(glue::glue("\u2713 {n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_ISTDs} spiked ISTDs and sample amounts.
+                   Concentration unit: [{conc_unit}].")))
 
   data@status_processing <- "Quantitated Data"
   data@is_istd_normalized <- TRUE
@@ -109,7 +111,7 @@ exportWideCSV <- function(data, variable, filename) {
 
   var <- dplyr::sym(variable)
 
-  if (!(variable %in% names(data@dataset))) stop("Variable '", variable,  "' does not (yet) exist in dataset")
+  if (!(variable %in% names(data@dataset))) stop("Variable '", variable,  "' does not (yet) exist in dataset.")
 
   ds <- data@dataset |>
     dplyr::select("ANALYSIS_ID", "QC_TYPE", "AcqTimeStamp", "FEATURE_NAME", !!var) %>%
@@ -257,7 +259,7 @@ apply_qc_filter <-  function(data,
                                   is.na(.data$SB_Ratio_Q10)|.data$SB_Ratio_Q10 > SB_RATIO_min)
 
 
-  if ((!is.na(R2_min))&is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values")
+  if ((!is.na(R2_min))&is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
   if(is.numeric(RQC_CURVE)) {
     rqc_r2_col <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))[RQC_CURVE]]
   } else {

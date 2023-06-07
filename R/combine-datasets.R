@@ -16,15 +16,10 @@
 
 combine_experiments <- function(..., ordered_by_runsequence){
   exp_list <- list(...)
-
-
-
   if (is.null(attr(exp_list,which = "class")[[1]])) exp_list <- exp_list[[1]]
 
   mexp <- MidarExperiment()
-
-
-
+  mexp@dataset_orig <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset_orig)  |> dplyr::distinct()
   mexp@dataset <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset)  |> dplyr::distinct()
   mexp@annot_analyses <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_analyses) |> mutate(RUN_ID_ANNOT = dplyr::row_number())
   mexp@annot_istd <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_istd)  |> dplyr::distinct()
