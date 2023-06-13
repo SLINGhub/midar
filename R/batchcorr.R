@@ -1,75 +1,101 @@
-#' Batch centering
-#' @description
-#' A short description...
-#' #' @details
-#' Additional details...
-#' @param data MidarExperiment object
-#' @param qc_types QC types used for batch correction
-#' @param use_raw_concentrations Apply to unadjusted (raw) concentration. Default is FALSE, which means previously drift-corrected concentrations will be used if available, otherwise unadjusted concentrations will be used
-#' @param center_fun Function used to center. Default is "median".
-#' @return MidarExperiment object
-#' @importFrom glue glue
-#' @export
-corr_batch_centering <- function(data, qc_types, use_raw_concentrations = FALSE, center_fun = "median"){
+##########################################################################################
+# Gaussian Kernel Smoother
+# based on approach and scripts by Hyung Won Choi, National University of Singapore
+# Teo et al, Analytical Chemistry, 2020
 
-  ds <- data@dataset
-  if (!data@is_drift_corrected | use_raw_concentrations) var <- rlang::sym("CONC_RAW") else var <- rlang::sym("CONC_ADJ")
-  # Normalize by the median (or user-defined function)
-  ds <- ds %>%
-    dplyr::group_by(.data$FEATURE_NAME,  .data$BATCH_ID) %>%
-    dplyr::mutate(CONC_ADJ_NEW = {{var}}/do.call(center_fun,list(({{var}}[.data$QC_TYPE %in% qc_types]), na.rm = TRUE))) |>
-    dplyr::ungroup()
+fun_corr_gaussiankernel = function(data, qc_types, span_width) {
+  d_subset <- data[data$QC_TYPE %in% qc_types, ] |> tidyr::drop_na(y)
 
-  # Re-level data to the median of all batches
-  ds <- ds %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
-    dplyr::mutate(CONC_ADJ =  .data$CONC_ADJ_NEW * do.call(center_fun,list({{var}}[.data$QC_TYPE %in% qc_types], na.rm = TRUE))) |>
-    dplyr::select(-"CONC_ADJ_NEW") |>
-    dplyr::ungroup()
-
-  data@dataset <- ds
-  if(data@is_drift_corrected)
-    writeLines(crayon::green(glue::glue("\u2713 Batch correction has been applied to drift-corrected concentrations of all {nrow(data@annot_features)} features.")))
-  else
-    writeLines(crayon::green(glue::glue("\u2713 Batch correction has been applied to raw concentrations of all {nrow(data@annot_features)} features.")))
-
-  if(data@is_drift_corrected & use_raw_concentrations) message("Note: previous drift correction has been removed.\n")
-  data@status_processing <- "Adjusted Quantitated Data"
-  data@is_batch_corrected = TRUE
-  data
+  res <- tryCatch({
+    fit <- KernSmooth::locpoly(d_subset$x, d_subset$y, bandwidth = span_width, gridsize = nrow(data), range.x = c(min(data$x), max(data$x)))
+    fit$y
+  },
+  error = function(e) {
+    #print(e$message)
+    return(rep(NA_real_, length(data$x)))})
+  list(res = res, fit_error = all(is.na(res)))
 }
 
+fun_corr_loess <- function(d, qc_types, span_width) {
+  res <- tryCatch({
+    stats::loess(y ~ x,
+                 span = span_width, family = "gaussian", degree = 2, normalize=FALSE, iterations=4,
+                 data = d[d$QC_TYPE %in% qc_types, ]) %>%
+      stats::predict(tibble::tibble(x = seq(min(d$x), max(d$x), 1))) %>% as.numeric()},
+    error = function(e) {
+      #message("Not enough data for the Loess fit"). # will be shown for each feature/batch...
+      return(rep(NA_real_, length(d$x)))})
+  list(res = res, fit_error = all(is.na(res)))
+}
 
-#' Run-rder Drift Correction
+#' Drift Correction by LOESS Smoothing
 #' @description
-#' A short description...
+#' Function to correct for run-order drifts within or across batches using loess smoothing
 #' #' @details
-#' Additional details...
+#'
 #' @param data MidarExperiment object
 #' @param qc_types QC types used for drift correction
 #' @param within_batch Correct each batch separately (Default is TRUE)
 #' @param apply_conditionally Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'
 #' @param log2_transform log2 transform data during correction (Default is TRUE)
-#' @param loess_span Loess span width (default is 0.75)
+#' @param span_width Loess span width (default is 0.75)
 #' @param feature_list Apply correction only to species matching (RegEx)
 #' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
 #' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
 #' @return MidarExperiment object
 #' @export
 corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
-                             log2_transform = TRUE, loess_span = 0.75, feature_list = NULL, min_sample_cv_ratio_before_after = 1){
+                           log2_transform = TRUE, span = 0.75, feature_list = NULL, min_sample_cv_ratio_before_after = 1){
 
-  get_loess <- function(d, qc_types,loess_span) {
-    res <- tryCatch({
-      stats::loess(y ~ x,
-                          span = loess_span, family = "gaussian", degree = 2, normalize=FALSE, iterations=4,
-                          data = d[d$QC_TYPE %in% qc_types, ]) %>%
-        stats::predict(tibble::tibble(x = seq(min(d$x), max(d$x), 1))) %>% as.numeric()},
-    error = function(e) {
-      #message("Not enough data for the Loess fit"). # will be shown for each feature/batch...
-      return(rep(NA_real_, length(d$x)))})
-    list(res = res, fit_error = all(is.na(res)))
-  }
+  corr_drift_fun(data=data, smooth_fun = "fun_corr_loess", qc_types=qc_types, within_batch=within_batch, apply_conditionally=apply_conditionally, apply_conditionally_per_batch=apply_conditionally_per_batch,
+                             log2_transform=log2_transform, span_width = span, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after)
+
+}
+
+#' Drift Correction by Gaussian Kernel Smoothing
+#' @description
+#' Function to correct for run-order drifts within or across batches using gaussian kernel smoothing. This is typically used to smooth based on the study samples.
+#' #' @details
+#'
+#' @param data MidarExperiment object
+#' @param qc_types QC types used for drift correction. Typically includes the study samples (`SPL`).
+#' @param within_batch Correct each batch separately (Default is TRUE)
+#' @param apply_conditionally Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'
+#' @param log2_transform log2 transform data during correction (Default is TRUE)
+#' @param bandwidth Kernel bandwidth
+#' @param feature_list Apply correction only to species matching (RegEx)
+#' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
+#' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
+#' @return MidarExperiment object
+#' @export
+corr_drift_gaussiankernel <- function(data, qc_types, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
+                             log2_transform = TRUE, bandwidth, feature_list = NULL, min_sample_cv_ratio_before_after = 1){
+
+  corr_drift_fun(data=data, smooth_fun = "fun_corr_gaussiankernel", qc_types=qc_types, within_batch=within_batch, apply_conditionally=apply_conditionally, apply_conditionally_per_batch=apply_conditionally_per_batch,
+                 log2_transform=log2_transform, span_width = bandwidth, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after)
+
+}
+
+#' Drift Correction by Custom Function
+#' @description
+#' Function to correct for run-order drifts within or across batches via a provided custom function
+#' #' @details
+#' The drift correction function needs to be provided by the user. See `smooth_fun` for details.
+#' @param data MidarExperiment object
+#' @param smooth_fun Function that performs drift correction. Function need to have following parameter `data` (`MidarExperiment`), `QC_TYPES` (one or more strings), and `span_width` (numerical).
+#' Function needs to return a numerical vector with the length of number of rows in `data`. In case functions fails a vector with NA_real_ needs be returned
+#' @param qc_types QC types used for drift correction
+#' @param within_batch Correct each batch separately (Default is TRUE)
+#' @param apply_conditionally Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'
+#' @param log2_transform log2 transform data during correction (Default is TRUE)
+#' @param span_width Loess span width (default is 0.75)
+#' @param feature_list Apply correction only to species matching (RegEx)
+#' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
+#' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
+#' @return MidarExperiment object
+#' @export
+corr_drift_fun <- function(data, smooth_fun, qc_types, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
+                             log2_transform = TRUE, span_width, feature_list = NULL, min_sample_cv_ratio_before_after = 1){
 
   if(is.null(feature_list))
     ds <- data@dataset
@@ -80,19 +106,17 @@ corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, 
   ds$y <- ds$CONC_RAW
   if(log2_transform) ds$y <- log2(ds$y)
   if(within_batch) adj_groups <- c("FEATURE_NAME", "BATCH_ID") else adj_groups <- c("FEATURE_NAME")
-
   suppressWarnings(
     d <- ds %>%
       group_by(group_by(across(all_of(adj_groups)))) %>%
       nest() %>%
       mutate(
-        RES = purrr::map(data, \(x) get_loess(x, qc_types, loess_span)),
+        RES = purrr::map(data, \(x) do.call(smooth_fun,list(x, qc_types, span_width))),
         Y_PREDICTED = purrr::map(RES, \(x) x$res),
         fit_error = purrr::map(RES, \(x) x$fit_error)) |>
-        # Y_PREDICTED =  MODEL_RES$res,
-        # MODEL_ERR = MODEL_RES$err) |>
       unnest(cols = c(data, .data$Y_PREDICTED, .data$fit_error))
     )
+
   # Get interpolated values
   if (log2_transform)
   {
@@ -146,7 +170,7 @@ corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, 
   else
     count_feature_text <- glue::glue("of all batches for {sum(d_sum_adj$DRIFT_CORRECTED, na.rm = TRUE)-fit_errors} of total {nrow(d_sum_adj)} features.")
   if(within_batch) mode_text <- "batch-wise" else mode_text <- "spanning all batches"
-  writeLines(crayon::green(glue::glue("\u2713 Drift correction has been applied {mode_text} to raw concentrations {count_feature_text}.")))
+  writeLines(crayon::green(glue::glue("\u2713 Drift correction was applied {mode_text} to raw concentrations {count_feature_text}.")))
 
 
 
@@ -157,20 +181,69 @@ corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, 
   n_spl_excl = sum(d_sum_span$QC_TYPE == "SPL" & !d_sum_span$WITHIN_QC_SPAN)
   n_nist_excl = sum(d_sum_span$QC_TYPE == "NIST" & !d_sum_span$WITHIN_QC_SPAN)
   n_bqc_excl = sum(d_sum_span$QC_TYPE == "BQC" & !d_sum_span$WITHIN_QC_SPAN)
+  n_tqc_excl = sum(d_sum_span$QC_TYPE == "TQC" & !d_sum_span$WITHIN_QC_SPAN)
+  n_ltr_excl = sum(d_sum_span$QC_TYPE == "LTR" & !d_sum_span$WITHIN_QC_SPAN)
 
-  txt_1 <- txt_2 <- txt_3 <- ""
+  txt_1 <- txt_2 <- txt_3 <- txt_4 <- txt_5 <- character()
   if(n_spl_excl>0) txt_1  <- paste0(n_spl_excl, " study samples (SPL)")
   if(n_nist_excl>0) txt_2   <- paste0(n_nist_excl, " NISTs")
   if(n_bqc_excl>0) txt_3   <- paste0(n_bqc_excl, " BQCs")
+  if(n_tqc_excl>0) txt_4   <- paste0(n_nist_excl, " TQCs")
+  if(n_ltr_excl>0) txt_5   <- paste0(n_bqc_excl, " LTRs")
 
-  txt_final <- stringr::str_sub(paste(list(txt_1, txt_2, txt_3), collapse = ", "),1, -3)
-  if(length(txt_final)>0) writeLines(crayon::red(glue::glue("Warning: {txt_final} were excluded from the correction (outside of regions spanned by QC used by LOESS).")))
+  txt_final <- paste(c(txt_1, txt_2, txt_3, txt_4, txt_5), collapse = ", ")
+  if(txt_final != "") writeLines(crayon::red(glue::glue("Warning: {txt_final} excluded from correction (beyond regions spanned by QCs).")))
 
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_drift_corrected <- TRUE
   data@is_batch_corrected <- FALSE
 
   if(data@is_batch_corrected) writeLines(crayon::blue(glue::glue("Note: previous batch correction has been removed.")))
-  if(fit_errors > 0) writeLines(crayon::red(glue::glue("Warning: Fit failed for {fit_errors} features (span too small and not enough data).")))
+  if(fit_errors > 0) writeLines(crayon::red(glue::glue("Warning: Fit failed for {fit_errors} features (enough valid data points).")))
+  data@dataset$Concentration <- data@dataset$CONC_ADJ
+  data
+}
+
+
+
+#' Batch centering
+#' @description
+#' A short description...
+#' #' @details
+#' Additional details...
+#' @param data MidarExperiment object
+#' @param qc_types QC types used for batch correction
+#' @param use_raw_concentrations Apply to unadjusted (raw) concentration. Default is FALSE, which means previously drift-corrected concentrations will be used if available, otherwise unadjusted concentrations will be used
+#' @param center_fun Function used to center. Default is "median".
+#' @return MidarExperiment object
+#' @importFrom glue glue
+#' @export
+corr_batch_centering <- function(data, qc_types, use_raw_concentrations = FALSE, center_fun = "median"){
+
+  ds <- data@dataset
+  if (!data@is_drift_corrected | use_raw_concentrations) var <- rlang::sym("CONC_RAW") else var <- rlang::sym("CONC_ADJ")
+  # Normalize by the median (or user-defined function)
+  ds <- ds %>%
+    dplyr::group_by(.data$FEATURE_NAME,  .data$BATCH_ID) %>%
+    dplyr::mutate(CONC_ADJ_NEW = {{var}}/do.call(center_fun,list(({{var}}[.data$QC_TYPE %in% qc_types]), na.rm = TRUE))) |>
+    dplyr::ungroup()
+
+  # Re-level data to the median of all batches
+  ds <- ds %>%
+    dplyr::group_by(.data$FEATURE_NAME) %>%
+    dplyr::mutate(CONC_ADJ =  .data$CONC_ADJ_NEW * do.call(center_fun,list({{var}}[.data$QC_TYPE %in% qc_types], na.rm = TRUE))) |>
+    dplyr::select(-"CONC_ADJ_NEW") |>
+    dplyr::ungroup()
+
+  data@dataset <- ds
+  if(data@is_drift_corrected)
+    writeLines(crayon::green(glue::glue("\u2713 Batch correction was applied to drift-corrected concentrations of all {nrow(data@annot_features)} features.")))
+  else
+    writeLines(crayon::green(glue::glue("\u2713 Batch correction was applied to raw concentrations of all {nrow(data@annot_features)} features.")))
+
+  if(data@is_drift_corrected & use_raw_concentrations) message("Note: previous drift correction has been removed.\n")
+  data@status_processing <- "Adjusted Quantitated Data"
+  data@is_batch_corrected = TRUE
+  data@dataset$Concentration <- data@dataset$CONC_ADJ
   data
 }
