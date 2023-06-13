@@ -7,7 +7,7 @@
 plot_runscatter(
   data,
   y_var,
-  transition_filter,
+  feature_filter,
   filter_exclude = FALSE,
   cap_values,
   cap_SPL_SD = 4,
@@ -20,13 +20,13 @@ plot_runscatter(
   after_correction = FALSE,
   plot_other_qc = TRUE,
   show_batches = FALSE,
-  batches_as_shades = FALSE,
+  batches_as_shades = TRUE,
   batch_line_color = "red1",
   batch_shading_color = "grey85",
   outputPDF,
   filename = "",
-  cols_page,
-  rows_page,
+  cols_page = 4,
+  rows_page = 3,
   annot_scale = 1,
   paper_orientation = "LANDSCAPE",
   point_transparency = 1,
@@ -35,7 +35,7 @@ plot_runscatter(
   page_no = NA,
   y_label_text = NA,
   silent = FALSE,
-  return_plot_list = TRUE,
+  return_plot_list = FALSE,
   base_size = 7
 )
 }
@@ -44,9 +44,9 @@ plot_runscatter(
 
 \item{y_var}{Variable to plot}
 
-\item{transition_filter}{Filter features containing}
+\item{feature_filter}{Filter features containing}
 
-\item{filter_exclude}{Exclude or include transition_filter}
+\item{filter_exclude}{Exclude or include feature_filter}
 
 \item{cap_values}{Cap y axis to ignore outliers}
 

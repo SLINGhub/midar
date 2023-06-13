@@ -7,10 +7,9 @@
 plot_pca_qc(
   data,
   variable,
-  log_transform,
   dim_x,
   dim_y,
-  grouping,
+  log_transform,
   point_size = 2,
   fill_alpha = 0.1
 )
@@ -20,17 +19,17 @@ plot_pca_qc(
 
 \item{variable}{which variable to use for plot}
 
-\item{log_transform}{log transform data for plot}
-
 \item{dim_x}{PCA dimension on x axis}
 
 \item{dim_y}{PCA dimension on y axis}
 
-\item{grouping}{field used for ellipses}
+\item{log_transform}{log transform data for plot}
 
 \item{point_size}{size of points}
 
 \item{fill_alpha}{transparency of points}
+
+\item{grouping}{field used for ellipses}
 }
 \value{
 ggplot2 object
