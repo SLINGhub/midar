@@ -16,7 +16,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
   #
   # Read Agilent MassHunter Quant Export file (CSV)
-  suppressWarnings(
+  suppressWarnings(suppressMessages(
     datWide <-
       readr::read_csv(
         file = filename,
@@ -25,7 +25,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
         trim_ws = TRUE,
         col_types = readr::cols(.default = "c"),
         locale = readr::locale(encoding = 'ISO-8859-1'), num_threads = 4,progress = TRUE
-      ))
+      )))
   warnings_datWide = readr::problems(datWide)
 
 
@@ -153,7 +153,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   if(!silent) {
-    print(glue::glue("Imported {length(unique(datLong$DataFileName))} samples with {length(unique(datLong$FEATURE_NAME))} transitions. \n"))
+    writeLines(crayon::green(glue::glue("\u2713 Imported {length(unique(datLong$DataFileName))} samples with {length(unique(datLong$FEATURE_NAME))} transitions. \n")))
   }
   datLong
 }
@@ -241,8 +241,9 @@ read_table_wide <- function(data, file, field, sheet = "", silent = FALSE) {
   var_field <- rlang::ensym(field)
 
   ext <- fs::path_ext(file)
+  browser
   if(ext == "csv")
-    d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A"))
+    d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE, na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."), col_types = "cn")
   else if(ext == "xls" | ext == "xlsx"){
     if(sheet == "") stop("Please define sheet name via the `sheet` parameter")
     d <- readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A"))
