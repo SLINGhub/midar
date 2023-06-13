@@ -83,7 +83,7 @@ quantitate_by_istd <- function(data) {
 
   conc_unit <- get_conc_unit(data@annot_analyses$SAMPLE_AMOUNT_UNIT)
 
-  writeLines(crayon::green(glue::glue("\u2713 {n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_ISTDs} spiked ISTDs and sample amounts.
+  writeLines(crayon::green(glue::glue("\u2713 {n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_ISTDs} spiked-in ISTDs and sample amounts.
                    Concentration unit: [{conc_unit}].")))
 
   data@status_processing <- "Quantitated Data"
@@ -244,6 +244,7 @@ apply_qc_filter <-  function(data,
 
 
   if (nrow(data@metrics_qc)== 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+  data <- calculate_qc_metrics(data)  #ToDo: Run when needed
 
   if(is.na(Intensity_BQC_min)) Intensity_BQC_min <- -Inf
   if(is.na(CV_BQC_max)) CV_BQC_max <- Inf
@@ -268,7 +269,8 @@ apply_qc_filter <-  function(data,
 
   if(rqc_r2_col %in% names(data@metrics_qc)) d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col))|!!ensym(rqc_r2_col) > R2_min)
 
-  print(glue::glue("{nrow(d_filt)} of {nrow(data@metrics_qc)} features passed QC filtering."))
+
+  writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt)} of {nrow(data@metrics_qc)} features passed given QC criteria")))
   data@dataset_QC_filtered <- data@dataset %>% dplyr::right_join(d_filt|> dplyr::select("FEATURE_NAME"), by = "FEATURE_NAME")
   data
 }
