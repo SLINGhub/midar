@@ -334,6 +334,7 @@ read_msorganizer_xlm <- function(data, filename) {
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
   stopifnot(methods::validObject(data))
   data@status_processing <- "Annotated Raw Data"
+  writeLines(crayon::green(glue::glue("\u2713 Metadata imported and successfully associated with data.")))
   data
 }
 
