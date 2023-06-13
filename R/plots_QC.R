@@ -2,8 +2,8 @@
 #'
 #' @param data MidarExperiment object
 #' @param y_var Variable to plot
-#' @param transition_filter Filter features containing
-#' @param filter_exclude Exclude or include transition_filter
+#' @param feature_filter Filter features containing
+#' @param filter_exclude Exclude or include feature_filter
 #' @param cap_values Cap y axis to ignore outliers
 #' @param cap_SPL_SD Minimum s.d. of samples
 #' @param cap_QC_SD Minimum s.d. of QCs
@@ -43,12 +43,12 @@
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, y_var, transition_filter, filter_exclude = FALSE,
+plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
                             cap_values, cap_SPL_SD = 4, cap_QC_SD = 4, cap_top_n = 10, QC_TYPE_fit = "TQC",
                             show_driftcorrection = FALSE, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
-                            show_batches = FALSE, batches_as_shades = FALSE, batch_line_color = "red1", batch_shading_color = "grey85",
-                            outputPDF, filename = "", cols_page, rows_page, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
-                            point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = TRUE, base_size = 7) {
+                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "red1", batch_shading_color = "grey85",
+                            outputPDF, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
+                            point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = FALSE, base_size = 7) {
 
   y_var_s <- rlang::sym(y_var)
   y_label <- dplyr::if_else(cap_values, paste0(ifelse(is.na(y_label_text), y_var, y_label_text), " (capped at min(", cap_SPL_SD, "x SD[SPL]) ,", cap_QC_SD, "x SD[QC]"), y_var)
@@ -58,7 +58,7 @@ plot_runscatter <- function(data, y_var, transition_filter, filter_exclude = FAL
   #  filter data
   dat_filt <- data@dataset %>% dplyr::ungroup() %>%
     dplyr::arrange(.data$FEATURE_NAME, .data$RUN_ID) %>%
-    dplyr::filter(stringr::str_detect(.data$FEATURE_NAME, paste0("^$|", transition_filter), negate = filter_exclude))
+    dplyr::filter(stringr::str_detect(.data$FEATURE_NAME, paste0("^$|", feature_filter), negate = filter_exclude))
 
   # cap upper range of dataset to avoid skewness
   dat_filt <- dat_filt %>%
@@ -211,7 +211,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     }
   }
   if(cap_values)
-    p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#C7C5BF", size = 3, alpha = .3)
+    p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#FFE773", size = 3, alpha = .4)
 
   p <- p  +
     #aes(ymin=0) +
@@ -397,7 +397,7 @@ plot_responsecurves <- function(data,
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1) {
+plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size = 2, fill_alpha = 0.1) {
 
   d_wide = data@dataset_QC_filtered  %>%
     filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS"), .data$isQUANTIFIER ) %>%
@@ -407,16 +407,23 @@ plot_pca_qc <- function(data, variable, log_transform, dim_x, dim_y, grouping, p
     tidyr::pivot_wider(id_cols = "ANALYSIS_ID", names_from = "FEATURE_NAME", values_from = {{variable}})
 
 
-  d_metadata <- d_wide  %>% dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID") |> dplyr::distinct()
   #if(!all(d_filt |> pull(ANALYSIS_ID) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
 
-  m_raw <- d_filt  |>
-    dplyr::select(where(~!any(is.na(.)))) |>
+  #ToDo: warning when rows/cols with NA
+  d_clean <- d_filt  |>
+    filter(if_any(dplyr::where(is.numeric), ~ !is.na(.))) |>
+    dplyr::select(where(~!any(is.na(.) | is.nan(.) | . < 0)))
+
+  d_metadata <- d_wide  %>%
+    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID") |>
+    dplyr::distinct() |>
+    dplyr::right_join(d_clean |> dplyr::select("ANALYSIS_ID") |> distinct(), by = c("ANALYSIS_ID"))
+
+  m_raw <- d_clean |>
     tibble::column_to_rownames("ANALYSIS_ID") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
-
 
   # get pca result with annotation
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
