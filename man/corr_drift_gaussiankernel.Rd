@@ -7,11 +7,11 @@
 corr_drift_gaussiankernel(
   data,
   qc_types,
+  bandwidth,
+  log2_transform = TRUE,
   within_batch,
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
-  log2_transform = TRUE,
-  bandwidth,
   feature_list = NULL,
   min_sample_cv_ratio_before_after = 1
 )
@@ -21,17 +21,17 @@ corr_drift_gaussiankernel(
 
 \item{qc_types}{QC types used for drift correction. Typically includes the study samples (\code{SPL}).}
 
+\item{bandwidth}{Kernel bandwidth}
+
+\item{log2_transform}{log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.}
+
 \item{within_batch}{Correct each batch separately (Default is TRUE)}
 
 \item{apply_conditionally}{Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'}
 
 \item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
 
-\item{log2_transform}{log2 transform data during correction (Default is TRUE)}
-
-\item{bandwidth}{Kernel bandwidth}
-
-\item{feature_list}{Apply correction only to species matching (RegEx)}
+\item{feature_list}{Apply correction only to species matching (RegEx).}
 
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
 }

@@ -27,13 +27,13 @@ corr_drift_loess(
 
 \item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
 
-\item{log2_transform}{log2 transform data during correction (Default is TRUE)}
+\item{log2_transform}{log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.}
 
-\item{feature_list}{Apply correction only to species matching (RegEx)}
+\item{span}{Loess span width (default is 0.75)}
+
+\item{feature_list}{Apply correction only to species matching (RegEx).}
 
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
-
-\item{span_width}{Loess span width (default is 0.75)}
 }
 \value{
 MidarExperiment object

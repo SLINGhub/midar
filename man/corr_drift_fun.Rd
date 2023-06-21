@@ -8,13 +8,13 @@ corr_drift_fun(
   data,
   smooth_fun,
   qc_types,
+  log2_transform = TRUE,
+  span_width,
   within_batch,
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
-  log2_transform = TRUE,
-  span_width,
-  feature_list = NULL,
-  min_sample_cv_ratio_before_after = 1
+  min_sample_cv_ratio_before_after = 1,
+  feature_list = NULL
 )
 }
 \arguments{
@@ -25,19 +25,19 @@ Function needs to return a numerical vector with the length of number of rows in
 
 \item{qc_types}{QC types used for drift correction}
 
+\item{log2_transform}{log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.}
+
+\item{span_width}{Width used by smoothing function}
+
 \item{within_batch}{Correct each batch separately (Default is TRUE)}
 
 \item{apply_conditionally}{Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'}
 
 \item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
 
-\item{log2_transform}{log2 transform data during correction (Default is TRUE)}
-
-\item{span_width}{Loess span width (default is 0.75)}
-
-\item{feature_list}{Apply correction only to species matching (RegEx)}
-
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
+
+\item{feature_list}{Apply correction only to species matching (RegEx).}
 }
 \value{
 MidarExperiment object
