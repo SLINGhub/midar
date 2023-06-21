@@ -4,12 +4,14 @@
 \alias{read_msorganizer_xlm}
 \title{Import metadata from the MSOrganizer template (.XLM)}
 \usage{
-read_msorganizer_xlm(data, filename)
+read_msorganizer_xlm(data, filename, excl_unannotated_analyses = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
 \item{filename}{file name and path}
+
+\item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 }
 \value{
 MidarExperiment object

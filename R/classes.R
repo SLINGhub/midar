@@ -3,7 +3,7 @@ pkg.env <- new.env()
 # Data structure templates
 pkg.env$dataset_templates <- list(
   dataset_orig_template = tibble::tibble(
-    "ANALYSIS_ID" = character(),
+    "DATAFILE_NAME" = character(),
     "FEATURE_ID"= character(),
     "Intensity" = numeric(),
     "normIntensity" = numeric(),
@@ -34,7 +34,8 @@ pkg.env$dataset_templates <- list(
     "QUANT_ISTD_FEATURE_NAME" = character(),
     "FEATURE_RESPONSE_FACTOR" = numeric(),
     "isQUANTIFIER" = logical(),
-    "isINTEGRATED" = logical(),
+    "VALID_INTEGRATION" = logical(),
+    "RESPONSE_FACTOR" = numeric(),
     "REMARKS" = character()
   ),
   "annot_istd_template" = tibble::tibble(
@@ -188,37 +189,35 @@ MidarExperiment <- function() {
   methods::new("MidarExperiment")
 }
 
-check_integrity <-  function(object) {
+check_integrity <-  function(object, excl_unannotated_analyses) {
+  #browser()
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
-    d_xy <- length(setdiff(object@dataset_orig$ANALYSIS_ID %>% unique(), object@annot_analyses$ANALYSIS_ID))
-    d_yx <- length(setdiff(object@annot_analyses$ANALYSIS_ID,object@dataset_orig$ANALYSIS_ID %>% unique()))
+    d_xy <- length(setdiff(object@dataset_orig$DATAFILE_NAME %>% unique(), object@annot_analyses$DATAFILE_NAME))
+    d_yx <- length(setdiff(object@annot_analyses$DATAFILE_NAME,object@dataset_orig$DATAFILE_NAME %>% unique()))
     if(d_xy > 0){
-      print(glue::glue("{d_xy} of {object@dataset_orig$ANALYSIS_ID %>% unique() %>% length()} measurements have no matching sample metadata"))
-      if (d_xy < 100) print(paste0(setdiff(object@dataset_orig$ANALYSIS_ID %>% unique(), object@annot_analyses$ANALYSIS_ID), collapse = ", "))
-      else {
-        print("too many to display")
-        #rint(paste0(setdiff(object@dataset_orig$ANALYSIS_ID %>% unique(), object@annot_analyses$ANALYSIS_ID[1:100]), collapse = ", ")
+      if(d_xy == length(object@dataset_orig$DATAFILE_NAME %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
+        if(!excl_unannotated_analyses){
+          stop(glue::glue("Error: {d_xy} of {object@dataset_orig$DATAFILE_NAME %>% unique() %>% length()} measurements have no matching metadata."))
+        if (d_xy < 50)
+          writeLines(glue::glue("No metadata present for: {paste0(setdiff(object@dataset_orig$DATAFILE_NAME %>% unique(), object@annot_analyses$DATAFILE_NAME), collapse = ", ")} measurements."))
+        else
+          print("No metadata present for: Too many (> 50) to display")
+
+        } else {
+            writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$DATAFILE_NAME %>% unique() %>% length()} measurements without matching metadata were excluded.")))
         }
-      FALSE
       } else if(d_yx > 0) {
-      warning(glue::glue("{d_yx} of {object@annot_analyses$ANALYSIS_ID %>% length()} sample metadata are not found in the measurement data"))
-      object@status_processing <- "Data and Sample Metadata loaded"
-      TRUE
+        stop(glue::glue("{d_yx} of {object@annot_analyses$DATAFILE_NAME %>% length()} sample metadata are not found in the measurement data."))
       } else {
-      object@status_processing <- "Data and Sample Metadata loaded"
+      object@status_processing <- "DataMetadataLoaded"
       TRUE
-    }
-
-  } else {
-
-    TRUE
+      }
   }
 }
 
-
-#' @importFrom methods setValidity
-#'
-methods::setValidity("MidarExperiment", check_integrity)
+##' @importFrom methods setValidity
+##'
+#methods::setValidity("MidarExperiment")
 
 
 get_status_flag <- function(x) if_else(x, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
@@ -253,11 +252,16 @@ setMethod("show", "MidarExperiment", function(object) {
 #' @description
 #' Imports a .csv file with `Agilent MassHunter Quantitative Analysis` results.
 #' Samples should be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
-#' Additional columns, such as RT (rentention time), FWHM, PrecursorMZ, and CE will be imported and available from the `MidarExperiment` object for downstream analyses
+#' Additional columns, such as RT (rentention time), FWHM, PrecursorMZ, and CE will be imported and available from the `MidarExperiment` object for downstream analyses.
+#'
+#' When more than one file is provided, all files are imported and merged into one raw dataset. This can be useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+#' Each Datafile/Feature pair needs to be unique within and across data files, presense of replicates return an error.
+#'
 #' @param data MidarExperiment object
-#' @param filename filename
+#' @param file_dir_names One or more file names with path or folder path. When a folder name is given, all *.csv files in this folder will be read.
 #'
 #' @importFrom methods validObject
+#' @importFrom fs is_dir path_tidy file_exists dir_ls
 #'
 #' @return MidarExperiment object
 #' @examples
@@ -268,36 +272,74 @@ setMethod("show", "MidarExperiment", function(object) {
 
 #' @export
 
-read_masshunter_csv <- function(data, filename) {
-  data@dataset_orig <- import_masshunter_csv(filename, silent = FALSE)
+read_masshunter_csv <- function(data, file_dir_names) {
+  #data@dataset_orig <- import_masshunter_csv(filenames, silent = FALSE)
+
+  if(!fs::is_dir(file_dir_names))
+    file_paths <- fs::path_tidy(file_dir_names)
+  else
+    file_paths <- fs::dir_ls(file_dir_names, glob = "*.csv")
+
+  if(!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
+  if(any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
+
+  d_temp <- file_paths  |>
+    map_dfr(import_masshunter_csv, .id = "DATA_SOURCE")
+
+  # Test if ANALYSIS_IDs (=DATAFILE_NAME), FEATURE_NAMEs, and values are replicated
+  if(nrow(d_temp) > nrow(d_temp |> distinct(.data$DATAFILE_NAME, .data$SOURCE_FEATURE_NAME, .keep_all = FALSE))){
+    has_duplicated_id <- TRUE
+    if(nrow(d_temp) > nrow(d_temp |> distinct(.data$DATAFILE_NAME, .data$SOURCE_FEATURE_NAME, .keep_all = TRUE)))
+      has_duplicated_id_values <- TRUE
+    else
+      has_duplicated_id_values <- FALSE
+  } else {
+    has_duplicated_id <- FALSE
+  }
+
+  if(has_duplicated_id)
+    if(has_duplicated_id_values)
+      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical values. Please check dataset(s)."))
+    else
+      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different values.Please check dataset(s)."))
+
+
+
+  data@dataset_orig <- d_temp
+
   data@dataset_orig <- data@dataset_orig %>% dplyr::rename(Intensity = "Area")
-  stopifnot(methods::validObject(data))
+  check_integrity(data, excl_unannotated_analyses = FALSE)
+  #stopifnot(methods::validObject(data))
+  #stopifnot(methods::validObject(data))
   data@status_processing <- "Raw Data"
   data
 }
 
 
-
+# ##########
+# TODO: This below has to be changed, mapping of metadata to data should be a distinct function
+# ##########
 #' @title Import metadata from the MSOrganizer template (.XLM)
 #' @param data MidarExperiment object
 #' @param filename file name and path
+#' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
 #' @return MidarExperiment object
 #' @export
 #'
 
-read_msorganizer_xlm <- function(data, filename) {
+read_msorganizer_xlm <- function(data, filename, excl_unannotated_analyses = FALSE) {
   d_annot <- import_msorganizer_xlm(filename)
 
   data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("ANALYSIS_ID") %>%
+    dplyr::select("DATAFILE_NAME") %>%
     dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_analyses, by = c("ANALYSIS_ID" = "ANALYSIS_ID"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_analyses, by = c("DATAFILE_NAME" = "DATAFILE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
   data@annot_features <- data@dataset_orig %>%
-    dplyr::select("FEATURE_NAME") %>%
+    dplyr::select("SOURCE_FEATURE_NAME") %>%
     dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_features, by = c("FEATURE_NAME"="FEATURE_NAME"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_features, by = c("SOURCE_FEATURE_NAME"="SOURCE_FEATURE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
   data@annot_istd <- data@annot_features %>%
@@ -306,12 +348,13 @@ read_msorganizer_xlm <- function(data, filename) {
     dplyr::left_join(d_annot$annot_istd, by = c("QUANT_ISTD_FEATURE_NAME"="QUANT_ISTD_FEATURE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
 
+
   data@annot_responsecurves <- data@annot_analyses %>%
-    dplyr::filter("QC_TYPE" == "RQC") %>%
-    dplyr::select("ANALYSIS_ID") %>%
+    dplyr::filter(.data$QC_TYPE == "RQC") %>%
+    dplyr::select("ANALYSIS_ID", "DATAFILE_NAME") %>%
     dplyr::distinct() %>%
     dplyr::ungroup() %>%
-    dplyr::right_join(d_annot$annot_responsecurves, by = c("ANALYSIS_ID"="ANALYSIS_ID"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_responsecurves, by = c("DATAFILE_NAME"="DATAFILE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
 
@@ -328,13 +371,16 @@ read_msorganizer_xlm <- function(data, filename) {
   data@dataset_orig <- data@dataset_orig %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
 
+
   data@dataset <- data@dataset_orig  %>% dplyr::select(-dplyr::any_of(c("FEATURE_ID"))) %>%
-    dplyr::left_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID"), by = c("ANALYSIS_ID")) %>%
-    dplyr::right_join(d_annot$annot_features %>% dplyr::select(dplyr::any_of(c("FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "FEATURE_ID", "isQUANTIFIER"))), by = c("FEATURE_NAME"), keep = FALSE) %>%
+    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "DATAFILE_NAME", "QC_TYPE", "REPLICATE", "VALID_ANALYSIS", "BATCH_ID"), by = c("DATAFILE_NAME")) %>%
+    dplyr::inner_join(d_annot$annot_features %>% filter(.data$VALID_INTEGRATION) |>  dplyr::select(dplyr::any_of(c("FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "SOURCE_FEATURE_NAME", "FEATURE_ID", "isQUANTIFIER", "VALID_INTEGRATION"))),
+                      by = c("SOURCE_FEATURE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
-  stopifnot(methods::validObject(data))
+  #stopifnot(methods::validObject(data, excl_nonannotated_analyses))
+  check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
   data@status_processing <- "Annotated Raw Data"
-  writeLines(crayon::green(glue::glue("\u2713 Metadata imported and successfully associated with data.")))
+  writeLines(crayon::green(glue::glue("\u2713 Metadata successfully associated with {length(data@dataset$ANALYSIS_ID %>% unique())} samples and {length(data@dataset$FEATURE_NAME %>% unique())} features.")))
   data
 }
 

@@ -39,8 +39,8 @@ normalize_by_istd <- function(data) {
   data@dataset <- data@dataset %>%
     dplyr::inner_join(d_temp %>% dplyr::select("ANALYSIS_ID", "FEATURE_NAME", "isISTD", "normIntensity"), by = c("ANALYSIS_ID", "FEATURE_NAME"))
 
-  n_features <- length(unique(data@annot_features$FEATURE_NAME))
-  n_ISTDs <- length(unique(data@annot_features$NORM_ISTD_FEATURE_NAME))
+  n_features <- length(data@dataset$FEATURE_NAME |> unique())
+  n_ISTDs <- length(unique(data@dataset$NORM_ISTD_FEATURE_NAME))
   writeLines(crayon::green(glue::glue("\u2713 {n_features} features normalized with {n_ISTDs} ISTDs. \n")))
   data@status_processing <- "ISTD-normalized Data"
   data@is_istd_normalized <- TRUE
@@ -62,10 +62,10 @@ quantitate_by_istd <- function(data) {
   if(!(c("normIntensity") %in% names(data@dataset))) stop("Data needs first to be ISTD normalized. Please apply function 'normalize_by_istd' first.")
   d_temp <- data@dataset %>%
     dplyr::left_join(data@annot_analyses %>% dplyr::select("ANALYSIS_ID", "SAMPLE_AMOUNT", "ISTD_VOL"), by = c("ANALYSIS_ID")) %>%
-    dplyr::left_join(data@annot_features %>% dplyr::select("FEATURE_NAME", "QUANT_ISTD_FEATURE_NAME"), by = c("FEATURE_NAME")) %>%
+    dplyr::left_join(data@annot_features %>% dplyr::select("FEATURE_NAME", "QUANT_ISTD_FEATURE_NAME", "FEATURE_RESPONSE_FACTOR"), by = c("FEATURE_NAME")) %>%
     dplyr::left_join(data@annot_istd, by = c("QUANT_ISTD_FEATURE_NAME"))
 
-  d_temp <- d_temp %>% mutate(pmol_total = (.data$normIntensity)*(.data$ISTD_VOL*(.data$ISTD_CONC_nM))/1000)
+  d_temp <- d_temp %>% mutate(pmol_total = (.data$normIntensity)*(.data$ISTD_VOL*(.data$ISTD_CONC_nM)) * .data$FEATURE_RESPONSE_FACTOR /1000)
   d_temp <- d_temp %>% mutate(Concentration = .data$pmol_total/.data$SAMPLE_AMOUNT)
 
   if("Concentration" %in% names(data@dataset)) {
@@ -78,8 +78,8 @@ quantitate_by_istd <- function(data) {
 
   data@dataset$CONC_RAW <- data@dataset$Concentration
 
-  n_features <- length(unique(data@annot_features$FEATURE_NAME))
-  n_ISTDs <- length(unique(data@annot_features$NORM_ISTD_FEATURE_NAME))
+  n_features <- length(unique(data@dataset$FEATURE_NAME))
+  n_ISTDs <- length(unique(data@dataset$NORM_ISTD_FEATURE_NAME))
 
   conc_unit <- get_conc_unit(data@annot_analyses$SAMPLE_AMOUNT_UNIT)
 
@@ -176,7 +176,6 @@ calculate_qc_metrics <- function(data) {
       conc_CV_LTR = sd(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE)/mean(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE) * 100)
 
   data@metrics_qc <- ds1
-
   if ("RQC" %in% data@dataset$QC_TYPE){
     model <- as.formula("Intensity ~ RELATIVE_SAMPLE_AMOUNT")
     ds2 <- data@dataset %>%
@@ -253,7 +252,8 @@ apply_qc_filter <-  function(data,
   if(is.na(SB_RATIO_min)) SB_RATIO_min <- 0
   if(is.na(R2_min)) R2_min <- 0
 
-  d_filt <-  data@metrics_qc %>% filter(is.na(.data$Int_med_BQC)|.data$Int_med_BQC > Intensity_BQC_min,
+  d_filt <-  data@metrics_qc %>% filter(
+                                  is.na(.data$Int_med_BQC)|.data$Int_med_BQC > Intensity_BQC_min,
                                   is.na(.data$Int_med_TQC)|.data$Int_med_TQC > Intensity_TQC_min,
                                   is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < CV_BQC_max,
                                   is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < CV_TQC_max,
@@ -268,7 +268,6 @@ apply_qc_filter <-  function(data,
   }
 
   if(rqc_r2_col %in% names(data@metrics_qc)) d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col))|!!ensym(rqc_r2_col) > R2_min)
-
 
   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt)} of {nrow(data@metrics_qc)} features passed given QC criteria")))
   data@dataset_QC_filtered <- data@dataset %>% dplyr::right_join(d_filt|> dplyr::select("FEATURE_NAME"), by = "FEATURE_NAME")

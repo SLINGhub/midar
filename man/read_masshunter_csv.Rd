@@ -4,12 +4,12 @@
 \alias{read_masshunter_csv}
 \title{Reads an Agilent MassHunter Quant CSV file}
 \usage{
-read_masshunter_csv(data, filename)
+read_masshunter_csv(data, file_dir_names)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{filename}{filename}
+\item{file_dir_names}{One or more file names with path or folder path. When a folder name is given, all *.csv files in this folder will be read.}
 }
 \value{
 MidarExperiment object
@@ -17,7 +17,10 @@ MidarExperiment object
 \description{
 Imports a .csv file with \verb{Agilent MassHunter Quantitative Analysis} results.
 Samples should be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
-Additional columns, such as RT (rentention time), FWHM, PrecursorMZ, and CE will be imported and available from the \code{MidarExperiment} object for downstream analyses
+Additional columns, such as RT (rentention time), FWHM, PrecursorMZ, and CE will be imported and available from the \code{MidarExperiment} object for downstream analyses.
+
+When more than one file is provided, all files are imported and merged into one raw dataset. This can be useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+Each Datafile/Feature pair needs to be unique within and across data files, presense of replicates return an error.
 }
 \examples{
 csvfile <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")

@@ -73,7 +73,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
   # Rename some known column header names and remove columns that are not needed or not informative.
 
   new_colnames = c(
-    "DataFileName" = "Data File\tSample",
+    "DATAFILE_NAME" = "Data File\tSample",
     "SampleName" = "Name\tSample",
     "AcqTimeStamp" = "AcqDate-Time\tSample",
     "SampleType" = "Type\tSample",
@@ -94,7 +94,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
 
   if("QuantitationMessage" %in% names(datWide))  stop("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
   if("NameCompound" %in% names(datWide)) stop("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if(! "DataFileName" %in% names(datWide)) stop("Unknown format or corrupt data file. Please try re-export from MH.")
+  if(! "DATAFILE_NAME" %in% names(datWide)) stop("Unknown format or corrupt data file. Please try re-export from MH.")
   if (nrow(warnings_datWide)> 0) stop("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
@@ -127,7 +127,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide %>%
     dplyr::mutate(RUN_ID = dplyr::row_number(), .before = 1) |>
-    tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "FEATURE_NAME")) %>%
+    tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "SOURCE_FEATURE_NAME")) %>%
     tidyr::pivot_wider(names_from = "Param" ,values_from = "value")
 
   # Convert types of knows parameters and fields in the data set
@@ -149,11 +149,11 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
 
   datLong <- datLong %>%
     dplyr::rename(dplyr::any_of(new_colnames)) %>%
-    dplyr::mutate(ANALYSIS_ID = stringr::str_replace(.data$DataFileName, "\\.d", ""), .before = "DataName") %>%
+    dplyr::mutate(DATAFILE_NAME = stringr::str_replace(.data$DATAFILE_NAME, "\\.d", ""), .before = "DataName") %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   if(!silent) {
-    writeLines(crayon::green(glue::glue("\u2713 Imported {length(unique(datLong$DataFileName))} samples with {length(unique(datLong$FEATURE_NAME))} transitions. \n")))
+    writeLines(crayon::green(glue::glue("\u2713 Imported {length(unique(datLong$DATAFILE_NAME))} samples with {length(unique(datLong$SOURCE_FEATURE_NAME))} transitions. \n")))
   }
   datLong
 }
@@ -172,7 +172,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
 
 import_masshunter_csv_wide <- function(file, field, silent = FALSE) {
   sample_def_cols = c(
-    "DataFileName",
+    "DATAFILE_NAME",
     "SampleName",
     "AcqTimeStamp",
     "SampleType",
@@ -181,9 +181,9 @@ import_masshunter_csv_wide <- function(file, field, silent = FALSE) {
     "SampleType"
   )
   d <- import_masshunter_csv(file, silent) %>%
-    dplyr::select(tidyselect::any_of(sample_def_cols), "FEATURE_NAME", {{field}})
+    dplyr::select(tidyselect::any_of(sample_def_cols), "SOURCE_FEATURE_NAME", {{field}})
 
-  d %>% tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = {{field}})
+  d %>% tidyr::pivot_wider(names_from = "SOURCE_FEATURE_NAME", values_from = {{field}})
 }
 
 
@@ -199,7 +199,7 @@ import_masshunter_csv_wide <- function(file, field, silent = FALSE) {
 read_long_table_csv <- function(file, field, silent = FALSE) {
 
   sample_def_cols = c(
-    "DataFileName",
+    "DATAFILE_NAME",
     "SampleName",
     "AcqTimeStamp",
     "SampleType",
@@ -208,7 +208,7 @@ read_long_table_csv <- function(file, field, silent = FALSE) {
     "SampleType",
     "RUN_ID",
     "ANALYSIS_ID",
-    "FEATURE_NAME",
+    "SOURCE_FEATURE_NAME",
     "Area",
     "RT",
     "FWHM",
@@ -216,7 +216,7 @@ read_long_table_csv <- function(file, field, silent = FALSE) {
   )
 
   d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = TRUE) %>%
-    dplyr::select(tidyselect::any_of(sample_def_cols), "FEATURE_NAME", Intensity = {{field}})
+    dplyr::select(tidyselect::any_of(sample_def_cols), "SOURCE_FEATURE_NAME", Intensity = {{field}})
 
   d
 }
@@ -253,8 +253,8 @@ read_table_wide <- function(data, file, field, sheet = "", silent = FALSE) {
 
   d <- d |> dplyr::mutate(RUN_ID = row_number(),.before = 1)
 
-  d <- d |> tidyr::pivot_longer(cols = -1:-2, names_to = "FEATURE_NAME" , values_to = field) %>%
-    dplyr::rename(ANALYSIS_ID = 2) %>%
+  d <- d |> tidyr::pivot_longer(cols = -1:-2, names_to = "SOURCE_FEATURE_NAME" , values_to = field) |>
+    dplyr::rename(ATAFILE_NAME = 2) |>
     mutate({{field}} := as.numeric(!!var_field))
 
   data@dataset_orig <- d
@@ -284,9 +284,9 @@ read_MRMkit_raw_area_CSV<- function(filename, use_mrmkit_normdata = FALSE, silen
   # Extract MRMkit's "QC" info
   d_mrmkit_featureinfo <- d_mrmkit_raw %>%
     dplyr::filter(.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) %>%
-    tidyr::pivot_longer(-.data$name, names_to = "FEATURE_NAME", values_to = "value") %>%
+    tidyr::pivot_longer(-.data$name, names_to = "SOURCE_FEATURE_NAME", values_to = "value") %>%
     tidyr::pivot_wider(names_from = "name" ,values_from = "value") %>%
-    dplyr::mutate(FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$FEATURE_NAME, ".*(?= RT)")),.data$FEATURE_NAME)) %>%
+    dplyr::mutate(SOURCE_FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$SOURCE_FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$SOURCE_FEATURE_NAME, ".*(?= RT)")),.data$SOURCE_FEATURE_NAME)) %>%
     dplyr::rename(PRECURSOR_MZ = .data$Q1, PRODUCT_MZ = .data$Q3) %>%
     dplyr::mutate(dplyr::across(dplyr::any_of(c("PRECURSOR_MZ", "PRODUCT_MZ", "RT")), as.numeric))
 
@@ -295,18 +295,19 @@ read_MRMkit_raw_area_CSV<- function(filename, use_mrmkit_normdata = FALSE, silen
     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) %>%
     dplyr::mutate(RUN_ID = dplyr::row_number(), .before = .data$name) %>%
     tidyr::pivot_longer(-.data$RUN_ID:-.data$name, names_to = "FEATURE_NAME", values_to = "Intensity") %>%
-    dplyr::rename(ANALYSIS_ID  = .data$name) %>%
-    dplyr::mutate(ANALYSIS_ID = stringr::str_squish(stringr::str_replace(.data$ANALYSIS_ID, "\\.mzML", ""))) %>%
-    dplyr::mutate(FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$FEATURE_NAME, ".*(?= RT)")),.data$FEATURE_NAME)) %>%
+    dplyr::rename(DATAFILE_NAME  = .data$name) %>%
+    dplyr::mutate(DATAFILE_NAME = stringr::str_remove(.data$DATAFILE_NAME, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE))) |>
+    dplyr::mutate(DATAFILE_NAME = stringr::str_squish(.data$DATAFILE_NAME)) |>
+    dplyr::mutate(FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$SOURCE_FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$SOURCE_FEATURE_NAME, ".*(?= RT)")),.data$SOURCE_FEATURE_NAME)) %>%
     dplyr::mutate(dplyr::across(.data$Intensity, as.numeric)) %>%
-    dplyr::left_join(d_mrmkit_featureinfo, by = "FEATURE_NAME") %>%
+    dplyr::left_join(d_mrmkit_featureinfo, by = "SOURCE_FEATURE_NAME") %>%
     dplyr::relocate(.data$Intensity, .after = dplyr::last_col()) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   if(use_mrmkit_normdata)
-    d_mrmkit_data |> filter(str_detect(.data$ANALYSIS_ID, "^norm_"))
+    d_mrmkit_data |> filter(str_detect(.data$DATAFILE_NAME, "^norm_"))
   else
-    d_mrmkit_data |> filter(!str_detect(.data$ANALYSIS_ID, "^norm_"))
+    d_mrmkit_data |> filter(!str_detect(.data$DATAFILE_NAME, "^norm_"))
 
 }
 
@@ -323,7 +324,7 @@ read_MRMkit_raw_area_CSV<- function(filename, use_mrmkit_normdata = FALSE, silen
 read_MRMkit_results <- function(data, raw_area_file, final_results_file, silent = FALSE) {
 
   sample_def_cols = c(
-    "DataFileName",
+    "DATAFILE_NAME",
     "SampleName",
     "AcqTimeStamp",
     "SampleType",
@@ -332,7 +333,7 @@ read_MRMkit_results <- function(data, raw_area_file, final_results_file, silent 
     "SampleType",
     "RUN_ID",
     "ANALYSIS_ID",
-    "FEATURE_NAME",
+    "SOURCE_FEATURE_NAME",
     "Area",
     "RT",
     "FWHM",
@@ -347,13 +348,13 @@ read_MRMkit_results <- function(data, raw_area_file, final_results_file, silent 
   if (final_results_file !=""){
     d_results <- readr::read_delim(final_results_file, delim = sep, col_names = TRUE, trim_ws = TRUE, progress = TRUE, show_col_types = FALSE) %>%
       dplyr::filter(!is.na(.data$type))%>%
-      dplyr::mutate(filename = str_remove(.data$filename, "\\.mzML")) %>%
-      dplyr::rename(ANALYSIS_ID = .data$filename) %>%
+      dplyr::mutate(filename = stringr::str_squish(str_remove(.data$filename, stringr::regex("\\.mzML", ignore_case = TRUE)))) %>%
+      dplyr::rename(DATAFILE_NAME = .data$filename) %>%
       #dplyr::mutate(RUN_ID = row_number(), .before = ANALYSIS_ID) %>%
       dplyr::select(-tidyselect::any_of(c("batch", "type"))) %>%
-      tidyr::pivot_longer(-.data$ANALYSIS_ID, names_to = "FEATURE_NAME", values_to = "normIntensity")
+      tidyr::pivot_longer(-.data$DATAFILE_NAME, names_to = "SOURCE_FEATURE_NAME", values_to = "normIntensity")
 
-    data@dataset <- data@dataset_orig %>% left_join(d_results, by=c("ANALYSIS_ID", "FEATURE_NAME"))
+    data@dataset <- data@dataset_orig %>% left_join(d_results, by=c("DATAFILE_NAME", "SOURCE_FEATURE_NAME"))
 
   }
   data@status_processing <- "Raw Data"
