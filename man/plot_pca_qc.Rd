@@ -28,8 +28,6 @@ plot_pca_qc(
 \item{point_size}{size of points}
 
 \item{fill_alpha}{transparency of points}
-
-\item{grouping}{field used for ellipses}
 }
 \value{
 ggplot2 object

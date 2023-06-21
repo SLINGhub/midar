@@ -391,7 +391,6 @@ plot_responsecurves <- function(data,
 #' @param log_transform log transform data for plot
 #' @param dim_x PCA dimension on x axis
 #' @param dim_y PCA dimension on y axis
-#' @param grouping field used for ellipses
 #' @param point_size size of points
 #' @param fill_alpha transparency of points
 #'
