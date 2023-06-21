@@ -30,8 +30,6 @@ Below is example of a simple data processing workflow, starting with a MassHunte
 
 ```{r}
 library(midar)
-#masshunter_file <- here::here("inst/extdata/Example_MHQuant_1.csv")
-#metadata_file <- here::here("inst/extdata/Example_Metadata_1.xlsm")
 
 # Get paths of example files included with this package
 masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
@@ -41,7 +39,7 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- read_masshunter_csv(data = mexp, filename = masshunter_file)
+mexp <- read_masshunter_csv(data = mexp, file_dir_names = masshunter_file)
 mexp <- read_msorganizer_xlm(data = mexp, filename = metadata_file)
 
 
