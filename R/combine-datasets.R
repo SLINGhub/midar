@@ -21,7 +21,7 @@ combine_experiments <- function(..., ordered_by_runsequence){
   mexp <- MidarExperiment()
   mexp@dataset_orig <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset_orig)  |> dplyr::distinct()
   mexp@dataset <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset)  |> dplyr::distinct()
-  mexp@annot_analyses <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_analyses) |> mutate(RUN_ID_ANNOT = dplyr::row_number())
+  mexp@annot_analyses <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_analyses) |> dplyr::distinct() |> mutate(RUN_ID_ANNOT = dplyr::row_number())
   mexp@annot_istd <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_istd)  |> dplyr::distinct()
   mexp@annot_features <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_features) |> dplyr::distinct()
   #ToDo: Combine batch and curve id to give unique curve id over the combined experiment
