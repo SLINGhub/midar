@@ -3,9 +3,11 @@
 # based on approach and scripts by Hyung Won Choi, National University of Singapore
 # Teo et al, Analytical Chemistry, 2020
 
-fun_corr_gaussiankernel = function(data, qc_types, span_width) {
-  d_subset <- data[data$QC_TYPE %in% qc_types, ] |> tidyr::drop_na(.data$y)
+fun_corr_gaussiankernel = function(data, qc_types, span_width, ...) {
 
+  arguments <- list(...)
+
+  d_subset <- data[data$QC_TYPE %in% qc_types, ] |> tidyr::drop_na(.data$y)
   res <- tryCatch({
     fit <- KernSmooth::locpoly(d_subset$x, d_subset$y, bandwidth = span_width, gridsize = nrow(data), range.x = c(min(data$x), max(data$x)))
     fit$y
@@ -16,10 +18,12 @@ fun_corr_gaussiankernel = function(data, qc_types, span_width) {
   list(res = res, fit_error = all(is.na(res)))
 }
 
-fun_corr_loess <- function(d, qc_types, span_width) {
+fun_corr_loess <- function(d, qc_types, span_width, ...) {
+  arguments <- list(...)
+  surface <- ifelse(arguments$extrapolate, "direct", "interpolate")
   res <- tryCatch({
     stats::loess(y ~ x,
-                 span = span_width, family = "gaussian", degree = 2, normalize=FALSE, iterations=4,
+                 span = span_width, family = "gaussian", degree = 2, normalize=FALSE, iterations=4, surface = surface,
                  data = d[d$QC_TYPE %in% qc_types, ]) %>%
       stats::predict(tibble::tibble(x = seq(min(d$x), max(d$x), 1))) %>% as.numeric()},
     error = function(e) {
@@ -31,7 +35,11 @@ fun_corr_loess <- function(d, qc_types, span_width) {
 #' Drift Correction by LOESS Smoothing
 #' @description
 #' Function to correct for run-order drifts within or across batches using loess smoothing
-#' #' @details
+#' @details
+#' Note that using extrapolation for loess smoothing is generally not recommended. Use this only if you must include samples or QCs that are outside of the range spanned by the QCs used for smoothing.
+#' Cases where this may be necessary are when specific drifts occur in analysis sequence segments that are not spanned by QC, e.g. when the instrument broke down or suddenly changed its sensitivity.
+#' Only use for samples  adjacent to the first or last QC and consult runscatter plots.
+#'
 #'
 #' @param data MidarExperiment object
 #' @param qc_types QC types used for drift correction
@@ -42,13 +50,14 @@ fun_corr_loess <- function(d, qc_types, span_width) {
 #' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
 #' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
 #' @param feature_list Apply correction only to species matching (RegEx).
+#' @param extrapolate Extrapolate loess smoothing. WARNING: Use with casre, it is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.
 #' @return MidarExperiment object
 #' @export
 corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
-                           log2_transform = TRUE, span = 0.75, feature_list = NULL, min_sample_cv_ratio_before_after = 1){
+                           log2_transform = TRUE, span = 0.75, feature_list = NULL, min_sample_cv_ratio_before_after = 1, extrapolate = FALSE){
 
   corr_drift_fun(data=data, smooth_fun = "fun_corr_loess", qc_types=qc_types, within_batch=within_batch, apply_conditionally=apply_conditionally, apply_conditionally_per_batch=apply_conditionally_per_batch,
-                             log2_transform=log2_transform, span_width = span, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after)
+                             log2_transform=log2_transform, span_width = span, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after, extrapolate = extrapolate)
 
 }
 
@@ -65,14 +74,15 @@ corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, 
 #' @param apply_conditionally Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'
 #' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
 #' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
-#' @param feature_list Apply correction only to species matching (RegEx).
+#' @param feature_list Apply correction only to species matching (RegEx)
+#' @param use_uncorrected_if_fit_failed If fit function fails, use orginal (uncorrected) data or return NA for all analyses of this feature
 #' @return MidarExperiment object
 #' @export
 corr_drift_gaussiankernel <- function(data, qc_types, bandwidth, log2_transform = TRUE, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
-                              feature_list = NULL, min_sample_cv_ratio_before_after = 1){
+                              feature_list = NULL, min_sample_cv_ratio_before_after = 1, use_uncorrected_if_fit_failed=FALSE){
 
   corr_drift_fun(data=data, smooth_fun = "fun_corr_gaussiankernel", qc_types=qc_types, within_batch=within_batch, apply_conditionally=apply_conditionally, apply_conditionally_per_batch=apply_conditionally_per_batch,
-                 log2_transform=log2_transform, span_width = bandwidth, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after)
+                 log2_transform=log2_transform, span_width = bandwidth, feature_list = feature_list, min_sample_cv_ratio_before_after = min_sample_cv_ratio_before_after, use_uncorrected_if_fit_failed = use_uncorrected_if_fit_failed, options)
 
 }
 
@@ -91,11 +101,13 @@ corr_drift_gaussiankernel <- function(data, qc_types, bandwidth, log2_transform 
 #' @param apply_conditionally Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'
 #' @param apply_conditionally_per_batch Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches
 #' @param min_sample_cv_ratio_before_after Maximum sample CV change for correction to be applied
+#' @param use_uncorrected_if_fit_failed If TRUE, then uncorrected values are returned when fit failed, if FALSE then NA is returned.
 #' @param feature_list Apply correction only to species matching (RegEx).
+#' @param ... Parameters specific for the smoothing function
 #' @return MidarExperiment object
 #' @export
 corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, span_width, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
-                             min_sample_cv_ratio_before_after = 1, feature_list = NULL){
+                             min_sample_cv_ratio_before_after = 1, use_uncorrected_if_fit_failed = TRUE, feature_list = NULL, ...){
 
 
   if(is.null(feature_list))
@@ -106,17 +118,16 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   ds$y <- ds$CONC_RAW
   if(log2_transform) suppressWarnings(ds$y <- log2(ds$y))
   if(within_batch) adj_groups <- c("FEATURE_NAME", "BATCH_ID") else adj_groups <- c("FEATURE_NAME")
-
-    suppressWarnings(
-    d <- ds %>%
-      group_by(group_by(across(all_of(adj_groups)))) %>%
-      nest() %>%
-      mutate(
-        RES = purrr::map(data, \(x) do.call(smooth_fun,list(x, qc_types, span_width))),
-        Y_PREDICTED = purrr::map(.data$RES, \(x) x$res),
-        fit_error = purrr::map(.data$RES, \(x) x$fit_error)) |>
-      unnest(cols = c(data, .data$Y_PREDICTED, .data$fit_error))
-    )
+  suppressWarnings(
+  d <- ds %>%
+    group_by(group_by(across(all_of(adj_groups)))) %>%
+    nest() %>%
+    mutate(
+      RES = purrr::map(data, \(x) do.call(smooth_fun,list(x, qc_types, span_width, ...))),
+      Y_PREDICTED = purrr::map(.data$RES, \(x) x$res),
+      fit_error = purrr::map(.data$RES, \(x) x$fit_error)) |>
+    unnest(cols = c(data, .data$Y_PREDICTED, .data$fit_error))
+  )
 
   # Get interpolated values
   if (log2_transform)
@@ -140,8 +151,8 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
     mutate(CV_RAW_SPL = sd(.data$CONC_RAW[.data$QC_TYPE == "SPL"], na.rm = TRUE)/mean(.data$CONC_RAW[.data$QC_TYPE == "SPL"], na.rm = TRUE) *100,
            CV_ADJ_SPL = sd(.data$Y_ADJ[.data$QC_TYPE == "SPL"], na.rm = TRUE)/mean(.data$Y_ADJ[.data$QC_TYPE == "SPL"], na.rm = TRUE) *100) %>%
     mutate(
-      DRIFT_CORRECTED = ((( .data$CV_ADJ_SPL/.data$CV_RAW_SPL ) <  min_sample_cv_ratio_before_after) | !apply_conditionally) & !is.na(.data$Y_ADJ),
-      Y_FINAL = dplyr::if_else(.data$DRIFT_CORRECTED, .data$Y_ADJ, dplyr::if_else(is.na(.data$Y_ADJ), NA_real_, .data$CONC_RAW))) |>
+      DRIFT_CORRECTED = ((( .data$CV_ADJ_SPL/.data$CV_RAW_SPL ) <  min_sample_cv_ratio_before_after) | !apply_conditionally) & !is.na(.data$Y_ADJ) & !.data$fit_error,
+      Y_FINAL = dplyr::if_else(.data$DRIFT_CORRECTED, .data$Y_ADJ, dplyr::if_else(is.na(.data$Y_ADJ) & !use_uncorrected_if_fit_failed , NA_real_, .data$CONC_RAW))) |>
     ungroup()
 
   data@dataset <- data@dataset %>% dplyr::left_join(
@@ -172,7 +183,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 
     if (apply_conditionally_per_batch & within_batch){
     d_sum_adj <- d_sum_adj |>
-      summarise(DRIFT_CORRECTED = any(d_fit$DRIFT_CORRECTED))
+      summarise(DRIFT_CORRECTED = any(.data$DRIFT_CORRECTED))
   }
   if(!apply_conditionally)
     count_feature_text <- glue::glue("to {sum(d_sum_adj$DRIFT_CORRECTED, na.rm = TRUE)} of {nrow(d_sum_adj)} features.")
@@ -212,7 +223,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   data@is_batch_corrected <- FALSE
 
   if(data@is_batch_corrected) writeLines(crayon::yellow(glue::glue("Note: previous batch correction has been removed.")))
-  if(fit_errors > 0) writeLines(crayon::yellow(glue::glue("Warning: Fit failed for {fit_errors} features (insufficient or invalid data points): {features_with_fiterror_text}")))
+  if(fit_errors > 0) writeLines(crayon::yellow(glue::glue("Warning: No smoothing applied for {fit_errors} features because the fit algorithm failed (insufficient or invalid data points): {features_with_fiterror_text}")))
   data@dataset$Concentration <- data@dataset$CONC_ADJ
   data
 }
