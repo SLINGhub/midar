@@ -26,7 +26,7 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
         col_types = readr::cols(.default = "c"),
         locale = readr::locale(encoding = 'ISO-8859-1'), num_threads = 4,progress = TRUE
       )))
-  warnings_datWide = readr::problems(datWide)
+  warnings_datWide <- readr::problems(datWide)
 
 
 
@@ -294,11 +294,11 @@ read_MRMkit_raw_area_CSV<- function(filename, use_mrmkit_normdata = FALSE, silen
   d_mrmkit_data <- d_mrmkit_raw %>%
     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) %>%
     dplyr::mutate(RUN_ID = dplyr::row_number(), .before = .data$name) %>%
-    tidyr::pivot_longer(-.data$RUN_ID:-.data$name, names_to = "FEATURE_NAME", values_to = "Intensity") %>%
+    tidyr::pivot_longer(-.data$RUN_ID:-.data$name, names_to = "SOURCE_FEATURE_NAME", values_to = "Intensity") %>%
     dplyr::rename(DATAFILE_NAME  = .data$name) %>%
     dplyr::mutate(DATAFILE_NAME = stringr::str_remove(.data$DATAFILE_NAME, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE))) |>
     dplyr::mutate(DATAFILE_NAME = stringr::str_squish(.data$DATAFILE_NAME)) |>
-    dplyr::mutate(FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$SOURCE_FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$SOURCE_FEATURE_NAME, ".*(?= RT)")),.data$SOURCE_FEATURE_NAME)) %>%
+    dplyr::mutate(SOURCE_FEATURE_NAME = dplyr::if_else(stringr::str_detect(.data$SOURCE_FEATURE_NAME, "RT"), stringr::str_squish(stringr::str_extract(.data$SOURCE_FEATURE_NAME, ".*(?= RT)")),.data$SOURCE_FEATURE_NAME)) %>%
     dplyr::mutate(dplyr::across(.data$Intensity, as.numeric)) %>%
     dplyr::left_join(d_mrmkit_featureinfo, by = "SOURCE_FEATURE_NAME") %>%
     dplyr::relocate(.data$Intensity, .after = dplyr::last_col()) %>%
