@@ -42,6 +42,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       SAMPLE_AMOUNT_UNIT = "Sample_Amount_Unit",
       ISTD_VOL ="ISTD_Mixture_Volume_[uL]",
       "BATCH_ID",
+      "REPLICATE",
       "VALID_ANALYSIS",
       "SPECIMEN",
       "SAMPLE_ID",
@@ -65,9 +66,12 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "QUANTIFIER", init_value = TRUE, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "VALID_INTEGRATION", init_value = TRUE, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "SOURCE_FEATURE_NAME", init_value = NA_character_, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERING_FEATURE", init_value = NA_character_, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERANCE_PROPORTION", init_value = NA_real_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "REMARKS", init_value = NA_character_, make_caps = TRUE)
+
 
   # NOTE: If FEATURE_NAME is defined, then it will overwrite the feature name defined in the raw data files
   # Todo: if user-defined feature names are provided, then it should be reported somewhere,  possible source of user-error!
@@ -81,6 +85,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       QUANT_ISTD_FEATURE_NAME = stringr::str_squish(.data$Transition_Name_ISTD),
       isISTD = (.data$FEATURE_NAME == .data$NORM_ISTD_FEATURE_NAME),
       QUANTIFIER = if_else(tolower(.data$QUANTIFIER) %in% c("yes","true"), TRUE, FALSE),
+      INTERFERING_FEATURE = stringr::str_squish(.data$INTERFERING_FEATURE),
       REMARKS = NA_character_) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) %>%
     dplyr::select(dplyr::any_of(c(
@@ -90,9 +95,11 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       "isISTD",
       "NORM_ISTD_FEATURE_NAME",
       "QUANT_ISTD_FEATURE_NAME",
-      FEATURE_RESPONSE_FACTOR = "RESPONSE_FACTOR",
+      "FEATURE_RESPONSE_FACTOR",
       isQUANTIFIER = "QUANTIFIER",
       "VALID_INTEGRATION",
+      "INTERFERING_FEATURE",
+      "INTERFERANCE_PROPORTION",
       "REMARKS")))
 
   #ToDo: Merged cell in template
