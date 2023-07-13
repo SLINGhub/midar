@@ -15,7 +15,7 @@ pkg.env$dataset_templates <- list(
     "DATAFILE_NAME"= character(),
     "SAMPLE_ID" = character(),
     "QC_TYPE" = factor(),
-    "REPLICATE" = character(),
+    "REPLICATE" = integer(),
     "SAMPLE_NAME" = character(),
     "PANEL_ID" = character(),
     "BATCH_ID" = character(),
@@ -123,6 +123,7 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #'
 #' @docType class
 #'
+#' @slot analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @slot dataset_orig Original imported analysis data. Required fields:
 #' @slot dataset Processed analysis data. Required fields:
 #' @slot dataset_QC_filtered Processed analysis data. Required fields:
@@ -138,6 +139,7 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
 #' @slot is_drift_corrected Flag if data has been drift corrected
 #' @slot is_batch_corrected Flag if data has been batch corrected
+#' @slot is_isotope_corr Flag if one or more features have been isotope corrected
 #' @export
 #'
 #' @importFrom utils tail
@@ -145,6 +147,7 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 
 setClass("MidarExperiment",
          slots = c(
+           analysis_type = "character",
            dataset_orig = "tbl_df",
            dataset = "tbl_df",
            dataset_QC_filtered = "tbl_df",
@@ -159,9 +162,11 @@ setClass("MidarExperiment",
            is_istd_normalized = "logical",
            is_quantitated = "logical",
            is_drift_corrected = "logical",
-           is_batch_corrected = "logical"
+           is_batch_corrected = "logical",
+           is_isotope_corr = "logical"
          ),
          prototype = list(
+           analysis_type = "",
            dataset_orig = pkg.env$dataset_templates$annot_analyses_template,
            dataset = pkg.env$dataset_templates$annot_analyses_template,
            dataset_QC_filtered = pkg.env$dataset_templates$annot_analyses_template,
@@ -176,18 +181,50 @@ setClass("MidarExperiment",
            is_istd_normalized = FALSE,
            is_quantitated = FALSE,
            is_drift_corrected = FALSE,
-           is_batch_corrected = FALSE
+           is_batch_corrected = FALSE,
+           is_isotope_corr = FALSE
          )
 )
 
 #' Constructor for the MidarExperiment object.
 #' @importFrom methods new
-
+#' @param analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @return `MidarExperiment` object
 #' @export
-MidarExperiment <- function() {
-  methods::new("MidarExperiment")
+MidarExperiment <- function(analysis_type = "") {
+  methods::new("MidarExperiment", analysis_type = analysis_type)
 }
+
+#' Set analysis type
+#' @description
+#' Set the analysis type, i.e. "lipidomics", "metabolomics, "quantitative"
+#' @param x MidarExperiment object
+#' @return A character string
+#' @export
+setGeneric("analysis_type", function(x) standardGeneric("analysis_type"))
+
+
+#' Get analysis type
+#' @description
+#' Get the analysis type defined for the MidarExperiment object
+#' @param x MidarExperiment object
+#' @param value Analysis type, one of "lipidomics", "metabolomics, "quantitative"
+#' @export
+setGeneric("analysis_type<-", function(x, value) standardGeneric("analysis_type<-"))
+
+#' Get `analysis_type`
+#' @param x MidarExperiment object
+#' @return A character string
+setMethod("analysis_type", "MidarExperiment", function(x) x@analysis_type)
+
+#' Set `analysis_type`
+#' @param x MidarExperiment object
+#' @param value Analysis type, one of "lipidomics", "metabolomics, "quantitative"
+setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
+  x@analysis_type <- value
+  x
+})
+
 
 check_integrity <-  function(object, excl_unannotated_analyses) {
   #browser()
@@ -202,7 +239,6 @@ check_integrity <-  function(object, excl_unannotated_analyses) {
           writeLines(glue::glue("No metadata present for: {paste0(setdiff(object@dataset_orig$DATAFILE_NAME %>% unique(), object@annot_analyses$DATAFILE_NAME), collapse = ", ")} measurements."))
         else
           print("No metadata present for: Too many (> 50) to display")
-
         } else {
             writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$DATAFILE_NAME %>% unique() %>% length()} measurements without matching metadata were excluded.")))
         }
@@ -221,6 +257,33 @@ check_integrity <-  function(object, excl_unannotated_analyses) {
 
 
 get_status_flag <- function(x) if_else(x, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
+
+
+
+
+#' Getter for specific slots of an MidarExperiments object
+#'
+#' $ syntax can be used to as a shortcut for getting specific variables and results from a MidarExperiment object
+#' @return Value with a variable or a tibble
+#' @param x MidarExperiment object
+#' @param name MidarExperiment slot
+#' @examples
+#' mexp = MidarExperiment()
+#' mexp$analysis_type
+#' mexp$annot_analyses
+#' @importFrom methods slot
+#' @export
+setMethod(f = "$",
+  signature = c("MidarExperiment"),
+  definition = function(x,name) {
+
+  # check for other struct slots
+  valid=c('analysis_type','dataset','annot_analyses', 'annot_features', 'annot_istd', 'metrics_qc', 'annot_batches', 'dataset_QC_filtered', 'is_istd_normalized')
+  if (!name %in% valid) stop('"', name, '" is not valid for this object: ', class(x)[1])
+  methods::slot(x,name)
+  }
+)
+
 
 
 setMethod("show", "MidarExperiment", function(object) {
@@ -243,7 +306,8 @@ setMethod("show", "MidarExperiment", function(object) {
       "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
       "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
       "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
-      "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n"
+      "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n",
+      "  \u2022 Interference (isotope) corrected: ", get_status_flag(object@is_isotope_corr), "\n"
   )
 })
 
@@ -373,13 +437,16 @@ read_msorganizer_xlm <- function(data, filename, excl_unannotated_analyses = FAL
 
 
   data@dataset <- data@dataset_orig  %>% dplyr::select(-dplyr::any_of(c("FEATURE_ID"))) %>%
-    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "DATAFILE_NAME", "QC_TYPE", "REPLICATE", "VALID_ANALYSIS", "BATCH_ID"), by = c("DATAFILE_NAME")) %>%
-    dplyr::inner_join(d_annot$annot_features %>% filter(.data$VALID_INTEGRATION) |>  dplyr::select(dplyr::any_of(c("FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "SOURCE_FEATURE_NAME", "FEATURE_ID", "isQUANTIFIER", "VALID_INTEGRATION"))),
+    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "DATAFILE_NAME", "QC_TYPE", "SAMPLE_ID", "REPLICATE", "VALID_ANALYSIS", "BATCH_ID"), by = c("DATAFILE_NAME")) %>%
+    dplyr::inner_join(d_annot$annot_features %>% filter(.data$VALID_INTEGRATION) |>  dplyr::select(dplyr::any_of(c("FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "SOURCE_FEATURE_NAME", "FEATURE_ID", "isQUANTIFIER", "VALID_INTEGRATION", "FEATURE_RESPONSE_FACTOR", "INTERFERING_FEATURE", "INTERFERANCE_PROPORTION"))),
                       by = c("SOURCE_FEATURE_NAME"), keep = FALSE) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
+    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template) |>
+    mutate(Corrected_Interference = FALSE)
   #stopifnot(methods::validObject(data, excl_nonannotated_analyses))
   check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
   data@status_processing <- "Annotated Raw Data"
+
+
   writeLines(crayon::green(glue::glue("\u2713 Metadata successfully associated with {length(data@dataset$ANALYSIS_ID %>% unique())} samples and {length(data@dataset$FEATURE_NAME %>% unique())} features.")))
   data
 }
