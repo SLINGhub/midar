@@ -13,7 +13,8 @@ corr_drift_gaussiankernel(
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
   feature_list = NULL,
-  min_sample_cv_ratio_before_after = 1
+  min_sample_cv_ratio_before_after = 1,
+  use_uncorrected_if_fit_failed = FALSE
 )
 }
 \arguments{
@@ -31,9 +32,11 @@ corr_drift_gaussiankernel(
 
 \item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
 
-\item{feature_list}{Apply correction only to species matching (RegEx).}
+\item{feature_list}{Apply correction only to species matching (RegEx)}
 
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
+
+\item{use_uncorrected_if_fit_failed}{If fit function fails, use orginal (uncorrected) data or return NA for all analyses of this feature}
 }
 \value{
 MidarExperiment object

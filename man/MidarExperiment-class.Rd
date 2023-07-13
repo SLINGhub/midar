@@ -13,6 +13,8 @@ Provides also functions to validate data integrity, to perfom normalization and 
 \section{Slots}{
 
 \describe{
+\item{\code{analysis_type}}{Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"}
+
 \item{\code{dataset_orig}}{Original imported analysis data. Required fields:}
 
 \item{\code{dataset}}{Processed analysis data. Required fields:}
@@ -42,5 +44,7 @@ Provides also functions to validate data integrity, to perfom normalization and 
 \item{\code{is_drift_corrected}}{Flag if data has been drift corrected}
 
 \item{\code{is_batch_corrected}}{Flag if data has been batch corrected}
+
+\item{\code{is_isotope_corr}}{Flag if one or more features have been isotope corrected}
 }}
 

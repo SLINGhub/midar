@@ -13,7 +13,8 @@ corr_drift_loess(
   log2_transform = TRUE,
   span = 0.75,
   feature_list = NULL,
-  min_sample_cv_ratio_before_after = 1
+  min_sample_cv_ratio_before_after = 1,
+  extrapolate = FALSE
 )
 }
 \arguments{
@@ -34,11 +35,17 @@ corr_drift_loess(
 \item{feature_list}{Apply correction only to species matching (RegEx).}
 
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
+
+\item{extrapolate}{Extrapolate loess smoothing. WARNING: Use with casre, it is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.}
 }
 \value{
 MidarExperiment object
 }
 \description{
 Function to correct for run-order drifts within or across batches using loess smoothing
-#' @details
+}
+\details{
+Note that using extrapolation for loess smoothing is generally not recommended. Use this only if you must include samples or QCs that are outside of the range spanned by the QCs used for smoothing.
+Cases where this may be necessary are when specific drifts occur in analysis sequence segments that are not spanned by QC, e.g. when the instrument broke down or suddenly changed its sensitivity.
+Only use for samples  adjacent to the first or last QC and consult runscatter plots.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/processing.R
 \name{apply_qc_filter}
 \alias{apply_qc_filter}
-\title{QC-filter dataset}
+\title{Filter dataset according to QC and other criteria}
 \usage{
 apply_qc_filter(
   data,
@@ -12,29 +12,41 @@ apply_qc_filter(
   CV_TQC_max = NA,
   SB_RATIO_min = NA,
   R2_min = NA,
-  RQC_CURVE = NA
+  RQC_CURVE = NA,
+  quantifier_only = TRUE,
+  exclude_istds = TRUE,
+  features_to_keep = NULL
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{Intensity_BQC_min}{Intensity_BQC_min}
+\item{Intensity_BQC_min}{Minimum median signal intensity of BQC}
 
-\item{CV_BQC_max}{= CV_BQC_max}
+\item{CV_BQC_max}{= Maximum \%CV of BQC}
 
-\item{Intensity_TQC_min}{= Intensity_TQC_min}
+\item{Intensity_TQC_min}{Minimum median signal intensity of TQC}
 
-\item{CV_TQC_max}{= CV_TQC_max}
+\item{CV_TQC_max}{Maximum \%CV of TQC}
 
-\item{SB_RATIO_min}{= SB_RATIO_min}
+\item{SB_RATIO_min}{= Signal-to-Blank ratio. Calculated from the 10\% percentile of all samples and the median of the Process Blank (PBLK)}
 
-\item{R2_min}{= R2_min}
+\item{R2_min}{= Minimum r squared of RQC curve defined under \code{RQC_CURVE}}
 
-\item{RQC_CURVE}{= RQC_CURVE}
+\item{RQC_CURVE}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+
+\item{quantifier_only}{Remove features where Quantifier is set to FALSE.}
+
+\item{exclude_istds}{Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{SB_RATIO_min} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
+
+\item{features_to_keep}{Features that must be kept, even if they did not meet the given QC criteria}
 }
 \value{
 MidarExperiment object
 }
 \description{
-QC-filter dataset
+Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
+Exclude features and analyses that were annotated as not valid in the metadata (VALID_INTEGRATION, VALID_ANALYSIS).
+
+Note: When \code{exclude_istds} is FALSE, then \code{SB_RATIO_min} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 }

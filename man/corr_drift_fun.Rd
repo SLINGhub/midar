@@ -14,7 +14,9 @@ corr_drift_fun(
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
   min_sample_cv_ratio_before_after = 1,
-  feature_list = NULL
+  use_uncorrected_if_fit_failed = TRUE,
+  feature_list = NULL,
+  ...
 )
 }
 \arguments{
@@ -37,7 +39,11 @@ Function needs to return a numerical vector with the length of number of rows in
 
 \item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
 
+\item{use_uncorrected_if_fit_failed}{If TRUE, then uncorrected values are returned when fit failed, if FALSE then NA is returned.}
+
 \item{feature_list}{Apply correction only to species matching (RegEx).}
+
+\item{...}{Parameters specific for the smoothing function}
 }
 \value{
 MidarExperiment object

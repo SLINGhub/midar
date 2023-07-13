@@ -4,10 +4,12 @@
 \alias{normalize_by_istd}
 \title{Normalize Intensities with corresponding ISTD Intensities}
 \usage{
-normalize_by_istd(data)
+normalize_by_istd(data, interference_correction = TRUE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{interference_correction}{Apply interference (e.g. isotope) correction as defined in the feature metadata}
 }
 \value{
 MidarExperiment object
