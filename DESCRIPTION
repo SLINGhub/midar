@@ -52,5 +52,6 @@ Imports:
     ggh4x,
     crayon,
     ComplexHeatmap,
-    KernSmooth
+    KernSmooth,
+    ggExtra
 VignetteBuilder: knitr
