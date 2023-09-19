@@ -66,11 +66,12 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "QUANTIFIER", init_value = TRUE, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "VALID_INTEGRATION", init_value = TRUE, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
+  #d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "SOURCE_FEATURE_NAME", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERING_FEATURE", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERANCE_PROPORTION", init_value = NA_real_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "REMARKS", init_value = NA_character_, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_CLASS", init_value = TRUE, make_caps = TRUE)
 
 
   # NOTE: If FEATURE_NAME is defined, then it will overwrite the feature name defined in the raw data files
@@ -81,6 +82,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       FEATURE_NAME = stringr::str_squish(.data$Transition_Name),
       SOURCE_FEATURE_NAME = stringr::str_squish(.data$SOURCE_FEATURE_NAME),
       SOURCE_FEATURE_NAME = if_else(is.na(.data$SOURCE_FEATURE_NAME), .data$FEATURE_NAME, .data$SOURCE_FEATURE_NAME),
+      FEATURE_CLASS = stringr::str_squish(.data$FEATURE_CLASS),
       NORM_ISTD_FEATURE_NAME	= stringr::str_squish(.data$Transition_Name_ISTD),
       QUANT_ISTD_FEATURE_NAME = stringr::str_squish(.data$Transition_Name_ISTD),
       isISTD = (.data$FEATURE_NAME == .data$NORM_ISTD_FEATURE_NAME),
@@ -92,10 +94,11 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       "SOURCE_FEATURE_NAME",
       "FEATURE_ID",
       "FEATURE_NAME",
+      "FEATURE_CLASS",
       "isISTD",
       "NORM_ISTD_FEATURE_NAME",
       "QUANT_ISTD_FEATURE_NAME",
-      "FEATURE_RESPONSE_FACTOR",
+      FEATURE_RESPONSE_FACTOR = "RESPONSE_FACTOR",
       isQUANTIFIER = "QUANTIFIER",
       "VALID_INTEGRATION",
       "INTERFERING_FEATURE",
