@@ -5,12 +5,15 @@
 #' @noRd
 
 get_conc_unit <- function(sample_amount_unit){
-  if (length(unique(sample_amount_unit)) > 1)
+
+  units <- tolower(unique(sample_amount_unit))
+
+  if (length(units) > 1)
     conc_unit <- "pmol/sample amount unit (multiple units)"
-  else if (sample_amount_unit[1] == "uL" | sample_amount_unit[1] == "\U003BCL")
-    conc_unit <- "\U003BCmol/L"
+  else if (units == "ul" | units == "\U003BCl" | units == "µl")
+    conc_unit <- "µmol/L"
   else
-    conc_unit <- glue::glue("pmol/{sample_amount_unit}")
+    conc_unit <- glue::glue("pmol/{units}")
   conc_unit
 }
 
@@ -263,6 +266,8 @@ apply_qc_filter <-  function(data,
                    exclude_istds = TRUE,
                    features_to_keep = NULL
                    ){
+  if ((!is.na(R2_min)) & is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
+
   if (nrow(data@metrics_qc)== 0){
     stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
     }
@@ -288,8 +293,6 @@ apply_qc_filter <-  function(data,
                                   (is.na(.data$SB_Ratio_Q10)|(.data$SB_Ratio_Q10 > SB_RATIO_min|(.data$isISTD & !exclude_istds))))|
                                   (.data$FEATURE_NAME %in% features_to_keep))
 
-
-  if ((!is.na(R2_min))&is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
   if(is.numeric(RQC_CURVE)) {
     rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))]
     rqc_r2_col <- rqc_r2_col_names[RQC_CURVE]
