@@ -76,8 +76,10 @@ The drift correction function needs to be provided by the user. See <code>smooth
 <span>  <span class="va">within_batch</span>,</span>
 <span>  <span class="va">apply_conditionally</span>,</span>
 <span>  apply_conditionally_per_batch <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  min_sample_cv_ratio_before_after <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  feature_list <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  max_cv_ratio_before_after <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  use_uncorrected_if_fit_fails <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  feature_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -97,7 +99,7 @@ Function needs to return a numerical vector with the length of number of rows in
 
 
 <dt>log2_transform</dt>
-<dd><p>log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.</p></dd>
+<dd><p>Log transform the data for correction when <code>TRUE</code> (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.</p></dd>
 
 
 <dt>span_width</dt>
@@ -105,23 +107,32 @@ Function needs to return a numerical vector with the length of number of rows in
 
 
 <dt>within_batch</dt>
-<dd><p>Correct each batch separately (Default is TRUE)</p></dd>
+<dd><p>Apply to each batch separately if <code>TRUE</code> (the default)</p></dd>
 
 
 <dt>apply_conditionally</dt>
-<dd><p>Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'</p></dd>
+<dd><p>Apply drift correction to all species if <code>TRUE</code>, or only when sample CV after smoothing changes below a threshold defined via <code>max_cv_ratio_before_after</code></p></dd>
 
 
 <dt>apply_conditionally_per_batch</dt>
-<dd><p>Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches</p></dd>
+<dd><p>When <code>apply_conditionally = TRUE</code>, correction is conditionally applied per batch when <code>TRUE</code> and across all batches when <code>FALSE</code></p></dd>
 
 
-<dt>min_sample_cv_ratio_before_after</dt>
-<dd><p>Maximum sample CV change for correction to be applied</p></dd>
+<dt>max_cv_ratio_before_after</dt>
+<dd><p>Only used when <code>apply_conditionally = TRUE</code>. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
+A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of &lt; 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.</p></dd>
+
+
+<dt>use_uncorrected_if_fit_fails</dt>
+<dd><p>In case the smoothing function fails for a species, then use original (uncorrected) data when <code>TRUE</code> (the default) or return <code>NA</code> for all analyses of the feature where the fit failed.</p></dd>
 
 
 <dt>feature_list</dt>
-<dd><p>Apply correction only to species matching (RegEx).</p></dd>
+<dd><p>Subset the features for correction whose names matches the specified text using regular expression. Default is <code>NULL</code> which means all features are selected.</p></dd>
+
+
+<dt>...</dt>
+<dd><p>Parameters specific for the smoothing function</p></dd>
 
 </dl></div>
     <div class="section level2">

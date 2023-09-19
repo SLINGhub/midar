@@ -40,10 +40,28 @@
     <loc>https://slinghub.github.io/midar/reference/MidarExperiment.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/reference/add_lipid_class_transition.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/analysis_type-MidarExperiment-method.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/analysis_type-set-MidarExperiment-method.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/analysis_type-set.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/analysis_type.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/reference/apply_qc_filter.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/calculate_qc_metrics.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/cash-MidarExperiment-method.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/combine_experiments.html</loc>
@@ -61,10 +79,22 @@
     <loc>https://slinghub.github.io/midar/reference/corr_drift_loess.html</loc>
   </url>
   <url>
+    <loc>https://slinghub.github.io/midar/reference/correct_interference_manually.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/correct_interferences.html</loc>
+  </url>
+  <url>
     <loc>https://slinghub.github.io/midar/reference/cvlog.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/exportWideCSV.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/fun_gaussiankernel.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/fun_loess.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/get_stats.html</loc>
@@ -98,6 +128,9 @@
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/plot_runscatter.html</loc>
+  </url>
+  <url>
+    <loc>https://slinghub.github.io/midar/reference/plot_x_vs_y.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/quantitate_by_istd.html</loc>
