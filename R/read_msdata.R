@@ -11,6 +11,8 @@
 
 import_masshunter_csv <- function(filename, silent = FALSE) {
 
+
+
   if(!silent) print(glue::glue("Reading [{basename(filename)}] ..."))
   # if (shiny::isRunning())
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
@@ -47,11 +49,16 @@ import_masshunter_csv <- function(filename, silent = FALSE) {
 
 
   datWide <- datWide |> dplyr::add_row(.after = 1)
-  datWide[1, ] <- tibble::tibble(A = datWide[1,] |> unlist() |> dplyr::na_if("")) |>  tidyr::fill("A") |> unlist() |> as.list()
+  datWide[1, ] <- tibble::tibble(`_prefixXXX_` = datWide[1,] |> unlist() |> dplyr::na_if("")) |>  tidyr::fill("_prefixXXX_") |> unlist() |> as.list()
 
-  datWide[1, ] <- replace(datWide[1,], stringr::str_detect(string = datWide[1,] , pattern = "AA"),"")
-  datWide[2, ] <- replace(datWide[1,], !stringr::str_detect(string = datWide[1,] , pattern = "AA"),"")
-  datWide[1, ] <- tibble::tibble(A = datWide[1,] |> unlist() |> dplyr::na_if("")) |>  tidyr::fill("A") |> unlist() |> as.list()
+  datWide[1, ] <- replace(datWide[1,], stringr::str_detect(string = datWide[1,] , pattern = "_prefixXXX_"),"")
+  datWide[2, ] <- replace(datWide[1,], !stringr::str_detect(string = datWide[1,] , pattern = "_prefixXXX_"),"")
+
+
+
+  datWide[1, ] <- tibble::tibble(`_prefixXXX_` = datWide[1,] |> unlist() |> dplyr::na_if("")) |>  tidyr::fill("_prefixXXX_") |> unlist() |> as.list()
+
+
 
   # Concatenate rows
   datWide[1, ] <- paste(datWide[1, ], datWide[2, ], sep = " ") |> stringr::str_squish() |> as.list()
@@ -241,7 +248,7 @@ read_table_wide <- function(data, file, field, sheet = "", silent = FALSE) {
   var_field <- rlang::ensym(field)
 
   ext <- fs::path_ext(file)
-  browser
+
   if(ext == "csv")
     d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE, na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."), col_types = "cn")
   else if(ext == "xls" | ext == "xlsx"){
