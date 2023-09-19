@@ -70,6 +70,7 @@ correct_interferences <- function(data, variable = "Intensity")  {
     data@dataset <- data@dataset |>
       mutate(Intensity_Raw = .data$Intensity, .before = "Intensity")
 
+  #ToDo: check if interering feature is in the feature list
   d_corrected_features <- data@dataset |>
     mutate(is_interfering = .data$FEATURE_NAME %in% data@annot_features$INTERFERING_FEATURE,
            interference_group = if_else(.data$is_interfering, .data$FEATURE_NAME, .data$INTERFERING_FEATURE)) |>
