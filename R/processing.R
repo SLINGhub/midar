@@ -10,8 +10,8 @@ get_conc_unit <- function(sample_amount_unit){
 
   if (length(units) > 1)
     conc_unit <- "pmol/sample amount unit (multiple units)"
-  else if (units == "ul" | units == "\U003BCl" | units == "µl")
-    conc_unit <- "µmol/L"
+  else if (units == "ul" | units == "\U003BCl")
+    conc_unit <- "\U003BCmol/L"
   else
     conc_unit <- glue::glue("pmol/{units}")
   conc_unit
