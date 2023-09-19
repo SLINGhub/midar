@@ -13,7 +13,8 @@ corr_drift_loess(
   log2_transform = TRUE,
   span = 0.75,
   feature_list = NULL,
-  min_sample_cv_ratio_before_after = 1,
+  max_cv_ratio_before_after = 1,
+  use_uncorrected_if_fit_fails = TRUE,
   extrapolate = FALSE
 )
 }
@@ -22,21 +23,24 @@ corr_drift_loess(
 
 \item{qc_types}{QC types used for drift correction}
 
-\item{within_batch}{Correct each batch separately (Default is TRUE)}
+\item{within_batch}{Apply to each batch separately if \code{TRUE} (the default)}
 
-\item{apply_conditionally}{Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'}
+\item{apply_conditionally}{Apply drift correction to all species if \code{FALSE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
 
-\item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
+\item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}
 
-\item{log2_transform}{log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.}
+\item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
 \item{span}{Loess span width (default is 0.75)}
 
-\item{feature_list}{Apply correction only to species matching (RegEx).}
+\item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
-\item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
+\item{max_cv_ratio_before_after}{Only used when \code{apply_conditionally = TRUE}. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
+A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
 
-\item{extrapolate}{Extrapolate loess smoothing. WARNING: Use with casre, it is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.}
+\item{use_uncorrected_if_fit_fails}{In case the smoothing function fails for a species, then use original (uncorrected) data when \code{TRUE} (the default) or return \code{NA} for all analyses of the feature where the fit failed.}
+
+\item{extrapolate}{Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.}
 }
 \value{
 MidarExperiment object

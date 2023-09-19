@@ -13,8 +13,8 @@ corr_drift_gaussiankernel(
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
   feature_list = NULL,
-  min_sample_cv_ratio_before_after = 1,
-  use_uncorrected_if_fit_failed = FALSE
+  max_cv_ratio_before_after = 1,
+  use_uncorrected_if_fit_fails = FALSE
 )
 }
 \arguments{
@@ -24,24 +24,28 @@ corr_drift_gaussiankernel(
 
 \item{bandwidth}{Kernel bandwidth}
 
-\item{log2_transform}{log2 transform data during correction (Default is TRUE). Log transformation is only used for the fit, results will not be transformed.}
+\item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
-\item{within_batch}{Correct each batch separately (Default is TRUE)}
+\item{within_batch}{Apply to each batch separately if \code{TRUE} (the default)}
 
-\item{apply_conditionally}{Apply drift correction to all species or conditionally based on 'min_sample_cv_ratio_before_after'}
+\item{apply_conditionally}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
 
-\item{apply_conditionally_per_batch}{Apply correction conditionally using min_sample_cv_ratio_before_after criteriaper batch or across batches}
+\item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}
 
-\item{feature_list}{Apply correction only to species matching (RegEx)}
+\item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
-\item{min_sample_cv_ratio_before_after}{Maximum sample CV change for correction to be applied}
+\item{max_cv_ratio_before_after}{Only used when \code{apply_conditionally = TRUE}. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
+A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
 
-\item{use_uncorrected_if_fit_failed}{If fit function fails, use orginal (uncorrected) data or return NA for all analyses of this feature}
+\item{use_uncorrected_if_fit_fails}{In case the smoothing function fails for a species, then use original (uncorrected) data when \code{TRUE} (the default) or return \code{NA} for all analyses of the feature where the fit failed.}
 }
 \value{
 MidarExperiment object
 }
 \description{
-Function to correct for run-order drifts within or across batches using gaussian kernel smoothing. This is typically used to smooth based on the study samples.
-#' @details
+Function to correct for run-order drifts within or across batches using gaussian kernel smoothing (see \emph{Tan et al. (2020)}).
+This is typically used to smooth based on the study samples. To avoid local biases and artefacts, this function should only be applied to analyses wit sufficient number of samples that were well randomized.
+}
+\references{
+Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H (2020). MRMkit: Automated Data Processing for Large-Scale Targeted Metabolomics Analysis. \emph{Analytical Chemistry}, 92(20), 13677–13682. \url{https://doi.org/10.1021/acs.analchem.0c03060}
 }
