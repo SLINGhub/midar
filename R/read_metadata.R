@@ -66,7 +66,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "QUANTIFIER", init_value = TRUE, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "VALID_INTEGRATION", init_value = TRUE, make_caps = TRUE)
-  #d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "SOURCE_FEATURE_NAME", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERING_FEATURE", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERANCE_PROPORTION", init_value = NA_real_, make_caps = TRUE)
