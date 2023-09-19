@@ -64,6 +64,7 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
   dat_filt <- dat_filt %>%
     dplyr::mutate(value =  !!y_var_s)
 
+
   dat_filt <- dat_filt %>%
     dplyr::group_by(.data$FEATURE_NAME) %>%
     dplyr::mutate(
@@ -450,6 +451,9 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
   return(g)
 }
 
+
+
+
 #' PCA plot for QC
 #' @param data MidarExperiment object
 #' @param variable which variable to use for plot
@@ -463,7 +467,8 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
 #' @export
 plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size = 2, fill_alpha = 0.1) {
 
-  d_wide = data@dataset_QC_filtered  %>%
+
+  d_wide <- data@dataset_QC_filtered  %>%
     filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS"), .data$isQUANTIFIER ) %>%
     dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
 
@@ -476,19 +481,20 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
   #ToDo: warning when rows/cols with NA
   d_clean <- d_filt  |>
     filter(if_any(dplyr::where(is.numeric), ~ !is.na(.))) |>
-    dplyr::select(where(~!any(is.na(.) | is.nan(.) | . < 0)))
+    dplyr::select(where(~!any(is.na(.) | is.nan(.) | is.infinite(.) | . <= 0)))
+
 
   d_metadata <- d_wide  %>%
     dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID") |>
     dplyr::distinct() |>
     dplyr::right_join(d_clean |> dplyr::select("ANALYSIS_ID") |> distinct(), by = c("ANALYSIS_ID"))
 
+
   m_raw <- d_clean |>
     tibble::column_to_rownames("ANALYSIS_ID") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
-
   # get pca result with annotation
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
   pca_annot <- pca_res |> broom::augment(d_metadata)
