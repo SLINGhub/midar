@@ -29,6 +29,7 @@ pkg.env$dataset_templates <- list(
   annot_features_template = tibble::tibble(
     "FEATURE_ID" = character(),
     "FEATURE_NAME" = character(),
+    "FEATURE_CLASS" = character(),
     "isISTD" = logical(),
     "NORM_ISTD_FEATURE_NAME" = character(),
     "QUANT_ISTD_FEATURE_NAME" = character(),
@@ -436,8 +437,8 @@ read_msorganizer_xlm <- function(data, filename, excl_unannotated_analyses = FAL
 
 
   data@dataset <- data@dataset_orig  %>% dplyr::select(-dplyr::any_of(c("FEATURE_ID"))) %>%
-    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "DATAFILE_NAME", "QC_TYPE", "SAMPLE_ID", "REPLICATE", "VALID_ANALYSIS", "BATCH_ID"), by = c("DATAFILE_NAME")) %>%
-    dplyr::inner_join(d_annot$annot_features %>% filter(.data$VALID_INTEGRATION) |>  dplyr::select(dplyr::any_of(c("FEATURE_NAME", "FEATURE_NAME", "NORM_ISTD_FEATURE_NAME", "isISTD", "SOURCE_FEATURE_NAME", "FEATURE_ID", "isQUANTIFIER", "VALID_INTEGRATION", "FEATURE_RESPONSE_FACTOR", "INTERFERING_FEATURE", "INTERFERANCE_PROPORTION"))),
+    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("ANALYSIS_ID", "DATAFILE_NAME", "QC_TYPE", "SPECIMEN" ,"SAMPLE_ID", "REPLICATE", "VALID_ANALYSIS", "BATCH_ID"), by = c("DATAFILE_NAME")) %>%
+    dplyr::inner_join(d_annot$annot_features %>% filter(.data$VALID_INTEGRATION) |>  dplyr::select(dplyr::any_of(c("FEATURE_NAME", "FEATURE_NAME", "FEATURE_CLASS", "NORM_ISTD_FEATURE_NAME", "isISTD", "SOURCE_FEATURE_NAME", "FEATURE_ID", "isQUANTIFIER", "VALID_INTEGRATION", "FEATURE_RESPONSE_FACTOR", "INTERFERING_FEATURE", "INTERFERANCE_PROPORTION"))),
                       by = c("SOURCE_FEATURE_NAME"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template) |>
     mutate(Corrected_Interference = FALSE)
