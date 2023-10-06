@@ -31,7 +31,7 @@ writeReportXLS <- function(data, filename) {
 
     d_conc_wide_QC <- data@dataset_QC_filtered %>%
       dplyr::filter(.data$QC_TYPE %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-      dplyr::select(dplyr::any_of(c("ANALYSIS_ID", "QC_TYPE", "isISTD.x", "isQUANTIFIER", "AcqTimeStamp", "FEATURE_NAME", "Concentration"))) %>%
+      dplyr::select(dplyr::any_of(c("ANALYSIS_ID", "QC_TYPE", "isISTD.x", "isQUANTIFIER", "AcqTimeStamp", "FEATURE_NAME", "FEATURE_CLASS", "Concentration"))) %>%
       dplyr::filter(!str_detect(.data$FEATURE_NAME, "\\(IS")) %>%
       tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
 
