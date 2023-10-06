@@ -55,6 +55,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)) ,
       ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
       ANALYSIS_ID = if_else(is.na(.data$ANALYSIS_ID), .data$DATAFILE_NAME, .data$ANALYSIS_ID),
+      SPECIMEN = stringr::str_squish(as.character(.data$SPECIMEN)),
       QC_TYPE = if_else(.data$QC_TYPE == "Sample" | is.na(.data$QC_TYPE), "SPL", .data$QC_TYPE))|>
     dplyr::ungroup() %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
@@ -64,6 +65,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
   # ToDo: Make note if feature names are not original
   d_temp_features <- readxl::read_excel(filename, sheet = "Transition_Name_Annot", trim_ws = TRUE)
 
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_CLASS", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "QUANTIFIER", init_value = TRUE, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "VALID_INTEGRATION", init_value = TRUE, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
@@ -71,7 +73,7 @@ import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERING_FEATURE", init_value = NA_character_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERANCE_PROPORTION", init_value = NA_real_, make_caps = TRUE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "REMARKS", init_value = NA_character_, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_CLASS", init_value = TRUE, make_caps = TRUE)
+
 
 
   # NOTE: If FEATURE_NAME is defined, then it will overwrite the feature name defined in the raw data files
