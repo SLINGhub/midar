@@ -150,7 +150,7 @@ calculate_qc_metrics <- function(data) {
 
     ds1 <- data@dataset %>%
     dplyr::filter(.data$QC_TYPE %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK")) %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
+    dplyr::group_by(.data$FEATURE_NAME, .data$FEATURE_CLASS) %>%
     dplyr::summarise(
       #PrecursorMz = paste0(unique(.data$PRECURSOR_MZ), collapse = ","),
       #ProductMz = paste0(unique(.data$PRODUCT_MZ), collapse = ","),
@@ -173,6 +173,7 @@ calculate_qc_metrics <- function(data) {
       conc_median_LTR = median(.data$Concentration[.data$QC_TYPE == "LTR"], na.rm = TRUE),
 
       SB_Ratio_Q10 = quantile(.data$Intensity[.data$QC_TYPE == "SPL"], probs  = 0.1, na.rm = TRUE, names = FALSE)/median(.data$Intensity[.data$QC_TYPE == "PBLK"], na.rm = TRUE, names = FALSE),
+      SB_Ratio_median = median(.data$Intensity[.data$QC_TYPE == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$Intensity[.data$QC_TYPE == "PBLK"], na.rm = TRUE, names = FALSE),
 
       Int_CV_TQC = sd(.data$Intensity[.data$QC_TYPE == "TQC"], na.rm = TRUE)/mean(.data$Intensity[.data$QC_TYPE == "TQC"], na.rm = TRUE) * 100,
       Int_CV_BQC = sd(.data$Intensity[.data$QC_TYPE == "BQC"], na.rm = TRUE)/mean(.data$Intensity[.data$QC_TYPE == "BQC"], na.rm = TRUE) * 100,
@@ -290,7 +291,7 @@ apply_qc_filter <-  function(data,
                                   (is.na(.data$Int_med_TQC)|.data$Int_med_TQC > Intensity_TQC_min) &
                                   (is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < CV_BQC_max) &
                                   (is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < CV_TQC_max) &
-                                  (is.na(.data$SB_Ratio_Q10)|(.data$SB_Ratio_Q10 > SB_RATIO_min|(.data$isISTD & !exclude_istds))))|
+                                  (is.na(.data$SB_Ratio_median)|(.data$SB_Ratio_median > SB_RATIO_min|(.data$isISTD & !exclude_istds))))|
                                   (.data$FEATURE_NAME %in% features_to_keep))
 
   if(is.numeric(RQC_CURVE)) {
