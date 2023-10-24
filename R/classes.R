@@ -363,15 +363,16 @@ read_masshunter_csv <- function(data, file_dir_names) {
 
   if(has_duplicated_id)
     if(has_duplicated_id_values)
-      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical values. Please check dataset(s)."))
+      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical intensity values. Please check dataset(s)."))
     else
-      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different values.Please check dataset(s)."))
+      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different intensity values.Please check dataset(s)."))
 
 
 
   data@dataset_orig <- d_temp
 
   data@dataset_orig <- data@dataset_orig %>% dplyr::rename(Intensity = "Area")
+  # TODO: excl_unannotated_analyses below
   check_integrity(data, excl_unannotated_analyses = FALSE)
   #stopifnot(methods::validObject(data))
   #stopifnot(methods::validObject(data))
