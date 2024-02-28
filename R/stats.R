@@ -18,7 +18,7 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
 
   feature <- rlang::ensym(feature)
   grouping <- rlang::ensym(grouping)
-  f = as.formula(paste0("Concentration ~ ", grouping))
+  f = as.formula(paste0("conc ~ ", grouping))
 
   d_filt <-  data |>
     filter(!!grouping == group_case | !!grouping == group_ref) |>
@@ -27,8 +27,8 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
   d_incompletegroups <- d_filt |>
     group_by(!!feature)  |>
     summarise(grp_size_fail =
-                sum(!is.na(.data$Concentration[!!grouping == group_case])) < min_groupsize |
-                sum(!is.na(.data$Concentration[!!grouping == group_ref])) < min_groupsize
+                sum(!is.na(.data$conc[!!grouping == group_case])) < min_groupsize |
+                sum(!is.na(.data$conc[!!grouping == group_ref])) < min_groupsize
                 ) |>
     filter(.data$grp_size_fail)
 
@@ -39,11 +39,11 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
 
   d_stats <- d_filt |>
     rowwise() |>
-    mutate(Concentration = if_else(log_transform, log2(.data$Concentration), .data$Concentration)) |>
+    mutate(conc = if_else(log_transform, log2(.data$conc), .data$conc)) |>
     ungroup() |>
     anti_join(d_incompletegroups,by = join_by(!!feature)) |>
     group_by(!!feature) |>
-    #drop_na(Concentration) |>
+    #drop_na(conc) |>
     nest() |>
     mutate(res = purrr::map(data, \(x) broom::tidy(
       t.test(f, paired = paired, var.equal = FALSE, alternative = "two.sided", data = x))
@@ -56,12 +56,12 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
   if (!paired){
     d_fc <- d_filt |>
       group_by(!!feature) |>
-      summarise(log2FC = log2(mean(.data$Concentration[!!grouping == group_case])/mean(.data$Concentration[!!grouping == group_ref])))
+      summarise(log2FC = log2(mean(.data$conc[!!grouping == group_case])/mean(.data$conc[!!grouping == group_ref])))
   } else {
     d_fc <- d_filt |>
       group_by(!!feature) |>
-      summarise(log2FC = mean(log2(.data$Concentration[!!grouping == group_case]/.data$Concentration[!!grouping == group_ref])))
+      summarise(log2FC = mean(log2(.data$conc[!!grouping == group_case]/.data$conc[!!grouping == group_ref])))
   }
 
-  d_stats |>  inner_join(d_fc, by = "FEATURE_NAME")
+  d_stats |>  inner_join(d_fc, by = "feature_name")
 }

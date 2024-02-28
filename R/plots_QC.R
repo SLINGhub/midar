@@ -8,7 +8,7 @@
 #' @param cap_SPL_SD Minimum s.d. of samples
 #' @param cap_QC_SD Minimum s.d. of QCs
 #' @param cap_top_n Cap top n values
-#' @param QC_TYPE_fit QC TYPE used for loess fit
+#' @param qc_type_fit QC TYPE used for loess fit
 #' @param show_driftcorrection Show drift correction
 #' @param trend_samples_fun Function used for drift correction. Default 'loess'
 #' @param trend_samples_col Color of drift line
@@ -44,7 +44,7 @@
 #' @export
 
 plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
-                            cap_values, cap_SPL_SD = 4, cap_QC_SD = 4, cap_top_n = 10, QC_TYPE_fit = "TQC",
+                            cap_values, cap_SPL_SD = 4, cap_QC_SD = 4, cap_top_n = 10, qc_type_fit = "TQC",
                             show_driftcorrection = FALSE, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
                             show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "red1", batch_shading_color = "grey85",
                             outputPDF, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
@@ -52,13 +52,14 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
 
   y_var_s <- rlang::sym(y_var)
   y_label <- dplyr::if_else(cap_values, paste0(ifelse(is.na(y_label_text), y_var, y_label_text), " (capped at min(", cap_SPL_SD, "x SD[SPL]) ,", cap_QC_SD, "x SD[QC]"), y_var)
-  # Re-order QC_TYPE levels to define plot layers, e.g. that QCs are plotted over StudySamples
-  data@dataset$QC_TYPE <- factor(as.character(data@dataset$QC_TYPE), pkg.env$qc_type_annotation$qc_type_levels)
+
+  # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
+  data@dataset$qc_type <- factor(as.character(data@dataset$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
   #  filter data
   dat_filt <- data@dataset %>% dplyr::ungroup() %>%
-    dplyr::arrange(.data$FEATURE_NAME, .data$RUN_ID) %>%
-    dplyr::filter(stringr::str_detect(.data$FEATURE_NAME, paste0("^$|", feature_filter), negate = filter_exclude))
+    dplyr::arrange(.data$feature_name, .data$run_id) %>%
+    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter), negate = filter_exclude))
 
   # cap upper range of dataset to avoid skewness
   dat_filt <- dat_filt %>%
@@ -66,22 +67,22 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
 
 
   dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
+    dplyr::group_by(.data$feature_name) %>%
     dplyr::mutate(
-      value_max_spl = mean(.data$value[.data$QC_TYPE=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$QC_TYPE=="SPL"], na.rm=T),
-      value_max_qc = mean(.data$value[.data$QC_TYPE==QC_TYPE_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$QC_TYPE==QC_TYPE_fit]), na.rm=T,
+      value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
+      value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
       value_max = max(.data$value_max_spl, .data$value_max_qc, na.rm=T),
       value_mod = dplyr::if_else(.data$value > .data$value_max & cap_values, .data$value_max, .data$value)
     ) %>%
     dplyr::ungroup()
 
   dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
+    dplyr::group_by(.data$feature_name) %>%
     dplyr::arrange(.data$value) %>%
     mutate(
       value = ifelse(dplyr::row_number() < cap_top_n, .data$value[cap_top_n], .data$value)
     ) |>
-    dplyr::arrange(.data$FEATURE_NAME, .data$RUN_ID) %>%
+    dplyr::arrange(.data$feature_name, .data$run_id) %>%
     dplyr::ungroup()
 
 
@@ -94,7 +95,7 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
   }
 
   if(is.na(page_no))
-    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$FEATURE_NAME)/(cols_page * rows_page))
+    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$feature_name)/(cols_page * rows_page))
   else
     page_range <- page_no
 
@@ -105,7 +106,7 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
   for (i in page_range){
     if(!silent) print(paste0("page ", i))
     p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batch_info, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
-                             trend_samples_fun, trend_samples_col, after_correction = after_correction, QC_TYPE_fit = QC_TYPE_fit, outputPDF = outputPDF, page_no = i,
+                             trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
                              point_size = point_size, cap_values = cap_values, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
                              batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width)
@@ -117,7 +118,7 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
 }
 #' @importFrom ggplot2 Stat
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
-                                show_driftcorrection, after_correction = FALSE, QC_TYPE_fit,cap_values,
+                                show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_values,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, trend_samples_fun, trend_samples_col, plot_other_qc,
                                 outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width){
 
@@ -126,55 +127,54 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
-  n_cmpd <- length(unique(dat_filt$ANALYSIS_ID))
+  n_cmpd <- length(unique(dat_filt$analysis_id))
   row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
   row_end <- n_cmpd * cols_page * rows_page * page_no
 
 
 
   dat_subset <- dat_filt %>%
-    dplyr::arrange(.data$FEATURE_NAME, .data$RUN_ID) %>%
+    dplyr::arrange(.data$feature_name, .data$run_id) %>%
     dplyr::slice(row_start:row_end)
 
-  dat_subset$QC_TYPE <- forcats::fct_relevel(dat_subset$QC_TYPE, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
+  dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
   dat_subset <- dat_subset %>%
-    dplyr::arrange(.data$QC_TYPE)
+    dplyr::arrange(.data$qc_type)
 
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
   dMax <- dat_subset %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
+    dplyr::group_by(.data$feature_name) %>%
     dplyr::summarise(y_max = max(.data$value_mod, na.rm = TRUE)*1.0)
 
   d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
-  d_batch_data$FEATURE_NAME <- rep(dMax$FEATURE_NAME, times = nrow(d_batches))
-  d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by=c("FEATURE_NAME"))
+  d_batch_data$feature_name <- rep(dMax$feature_name, times = nrow(d_batches))
+  d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by=c("feature_name"))
 
-
-  p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x="RUN_ID", label = "ANALYSIS_ID"))
+  p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x="run_id", label = "analysis_id"))
 
   if (show_batches) {
     if (!batches_as_shades) {
       p <- p + ggplot2::geom_vline(data = d_batch_data %>% dplyr::slice(-1), ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5)
     }
     else {
-      d_batches_temp <- d_batch_data %>% dplyr::slice(-1) %>% dplyr::filter(.data$BATCH_NO %% 2 != 1)
-      p <- p + ggplot2::geom_rect(data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5 , xmax = .data$id_batch_end + 0.5, ymin = 0, ymax = .data$y_max, label = .data$BATCH_ID),
+      d_batches_temp <- d_batch_data %>% dplyr::slice(-1) %>% dplyr::filter(.data$batch_no %% 2 != 1)
+      p <- p + ggplot2::geom_rect(data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5 , xmax = .data$id_batch_end + 0.5, ymin = 0, ymax = .data$y_max, label = .data$batch_id),
                          inherit.aes = FALSE, fill = batch_shading_color, color = NA, alpha = 0.5, linetype = "solid", size = 0.3)
     }
   }
 
   p <- p +
-    ggplot2::geom_point(aes_string(x = "RUN_ID", y= "value_mod", color="QC_TYPE", fill="QC_TYPE", shape="QC_TYPE", group="BATCH_ID"), size=point_size, alpha=point_transparency, stroke = point_stroke_width)
+    ggplot2::geom_point(aes_string(x = "run_id", y= "value_mod", color="qc_type", fill="qc_type", shape="qc_type", group="batch_id"), size=point_size, alpha=point_transparency, stroke = point_stroke_width)
 
 
 
   if(after_correction & show_driftcorrection){
     p <- p +
-      ggplot2::geom_line(aes_string(x = "RUN_ID", y= "value_fitted", group = "BATCH_ID"), color = pkg.env$qc_type_annotation$qc_type_fillcol[QC_TYPE_fit], size = .5)
+      ggplot2::geom_line(aes_string(x = "run_id", y= "value_fitted", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5)
   }
 
   p <- p +
-    ggh4x::facet_wrap2(ggplot2::vars(.data$FEATURE_NAME), scales = "free_y", ncol = cols_page, nrow = rows_page,trim_blank = FALSE) +
+    ggh4x::facet_wrap2(ggplot2::vars(.data$feature_name), scales = "free_y", ncol = cols_page, nrow = rows_page,trim_blank = FALSE) +
     ggplot2::expand_limits(y = 0) +
     ggplot2::scale_color_manual(values=pkg.env$qc_type_annotation$qc_type_col, drop=TRUE) +
     ggplot2::scale_fill_manual(values=pkg.env$qc_type_annotation$qc_type_fillcol, drop=TRUE)+
@@ -182,31 +182,31 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   if(show_driftcorrection){
     if(after_correction) {
       p <- p +
-        ggplot2::geom_smooth(data = filter(dat_subset, .data$QC_TYPE == QC_TYPE_fit), ggplot2::aes_string(x = "RUN_ID", y= "value", group = "BATCH_ID"), se=TRUE,
-                    colour=pkg.env$qc_type_annotation$qc_type_fillcol[QC_TYPE_fit], fill = pkg.env$qc_type_annotation$qc_type_fillcol[QC_TYPE_fit],
+        ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), se=TRUE,
+                    colour=pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], fill = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit],
                     method = MASS::rlm, alpha = 0.2, size=0.4) +
-        ggplot2::geom_smooth(data = filter(dat_subset, .data$QC_TYPE == "SPL"), ggplot2::aes_string(x = "RUN_ID", y= "value", group = "BATCH_ID"), colour=trend_samples_col, fill = trend_samples_col,
+        ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=trend_samples_col, fill = trend_samples_col,
                     method = trend_samples_fun, se=TRUE, alpha = 0.2, size=.4, na.rm = FALSE)
 
       if(plot_other_qc){
-        other_qc <- dplyr::if_else(QC_TYPE_fit == "BQC", "TQC", "BQC")
+        other_qc <- dplyr::if_else(qc_type_fit == "BQC", "TQC", "BQC")
         other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
         p <- p +
-          ggplot2::geom_smooth(data = dplyr::filter(dat_subset, .data$QC_TYPE == other_qc), ggplot2::aes_string(x = "RUN_ID", y= "value", group = "BATCH_ID"), colour=other_qc_col, fill = other_qc_col,
+          ggplot2::geom_smooth(data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=other_qc_col, fill = other_qc_col,
                       method = trend_samples_fun, se=TRUE, alpha = 0.2, size=.4, na.rm = FALSE)
       }
     }
     else {
 
       p <- p +
-        geom_smooth(data = dplyr::filter(dat_subset, .data$QC_TYPE == "SPL"), ggplot2::aes_string(x = "RUN_ID", y= "value", group = "BATCH_ID"), colour=trend_samples_col, fill = trend_samples_col,
+        geom_smooth(data = dplyr::filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=trend_samples_col, fill = trend_samples_col,
                     method = trend_samples_fun, se=TRUE, alpha = 0.2, size=.4, na.rm = FALSE)
 
       if(plot_other_qc){
-        other_qc <- dplyr::if_else(.data$QC_TYPE_fit == "BQC", "TQC", "BQC")
+        other_qc <- dplyr::if_else(.data$qc_type_fit == "BQC", "TQC", "BQC")
         other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
         p <- p +
-          ggplot2::geom_smooth(data = dplyr::filter(dat_subset, .data$QC_TYPE == other_qc), ggplot2::aes_string(x = "RUN_ID", y= "value", group = "BATCH_ID"), colour=other_qc_col, fill = other_qc_col,
+          ggplot2::geom_smooth(data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=other_qc_col, fill = other_qc_col,
                       method = trend_samples_fun, se=TRUE, alpha = 0.2, size=.4, na.rm = FALSE)
       }
     }
@@ -244,7 +244,7 @@ plot_responsecurves_page <- function(dataset,
                                      output_PDF,
                                      response_variable,
                                      regr_max_percent,
-                                     pdf_file_name,
+                                     pdf_filename,
                                      rows_page,
                                      columns_page,
                                      point_size,
@@ -254,16 +254,16 @@ plot_responsecurves_page <- function(dataset,
 
   y_var <- rlang::sym(response_variable)
   ggplot2::ggplot(data = dataset,
-                  ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
+                  ggplot2::aes(x = .data$relative_sample_amount ,
              y = !!y_var,
-             color = .data$RQC_SERIES_ID)) +
-    ggpmisc::stat_poly_line(data = subset(dataset, dataset$RELATIVE_SAMPLE_AMOUNT<= (regr_max_percent/100)),
-                            ggplot2::aes(x = .data$RELATIVE_SAMPLE_AMOUNT ,
+             color = .data$rqc_series_id)) +
+    ggpmisc::stat_poly_line(data = subset(dataset, dataset$relative_sample_amount<= (regr_max_percent/100)),
+                            ggplot2::aes(x = .data$relative_sample_amount ,
                        y  = !!y_var,
-                       color = .data$RQC_SERIES_ID),
+                       color = .data$rqc_series_id),
                    se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE ) +
     ggpmisc::stat_poly_eq(
-      ggplot2::aes(group = .data$RQC_SERIES_ID, label = ggplot2::after_stat(.data$rr.label)),
+      ggplot2::aes(group = .data$rqc_series_id, label = ggplot2::after_stat(.data$rr.label)),
       size = 2* text_scale_factor, rr.digits = 3, vstep = .1) +
     #color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
     ggplot2::scale_color_manual(values = c("#4575b4", "#91bfdb","#fc8d59",  "#d73027"))+
@@ -272,7 +272,7 @@ plot_responsecurves_page <- function(dataset,
                        breaks = c(0,0.5,1,1.5,2,4),
                        labels = scales::percent_format(accuracy = NULL))+
     ggh4x::facet_wrap2(
-      ggplot2::vars(.data$FEATURE_NAME),
+      ggplot2::vars(.data$feature_name),
       scales = "free",
       nrow = rows_page,
       ncol = columns_page,
@@ -292,7 +292,7 @@ plot_responsecurves_page <- function(dataset,
 #' @param include_features_containing Filter features containing
 #' @param exclude_features_containing Exclude features containing
 #' @param regr_max_percent Max relative sample amount to use in regressionb
-#' @param pdf_file_name file name of pdf file
+#' @param pdf_filename file name of pdf file
 #' @param rows_page rows per page
 #' @param columns_page columns per page
 #' @param point_size point size
@@ -306,11 +306,11 @@ plot_responsecurves_page <- function(dataset,
 #' @export
 plot_responsecurves <- function(data,
                                 output_PDF,
-                                response_variable = "Intensity",
+                                response_variable = "feature_intensity",
                                 include_features_containing = "",
                                 exclude_features_containing = "",
                                 regr_max_percent = NA,
-                                pdf_file_name = "",
+                                pdf_filename = "",
                                 rows_page = 4,
                                 columns_page = 5,
                                 point_size = 2,
@@ -318,7 +318,7 @@ plot_responsecurves <- function(data,
                                 text_scale_factor = 1,
                                 return_plot_list = FALSE, base_size = 7) {
 
-  if (output_PDF & pdf_file_name == "") stop("Please set 'pdf_file_name'")
+  if (output_PDF & pdf_filename == "") stop("Please set 'pdf_filename'")
 
   rows_page = rows_page
   columns_page = columns_page
@@ -326,25 +326,25 @@ plot_responsecurves <- function(data,
   #
   d_rqc <- data@dataset |>
     dplyr::select(tidyselect::any_of(
-      c("ANALYSIS_ID", "FEATURE_NAME", "Intensity", "normIntensity")
+      c("analysis_id", "feature_name", "feature_intensity", "feature_norm_intensity")
     )) |>
-    dplyr::filter(stringr::str_detect(.data$FEATURE_NAME, paste0("^$|", include_features_containing))) |>
-    dplyr::filter(!stringr::str_detect(.data$FEATURE_NAME, paste0("^$|", exclude_features_containing, negate = TRUE))) |>
-    dplyr::right_join(data@annot_responsecurves, by = c("ANALYSIS_ID" = "ANALYSIS_ID"))
+    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", include_features_containing))) |>
+    dplyr::filter(!stringr::str_detect(.data$feature_name, paste0("^$|", exclude_features_containing, negate = TRUE))) |>
+    dplyr::right_join(data@annot_responsecurves, by = c("analysis_id" = "analysis_id"))
 
 
   regr_max_percent <-
     ifelse(
       is.na(regr_max_percent),
-      max(d_rqc$RELATIVE_SAMPLE_AMOUNT * 100),
+      max(d_rqc$relative_sample_amount * 100),
       regr_max_percent
     )
   #browser()
   d_rqc_grp <- d_rqc %>%
-    dplyr::left_join(tibble::tibble(FEATURE_NAME = unique(d_rqc$FEATURE_NAME)) |>
+    dplyr::left_join(tibble::tibble(feature_name = unique(d_rqc$feature_name)) |>
                        mutate(grp = ceiling(
                          row_number() / (rows_page * columns_page)
-                       )), by = "FEATURE_NAME") %>%
+                       )), by = "feature_name") %>%
     dplyr::group_by(.data$grp) %>%
     tidyr::nest() %>%
     dplyr::mutate(plt = purrr::map(
@@ -357,7 +357,7 @@ plot_responsecurves <- function(data,
           output_PDF = output_PDF,
           response_variable = response_variable,
           regr_max_percent = regr_max_percent,
-          pdf_file_name = pdf_file_name,
+          pdf_filename = pdf_filename,
           rows_page = rows_page,
           columns_page = columns_page,
           point_size = point_size,
@@ -374,7 +374,7 @@ plot_responsecurves <- function(data,
       d_rqc_grp$plt
   } else{
     pdf(
-      file = pdf_file_name,
+      file = pdf_filename,
       onefile = TRUE,
       paper = "A4r",
       width = 11
@@ -405,9 +405,9 @@ plot_responsecurves <- function(data,
 plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c(0,NA), ncol = 5, scale_factor = 1, point_size = 3, with_histogram=FALSE){
 
 
-  d_QC <- data@metrics_qc |> filter(.data$VALID_INTEGRATION)
+  d_QC <- data@metrics_qc |> filter(.data$valid_integration)
 
-  if(only_quantifier) d_QC <- d_QC |> filter(.data$isQUANTIFIER, .data$VALID_INTEGRATION)
+  if(only_quantifier) d_QC <- d_QC |> filter(.data$is_quantifier, .data$valid_integration)
 
   x_sym <- rlang::ensym(x)
   y_sym <- rlang::ensym(y)
@@ -469,14 +469,14 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
 
 
   d_wide <- data@dataset_QC_filtered  %>%
-    filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS"), .data$isQUANTIFIER ) %>%
-    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
+    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS"), .data$is_quantifier ) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "ANALYSIS_ID", names_from = "FEATURE_NAME", values_from = {{variable}})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
 
 
-  #if(!all(d_filt |> pull(ANALYSIS_ID) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
+  #if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
 
   #ToDo: warning when rows/cols with NA
   d_clean <- d_filt  |>
@@ -485,13 +485,13 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
 
 
   d_metadata <- d_wide  %>%
-    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID") |>
+    dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct() |>
-    dplyr::right_join(d_clean |> dplyr::select("ANALYSIS_ID") |> distinct(), by = c("ANALYSIS_ID"))
+    dplyr::right_join(d_clean |> dplyr::select("analysis_id") |> distinct(), by = c("analysis_id"))
 
 
   m_raw <- d_clean |>
-    tibble::column_to_rownames("ANALYSIS_ID") |>
+    tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
@@ -502,10 +502,10 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
 
   p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", dim_x),
                                            paste0(".fittedPC", dim_y),
-                                           color = "QC_TYPE",
-                                           fill = "QC_TYPE",
-                                           shape = "QC_TYPE",
-                                           label = "ANALYSIS_ID"
+                                           color = "qc_type",
+                                           fill = "qc_type",
+                                           shape = "qc_type",
+                                           label = "analysis_id"
   )) +
     ggplot2::geom_hline(yintercept = 0, size = 0.4, color = "grey80") +
     ggplot2::geom_vline(xintercept = 0, size = 0.4, color = "grey80") +
@@ -529,23 +529,23 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
   p
 }
 
-plot_pca_pairs <- function(data, variable, dim_range = c(1,8), log_transform = TRUE, grouping = "QC_TYPE", sliding = FALSE, ncol = 3,
+plot_pca_pairs <- function(data, variable, dim_range = c(1,8), log_transform = TRUE, grouping = "qc_type", sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right"){
 
 
-  d_wide = data@dataset  %>% filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS") ) %>%
-    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
+  d_wide = data@dataset  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS") ) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "ANALYSIS_ID", names_from = "FEATURE_NAME", values_from = {{variable}})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
 
 
-  d_metadata <- d_wide  %>% dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID") |> dplyr::distinct()
-  #if(!all(d_filt |> pull(ANALYSIS_ID) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
+  d_metadata <- d_wide  %>% dplyr::select("analysis_id", "qc_type", "batch_id") |> dplyr::distinct()
+  #if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
 
   m_raw <- d_filt  |>
     dplyr::select(where(~!any(is.na(.)))) |>
-    tibble::column_to_rownames("ANALYSIS_ID") |>
+    tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
@@ -605,15 +605,15 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   PCx = rlang::sym(paste0("PC",dim_x))
   PCy = rlang::sym(paste0("PC",dim_y))
 
-  d_wide = data@dataset  %>% filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS") ) %>%
-    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
+  d_wide = data@dataset  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS") ) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "ANALYSIS_ID", names_from = "FEATURE_NAME", values_from = {{variable}})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
 
   m_raw <- d_filt  |>
     dplyr::select(where(~!any(is.na(.)))) |>
-    tibble::column_to_rownames("ANALYSIS_ID") |>
+    tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
@@ -650,14 +650,14 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
 
 plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1){
 
-  d_wide = data@dataset  %>% filter(.data$QC_TYPE %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$FEATURE_NAME, "\\(IS") ) %>%
-    dplyr::select("ANALYSIS_ID", "QC_TYPE", "BATCH_ID", "FEATURE_NAME", {{variable}})
+  d_wide = data@dataset  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS") ) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "ANALYSIS_ID", names_from = "FEATURE_NAME", values_from = {{variable}})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
 
   m_raw <- d_filt  |>
-    tibble::column_to_rownames("ANALYSIS_ID") |>
+    tibble::column_to_rownames("analysis_id") |>
     dplyr::select(where(~!any(is.na(.)))) |>
     as.matrix()
 

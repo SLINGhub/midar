@@ -7,11 +7,11 @@
 plot_responsecurves(
   data,
   output_PDF,
-  response_variable = "Intensity",
+  response_variable = "feature_intensity",
   include_features_containing = "",
   exclude_features_containing = "",
   regr_max_percent = NA,
-  pdf_file_name = "",
+  pdf_filename = "",
   rows_page = 4,
   columns_page = 5,
   point_size = 2,
@@ -34,7 +34,7 @@ plot_responsecurves(
 
 \item{regr_max_percent}{Max relative sample amount to use in regressionb}
 
-\item{pdf_file_name}{file name of pdf file}
+\item{pdf_filename}{file name of pdf file}
 
 \item{rows_page}{rows per page}
 

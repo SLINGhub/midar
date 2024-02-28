@@ -13,29 +13,29 @@
 #'
 writeReportXLS <- function(data, filename) {
 
-  if (!("Concentration" %in% names(data@dataset))) stop("Variable '", "Concentration",  "' does not (yet) exist in dataset")
+  if (!("conc" %in% names(data@dataset))) stop("Variable '", "conc",  "' does not (yet) exist in dataset")
   if (!stringr::str_detect(filename, ".xlsx")) filename = paste0(filename, ".xlsx")
 
   d_intensity_wide <- data@dataset %>%
-    dplyr::filter(.data$QC_TYPE %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-    dplyr::select(dplyr::any_of(c("ANALYSIS_ID", "QC_TYPE", "AcqTimeStamp", "FEATURE_NAME", "Intensity"))) %>%
-    tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = "Intensity")
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "feature_intensity"))) %>%
+    tidyr::pivot_wider(names_from = "feature_name", values_from = "feature_intensity")
 
   d_conc_wide <- data@dataset %>%
-    dplyr::filter(.data$QC_TYPE %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-    dplyr::filter(!str_detect(.data$FEATURE_NAME, "\\(IS")) %>%
-    dplyr::select(dplyr::any_of(c("ANALYSIS_ID", "QC_TYPE", "AcqTimeStamp", "FEATURE_NAME", "Concentration"))) %>%
-    tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
+    dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "conc"))) %>%
+    tidyr::pivot_wider(names_from = "feature_name", values_from = "conc")
 
-  if("FEATURE_NAME" %in% names(data@dataset_QC_filtered)) {
+  if("feature_name" %in% names(data@dataset_QC_filtered)) {
 
     d_conc_wide_QC <- data@dataset_QC_filtered %>%
-      dplyr::filter(.data$QC_TYPE %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-      dplyr::select(dplyr::any_of(c("ANALYSIS_ID", "QC_TYPE", "isISTD.x", "isQUANTIFIER", "AcqTimeStamp", "FEATURE_NAME", "FEATURE_CLASS", "Concentration"))) %>%
-      dplyr::filter(!str_detect(.data$FEATURE_NAME, "\\(IS")) %>%
-      tidyr::pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_istd.x", "is_quantifier", "acquisition_time_stamp", "feature_name", "feature_class", "conc"))) %>%
+      dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
+      tidyr::pivot_wider(names_from = "feature_name", values_from = "conc")
 
-    d_conc_wide_QC_SPL <- d_conc_wide_QC |> dplyr::filter(.data$QC_TYPE == "SPL") |> dplyr::select(!"QC_TYPE":"isQUANTIFIER")
+    d_conc_wide_QC_SPL <- d_conc_wide_QC |> dplyr::filter(.data$qc_type == "SPL") |> dplyr::select(!"qc_type":"is_quantifier")
 
   } else {
     d_conc_wide_QC <- data@dataset_QC_filtered
@@ -47,7 +47,7 @@ writeReportXLS <- function(data, filename) {
     "Author", Sys.info()[["user"]],
     "LIDAR Version", packageVersion("midar") ,
     "", "",
-    "Concentration Unit", get_conc_unit(data@annot_analyses$SAMPLE_AMOUNT_UNIT))
+    "conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit))
 
 
  table_list <- list(

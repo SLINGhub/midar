@@ -46,7 +46,7 @@ MidarExperiment object
 }
 \description{
 Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
-Exclude features and analyses that were annotated as not valid in the metadata (VALID_INTEGRATION, VALID_ANALYSIS).
+Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
 
 Note: When \code{exclude_istds} is FALSE, then \code{SB_RATIO_min} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 }

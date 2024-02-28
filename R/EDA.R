@@ -1,7 +1,7 @@
 
 #' Get FC and p values from a t test contrast
 #'
-#' @param d_FC  data.frame with FEATURE_NAME, p and log2FC
+#' @param d_FC  data.frame with feature_name, p and log2FC
 #' @param p_adjust calculate and use FDR
 #' @param sig_FC_min |FC| treshold
 #' @param sig_p_value_min P value treshold
@@ -68,7 +68,7 @@ volcano_plot <- function(d_FC, p_adjust, sig_FC_min, sig_p_value_min, symmetric_
     #ggplot2::annotation_logticks(sides = 'tb', outside = TRUE, size = .2) +
     #scale_y_continuous(trans = "log1p", limits=c(0,5), breaks = c(1, 2, 3,4,5),  expand = c(0,0)) +
     ggrepel::geom_text_repel(data = d_FC %>% filter(.data$Significant =="sign"),
-                    aes(label = .data$FEATURE_NAME),
+                    aes(label = .data$feature_name),
                     size = 3 * scale_factor_species_label,
                     box.padding = unit(0.15, "lines"),
                     point.padding = unit(0.1, "lines")) +
@@ -136,18 +136,18 @@ library(ComplexHeatmap)
 plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_variable = NULL, clust_rows = TRUE, clust_columns = FALSE, row_names_size = 8, col_names_size = 8) {
 
   annot_col = ComplexHeatmap::columnAnnotation(
-    df = d_metadata |> dplyr::select(!.data$ANALYSIS_ID) |> as.data.frame(),
+    df = d_metadata |> dplyr::select(!.data$analysis_id) |> as.data.frame(),
     col = annot_color
   )
 
  d_wide <- data %>%
-    pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
+    pivot_wider(names_from = "feature_name", values_from = "conc")
 
-  d_filt = left_join(d_metadata[,"ANALYSIS_ID"], d_wide )
+  d_filt = left_join(d_metadata[,"analysis_id"], d_wide )
 
   m_raw <- d_filt %>%
     #dplyr::select(where(~!any(is.na(.)))) |>
-    column_to_rownames("ANALYSIS_ID") |>
+    column_to_rownames("analysis_id") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
@@ -240,16 +240,16 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL,log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1, ellipse = TRUE, mark_ellipse = FALSE, show_labels = FALSE, label_size = 6, max_label_overlaps = Inf) {
 
   d_wide <- data %>%
-    pivot_wider(names_from = "FEATURE_NAME", values_from = "Concentration")
+    pivot_wider(names_from = "feature_name", values_from = "conc")
 
-  d_filt = left_join(d_metadata[,"ANALYSIS_ID"], d_wide )
+  d_filt = left_join(d_metadata[,"analysis_id"], d_wide )
 
 
-  if(!all(d_filt |> pull(.data$ANALYSIS_ID) == d_metadata |> pull(.data$ANALYSIS_ID))) stop("Data and Metadata missmatch")
+  if(!all(d_filt |> pull(.data$analysis_id) == d_metadata |> pull(.data$analysis_id))) stop("Data and Metadata missmatch")
 
   m_raw <- d_filt  |>
     dplyr::select(where(~!any(is.na(.)))) |>
-    column_to_rownames("ANALYSIS_ID") |>
+    column_to_rownames("analysis_id") |>
     as.matrix()
 
   if(log_transform) m_raw <- log2(m_raw)
@@ -264,7 +264,7 @@ plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL,log_transform, 
                                            paste0(".fittedPC", dim_y),
                                            color = grouping,
 
-                                           fill = grouping, label = "ANALYSIS_ID"
+                                           fill = grouping, label = "analysis_id"
   )) +
     geom_hline(yintercept = 0, size = 0.4, color = "grey80") +
     geom_vline(xintercept = 0, size = 0.4, color = "grey80")
@@ -317,12 +317,12 @@ get_pval <- function(df, test_col, contrasts, paired) {
   df$`_group` <- df |> pull({{test_col}})
   map_dfr(.x = contrasts,
           .f = ~ broom::tidy(
-            mod_t_test(formula = Concentration ~ factor(`_group`), paired = paired, data = subset(df, `_group` %in% .x))) |>
+            mod_t_test(formula = conc ~ factor(`_group`), paired = paired, data = subset(df, `_group` %in% .x))) |>
             mutate(id = paste0(.x, collapse = "-"),
                    grp1 = .x[1],
                    grp2 = .x[2],
-                   y_max_1 = mean(df$Concentration[df$`_group` == .x[1]])+sd(df$Concentration[df$`_group` == .x[1]]),
-                   y_max_2 = mean(df$Concentration[df$`_group` == .x[2]])+sd(df$Concentration[df$`_group` == .x[2]]),
+                   y_max_1 = mean(df$conc[df$`_group` == .x[1]])+sd(df$conc[df$`_group` == .x[1]]),
+                   y_max_2 = mean(df$conc[df$`_group` == .x[2]])+sd(df$conc[df$`_group` == .x[2]]),
                    y_max = max(y_max_1, y_max_2)))
 }
 
@@ -334,7 +334,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
     print(group_levels)
     d_stat <- data |>
       arrange({{GroupInner}}) |>
-      group_by({{GroupOuter}}, .data$FEATURE_NAME) |>
+      group_by({{GroupOuter}}, .data$feature_name) |>
       nest() |>
       mutate(res = map(.x = data, .f = \(x) res = get_pval(x, {{GroupInner}}, contrasts = contrasts, paired=paired))) |>
       unnest(-data) |>
@@ -343,11 +343,11 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
           p.value > 0.05 ~ "", p.value > 0.01 ~ "*",
           p.value > 0.001 ~ "**", TRUE ~ "***"))|>
       mutate(y_max = max(.data$y_max)) |>
-      group_by(.data$FEATURE_NAME) |>
+      group_by(.data$feature_name) |>
       mutate(y_max_all = max(.data$y_max)) |>
       group_by({{GroupOuter}}) |>
       mutate(group_outer_id = cur_group_id()) |>
-      group_by(.data$FEATURE_NAME, {{GroupOuter}}) |>
+      group_by(.data$feature_name, {{GroupOuter}}) |>
       mutate(
         x_min = (.data$group_outer_id - 0.4) + 0.8/n_groups/2 + 0.8*1/(n_groups) * (match(.data$grp1, group_levels)-1),
         x_max = (.data$group_outer_id - 0.4) + 0.8/n_groups/2 + 0.8*1/(n_groups) * (match(.data$grp2, group_levels)-1),
@@ -362,7 +362,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
     d_stat$group <- 1:nrow(d_stat)
     pos <- position_jitter(width = 0.3, seed = 2)
 
-    plt <- ggplot(data, aes(x = {{GroupOuter}}, y = .data$Concentration, group = .data$SUBJECT_ID)) +
+    plt <- ggplot(data, aes(x = {{GroupOuter}}, y = .data$conc, group = .data$SUBJECT_ID)) +
       ggtitle(label = paste(unique(data$lipidClass), collapse = " | " ))
 
     plt <-  plt +
@@ -371,7 +371,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
                    alpha = 0.1, lwd=0.03, outlier.shape = NA,
                    position = position_dodge(width=0.8)) +
       geom_point(aes( color = {{GroupInner}},fill = {{GroupInner}}),size = point_size,position = pos, width = .4, shape = 1, stroke = 0.7) +
-      facet_wrap2(vars(.data$FEATURE_NAME), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      facet_wrap2(vars(.data$feature_name), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0,NA), expand = expansion(mult = c(0, .15)))+
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +
@@ -409,7 +409,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
       else if(x < 0.05){"*"}
       else{NA}}
     pos <- position_jitter(width = 0.3, seed = 2)
-    plt <- ggplot(data, aes(x = {{GroupInner}}, y = .data$Concentration)) +
+    plt <- ggplot(data, aes(x = {{GroupInner}}, y = .data$conc)) +
       ggtitle(label = paste(unique(data$lipidClass), collapse = " | " ))
 
     if (paired) plt <-  plt + geom_line(aes(group = .data$SUBJECT_ID), linewidth = 0.15, color = "grey50", alpha = 0.3)
@@ -420,7 +420,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
       geom_boxplot(width=0.7, aes( color = {{GroupInner}},fill = {{GroupInner}}),
                    alpha = 0.2, lwd=0.1, outlier.shape = NA) +
       ggbeeswarm::geom_quasirandom(aes( color = {{GroupInner}},fill = {{GroupInner}}), size = point_size,na.rm = TRUE, shape = 1, stroke = 0.4,width = 0.2) +
-      facet_wrap2(vars(.data$FEATURE_NAME), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      facet_wrap2(vars(.data$feature_name), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0,NA), expand = expansion(mult = c(0, .25)))+
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +
@@ -463,12 +463,12 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
                             rows_page,columns_page, class_per_page = TRUE, save_pdf = FALSE, filename = NULL, scale_text =1, scale_signf = 1, point_size = 1) {
 
   d_long_full <- data |>
-    right_join(d_metadata |> rename(ANALYSIS_ID = .data$SAMPLE_ID))
+    right_join(d_metadata |> rename(analysis_id = .data$sample_id))
 
   d_lipidnames <- d_long_full |>
-    dplyr::select(Compound = .data$FEATURE_NAME) |> distinct() %>%
+    dplyr::select(Compound = .data$feature_name) |> distinct() %>%
     add_lipid_transition_classnames(.data$.) |>
-    dplyr::select(FEATURE_NAME = "Compound", "lipidClass", "lipidClassSL")
+    dplyr::select(feature_name = "Compound", "lipidClass", "lipidClassSL")
 
   df <- d_long_full |>
     left_join(d_lipidnames)
@@ -477,9 +477,9 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
   page_list <- df |>
     group_by(.data$lipidClass) |>
     mutate(lipidclass_id = cur_group_id()) |>
-    group_by(.data$lipidClass, .data$ANALYSIS_ID) |>
-    mutate(lipid_class_page_no =  max(ceiling(which(unique(.data$FEATURE_NAME)==.data$FEATURE_NAME)/ (rows_page * columns_page)))) |>
-    group_by(.data$FEATURE_NAME) |>
+    group_by(.data$lipidClass, .data$analysis_id) |>
+    mutate(lipid_class_page_no =  max(ceiling(which(unique(.data$feature_name)==.data$feature_name)/ (rows_page * columns_page)))) |>
+    group_by(.data$feature_name) |>
     mutate(page_no =  ceiling(cur_group_id()/ (rows_page * columns_page)))
 
   if (class_per_page) {

@@ -1,4 +1,77 @@
-#' Imports metadata provided by an MSOrganizer EXCEL template
+
+# TODO: This below has to be changed, mapping of metadata to data should be a distinct function
+#' @title Import metadata from the MSOrganizer template (.XLM) and associates it with the analysis data
+#' @description Requires version 1.9.1 of the template
+#' @param data MidarExperiment object
+#' @param filename file name and path
+#' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
+#' @return MidarExperiment object
+#' @export
+#'
+
+import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyses = FALSE) {
+  d_annot <- read_msorganizer_xlm(filename)
+  data@annot_analyses <- data@dataset_orig %>%
+    dplyr::select("raw_data_filename") %>%
+    dplyr::distinct() %>%
+    dplyr::right_join(d_annot$annot_analyses, by = c("raw_data_filename" = "raw_data_filename"), keep = FALSE) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
+
+  data@annot_features <- data@dataset_orig %>%
+    dplyr::select("feature_name") %>%
+    dplyr::distinct() %>%
+    dplyr::right_join(d_annot$annot_features, by = c("feature_name"="feature_name"), keep = FALSE) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
+
+  data@annot_istd <- data@annot_features %>%
+    dplyr::select("quant_istd_feature_name") %>%
+    dplyr::distinct() %>%
+    dplyr::left_join(d_annot$annot_istd, by = c("quant_istd_feature_name"="quant_istd_feature_name"), keep = FALSE) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
+
+
+  data@annot_responsecurves <- data@annot_analyses %>%
+    dplyr::filter(.data$qc_type == "RQC") %>%
+    dplyr::select("analysis_id", "raw_data_filename") %>%
+    dplyr::distinct() %>%
+    dplyr::ungroup() %>%
+    dplyr::right_join(d_annot$annot_responsecurves, by = c("raw_data_filename"="raw_data_filename"), keep = FALSE) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
+
+
+  data@annot_batch_info <- data@annot_analyses %>%
+    dplyr::group_by(.data$batch_no) %>%
+    dplyr::summarise(
+      batch_id = .data$batch_id[1],
+      id_batch_start = dplyr::first(.data$run_id),
+      id_batch_end = dplyr::last(.data$run_id)) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(.data$id_batch_start)%>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
+
+  data@dataset_orig <- data@dataset_orig %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
+
+
+  data@dataset <- data@dataset_orig  %>%
+    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen" ,"sample_id", "replicate_no", "valid_analysis", "batch_id"), by = c("raw_data_filename")) %>%
+    dplyr::inner_join(d_annot$annot_features %>% filter(.data$valid_integration) |>  dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interfering_feature_name", "interference_proportion"))),
+                      by = c("feature_name"), keep = FALSE) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template) |>
+    mutate(corrected_interference = FALSE)
+  #stopifnot(methods::validObject(data, excl_nonannotated_analyses))
+  check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
+  data@status_processing <- "Annotated Raw Data"
+
+
+  writeLines(crayon::green(glue::glue("\u2713 Metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples and {length(data@dataset$feature_name %>% unique())} features.")))
+  data
+}
+
+
+
+#' @title Reads and parses metadata provided by the MSOrganizer EXCEL  template.
+#' @description Requires version 1.9.1 of the template
 #'
 #' @param filename File path of the MSOrganizer EXCEL template (*.xlm)
 #' @param trim_ws Trim all white spaces and double spaces
@@ -8,131 +81,141 @@
 #' @importFrom dplyr select mutate filter group_by row_number
 #' @importFrom stringr regex
 #' @return A list of tibbles with different metadata
-#' @export
-import_msorganizer_xlm <- function(filename, trim_ws = TRUE){
+read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
   d_annot <- list()
 
   # ANALYSIS/SAMPLE annotation
-  # -----------------
   # ToDo: Make note if feature names are not original
 
-  d_temp_analyses <- readxl::read_excel(filename, sheet = "Sample_Annot")
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "ANALYSIS_ID", init_value = NA_character_, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "VALID_ANALYSIS", init_value = TRUE, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "REPLICATE", init_value = 1L, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "SPECIMEN", init_value = NA_character_, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "PANEL_ID", init_value = NA_character_, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "SAMPLE_ID", init_value = NA_character_, make_caps = TRUE)
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "REMARKS", init_value = NA_character_, make_caps = TRUE)
+  d_temp_analyses <- readxl::read_excel(filename, sheet = "Analyses (Samples)", trim_ws = TRUE)
+  names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
-  # NOTE: If ANALYSIS_ID is defined, then it will overwrite the DATAFILE_NAME defined in the raw data files
-  # Todo: if user-defined ANALYSIS_ID names (=remapping if IDs) are provided, then it should be reported somewhere,  possible source of user-error!
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "analysis_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "valid_analysis", init_value = TRUE, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "replicate_no", init_value = 1L, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "specimen", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "panel_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "sample_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
+
+  # TODO: If analysis_id is defined, then it will overwrite the raw_data_filename defined in the raw data files
+  # TODO: if user-defined analysis_id names (=remapping if IDs) are provided, then it should be reported somewhere,  possible source of user-error!
 
   d_annot$annot_analyses <- d_temp_analyses |>
     dplyr::mutate(
-      VALID_ANALYSIS = TRUE,
-      BATCH_ID = as.character(.data$BATCH_ID),
-      RUN_ID_ANNOT = dplyr::row_number()) |>
+      valid_analysis = TRUE,
+      batch_id = as.character(.data$batch_id),
+      run_id = dplyr::row_number()) |>
     dplyr::select(
-      "RUN_ID_ANNOT",
-      "ANALYSIS_ID",
-      DATAFILE_NAME = "Sample_Name",
-      QC_TYPE = "Sample_Type",
-      SAMPLE_AMOUNT =	"Sample_Amount",
-      SAMPLE_AMOUNT_UNIT = "Sample_Amount_Unit",
-      ISTD_VOL ="ISTD_Mixture_Volume_[uL]",
-      "BATCH_ID",
-      "REPLICATE",
-      "VALID_ANALYSIS",
-      "SPECIMEN",
-      "SAMPLE_ID",
-      "REMARKS"
+      run_id,
+      analysis_id,
+      raw_data_filename ,
+      qc_type = "sample_type",
+      sample_amount,
+      sample_amount_unit,
+      istd_volume ="istd_mixture_volume_[ul]",
+      batch_id ,
+      replicate_no ,
+      valid_analysis,
+      specimen,
+      sample_id,
+      remarks
     ) |>
-    dplyr::mutate(BATCH_NO = dplyr::cur_group_id(), .by = c("BATCH_ID")) |>
+    dplyr::mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id")) |>
     dplyr::mutate(
-      DATAFILE_NAME = stringr::str_squish(as.character(.data$DATAFILE_NAME)),
-      DATAFILE_NAME = stringr::str_remove(.data$DATAFILE_NAME, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)) ,
-      ANALYSIS_ID = stringr::str_remove(.data$ANALYSIS_ID, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)) ,
-      ANALYSIS_ID = stringr::str_squish(as.character(.data$ANALYSIS_ID)),
-      ANALYSIS_ID = if_else(is.na(.data$ANALYSIS_ID), .data$DATAFILE_NAME, .data$ANALYSIS_ID),
-      SPECIMEN = stringr::str_squish(as.character(.data$SPECIMEN)),
-      QC_TYPE = if_else(.data$QC_TYPE == "Sample" | is.na(.data$QC_TYPE), "SPL", .data$QC_TYPE))|>
+      raw_data_filename = stringr::str_squish(as.character(.data$raw_data_filename)),
+      raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)) ,
+      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)) ,
+      analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
+      analysis_id = if_else(is.na(.data$analysis_id), .data$raw_data_filename, .data$analysis_id),
+      specimen = stringr::str_squish(as.character(.data$specimen)),
+      valid_analysis = as.logical(.data$valid_analysis),
+      qc_type = if_else(.data$qc_type == "Sample" | is.na(.data$qc_type), "SPL", .data$qc_type))|>
     dplyr::ungroup() %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
+
   # FEATURE annotation
-  # -----------------
+
   # ToDo: Make note if feature names are not original
-  d_temp_features <- readxl::read_excel(filename, sheet = "Transition_Name_Annot", trim_ws = TRUE)
+  d_temp_features <- readxl::read_excel(filename, sheet = "Features (Analytes)", trim_ws = TRUE)
+  names(d_temp_features) <- tolower(names(d_temp_features))
 
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "FEATURE_CLASS", init_value = NA_character_, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "QUANTIFIER", init_value = TRUE, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "VALID_INTEGRATION", init_value = TRUE, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "RESPONSE_FACTOR", init_value = 1, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "SOURCE_FEATURE_NAME", init_value = NA_character_, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERING_FEATURE", init_value = NA_character_, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "INTERFERANCE_PROPORTION", init_value = NA_real_, make_caps = TRUE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "REMARKS", init_value = NA_character_, make_caps = TRUE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "quantifier", init_value = TRUE, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_integration", init_value = TRUE, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_name", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_name", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
 
 
-  # NOTE: If FEATURE_NAME is defined, then it will overwrite the feature name defined in the raw data files
+  # NOTE: If feature_name is defined, then it will overwrite the feature name defined in the raw data files
   # Todo: if user-defined feature names are provided, then it should be reported somewhere,  possible source of user-error!
 
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
-      FEATURE_NAME = stringr::str_squish(.data$Transition_Name),
-      SOURCE_FEATURE_NAME = stringr::str_squish(.data$SOURCE_FEATURE_NAME),
-      SOURCE_FEATURE_NAME = if_else(is.na(.data$SOURCE_FEATURE_NAME), .data$FEATURE_NAME, .data$SOURCE_FEATURE_NAME),
-      FEATURE_CLASS = stringr::str_squish(.data$FEATURE_CLASS),
-      NORM_ISTD_FEATURE_NAME	= stringr::str_squish(.data$Transition_Name_ISTD),
-      QUANT_ISTD_FEATURE_NAME = stringr::str_squish(.data$Transition_Name_ISTD),
-      isISTD = (.data$FEATURE_NAME == .data$NORM_ISTD_FEATURE_NAME),
-      QUANTIFIER = if_else(tolower(.data$QUANTIFIER) %in% c("yes","true"), TRUE, FALSE),
-      INTERFERING_FEATURE = stringr::str_squish(.data$INTERFERING_FEATURE),
-      REMARKS = NA_character_) %>%
+      new_feature_name = stringr::str_squish(.data$new_feature_name),
+      feature_name = stringr::str_squish(.data$feature_name),
+      feature_name = if_else(is.na(.data$new_feature_name), .data$feature_name, .data$new_feature_name),
+      feature_class = stringr::str_squish(.data$feature_class),
+      norm_istd_feature_name	= stringr::str_squish(.data$istd_feature_name),
+      quant_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
+      is_istd = (.data$feature_name == .data$norm_istd_feature_name),
+      is_quantifier = if_else(tolower(.data$quantifier) %in% c("yes","true"), TRUE, FALSE),
+      is_quantifier = as.logical(is_quantifier),
+      interference_feature_name = stringr::str_squish(.data$interference_feature_name),
+      remarks = NA_character_) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) %>%
-    dplyr::select(dplyr::any_of(c(
-      "SOURCE_FEATURE_NAME",
-      "FEATURE_ID",
-      "FEATURE_NAME",
-      "FEATURE_CLASS",
-      "isISTD",
-      "NORM_ISTD_FEATURE_NAME",
-      "QUANT_ISTD_FEATURE_NAME",
-      FEATURE_RESPONSE_FACTOR = "RESPONSE_FACTOR",
-      isQUANTIFIER = "QUANTIFIER",
-      "VALID_INTEGRATION",
-      "INTERFERING_FEATURE",
-      "INTERFERANCE_PROPORTION",
-      "REMARKS")))
+    dplyr::select(
+      feature_name,
+      feature_class,
+      is_istd,
+      norm_istd_feature_name,
+      quant_istd_feature_name,
+      feature_response_factor = "response_factor",
+      is_quantifier,
+      valid_integration,
+      interference_feature_name,
+      interference_proportion,
+      remarks)
 
   #ToDo: Merged cell in template
   annot_istd <- readxl::read_excel(filename,
-                           sheet = "ISTD_Annot",
-                           skip = 2,
-                           trim_ws = TRUE,
-                           .name_repair = ~ ifelse(nzchar(.x), .x, LETTERS[seq_along(.x)]))
-  names(annot_istd)[1] <- "Transition_Name_ISTD"
+                           sheet = "Internal Standards",
+                           trim_ws = TRUE, .name_repair = ~ ifelse(nzchar(.x), .x,LETTERS [seq_along(.x)]))
+
+  names(annot_istd) <- tolower(names(annot_istd))
+  names(annot_istd)[1] <- "istd_feature_name"
 
   d_annot$annot_istd <- annot_istd |>
-    dplyr::mutate(ISTD_COMPOUND_NAME = NA_character_) |>
+    #dplyr::mutate(istd_compound_name = na_character_) |>
     dplyr::select(
-      QUANT_ISTD_FEATURE_NAME = "Transition_Name_ISTD",
-      ISTD_CONC_nM = "ISTD_Conc_[nM]") %>%
+      quant_istd_feature_name = "istd_feature_name",
+      istd_conc_nmolar = "istd_conc_[nm]") %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
-  d_annot$annot_responsecurves <- readxl::read_excel(filename, sheet = "Dilution_Annot") |>
+  names(annot_istd) <- tolower(names(annot_istd))
+
+  d_annot_responsecurves <- readxl::read_excel(filename, sheet = "Response Curves")
+
+  names(d_annot_responsecurves) <- tolower(names(d_annot_responsecurves))
+
+
+
+  d_annot$annot_responsecurves <- d_annot_responsecurves |>
     dplyr::select(
-      DATAFILE_NAME = "Sample_Name",
-      RQC_SERIES_ID = "Dilution_Batch_Name",
-      RELATIVE_SAMPLE_AMOUNT = "Relative_Sample_Amount_[%]",
-      INJECTION_VOL = "Injection_Volume_[uL]") |>
+      raw_data_filename,
+      rqc_series_id = "response_curve_name",
+      relative_sample_amount = "relative_sample_amount_[%]",
+      injection_volumne = "injection_volume_[ul]") |>
     dplyr::mutate(
-      DATAFILE_NAME = stringr::str_remove(.data$DATAFILE_NAME, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
-      DATAFILE_NAME = stringr::str_squish(as.character(.data$DATAFILE_NAME)),
-      RQC_SERIES_ID = stringr::str_squish(as.character(.data$RQC_SERIES_ID)),
-      RELATIVE_SAMPLE_AMOUNT = .data$RELATIVE_SAMPLE_AMOUNT/100) %>%
+      raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+      raw_data_filename = stringr::str_squish(as.character(.data$raw_data_filename)),
+      rqc_series_id = stringr::str_squish(as.character(.data$rqc_series_id)),
+      relative_sample_amount = .data$relative_sample_amount/100) %>%
       dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   return(d_annot)

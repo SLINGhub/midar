@@ -7,7 +7,7 @@
 corr_batch_centering(
   data,
   qc_types,
-  use_raw_concentrations = FALSE,
+  use_raw_concs = FALSE,
   center_fun = "median"
 )
 }
@@ -16,7 +16,7 @@ corr_batch_centering(
 
 \item{qc_types}{QC types used for batch correction}
 
-\item{use_raw_concentrations}{Apply to unadjusted (raw) concentration. Default is FALSE, which means previously drift-corrected concentrations will be used if available, otherwise unadjusted concentrations will be used}
+\item{use_raw_concs}{Apply to unadjusted (raw) conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used}
 
 \item{center_fun}{Function used to center. Default is "median".}
 }

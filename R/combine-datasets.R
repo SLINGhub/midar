@@ -21,28 +21,28 @@ combine_experiments <- function(..., ordered_by_runsequence){
   mexp <- MidarExperiment()
   mexp@dataset_orig <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset_orig)  |> dplyr::distinct()
   mexp@dataset <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@dataset)  |> dplyr::distinct()
-  mexp@annot_analyses <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_analyses) |> dplyr::distinct() |> mutate(RUN_ID_ANNOT = dplyr::row_number())
+  mexp@annot_analyses <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_analyses) |> dplyr::distinct() |> mutate(run_id = dplyr::row_number())
   mexp@annot_istd <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_istd)  |> dplyr::distinct()
   mexp@annot_features <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_features) |> dplyr::distinct()
   #ToDo: Combine batch and curve id to give unique curve id over the combined experiment
   mexp@annot_responsecurves <- purrr::map_dfr(.x = exp_list,  .f = \(x) x@annot_responsecurves) |> dplyr::distinct()
 
   mexp@dataset <- mexp@dataset %>%
-    dplyr::rename(BATCH_RUN_ID = .data$RUN_ID) %>%
-    dplyr::group_by(.data$FEATURE_NAME) %>%
-    dplyr::mutate(RUN_ID = dplyr::row_number(), .before = .data$BATCH_RUN_ID) %>%
+    dplyr::rename(batch_run_id = .data$run_id) %>%
+    dplyr::group_by(.data$feature_name) %>%
+    dplyr::mutate(run_id = dplyr::row_number(), .before = .data$BATCH_run_id) %>%
     dplyr::ungroup()
 
   mexp@annot_batch_info <- mexp@annot_analyses %>%
-    dplyr::group_by(.data$BATCH_ID) %>%
+    dplyr::group_by(.data$batch_id) %>%
     dplyr::summarise(
-      BATCH_ID = .data$BATCH_ID[1],
-      BATCH_NO = .data$BATCH_NO[1],
-      id_batch_start = dplyr::first(.data$RUN_ID_ANNOT),
-      id_batch_end = dplyr::last(.data$RUN_ID_ANNOT)) %>%
+      batch_id = .data$batch_id[1],
+      batch_no = .data$batch_no[1],
+      id_batch_start = dplyr::first(.data$run_id),
+      id_batch_end = dplyr::last(.data$run_id)) %>%
     dplyr::ungroup() %>%
     dplyr::arrange(.data$id_batch_start) %>%
-    dplyr::mutate(BATCH_NO = dplyr::row_number()) %>%
+    dplyr::mutate(batch_no = dplyr::row_number()) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
   mexp
 }

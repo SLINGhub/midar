@@ -25,7 +25,7 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{annot_features}}{Annotation of measured features.}
 
-\item{\code{annot_istd}}{Annotation of Internal Standard concentrations.}
+\item{\code{annot_istd}}{Annotation of Internal Standard concs.}
 
 \item{\code{annot_responsecurves}}{Annotation of  Response curves (RQC). Required fields}
 

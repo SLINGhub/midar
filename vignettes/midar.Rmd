@@ -39,7 +39,7 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- read_masshunter_csv(data = mexp, file_dir_names = masshunter_file)
+mexp <- import_masshunter_csv(data = mexp, file_dir_names = masshunter_file)
 mexp <- read_msorganizer_xlm(data = mexp, filename = metadata_file)
 
 
@@ -63,7 +63,7 @@ plot_runscatter(data = mexp,
   y_var = "Intensity",
   feature_filter = "ISTD",
   show_driftcorrection = FALSE,
-  QC_TYPE_fit = "BQC",
+  qc_type_fit = "BQC",
   show_batches = TRUE,
   cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
   outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)

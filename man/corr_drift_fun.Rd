@@ -22,7 +22,7 @@ corr_drift_fun(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{QC_TYPES} (one or more strings), and \code{span_width} (numerical).
+\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{qc_typeS} (one or more strings), and \code{span_width} (numerical).
 Function needs to return a numerical vector with the length of number of rows in \code{data}. In case functions fails a vector with NA_real_ needs be returned}
 
 \item{qc_types}{QC types used for drift correction}

@@ -7,7 +7,7 @@
 fun_loess(tbl, qc_types, span_width, ...)
 }
 \arguments{
-\item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{QC_TYPE}, \code{x} (run order number), and \code{y} (variable)}
+\item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
 \item{qc_types}{QC types used for the smoothing (fit) by loess}
 

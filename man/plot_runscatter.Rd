@@ -13,7 +13,7 @@ plot_runscatter(
   cap_SPL_SD = 4,
   cap_QC_SD = 4,
   cap_top_n = 10,
-  QC_TYPE_fit = "TQC",
+  qc_type_fit = "TQC",
   show_driftcorrection = FALSE,
   trend_samples_fun = "loess",
   trend_samples_col = "",
@@ -56,7 +56,7 @@ plot_runscatter(
 
 \item{cap_top_n}{Cap top n values}
 
-\item{QC_TYPE_fit}{QC TYPE used for loess fit}
+\item{qc_type_fit}{QC TYPE used for loess fit}
 
 \item{show_driftcorrection}{Show drift correction}
 

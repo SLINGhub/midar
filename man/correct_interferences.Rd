@@ -4,12 +4,12 @@
 \alias{correct_interferences}
 \title{Substract interferences contributed by another feature}
 \usage{
-correct_interferences(data, variable = "Intensity")
+correct_interferences(data, variable = "feature_intensity")
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{variable}{Name of Variable to be corrected. Default: \code{Intensity}.}
+\item{variable}{Name of Variable to be corrected. Default: \code{feature_intensity}.}
 }
 \value{
 MidarExperiment object

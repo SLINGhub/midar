@@ -16,7 +16,7 @@ correct_interference_manually(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{variable}{Default: \code{Intensity}. Name of Variable to be corrected.}
+\item{variable}{Default: \code{feature_intensity}. Name of Variable to be corrected.}
 
 \item{feature}{Name of feature to be corrected}
 
