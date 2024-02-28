@@ -1,13 +1,13 @@
 #' RunScatter plot
 #'
 #' @param data MidarExperiment object
-#' @param y_var Variable to plot
+#' @param plot_variable Variable to plot
 #' @param feature_filter Filter features containing
 #' @param filter_exclude Exclude or include feature_filter
-#' @param cap_values Cap y axis to ignore outliers
-#' @param cap_SPL_SD Minimum s.d. of samples
-#' @param cap_QC_SD Minimum s.d. of QCs
-#' @param cap_top_n Cap top n values
+#' @param cap_outliers Cap outliers to a specific range in the plot
+#' @param cap_spl_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples
+#' @param cap_qc_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of QCs
+#' @param cap_top_n_values Cap top n values
 #' @param qc_type_fit QC TYPE used for loess fit
 #' @param show_driftcorrection Show drift correction
 #' @param trend_samples_fun Function used for drift correction. Default 'loess'
@@ -32,6 +32,7 @@
 #' @param point_stroke_width point stroke width
 #' @param base_size base font size of plot
 #' @param return_plot_list return list with plots
+#' @param show_gridlines show x and y major gridlines
 #' @return A list of ggplot2 plots or NULL
 #' @importFrom stats na.omit setNames
 #' @importFrom utils tail
@@ -43,15 +44,16 @@
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
-                            cap_values, cap_SPL_SD = 4, cap_QC_SD = 4, cap_top_n = 10, qc_type_fit = "TQC",
+plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"), feature_filter = "", filter_exclude = FALSE,
+                            cap_outliers = FALSE, cap_qc_iqr_factor = 1.5, cap_spl_iqr_factor = 1.5, cap_top_n_values = NA, qc_type_fit = "BQC",
                             show_driftcorrection = FALSE, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
-                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "red1", batch_shading_color = "grey85",
-                            outputPDF, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
-                            point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = FALSE, base_size = 7) {
+                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "#769cb0", batch_shading_color = "grey90",
+                            outputPDF = FALSE, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
+                            point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = FALSE, base_size = 7, show_gridlines = FALSE) {
 
-  y_var_s <- rlang::sym(y_var)
-  y_label <- dplyr::if_else(cap_values, paste0(ifelse(is.na(y_label_text), y_var, y_label_text), " (capped at min(", cap_SPL_SD, "x SD[SPL]) ,", cap_QC_SD, "x SD[QC]"), y_var)
+  plot_variable <- rlang::arg_match(plot_variable)
+  plot_variable_s <- rlang::sym(plot_variable)
+  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_variable, y_label_text), " (capped at min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), plot_variable)
 
   # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
   data@dataset$qc_type <- factor(as.character(data@dataset$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
@@ -61,18 +63,21 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
     dplyr::arrange(.data$feature_name, .data$run_id) %>%
     dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter), negate = filter_exclude))
 
-  # cap upper range of dataset to avoid skewness
+  # Cap upper outliers to reduce skewness
   dat_filt <- dat_filt %>%
-    dplyr::mutate(value =  !!y_var_s)
+    dplyr::mutate(value =  !!plot_variable_s)
 
 
   dat_filt <- dat_filt %>%
     dplyr::group_by(.data$feature_name) %>%
     dplyr::mutate(
-      value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
-      value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
-      value_max = max(.data$value_max_spl, .data$value_max_qc, na.rm=T),
-      value_mod = dplyr::if_else(.data$value > .data$value_max & cap_values, .data$value_max, .data$value)
+      #value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
+      #value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
+      value_max_spl = quantile(.data$value[.data$qc_type == "SPL"], 0.75, na.rm = TRUE) + cap_spl_iqr_factor * IQR(.data$value[.data$qc_type=="SPL"], na.rm = TRUE),
+      value_max_qc = quantile(.data$value[.data$qc_type == qc_type_fit], 0.75, na.rm = TRUE) + cap_qc_iqr_factor * IQR(.data$value[.data$qc_type == qc_type_fit], na.rm = TRUE),
+
+      value_max = max(.data$value_max_spl, .data$value_max_qc, na.rm = TRUE),
+      value_mod = dplyr::if_else(cap_outliers & .data$value > .data$value_max, suppressWarnings(max(.data$value[.data$value < .data$value_max], na.rm = TRUE)), .data$value)
     ) %>%
     dplyr::ungroup()
 
@@ -80,7 +85,7 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
     dplyr::group_by(.data$feature_name) %>%
     dplyr::arrange(.data$value) %>%
     mutate(
-      value = ifelse(dplyr::row_number() < cap_top_n, .data$value[cap_top_n], .data$value)
+      value = ifelse(dplyr::row_number() < cap_top_n_values, .data$value[cap_top_n_values], .data$value)
     ) |>
     dplyr::arrange(.data$feature_name, .data$run_id) %>%
     dplyr::ungroup()
@@ -107,9 +112,9 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
     if(!silent) print(paste0("page ", i))
     p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batch_info, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
                              trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
-                             point_size = point_size, cap_values = cap_values, point_transparency = point_transparency, annot_scale = annot_scale,
+                             point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
-                             batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width)
+                             batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width, show_grid = show_gridlines)
     plot(p)
     p_list[[i]] <- p
   }
@@ -118,9 +123,9 @@ plot_runscatter <- function(data, y_var, feature_filter, filter_exclude = FALSE,
 }
 #' @importFrom ggplot2 Stat
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
-                                show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_values,
+                                show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width){
+                                outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width, show_grid){
 
   point_size = ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(outputPDF, .3, .2 * (1 + annot_scale/5))
@@ -141,27 +146,36 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   dat_subset <- dat_subset %>%
     dplyr::arrange(.data$qc_type)
 
+
+
+
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
   dMax <- dat_subset %>%
     dplyr::group_by(.data$feature_name) %>%
     dplyr::summarise(y_max = max(.data$value_mod, na.rm = TRUE)*1.0)
 
+
   d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
   d_batch_data$feature_name <- rep(dMax$feature_name, times = nrow(d_batches))
   d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by=c("feature_name"))
-
   p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x="run_id", label = "analysis_id"))
 
+  #browser()
   if (show_batches) {
+
     if (!batches_as_shades) {
-      p <- p + ggplot2::geom_vline(data = d_batch_data %>% dplyr::slice(-1), ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5)
+      d_batches_temp <- d_batch_data  |> filter(.data$id_batch_start != 1)
+      p <- p + ggplot2::geom_vline(data = d_batches_temp, ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5)
     }
     else {
-      d_batches_temp <- d_batch_data %>% dplyr::slice(-1) %>% dplyr::filter(.data$batch_no %% 2 != 1)
+      d_batches_temp <- d_batch_data  %>% dplyr::filter(.data$batch_no %% 2 != 1)
       p <- p + ggplot2::geom_rect(data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5 , xmax = .data$id_batch_end + 0.5, ymin = 0, ymax = .data$y_max, label = .data$batch_id),
                          inherit.aes = FALSE, fill = batch_shading_color, color = NA, alpha = 0.5, linetype = "solid", size = 0.3)
     }
   }
+
+  if(cap_outliers)
+    p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#fa9b9b", size = 3, alpha = .4)
 
   p <- p +
     ggplot2::geom_point(aes_string(x = "run_id", y= "value_mod", color="qc_type", fill="qc_type", shape="qc_type", group="batch_id"), size=point_size, alpha=point_transparency, stroke = point_stroke_width)
@@ -179,6 +193,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     ggplot2::scale_color_manual(values=pkg.env$qc_type_annotation$qc_type_col, drop=TRUE) +
     ggplot2::scale_fill_manual(values=pkg.env$qc_type_annotation$qc_type_fillcol, drop=TRUE)+
     ggplot2::scale_shape_manual(values=pkg.env$qc_type_annotation$qc_type_shape, drop=TRUE)
+
   if(show_driftcorrection){
     if(after_correction) {
       p <- p +
@@ -211,8 +226,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
       }
     }
   }
-  if(cap_values)
-    p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#FFE773", size = 3, alpha = .4)
+
 
   p <- p  +
     #aes(ymin=0) +
@@ -220,15 +234,21 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     ggplot2::ylab(label = y_label) +
     ggplot2::scale_y_continuous(limits = c(0, NA), expand = ggplot2::expansion(mult = c(0.02,0.03))) +
     #expand_limits(y = 0) +
-    ggplot2::theme_light(base_size = base_size) +
+    ggplot2::theme_bw(base_size = base_size) +
 
     ggplot2::theme(plot.title = ggplot2::element_text(size=1, face="bold"),
           strip.text = ggplot2::element_text(size=10*annot_scale, face="bold"),
-          strip.background = ggplot2::element_rect(size=0.0001,fill="#8C8C8C"),
+          strip.background = ggplot2::element_rect(size=0.0001,fill="#00283d"),
+          strip.text.x = ggplot2::element_text(color = "white"),
           axis.text.x = ggplot2::element_text( size=9*annot_scale, face=NULL),
           axis.text.y = ggplot2::element_text( size=7*annot_scale, face=NULL),
-          panel.grid =  ggplot2::element_line(size=0.00001,colour = "#DEDEDE",linetype = "dotted"),
+          panel.grid.major =  ggplot2::element_blank(),
+          panel.grid.minor =  ggplot2::element_blank(),
           strip.switch.pad.wrap = ggplot2::unit(0,"mm"))
+
+  if(show_grid)
+    p <- p  + ggplot2::theme(panel.grid.major =  ggplot2::element_line(size=0.3,colour = "grey88",linetype = "dashed"))
+
 
 
   return(p)
@@ -252,14 +272,14 @@ plot_responsecurves_page <- function(dataset,
                                      text_scale_factor,
                                      base_size){
 
-  y_var <- rlang::sym(response_variable)
+  plot_variable <- rlang::sym(response_variable)
   ggplot2::ggplot(data = dataset,
                   ggplot2::aes(x = .data$relative_sample_amount ,
-             y = !!y_var,
+             y = !!plot_variable,
              color = .data$rqc_series_id)) +
     ggpmisc::stat_poly_line(data = subset(dataset, dataset$relative_sample_amount<= (regr_max_percent/100)),
                             ggplot2::aes(x = .data$relative_sample_amount ,
-                       y  = !!y_var,
+                       y  = !!plot_variable,
                        color = .data$rqc_series_id),
                    se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE ) +
     ggpmisc::stat_poly_eq(
