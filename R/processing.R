@@ -1,7 +1,7 @@
 #' get_conc_unit
 #'
 #' @param sample_amount_unit MidarExperiment object
-#' @return string with conc unit
+#' @return string with feature_conc unit
 #' @noRd
 
 get_conc_unit <- function(sample_amount_unit){
@@ -35,7 +35,7 @@ normalize_by_istd <- function(data, interference_correction = TRUE) {
 
   if("feature_norm_intensity" %in% names(data@dataset)) {
     if (!all(is.na(data@dataset$feature_norm_intensity))) warning("Overwriting exiting normalized Intensities")
-    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))
+    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))
   }
 
   d_temp <- data@dataset #%>%     dplyr::full_join(data@annot_features, by = c("feature_name" = "feature_name"),)
@@ -73,17 +73,17 @@ quantitate_by_istd <- function(data) {
     dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_name"))
 
   d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity)*(.data$istd_volume*(.data$istd_conc_nmolar)) * .data$feature_response_factor /1000)
-  d_temp <- d_temp %>% mutate(conc = .data$pmol_total/.data$sample_amount)
+  d_temp <- d_temp %>% mutate(feature_conc = .data$pmol_total/.data$sample_amount)
 
-  if("conc" %in% names(data@dataset)) {
-    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("pmol_total", "conc")))
+  if("feature_conc" %in% names(data@dataset)) {
+    data@dataset <- data@dataset %>% select(-dplyr::any_of(c("pmol_total", "feature_conc")))
     warning("Overwriting exiting concs")
   }
 
   data@dataset <- data@dataset %>%
-    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "sample_amount",  "istd_volume", "pmol_total", "conc"), by = c("analysis_id", "feature_name"))
+    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "sample_amount",  "istd_volume", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_name"))
 
-  data@dataset$conc_raw <- data@dataset$conc
+  data@dataset$conc_raw <- data@dataset$feature_conc
 
   n_features <- length(unique(data@dataset$feature_name))
   n_istd <- length(unique(data@dataset$norm_istd_feature_name))
@@ -91,7 +91,7 @@ quantitate_by_istd <- function(data) {
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 
   writeLines(crayon::green(glue::glue("\u2713 {n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_istd} spiked-in ISTDs and sample amounts.
-                   conc unit: [{conc_unit}].")))
+                   feature_conc unit: [{conc_unit}].")))
 
   data@status_processing <- "Quantitated Data"
   data@is_istd_normalized <- TRUE
@@ -166,11 +166,11 @@ calculate_qc_metrics <- function(data) {
         Int_med_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
         Int_med_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
 
-        conc_median_TQC = median(.data$conc[.data$qc_type == "TQC"], na.rm = TRUE),
-        conc_median_BQC = median(.data$conc[.data$qc_type == "BQC"], na.rm = TRUE),
-        conc_median_SPL = median(.data$conc[.data$qc_type == "SPL"], na.rm = TRUE),
-        conc_median_NIST = median(.data$conc[.data$qc_type == "NIST"], na.rm = TRUE),
-        conc_median_LTR = median(.data$conc[.data$qc_type == "LTR"], na.rm = TRUE),
+        conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
+        conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
+        conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+        conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
+        conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
 
         SB_Ratio_Q10 = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs  = 0.1, na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
         SB_Ratio_median = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
@@ -183,11 +183,11 @@ calculate_qc_metrics <- function(data) {
         normInt_CV_BQC = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE)/mean(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
         normInt_CV_SPL = sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
 
-        conc_CV_TQC = sd(.data$conc[.data$qc_type == "TQC"], na.rm = TRUE)/mean(.data$conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-        conc_CV_BQC = sd(.data$conc[.data$qc_type == "BQC"], na.rm = TRUE)/mean(.data$conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-        conc_CV_SPL = sd(.data$conc[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-        conc_CV_NIST = sd(.data$conc[.data$qc_type == "NIST"], na.rm = TRUE)/mean(.data$conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
-        conc_CV_LTR = sd(.data$conc[.data$qc_type == "LTR"], na.rm = TRUE)/mean(.data$conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100)
+        conc_CV_TQC = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+        conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+        conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+        conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
+        conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100)
 
   data@metrics_qc <- ds1
 
@@ -268,7 +268,9 @@ apply_qc_filter <-  function(data,
                    exclude_istds = TRUE,
                    features_to_keep = NULL
                    ){
-  if ((!is.na(R2_min)) & is.na(RQC_CURVE)) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
+  if ((!is.na(R2_min)) & is.na(RQC_CURVE)  & nrow(data@annot_responsecurves) > 0) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
+  if (((!is.na(R2_min)) | !is.na(RQC_CURVE))  & nrow(data@annot_responsecurves) == 0) stop("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set RQC_CURVE and R2_min to NA")
+
 
   if (nrow(data@metrics_qc)== 0){
     stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
