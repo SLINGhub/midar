@@ -16,7 +16,7 @@ corr_batch_centering(
 
 \item{qc_types}{QC types used for batch correction}
 
-\item{use_raw_concs}{Apply to unadjusted (raw) conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used}
+\item{use_raw_concs}{Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used}
 
 \item{center_fun}{Function used to center. Default is "median".}
 }

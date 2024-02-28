@@ -13,7 +13,7 @@
 #'
 writeReportXLS <- function(data, filename) {
 
-  if (!("conc" %in% names(data@dataset))) stop("Variable '", "conc",  "' does not (yet) exist in dataset")
+  if (!("feature_conc" %in% names(data@dataset))) stop("Variable '", "feature_conc",  "' does not (yet) exist in dataset")
   if (!stringr::str_detect(filename, ".xlsx")) filename = paste0(filename, ".xlsx")
 
   d_intensity_wide <- data@dataset %>%
@@ -24,16 +24,16 @@ writeReportXLS <- function(data, filename) {
   d_conc_wide <- data@dataset %>%
     dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
     dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "conc"))) %>%
-    tidyr::pivot_wider(names_from = "feature_name", values_from = "conc")
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "feature_conc"))) %>%
+    tidyr::pivot_wider(names_from = "feature_name", values_from = "feature_conc")
 
   if("feature_name" %in% names(data@dataset_QC_filtered)) {
 
     d_conc_wide_QC <- data@dataset_QC_filtered %>%
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_istd.x", "is_quantifier", "acquisition_time_stamp", "feature_name", "feature_class", "conc"))) %>%
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_istd.x", "is_quantifier", "acquisition_time_stamp", "feature_name", "feature_class", "feature_conc"))) %>%
       dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
-      tidyr::pivot_wider(names_from = "feature_name", values_from = "conc")
+      tidyr::pivot_wider(names_from = "feature_name", values_from = "feature_conc")
 
     d_conc_wide_QC_SPL <- d_conc_wide_QC |> dplyr::filter(.data$qc_type == "SPL") |> dplyr::select(!"qc_type":"is_quantifier")
 
@@ -47,7 +47,7 @@ writeReportXLS <- function(data, filename) {
     "Author", Sys.info()[["user"]],
     "LIDAR Version", packageVersion("midar") ,
     "", "",
-    "conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit))
+    "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit))
 
 
  table_list <- list(

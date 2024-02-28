@@ -7,7 +7,7 @@
 read_analysisresult_table(
   file,
   value_type = c("area", "height", "intensity", "norm_area", "norm_height",
-    "norm_intensity", "conc", "rt", "fwhm", "width"),
+    "norm_intensity", "feature_conc", "rt", "fwhm", "width"),
   sheet = "",
   silent = FALSE
 )
@@ -15,7 +15,7 @@ read_analysisresult_table(
 \arguments{
 \item{file}{File name and path of a plain wide-format CSV or XLS file}
 
-\item{value_type}{Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "conc", "rt", "fwhm" or "width"}
+\item{value_type}{Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm" or "width"}
 
 \item{sheet}{Sheet name in case an Excel file (.xls, .xlsx, .xlsm) is imported}
 

@@ -432,14 +432,14 @@ read_mrmkit_result <- function(filename, use_normalized_data = FALSE, silent = F
 #'
 #'
 #' @param file File name and path of a plain wide-format CSV or XLS file
-#' @param value_type Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "conc", "rt", "fwhm" or "width"
+#' @param value_type Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm" or "width"
 #' @param sheet Sheet name in case an Excel file (.xls, .xlsx, .xlsm) is imported
 #' @param silent Suppress messages
 
 #' @return A tibble in the long format
 #' @export
 #'
-read_analysisresult_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
+read_analysisresult_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
 
   value_type <- match.arg(value_type)
 
@@ -451,7 +451,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
     "norm_area" ~ "feature_norm_area",
     "norm_height" ~ "feature_norm_height",
     "norm_intensity" ~ "feature_norm_intensity",
-    "conc" ~ "feature_conc",
+    "feature_conc" ~ "feature_conc",
     "rt" ~ "feature_rt",
     "fwhm" ~ "feature_fwhm",
     "width" ~ "feature_width",

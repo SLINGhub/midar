@@ -2,7 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom rlang .data ensym sym :=
+#' @importFrom rlang .data ensym sym := arg_match
 #' @importFrom ggh4x facet_wrap2
 #' @importFrom ggplot2 ggplot aes Stat unit geom_point geom_line geom_abline margin xlab ylab vars theme facet_wrap position_jitter scale_color_manual labs scale_fill_manual theme_light geom_vline geom_rect geom_vline aes_string scale_fill_manual scale_shape_manual expand_limits geom_smooth geom_hline scale_y_continuous element_blank element_text theme_bw stat_ellipse element_rect element_line expansion scale_x_continuous geom_boxplot ggtitle position_dodge
 #' @importFrom tidyselect vars_select_helpers

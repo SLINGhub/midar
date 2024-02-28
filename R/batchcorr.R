@@ -245,7 +245,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 
   if(data@is_batch_corrected) writeLines(crayon::yellow(glue::glue("Note: previous batch correction has been removed.")))
   if(fit_errors > 0) writeLines(crayon::yellow(glue::glue("Warning: No smoothing applied for {fit_errors} features because the fit algorithm failed (insufficient or invalid data points): {features_with_fiterror_text}")))
-  data@dataset$conc <- data@dataset$CONC_ADJ
+  data@dataset$feature_conc <- data@dataset$CONC_ADJ
   data
 }
 
@@ -258,7 +258,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 #' Additional details...
 #' @param data MidarExperiment object
 #' @param qc_types QC types used for batch correction
-#' @param use_raw_concs Apply to unadjusted (raw) conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used
+#' @param use_raw_concs Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used
 #' @param center_fun Function used to center. Default is "median".
 #' @return MidarExperiment object
 #' @importFrom glue glue
@@ -289,6 +289,6 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
   if(data@is_drift_corrected & use_raw_concs) writeLines(crayon::yellow(glue::glue("Note: previous drift correction has been removed.\n")))
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_batch_corrected = TRUE
-  data@dataset$conc <- data@dataset$CONC_ADJ
+  data@dataset$feature_conc <- data@dataset$CONC_ADJ
   data
 }

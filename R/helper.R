@@ -1,3 +1,5 @@
+
+
 add_missing_column <- function(data, col_name, init_value, make_lowercase) {
   if (!tolower(col_name) %in% tolower(names(data)))
     data |> tibble::add_column({{col_name}}:= init_value)
@@ -8,6 +10,21 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase) {
   }
 }
 
+
+
+# Flag outliers, based on Tukey’s IQR fences
+flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5){
+  data <- data |>
+    group_by(ceramideName, SampleType) %>%
+    mutate(
+      IQR_sp = IQR(C_SinglePoint_mean, na.rm = TRUE),
+      Q1_sp = quantile(C_SinglePoint_mean, 0.25, na.rm = TRUE),
+      Q3_sp = quantile(C_SinglePoint_mean, 0.75, na.rm = TRUE),
+      Outlier_sp = !between(C_SinglePoint_mean,(Q1_sp - limit_iqr*IQR_sp),(Q3_sp + limit_iqr*IQR_sp)),
+    ) |>
+    ungroup()
+  data
+}
 
 
 # https://dewey.dunnington.ca/post/2018/modifying-facet-scales-in-ggplot2/

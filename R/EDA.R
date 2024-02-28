@@ -141,7 +141,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
   )
 
  d_wide <- data %>%
-    pivot_wider(names_from = "feature_name", values_from = "conc")
+    pivot_wider(names_from = "feature_name", values_from = "feature_conc")
 
   d_filt = left_join(d_metadata[,"analysis_id"], d_wide )
 
@@ -240,7 +240,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL,log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1, ellipse = TRUE, mark_ellipse = FALSE, show_labels = FALSE, label_size = 6, max_label_overlaps = Inf) {
 
   d_wide <- data %>%
-    pivot_wider(names_from = "feature_name", values_from = "conc")
+    pivot_wider(names_from = "feature_name", values_from = "feature_conc")
 
   d_filt = left_join(d_metadata[,"analysis_id"], d_wide )
 
@@ -317,12 +317,12 @@ get_pval <- function(df, test_col, contrasts, paired) {
   df$`_group` <- df |> pull({{test_col}})
   map_dfr(.x = contrasts,
           .f = ~ broom::tidy(
-            mod_t_test(formula = conc ~ factor(`_group`), paired = paired, data = subset(df, `_group` %in% .x))) |>
+            mod_t_test(formula = feature_conc ~ factor(`_group`), paired = paired, data = subset(df, `_group` %in% .x))) |>
             mutate(id = paste0(.x, collapse = "-"),
                    grp1 = .x[1],
                    grp2 = .x[2],
-                   y_max_1 = mean(df$conc[df$`_group` == .x[1]])+sd(df$conc[df$`_group` == .x[1]]),
-                   y_max_2 = mean(df$conc[df$`_group` == .x[2]])+sd(df$conc[df$`_group` == .x[2]]),
+                   y_max_1 = mean(df$feature_conc[df$`_group` == .x[1]])+sd(df$feature_conc[df$`_group` == .x[1]]),
+                   y_max_2 = mean(df$feature_conc[df$`_group` == .x[2]])+sd(df$feature_conc[df$`_group` == .x[2]]),
                    y_max = max(y_max_1, y_max_2)))
 }
 
@@ -362,7 +362,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
     d_stat$group <- 1:nrow(d_stat)
     pos <- position_jitter(width = 0.3, seed = 2)
 
-    plt <- ggplot(data, aes(x = {{GroupOuter}}, y = .data$conc, group = .data$SUBJECT_ID)) +
+    plt <- ggplot(data, aes(x = {{GroupOuter}}, y = .data$feature_conc, group = .data$SUBJECT_ID)) +
       ggtitle(label = paste(unique(data$lipidClass), collapse = " | " ))
 
     plt <-  plt +
@@ -409,7 +409,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter=NULL, GroupInn
       else if(x < 0.05){"*"}
       else{NA}}
     pos <- position_jitter(width = 0.3, seed = 2)
-    plt <- ggplot(data, aes(x = {{GroupInner}}, y = .data$conc)) +
+    plt <- ggplot(data, aes(x = {{GroupInner}}, y = .data$feature_conc)) +
       ggtitle(label = paste(unique(data$lipidClass), collapse = " | " ))
 
     if (paired) plt <-  plt + geom_line(aes(group = .data$SUBJECT_ID), linewidth = 0.15, color = "grey50", alpha = 0.3)

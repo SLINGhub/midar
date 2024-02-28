@@ -6,14 +6,14 @@
 \usage{
 plot_runscatter(
   data,
-  y_var,
-  feature_filter,
+  plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+  feature_filter = "",
   filter_exclude = FALSE,
-  cap_values,
-  cap_SPL_SD = 4,
-  cap_QC_SD = 4,
-  cap_top_n = 10,
-  qc_type_fit = "TQC",
+  cap_outliers = FALSE,
+  cap_qc_iqr_factor = 1.5,
+  cap_spl_iqr_factor = 1.5,
+  cap_top_n_values = NA,
+  qc_type_fit = "BQC",
   show_driftcorrection = FALSE,
   trend_samples_fun = "loess",
   trend_samples_col = "",
@@ -21,9 +21,9 @@ plot_runscatter(
   plot_other_qc = TRUE,
   show_batches = FALSE,
   batches_as_shades = TRUE,
-  batch_line_color = "red1",
-  batch_shading_color = "grey85",
-  outputPDF,
+  batch_line_color = "#769cb0",
+  batch_shading_color = "grey90",
+  outputPDF = FALSE,
   filename = "",
   cols_page = 4,
   rows_page = 3,
@@ -36,25 +36,26 @@ plot_runscatter(
   y_label_text = NA,
   silent = FALSE,
   return_plot_list = FALSE,
-  base_size = 7
+  base_size = 7,
+  show_gridlines = FALSE
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{y_var}{Variable to plot}
+\item{plot_variable}{Variable to plot}
 
 \item{feature_filter}{Filter features containing}
 
 \item{filter_exclude}{Exclude or include feature_filter}
 
-\item{cap_values}{Cap y axis to ignore outliers}
+\item{cap_outliers}{Cap outliers to a specific range in the plot}
 
-\item{cap_SPL_SD}{Minimum s.d. of samples}
+\item{cap_qc_iqr_factor}{Multiplicator for the upper Tukey's IQR fence use for outlier capping of QCs}
 
-\item{cap_QC_SD}{Minimum s.d. of QCs}
+\item{cap_spl_iqr_factor}{Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples}
 
-\item{cap_top_n}{Cap top n values}
+\item{cap_top_n_values}{Cap top n values}
 
 \item{qc_type_fit}{QC TYPE used for loess fit}
 
@@ -103,6 +104,8 @@ plot_runscatter(
 \item{return_plot_list}{return list with plots}
 
 \item{base_size}{base font size of plot}
+
+\item{show_gridlines}{show x and y major gridlines}
 }
 \value{
 A list of ggplot2 plots or NULL
