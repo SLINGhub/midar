@@ -33,11 +33,12 @@ fun_gaussiankernel = function(tbl, qc_types, span_width, ...) {
 #' @param ... Additional parameters forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
 fun_loess <- function(tbl, qc_types, span_width, ...) {
+  tbl <- tbl |>     filter(!outlier_technical)
   arguments <- list(...)
   surface <- ifelse(arguments$extrapolate, "direct", "interpolate")
   res <- tryCatch({
     stats::loess(y ~ x,
-                 span = span_width, family = "gaussian", degree = 2, normalize=FALSE, iterations=4, surface = surface, ...,
+                 span = span_width, family = "symmetric", degree = 2, normalize=FALSE, iterations=4, surface = surface, ...,
                  data = tbl[tbl$qc_type %in% qc_types, ]) %>%
       stats::predict(tibble::tibble(x = seq(min(tbl$x), max(tbl$x), 1))) %>% as.numeric()},
     error = function(e) {
@@ -129,13 +130,14 @@ corr_drift_gaussiankernel <- function(data, qc_types, bandwidth, log2_transform 
 corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, span_width, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
                              max_cv_ratio_before_after = 1, use_uncorrected_if_fit_fails = TRUE, feature_list = NULL, ...){
 
-
   if(is.null(feature_list))
     ds <- data@dataset
   else
     ds <- data@dataset %>% dplyr::filter(stringr::str_detect(.data$feature_name, feature_list))
   ds$x <- ds$run_id
   ds$y <- ds$conc_raw
+
+
   if(log2_transform) suppressWarnings(ds$y <- log2(ds$y))
 
   if(within_batch) adj_groups <- c("feature_name", "batch_id") else adj_groups <- c("feature_name")
@@ -168,6 +170,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   # Calculate CVs and apply to all or conditionally
   if(apply_conditionally_per_batch & within_batch) filter_groups <- c("feature_name", "batch_id") else filter_groups <- c("feature_name")
   ddd <- dd %>%
+
     #filter(!is.na(.data$Y_PREDICTED)) |>
     group_by(across(all_of(filter_groups))) %>%
     mutate(CV_RAW_SPL = sd(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE) *100,
@@ -177,20 +180,24 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
       Y_FINAL = dplyr::if_else(.data$DRIFT_CORRECTED, .data$Y_ADJ, dplyr::if_else(is.na(.data$Y_ADJ) & !use_uncorrected_if_fit_fails , NA_real_, .data$conc_raw))) |>
     ungroup()
 
-  data@dataset <- data@dataset %>% dplyr::left_join(
+  data@dataset <- data@dataset %>%
+    #filter(!outlier_technical) |>
+    dplyr::left_join(
     ddd %>% dplyr::select("analysis_id", "feature_name", CURVE_Y_PREDICTED = "Y_PREDICTED", Y_MEDIAN = "Y_MEDIAN", CONC_DRIFT_ADJ = "Y_ADJ",
                         "CV_RAW_SPL", "CV_ADJ_SPL", "DRIFT_CORRECTED", FIT_ERROR = "fit_error", CONC_ADJ = "Y_FINAL"), by = c("analysis_id", "feature_name"))
 
 
   # ToDo: below if some species have invalid numbers (e.g. negative) they will be ignore, but how about if eg 90% are invalide, Still correct result?
   d_sum_adj <- data@dataset |>
+    #filter(!outlier_technical) |>
     filter(!is.na(.data$CURVE_Y_PREDICTED)) |>
     group_by(across(all_of(filter_groups))) |>
     summarise(DRIFT_CORRECTED = any(.data$DRIFT_CORRECTED & !is.na(.data$conc_raw))|all(.data$FIT_ERROR))
 
   d_fit <- data@dataset |>
+    #filter(!outlier_technical) |>
     group_by(.data$feature_name) |>
-    summarise(FIT_ERROR = any(.data$FIT_ERROR),
+    summarise(FIT_ERROR = any(.data$FIT_ERROR, na.rm = TRUE),
               CV_RAW_SPL = sd(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE) *100,
               CV_ADJ_SPL = sd(.data$CONC_ADJ[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$CONC_ADJ[.data$qc_type == "SPL"], na.rm = TRUE) *100)
   fit_errors <- sum(d_fit$FIT_ERROR)
@@ -242,6 +249,8 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_drift_corrected <- TRUE
   data@is_batch_corrected <- FALSE
+
+
 
   if(data@is_batch_corrected) writeLines(crayon::yellow(glue::glue("Note: previous batch correction has been removed.")))
   if(fit_errors > 0) writeLines(crayon::yellow(glue::glue("Warning: No smoothing applied for {fit_errors} features because the fit algorithm failed (insufficient or invalid data points): {features_with_fiterror_text}")))
