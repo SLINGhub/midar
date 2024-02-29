@@ -257,17 +257,19 @@ saveQCinfo <- function(data, filename) {
 #' @export
 
 apply_qc_filter <-  function(data,
-                   Intensity_BQC_min = NA,
-                   CV_BQC_max = NA,
-                   Intensity_TQC_min = NA,
-                   CV_TQC_max = NA,
-                   SB_RATIO_min = NA,
-                   R2_min = NA,
-                   RQC_CURVE = NA,
-                   quantifier_only = TRUE,
-                   exclude_istds = TRUE,
-                   features_to_keep = NULL
-                   ){
+                             exclude_technical_outliers,
+                             Intensity_BQC_min = NA,
+                             CV_BQC_max = NA,
+                             Intensity_TQC_min = NA,
+                             CV_TQC_max = NA,
+                             SB_RATIO_min = NA,
+                             R2_min = NA,
+                             RQC_CURVE = NA,
+                             quantifier_only = TRUE,
+                             exclude_istds = TRUE,
+                             features_to_keep = NULL) {
+
+
   if ((!is.na(R2_min)) & is.na(RQC_CURVE)  & nrow(data@annot_responsecurves) > 0) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
   if (((!is.na(R2_min)) | !is.na(RQC_CURVE))  & nrow(data@annot_responsecurves) == 0) stop("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set RQC_CURVE and R2_min to NA")
 
@@ -317,7 +319,7 @@ apply_qc_filter <-  function(data,
   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt)} of {nrow(n_valid)} valid features passed QC criteria")))
   data@dataset_QC_filtered <- data@dataset %>%
     dplyr::right_join(d_filt|> dplyr::select("feature_name"), by = "feature_name") |>
-    filter(.data$valid_analysis)
+    filter(.data$valid_analysis, !(.data$outlier_technical & exclude_technical_outliers))
   data
 }
 
