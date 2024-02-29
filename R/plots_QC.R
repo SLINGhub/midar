@@ -46,8 +46,8 @@
 
 plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"), feature_filter = "", filter_exclude = FALSE,
                             cap_outliers = FALSE, cap_qc_iqr_factor = 1.5, cap_spl_iqr_factor = 1.5, cap_top_n_values = NA, qc_type_fit = "BQC",
-                            show_driftcorrection = FALSE, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
-                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "#769cb0", batch_shading_color = "grey90",
+                            show_driftcorrection = FALSE, show_trend_samples, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
+                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
                             outputPDF = FALSE, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
                             point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = FALSE, base_size = 7, show_gridlines = FALSE) {
 
@@ -111,7 +111,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
   for (i in page_range){
     if(!silent) print(paste0("page ", i))
     p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batch_info, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
-                             trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
+                             show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
                              point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
                              batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width, show_grid = show_gridlines)
@@ -124,7 +124,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
 #' @importFrom ggplot2 Stat
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_outliers,
-                                show_batches, batches_as_shades, batch_line_color, batch_shading_color, trend_samples_fun, trend_samples_col, plot_other_qc,
+                                show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
                                 outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width, show_grid){
 
   point_size = ifelse(missing(point_size), 2, point_size)
@@ -184,7 +184,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
   if(after_correction & show_driftcorrection){
     p <- p +
-      ggplot2::geom_line(aes_string(x = "run_id", y= "value_fitted", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5)
+      ggplot2::geom_line(aes_string(x = "run_id", y= "CURVE_Y_PREDICTED", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5)
   }
 
   p <- p +
@@ -199,9 +199,12 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
       p <- p +
         ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), se=TRUE,
                     colour=pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], fill = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit],
-                    method = MASS::rlm, alpha = 0.2, size=0.4) +
-        ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=trend_samples_col, fill = trend_samples_col,
-                    method = trend_samples_fun, se=TRUE, alpha = 0.2, size=.4, na.rm = FALSE)
+                    method = MASS::rlm, alpha = 0.35, size=0.8)
+
+      if(show_trend_samples){
+        p <- p + ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), colour=trend_samples_col, fill = trend_samples_col, linetype = "dashed",
+                    method = trend_samples_fun, se=FALSE, alpha = 0.2, size=.8, na.rm = TRUE)
+      }
 
       if(plot_other_qc){
         other_qc <- dplyr::if_else(qc_type_fit == "BQC", "TQC", "BQC")
@@ -238,7 +241,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
     ggplot2::theme(plot.title = ggplot2::element_text(size=1, face="bold"),
           strip.text = ggplot2::element_text(size=10*annot_scale, face="bold"),
-          strip.background = ggplot2::element_rect(size=0.0001,fill="#00283d"),
+            strip.background = ggplot2::element_rect(size=0.0001,fill="#00283d"),
           strip.text.x = ggplot2::element_text(color = "white"),
           axis.text.x = ggplot2::element_text( size=9*annot_scale, face=NULL),
           axis.text.y = ggplot2::element_text( size=7*annot_scale, face=NULL),
@@ -485,11 +488,15 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size = 2, fill_alpha = 0.1) {
+plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istds, point_size = 2, point_alpha = 0.5, ellipse_alpha = 0.8, font_base_size = 8) {
 
 
-  d_wide <- data@dataset_QC_filtered  %>%
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS"), .data$is_quantifier ) %>%
+  d_wide <- data@dataset_QC_filtered
+
+  #TODO: (IS as criteria for ISTD.. dangerous...
+  if(remove_istds)  d_wide <- d_wide |> filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+
+  d_wide <- d_wide |>  filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), .data$is_quantifier ) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
 
   d_filt <- d_wide %>%
@@ -514,10 +521,18 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
     tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
+
+
   if(log_transform) m_raw <- log2(m_raw)
   # get pca result with annotation
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
-  pca_annot <- pca_res |> broom::augment(d_metadata)
+  pca_annot <- pca_res |>
+    broom::augment(d_metadata)
+
+  pca_annot$qc_type <- forcats::fct_relevel(pca_annot$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
+  pca_annot <- pca_annot %>%
+    dplyr::arrange(.data$qc_type)
+
   pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
 
   p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", dim_x),
@@ -527,10 +542,10 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
                                            shape = "qc_type",
                                            label = "analysis_id"
   )) +
-    ggplot2::geom_hline(yintercept = 0, size = 0.4, color = "grey80") +
-    ggplot2::geom_vline(xintercept = 0, size = 0.4, color = "grey80") +
-    ggplot2::stat_ellipse(geom = "polygon", level = 0.95,alpha = fill_alpha, size = 0.3) +
-    ggplot2::geom_point(size = point_size)
+    ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
+    ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
+    ggplot2::stat_ellipse(geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3) +
+    ggplot2::geom_point(size = point_size, alpha = point_alpha)
 
     p <- p +
       ggplot2::scale_color_manual(values=pkg.env$qc_type_annotation$qc_type_col, drop=TRUE) +
@@ -538,12 +553,17 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, point_size 
       ggplot2::scale_shape_manual(values=pkg.env$qc_type_annotation$qc_type_shape, drop=TRUE)
 
   p <- p +
-    ggplot2::theme_light(base_size = 8) +
+    ggplot2::theme_bw(base_size = font_base_size) +
     ggplot2::xlab(glue::glue("PC{dim_x} ({round(pca_contrib[[dim_x,'percent']]*100,1)}%)"))+
     ggplot2::ylab(glue::glue("PC{dim_y} ({round(pca_contrib[[dim_y,'percent']]*100,1)}%)"))+
     ggplot2::theme(
-      panel.grid = ggplot2::element_line(size = 0.3, color = "grey95"),
-      panel.border = ggplot2::element_rect(size = 1, color = "grey70"),
+      panel.grid.major =  ggplot2::element_blank(),
+      panel.grid.minor =  ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(size = 1, color = "grey40"),
+      axis.text.x = ggplot2::element_text( size=font_base_size, face=NULL),
+      axis.text.y = ggplot2::element_text( size=font_base_size, face=NULL),
+      axis.title.x = ggplot2::element_text( size=font_base_size*1.2, face=NULL),
+      axis.title.y = ggplot2::element_text( size=font_base_size*1.2, face=NULL),
       aspect.ratio=1)
 
   p
@@ -668,12 +688,14 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   p
 }
 
-plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1){
+plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1){
 
-  d_wide = data@dataset  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS") ) %>%
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
+  d_wide = data@dataset_QC_filtered  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
-  d_filt <- d_wide %>%
+  if(remove_istds)  d_wide <- d_wide |>  filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+
+  d_filt <- d_wide |>
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}}) |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
 
   m_raw <- d_filt  |>
@@ -700,23 +722,39 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
     dplyr::mutate(direction = if_else(.data$Value < 0, "neg", "pos"),
            Value = dplyr::if_else(!scale_pos_neg, abs(.data$Value), .data$Value),
            abs_value = abs(.data$Value)) |>
-    group_by(.data$PC) |>
-    dplyr::arrange(.data$abs_value) |>
-    dplyr::slice_max(order_by = .data$abs_value, n = .data$top_n) |>
+    group_by(.data$PC)
+
+  if(vertical_bars)
+    d_loadings_selected <- d_loadings_selected |> dplyr::arrange(.data$abs_value)
+  else
+    d_loadings_selected <- d_loadings_selected |> dplyr::arrange(desc(.data$abs_value))
+
+  d_loadings_selected <- d_loadings_selected  |>
+    dplyr::slice_max(order_by = .data$abs_value, n = top_n) |>
     ungroup() |>
-    tidyr::unite("E", .data$Compound, .data$PC, remove = FALSE) |>
+    tidyr::unite("Feature", .data$Compound, .data$PC, remove = FALSE) |>
     mutate(PC = as.factor(.data$PC),
-           E = forcats::fct_reorder(.data$E, .data$abs_value))
+           Feature = forcats::fct_reorder(.data$Feature, .data$abs_value))
 
 
-  p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$E, y = .data$Value, color = .data$direction, fill = .data$direction)) +
-    ggplot2::geom_col()+
-    ggplot2::facet_wrap(ggplot2::vars(.data$PC), nrow=1,scales = "free") +
-    ggplot2::scale_x_discrete(labels=d_loadings_selected$Compound, breaks=d_loadings_selected$E) +
-    ggplot2::scale_color_manual(values = c("neg" = "blue", "pos" = "red")) +
-    ggplot2::scale_fill_manual(values = c("neg" = "blue", "pos" = "red")) +
-    ggplot2::coord_flip() +
-    ggplot2::theme_light(base_size = 8)
+  p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$Feature, y = .data$Value, color = .data$direction, fill = .data$direction)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pc_dimensions))) +
+    ggplot2::scale_x_discrete(labels=d_loadings_selected$Compound, breaks=d_loadings_selected$Feature) +
+    ggplot2::scale_color_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
+    ggplot2::scale_fill_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
+    ggplot2::labs(x = "Feature", y = "Loading") +
+    ggplot2::theme_bw(base_size = 8)
+
+  if (!vertical_bars) {
+    p <- p +
+      ggplot2::coord_flip()
+  } else
+  {
+    p <- p +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust=0.5, hjust=1)) +
+      scale_x_discrete(limits = rev)
+  }
 
   p
 
