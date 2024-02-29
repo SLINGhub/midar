@@ -4,6 +4,27 @@ pkg.env <- new.env()
 pkg.env$dataset_templates <- list(
   dataset_orig_template = tibble::tibble(
     "raw_data_filename" = character(),
+    "acquisition_time_stamp" = as.Date(character()),
+    "feature_intensity" = numeric(),
+    "feature_norm_intensity" = numeric(),
+    "feature_conc" = numeric()
+  ),
+
+  dataset_template = tibble::tibble(
+    "run_id" = integer(),
+    "analysis_id" = character(),
+    "raw_data_filename" = character(),
+    "acquisition_time_stamp" = as.Date(character()),
+    "qc_type" = factor(),
+    "replicate_no" = integer(),
+    "batch_id" = character(),
+    "valid_analysis" = logical(),
+    "outlier_technical" = logical(),
+    "outlier_technical_note" = character(),
+    "feature_name" = character(),
+    "feature_class" = character(),
+    "is_istd" = logical(),
+    "valid_integration" = logical(),
     "feature_intensity" = numeric(),
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
@@ -22,6 +43,8 @@ pkg.env$dataset_templates <- list(
     "sample_amount_unit" = character(),
     "istd_volume" = numeric(),
     "valid_analysis" = logical(),
+    "outlier_technical" = logical(),
+    "outlier_technical_note" = character(),
     "remarks" = character()
   ),
   annot_features_template = tibble::tibble(
@@ -70,7 +93,7 @@ pkg.env$qc_type_annotation <- list(
     "NIST" = "#002e6b",
     "LTR" = "#880391",
     "PBLK" = "#08c105",
-    "SPL" = "#aaaeaf",
+    "SPL" = "#899ea3",
     "SST" = "#bafc03",
     "MBLK" = "black"),
 
@@ -137,6 +160,9 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @slot is_drift_corrected Flag if data has been drift corrected
 #' @slot is_batch_corrected Flag if data has been batch corrected
 #' @slot is_isotope_corr Flag if one or more features have been isotope corrected
+#' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
+#' @slot excl_outliers_tech Flag if outliers were excluded in the QC-filtered dataset
+#'
 #' @export
 #'
 #' @importFrom utils tail
@@ -160,7 +186,9 @@ setClass("MidarExperiment",
            is_quantitated = "logical",
            is_drift_corrected = "logical",
            is_batch_corrected = "logical",
-           is_isotope_corr = "logical"
+           has_outliers_tech = "logical",
+           is_isotope_corr = "logical",
+           excl_outliers_tech = "logical"
          ),
          prototype = list(
            analysis_type = "",
@@ -179,7 +207,9 @@ setClass("MidarExperiment",
            is_quantitated = FALSE,
            is_drift_corrected = FALSE,
            is_batch_corrected = FALSE,
-           is_isotope_corr = FALSE
+           has_outliers_tech = FALSE,
+           is_isotope_corr = FALSE,
+           excl_outliers_tech = FALSE
          )
 )
 
@@ -286,6 +316,8 @@ setMethod(f = "$",
 setMethod("show", "MidarExperiment", function(object) {
   cat("\n", is(object)[[1]], "\n",
       "\n",
+      "  Processing status: ",object@status_processing, "\n",
+      "\n",
       "  Data: ", "\n",
       "  \u2022 Samples: ", length(unique(object@dataset$analysis_id)), "\n",
       "  \u2022 Features:  ", length(unique(object@dataset$feature_name)), "\n",
@@ -297,14 +329,16 @@ setMethod("show", "MidarExperiment", function(object) {
       "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves) > 0), "\n",
       "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples) > 0), "\n",
       "\n",
-      "  Processing status: ",object@status_processing, "\n",
-      "\n",
       "  Processing: ", "\n",
+      "  \u2022 Isotope corrected: ", get_status_flag(object@is_isotope_corr), "\n",
       "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
       "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
       "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
       "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n",
-      "  \u2022 Interference (isotope) corrected: ", get_status_flag(object@is_isotope_corr), "\n"
+      "\n",
+      "  Outliers: ", "\n",
+      "  \u2022 Technical Outliers detected ", get_status_flag(object@has_outliers_tech), "\n",
+      "  \u2022 Technical Outliers excluded from filtered data ", get_status_flag(object@excl_outliers_tech), "\n"
   )
 })
 
