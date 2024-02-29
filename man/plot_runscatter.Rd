@@ -21,7 +21,7 @@ plot_runscatter(
   plot_other_qc = TRUE,
   show_batches = FALSE,
   batches_as_shades = TRUE,
-  batch_line_color = "#769cb0",
+  batch_line_color = "#9dbecf",
   batch_shading_color = "grey90",
   outputPDF = FALSE,
   filename = "",
