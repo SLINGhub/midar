@@ -10,8 +10,11 @@ plot_pca_qc(
   dim_x,
   dim_y,
   log_transform,
+  remove_istds,
   point_size = 2,
-  fill_alpha = 0.1
+  point_alpha = 0.5,
+  ellipse_alpha = 0.8,
+  font_base_size = 8
 )
 }
 \arguments{
