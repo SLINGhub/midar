@@ -6,6 +6,7 @@
 \usage{
 apply_qc_filter(
   data,
+  exclude_technical_outliers,
   Intensity_BQC_min = NA,
   CV_BQC_max = NA,
   Intensity_TQC_min = NA,
