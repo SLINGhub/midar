@@ -15,6 +15,7 @@ plot_runscatter(
   cap_top_n_values = NA,
   qc_type_fit = "BQC",
   show_driftcorrection = FALSE,
+  show_trend_samples,
   trend_samples_fun = "loess",
   trend_samples_col = "",
   after_correction = FALSE,
@@ -60,6 +61,8 @@ plot_runscatter(
 \item{qc_type_fit}{QC TYPE used for loess fit}
 
 \item{show_driftcorrection}{Show drift correction}
+
+\item{show_trend_samples}{Fit trend line for study samples, if show_driftcorrection is TRUE}
 
 \item{trend_samples_fun}{Function used for drift correction. Default 'loess'}
 

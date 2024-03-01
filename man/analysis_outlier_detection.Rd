@@ -29,6 +29,8 @@ analysis_outlier_detection(
 \item{pca_component}{PCA component to be used}
 
 \item{log_transform}{Log-transform data for outlier detection}
+
+\item{print_outliers}{Print analysis_id of outliers to the console}
 }
 \value{
 MidarExperiment object

@@ -35,13 +35,12 @@ library(midar)
 masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
 metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar", mustWork = TRUE)
 
-# Create a MidarExperiment object (S4)
+0# Create a MidarExperiment object (S4)
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- import_masshunter_csv(data = mexp, file_dir_names = masshunter_file)
-mexp <- read_msorganizer_xlm(data = mexp, filename = metadata_file)
-
+mexp <- midar::import_data_masshunter(data = mexp, file_dir_names = masshunter_file, file_format = "csv")
+mexp <- midar::import_metadata_msorganizer(data = mexp, filename = metadata_file, excl_unannotated_analyses = TRUE)
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)
@@ -52,21 +51,14 @@ mexp <- calculate_qc_metrics(mexp)
 
 # Filter features according to QC criteria
 mexp <- apply_qc_filter(data = mexp,
+                        exclude_technical_outliers = TRUE,
                         CV_BQC_max = 30,
                         Intensity_BQC_min = 100,
                         SB_RATIO_min = 5,
                         R2_min = 0.8,
                         RQC_CURVE = 1)
 
-#Plot the intensities (peak areas) of the internal standards
-plot_runscatter(data = mexp,
-  y_var = "Intensity",
-  feature_filter = "ISTD",
-  show_driftcorrection = FALSE,
-  qc_type_fit = "BQC",
-  show_batches = TRUE,
-  cap_values = TRUE, cols_page = 4, rows_page = 4,point_size = 1.5,
-  outputPDF = FALSE, filename = "RunScatter_Areas_ISTD.pdf", return_plot_list = FALSE)
+
 
 ```
 

@@ -10,6 +10,7 @@
 #' @param cap_top_n_values Cap top n values
 #' @param qc_type_fit QC TYPE used for loess fit
 #' @param show_driftcorrection Show drift correction
+#' @param show_trend_samples Fit trend line for study samples, if show_driftcorrection is TRUE
 #' @param trend_samples_fun Function used for drift correction. Default 'loess'
 #' @param trend_samples_col Color of drift line
 #' @param after_correction Show before/after correction
@@ -484,7 +485,10 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
 #' @param dim_x PCA dimension on x axis
 #' @param dim_y PCA dimension on y axis
 #' @param point_size size of points
-#' @param fill_alpha transparency of points
+#' @param point_alpha transparency of points
+#' @param ellipse_alpha transparency of ellipse fill
+#' @param font_base_size Base font size for plot text elements
+#' @param remove_istds exclude internal standards
 #'
 #' @return ggplot2 object
 #' @export

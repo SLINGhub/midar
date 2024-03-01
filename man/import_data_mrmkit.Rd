@@ -10,8 +10,6 @@ import_data_mrmkit(data, file_dir_names)
 \item{data}{MidarExperiment object}
 
 \item{file_dir_names}{file path of MRMkit csv output with raw peak areas}
-
-\item{silent}{No comments printed}
 }
 \value{
 A tibble in the long format

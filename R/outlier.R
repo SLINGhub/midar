@@ -12,6 +12,7 @@
 #' @param fence_multiplicator Multiplicator for SD or MAD, respectively.
 #' @param pca_component PCA component to be used
 #' @param log_transform Log-transform data for outlier detection
+#' @param print_outliers Print analysis_id of outliers to the console
 #' @return MidarExperiment object
 #'
 #' @export

@@ -10,6 +10,8 @@ import_data_masshunter(data, file_dir_names, file_format = "csv")
 \item{data}{MidarExperiment object}
 
 \item{file_dir_names}{One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.}
+
+\item{file_format}{File format of the MassHunter export. One of "csv", "xls"}
 }
 \value{
 MidarExperiment object

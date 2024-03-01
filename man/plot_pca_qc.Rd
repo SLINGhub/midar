@@ -28,9 +28,15 @@ plot_pca_qc(
 
 \item{log_transform}{log transform data for plot}
 
+\item{remove_istds}{exclude internal standards}
+
 \item{point_size}{size of points}
 
-\item{fill_alpha}{transparency of points}
+\item{point_alpha}{transparency of points}
+
+\item{ellipse_alpha}{transparency of ellipse fill}
+
+\item{font_base_size}{Base font size for plot text elements}
 }
 \value{
 ggplot2 object

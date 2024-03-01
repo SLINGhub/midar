@@ -22,6 +22,8 @@ apply_qc_filter(
 \arguments{
 \item{data}{MidarExperiment object}
 
+\item{exclude_technical_outliers}{Remove samples classified as outliers}
+
 \item{Intensity_BQC_min}{Minimum median signal intensity of BQC}
 
 \item{CV_BQC_max}{= Maximum \%CV of BQC}

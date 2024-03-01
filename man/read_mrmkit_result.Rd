@@ -7,13 +7,11 @@
 read_mrmkit_result(filename, use_normalized_data = FALSE, silent = FALSE)
 }
 \arguments{
+\item{filename}{File name of the MRMkit result file (*.tsv or *.csv)}
+
+\item{use_normalized_data}{Import raw peak areas or normalized peak areas from the file}
+
 \item{silent}{No comments printed}
-
-\item{data}{MidarExperiment object}
-
-\item{file_dir_names}{One or more file names with path, or a folder path, which case all *.csv or *.tsv files in this folder will be read.}
-
-\item{final_results_file}{file path of MRMkit csv output with final processed normalized peak areas}
 }
 \value{
 A tibble in the long format

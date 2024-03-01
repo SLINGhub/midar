@@ -243,6 +243,7 @@ saveQCinfo <- function(data, filename) {
 #' Note: When `exclude_istds` is FALSE, then `SB_RATIO_min` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #'
 #' @param data MidarExperiment object
+#' @param exclude_technical_outliers Remove samples classified as outliers
 #' @param Intensity_BQC_min Minimum median signal intensity of BQC
 #' @param CV_BQC_max = Maximum %CV of BQC
 #' @param Intensity_TQC_min Minimum median signal intensity of TQC

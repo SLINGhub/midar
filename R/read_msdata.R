@@ -9,6 +9,7 @@
 #'
 #' @param data MidarExperiment object
 #' @param file_dir_names One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
+#' @param file_format File format of the MassHunter export. One of "csv", "xls"
 #'
 #' @importFrom methods validObject
 #' @importFrom fs is_dir path_tidy file_exists dir_ls
@@ -334,7 +335,6 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
 #'
 #' @param data MidarExperiment object
 #' @param file_dir_names file path of MRMkit csv output with raw peak areas
-#' @param silent No comments printed
 #' @return A tibble in the long format
 #' @export
 import_data_mrmkit <- function(data, file_dir_names) {
@@ -344,9 +344,8 @@ import_data_mrmkit <- function(data, file_dir_names) {
 
 #' Reads a long CSV file with Feature Intensities
 #'
-#' @param data MidarExperiment object
-#' @param file_dir_names One or more file names with path, or a folder path, which case all *.csv or *.tsv files in this folder will be read.
-#' @param final_results_file file path of MRMkit csv output with final processed normalized peak areas
+#' @param filename File name of the MRMkit result file (*.tsv or *.csv)
+#' @param use_normalized_data Import raw peak areas or normalized peak areas from the file
 #' @param silent No comments printed
 #' @return A tibble in the long format
 #' @export
@@ -486,7 +485,8 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 #' Reads a long CSV file with Feature Intensities
 #'
 #' @param file File name and path of a plain long-format CSV file
-#' @param field Peak parameter (e.g. Area, RT)
+#' @param analysis_id_col Column to be used as analysis_id
+#' @param feature_name_col Column to be used feature_name
 #' @param silent Suppress messages
 #'
 #' @return A tibble in the long format

@@ -14,9 +14,11 @@ read_analysisresults_long_format(
 \arguments{
 \item{file}{File name and path of a plain long-format CSV file}
 
-\item{silent}{Suppress messages}
+\item{analysis_id_col}{Column to be used as analysis_id}
 
-\item{field}{Peak parameter (e.g. Area, RT)}
+\item{feature_name_col}{Column to be used feature_name}
+
+\item{silent}{Suppress messages}
 }
 \value{
 A tibble in the long format
