@@ -39,7 +39,7 @@ import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyse
     dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
 
-  data@annot_batch_info <- data@annot_analyses %>%
+  data@annot_batches <- data@annot_analyses %>%
     dplyr::group_by(.data$batch_no) %>%
     dplyr::summarise(
       batch_id = .data$batch_id[1],
