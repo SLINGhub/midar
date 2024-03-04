@@ -146,6 +146,8 @@ calculate_qc_metrics <- function(data) {
   #if(!(c("feature_norm_intensity") %in% names(data@dataset))) warning("No normali is not normalized")
 
 
+  #TODO: remove later when fixed
+  if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
 
   ds1 <- data@dataset %>%
       dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK")) %>%
@@ -187,7 +189,13 @@ calculate_qc_metrics <- function(data) {
         conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
         conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
         conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
-        conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100)
+        conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
+
+        conc_dratio_cv_bqc = conc_CV_BQC/conc_CV_SPL,
+        conc_dratio_cv_tqc = conc_CV_TQC/conc_CV_SPL,
+
+        na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"])))
+
 
   data@metrics_qc <- ds1
 
@@ -206,12 +214,16 @@ calculate_qc_metrics <- function(data) {
           tidy = purrr::map(.data$models, function(x) broom::glance(x))) %>%
       tidyr::unnest(c("tidy")) %>%
       dplyr::select("feature_name", "rqc_series_id", R2 = "r.squared", Y0 = "sigma") %>%
-      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("R2", "Y0"), names_prefix = "RQC_")
+      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("R2", "Y0"), names_prefix = "RQC_") |>
+      ungroup()
 
-    data@metrics_qc <- data@metrics_qc  %>% dplyr::left_join(ds2, by = "feature_name")
+    data@metrics_qc <- data@metrics_qc  %>%
+      dplyr::left_join(ds2, by = "feature_name") |>
+      ungroup()
   }
 
-  if (tolower(data@analysis_type) == "lipidomics") data@metrics_qc <- data@metrics_qc |> add_lipid_class_transition()
+
+
   data
 
 }
@@ -240,39 +252,45 @@ saveQCinfo <- function(data, filename) {
 #' Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
 #' Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
 #'
-#' Note: When `exclude_istds` is FALSE, then `SB_RATIO_min` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+#' Note: When `exclude_istds` is FALSE, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #'
 #' @param data MidarExperiment object
 #' @param exclude_technical_outliers Remove samples classified as outliers
-#' @param Intensity_BQC_min Minimum median signal intensity of BQC
-#' @param CV_BQC_max = Maximum %CV of BQC
-#' @param Intensity_TQC_min Minimum median signal intensity of TQC
-#' @param CV_TQC_max Maximum %CV of TQC
-#' @param SB_RATIO_min = Signal-to-Blank ratio. Calculated from the 10% percentile of all samples and the median of the Process Blank (PBLK)
-#' @param R2_min = Minimum r squared of RQC curve defined under `RQC_CURVE`
-#' @param RQC_CURVE Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)
-#' @param quantifier_only Remove features where Quantifier is set to FALSE.
-#' @param exclude_istds Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `SB_RATIO_min` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+#' @param min_intensity_bqc Minimum median signal intensity of BQC
+#' @param min_cv_conc_bqc = Maximum %CV of BQC
+#' @param min_intensity_tqc Minimum median signal intensity of TQC
+#' @param min_intensity_spl Minimum median signal intensity of study samples (SPL)
+#' @param min_cv_conc_tqc Maximum %CV of TQC
+#' @param max_dratio_conc_bqc D-ratio defined as CV_BQC/CV_SPL
+#' @param max_dratio_conc_tqc D-ratio defined as CV_TQC/CV_SPL
+#' @param min_signal_blank_ratio = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
+#' @param min_response_rsquare = Minimum r squared of RQC curve defined under `rqc_curve_used_for_filt`
+#' @param rqc_curve_used_for_filt Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)
+#' @param keep_quantifier_only Remove features where Quantifier is set to FALSE.
+#' @param exclude_istds Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #' @param features_to_keep Features that must be kept, even if they did not meet the given QC criteria
 #' @return MidarExperiment object
 #' @export
 
 apply_qc_filter <-  function(data,
                              exclude_technical_outliers,
-                             Intensity_BQC_min = NA,
-                             CV_BQC_max = NA,
-                             Intensity_TQC_min = NA,
-                             CV_TQC_max = NA,
-                             SB_RATIO_min = NA,
-                             R2_min = NA,
-                             RQC_CURVE = NA,
-                             quantifier_only = TRUE,
+                             min_intensity_bqc = NA,
+                             min_intensity_tqc = NA,
+                             min_intensity_spl = NA,
+                             min_signal_blank_ratio = NA,
+                             min_cv_conc_bqc = NA,
+                             min_cv_conc_tqc = NA,
+                             max_dratio_conc_bqc = NA,
+                             max_dratio_conc_tqc = NA,
+                             min_response_rsquare = NA,
+                             rqc_curve_used_for_filt = NA,
+                             keep_quantifier_only = TRUE,
                              exclude_istds = TRUE,
                              features_to_keep = NULL) {
 
 
-  if ((!is.na(R2_min)) & is.na(RQC_CURVE)  & nrow(data@annot_responsecurves) > 0) stop("RQC Curve ID not defined! Please set RQC_CURVE parameter or set R2_min to NA if you which not to filter based on RQC r2 values.")
-  if (((!is.na(R2_min)) | !is.na(RQC_CURVE))  & nrow(data@annot_responsecurves) == 0) stop("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set RQC_CURVE and R2_min to NA")
+  if ((!is.na(min_response_rsquare)) & is.na(rqc_curve_used_for_filt)  & nrow(data@annot_responsecurves) > 0) stop("RQC Curve ID not defined! Please set rqc_curve_used_for_filt parameter or set min_response_rsquare to NA if you which not to filter based on RQC r2 values.")
+  if (((!is.na(min_response_rsquare)) | !is.na(rqc_curve_used_for_filt))  & nrow(data@annot_responsecurves) == 0) stop("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set rqc_curve_used_for_filt and min_response_rsquare to NA")
 
 
   if (nrow(data@metrics_qc)== 0){
@@ -285,40 +303,87 @@ apply_qc_filter <-  function(data,
     }
   data <- calculate_qc_metrics(data)  #ToDo: Run when needed
 
-  if(is.na(Intensity_BQC_min)) Intensity_BQC_min <- -Inf
-  if(is.na(CV_BQC_max)) CV_BQC_max <- Inf
-  if(is.na(Intensity_TQC_min)) Intensity_TQC_min <- -Inf
-  if(is.na(CV_TQC_max)) CV_TQC_max <- Inf
-  if(is.na(SB_RATIO_min)) SB_RATIO_min <- 0
-  if(is.na(R2_min)) R2_min <- 0
+  if(is.na(min_intensity_bqc)) min_intensity_bqc <- -Inf
+  if(is.na(min_intensity_tqc)) min_intensity_tqc <- -Inf
+  if(is.na(min_intensity_spl)) min_intensity_spl <- -Inf
+  if(is.na(min_cv_conc_bqc)) min_cv_conc_bqc <- Inf
+  if(is.na(min_cv_conc_tqc)) min_cv_conc_tqc <- Inf
+  if(is.na(max_dratio_conc_bqc)) max_dratio_conc_bqc <- Inf
+  if(is.na(max_dratio_conc_tqc)) max_dratio_conc_tqc <- Inf
+  if(is.na(min_signal_blank_ratio)) min_signal_blank_ratio <- 0
+  if(is.na(min_response_rsquare)) min_response_rsquare <- 0
 
-  d_filt <-  data@metrics_qc %>% filter((
-                                  (is.na(.data$Int_med_BQC)|.data$Int_med_BQC > Intensity_BQC_min) &
-                                  (is.na(.data$Int_med_TQC)|.data$Int_med_TQC > Intensity_TQC_min) &
-                                  (is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < CV_BQC_max) &
-                                  (is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < CV_TQC_max) &
-                                  (is.na(.data$SB_Ratio_median)|(.data$SB_Ratio_median > SB_RATIO_min|(.data$is_istd & !exclude_istds))))|
-                                  (.data$feature_name %in% features_to_keep))
+  # TODO: fix some of the param below ie. features_to_keep
+  data@parameters_processing <- data@parameters_processing |>
+    mutate(
+      exclude_technical_outliers = exclude_technical_outliers,
+      min_intensity_bqc = min_intensity_bqc,
+      min_intensity_tqc = min_intensity_tqc,
+      min_intensity_spl = min_intensity_spl,
+      min_cv_conc_bqc = min_cv_conc_bqc,
+      min_cv_conc_tqc = min_cv_conc_tqc,
+      max_dratio_conc_bqc = max_dratio_conc_bqc,
+      max_dratio_conc_tqc = max_dratio_conc_tqc,
+      min_signal_blank_ratio = min_signal_blank_ratio,
+      rqc_curve_used_for_filt_used_for_filt = rqc_curve_used_for_filt,
+      min_response_rsquare = min_response_rsquare,
+      min_response_yintersect = 0.4,
+      keep_quantifier_only = keep_quantifier_only,
+      exclude_istds = exclude_istds,
+      features_to_keep = NA )
 
-  if(is.numeric(RQC_CURVE)) {
+
+  #TODO: Support missing values  filtering
+
+  data@metrics_qc <- data@metrics_qc |>
+    mutate(
+      pass_lod = (is.na(.data$Int_med_BQC)|.data$Int_med_BQC > min_intensity_bqc) &
+        (is.na(.data$Int_med_TQC)|.data$Int_med_TQC > min_intensity_tqc) &
+        (is.na(.data$Int_med_SPL)|.data$Int_med_SPL > min_intensity_spl),
+      pass_sb =  (is.na(.data$SB_Ratio_median)|(.data$SB_Ratio_median > min_signal_blank_ratio|(.data$is_istd & !exclude_istds))),
+      pass_cva = (is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < min_cv_conc_bqc) & (is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < min_cv_conc_tqc),
+      pass_dratio = (is.na(.data$conc_dratio_cv_bqc)|.data$conc_dratio_cv_bqc < max_dratio_conc_bqc) & (is.na(.data$conc_dratio_cv_tqc)|.data$conc_dratio_cv_tqc < max_dratio_conc_tqc),
+      pass_linearity = TRUE,
+      pass_no_na = !(.data$na_in_all_spl)
+    )
+
+
+  d_filt <-  data@metrics_qc %>% filter((pass_lod & pass_sb & pass_cva) | (.data$feature_name %in% features_to_keep))
+
+  if(is.numeric(rqc_curve_used_for_filt)) {
     rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))]
-    rqc_r2_col <- rqc_r2_col_names[RQC_CURVE]
-    if(is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please resivit `RQC_CURVE` value."))
+    rqc_r2_col <- rqc_r2_col_names[rqc_curve_used_for_filt]
+    if(is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please resivit `rqc_curve_used_for_filt` value."))
   } else {
-    rqc_r2_col <- paste0("R2_RQC_", RQC_CURVE)
+    rqc_r2_col <- paste0("R2_RQC_", rqc_curve_used_for_filt)
   }
-  if(rqc_r2_col %in% names(data@metrics_qc)) d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col)) | !!ensym(rqc_r2_col) > R2_min | (.data$feature_name %in% features_to_keep))
+  if(rqc_r2_col %in% names(data@metrics_qc)) {
+    data@metrics_qc <- data@metrics_qc |>
+      mutate(
+        pass_linearity  = if_else(is.na(!!ensym(rqc_r2_col)), NA,  !!ensym(rqc_r2_col) > min_response_rsquare)
+      )
+
+    d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col)) | pass_linearity | (.data$feature_name %in% features_to_keep))
+  }
+
+
   if(exclude_istds) d_filt <- d_filt |> filter(!.data$is_istd)
-  if(quantifier_only) d_filt <- d_filt |> filter(.data$is_quantifier)
+  if(keep_quantifier_only) d_filt <- d_filt |> filter(.data$is_quantifier)
 
   d_filt <- d_filt |> filter(.data$valid_integration)
 
+
+  data@metrics_qc <- data@metrics_qc |>
+    mutate(
+      qc_pass  = pass_no_na & pass_lod & pass_sb & pass_cva & pass_linearity
+    )
+
   n_valid <- data@metrics_qc |> filter(.data$valid_integration)
-  if(quantifier_only) n_valid <- n_valid |> filter(.data$is_quantifier)
+  if(keep_quantifier_only) n_valid <- n_valid |> filter(.data$is_quantifier)
   if(exclude_istds) n_valid <- n_valid |> filter(!.data$is_istd)
 
   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt)} of {nrow(n_valid)} valid features passed QC criteria")))
-  data@dataset_QC_filtered <- data@dataset %>%
+  data@dataset_filtered <- data@dataset %>%
     dplyr::right_join(d_filt|> dplyr::select("feature_name"), by = "feature_name") |>
     filter(.data$valid_analysis, !(.data$outlier_technical & exclude_technical_outliers))
   data
