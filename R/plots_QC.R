@@ -1,3 +1,121 @@
+#' RunSequence plot
+#'
+#' @param data MidarExperiment object
+#' @param qc_type_subet Select QC types to be show, NA will select all available QC/Sample types
+#' @param show_qc_dataset_only Show only available QC types
+#' @param show_batches Show batches
+#' @param batches_as_shades Show batches as shades
+#' @param batch_line_color batch separator color
+#' @param batch_shading_color batch shade color
+#' @param scale_factor Overall plot scale factor
+#' @param show_outlier Should samples defined as outlier as separate row
+#' @param segment_width Linewidth of the segments
+#' @param base_size base font size
+#' @param factor_a First factor referring to a field in the study sample metadata used to show randomization
+#' @param factor_b First factor referring to a field in the study sample metadata used to show randomization
+#' @return ggplot object
+#' @export
+
+plot_runsequence <- function(data,
+                              qc_type_subet,
+                              show_qc_dataset_only = FALSE,
+                              show_batches = TRUE,
+                              segment_width = 0.5,
+                              batches_as_shades = FALSE,
+                              batch_line_color = "darkred",
+                              batch_shading_color = "grey60",
+                              scale_factor = 1,
+                              show_outlier = TRUE,
+                              base_size = 8,
+                              factor_a=NA,
+                              factor_b=NA) {
+
+  d_temp <- data$dataset %>% dplyr::select(run_id, batch_id, analysis_id, qc_type, sample_id) %>% distinct()
+
+  d_temp$qc_type <- factor(d_temp$qc_type, c("EQC", "SST", "MBLK", "SBLK", "UBLK", "PBLK", "RQC",   "LTR", "NIST", "TQC" ,"BQC", "SPL"))
+
+  d_temp$sample_category <- as.character(d_temp$qc_type)
+
+
+
+  # if (factor_a != "" & factor_b !="" & nrow(data@annot_studysamples)> 0){
+  #   fac_a <- sym(factor_a)
+  #   fac_b <- sym(factor_b)
+  #
+  #   data@annot_studysamples <-  data@annot_studysamples %>%
+  #     mutate(factor_a = !!fac_a,
+  #            factor_b = !!fac_b)
+  #
+  #   d_temp <- bind_rows(d_temp, d_temp %>% filter(sample_category == "SPL") %>%
+  #                         mutate(qc_type = ifelse(qc_type == "SPL", "SPL_B", qc_type)))
+  #
+  #
+  #   d_temp <- d_temp %>% left_join(data$annot_studysamples %>% dplyr::select(sample_id, factor_a, factor_b), by=(c("sample_id"="sample_id")))
+  #   d_temp <- d_temp %>% mutate(sample_category = ifelse(qc_type=="SPL", paste0("SPL_", factor_a), sample_category),
+  #                               sample_category = ifelse(qc_type=="SPL_B", paste0("SPL_", factor_b), sample_category))
+  #   d_temp <- d_temp %>% mutate(sample_category = fct_rev(as_factor(sample_category))) %>% droplevels()
+  # }
+
+  #d_temp <- d_temp %>% mutate(sample_category = forcats::fct_rev(forcats::as_factor(sample_category)))
+  d_temp <- d_temp %>% filter(str_detect(as.character(sample_category), qc_type_subet)) %>%
+    {if (show_qc_dataset_only|qc_type_subet != "") droplevels(.) else .}
+
+  d_batch_info <- data@annot_batches
+
+  # round to next 10 and divide by number of breaks will be showb
+  scale_dataset_size = 10^ceiling(log10(max(d_temp$run_id)))/10
+  p <- ggplot(d_temp, aes(x = run_id, y = rev(qc_type), color = sample_category))
+  if(show_batches){
+    if (batches_as_shades){
+      d_batch_2nd <- d_batch_info %>% dplyr::slice(-1) %>% filter(batch_no %% 2 != 1)
+      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = id_batch_start-0.5 , xmax = id_batch_end+0.5, ymin = -Inf, ymax = Inf),
+                         inherit.aes=FALSE, fill=batch_shading_color, alpha = 0.1, color= NA,linetype="solid", size=0.5)
+    }
+  }
+  p <- p + geom_segment(
+    aes(
+      x = run_id,
+      xend = run_id,
+      y = as.integer(qc_type) - 0.4,
+      yend = as.integer(qc_type) + 0.4
+    ),
+    size = segment_width) +
+    labs(x="Analysis Sequence Number",
+         y = "Sample Type") +
+    scale_x_continuous(breaks = seq(0, max(d_temp$run_id), scale_dataset_size)) +
+    scale_y_discrete(
+      limits = c(levels(d_temp$qc_type)),
+      expand = expansion(0.05,0.05)
+    ) +
+    #scale_color_manual(values =  data$sample_category) +
+    theme_light(base_size = base_size) +
+    theme( panel.grid.major.y = element_blank(),
+           panel.grid.major.x =  element_line(colour="grey80", linetype="solid", size=.5),
+           panel.grid.minor.x =  element_line(colour="grey90", linetype="dotted", size=0.25),
+           panel.border = element_rect(size = 2),
+           axis.title = element_text(face = "bold",size = base_size),
+           axis.text.x = element_text(face = "plain",size = base_size),
+           axis.text.y = element_text(face = "bold",size = base_size),
+           legend.position = "none")
+
+
+  if(show_batches){
+    if (!batches_as_shades){
+      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, linetype="dashed", size=0.5)
+    }
+  }
+ # if (factor_a != "" & factor_b !=""){
+
+  #  p <- p + scale_color_brewer(palette="Dark2")
+  #} else {
+    p <- p + scale_color_manual(values =  pkg.env$qc_type_annotation$qc_type_col)
+  #}
+  return(p)
+}
+
+
+
+
 #' RunScatter plot
 #'
 #' @param data MidarExperiment object
@@ -111,7 +229,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
   p_list <- list()
   for (i in page_range){
     if(!silent) print(paste0("page ", i))
-    p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batch_info, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
+    p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
                              show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
                              point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
@@ -159,19 +277,19 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
   d_batch_data$feature_name <- rep(dMax$feature_name, times = nrow(d_batches))
   d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by=c("feature_name"))
-  p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x="run_id", label = "analysis_id"))
+  p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x="run_id"))
 
   #browser()
   if (show_batches) {
 
     if (!batches_as_shades) {
       d_batches_temp <- d_batch_data  |> filter(.data$id_batch_start != 1)
-      p <- p + ggplot2::geom_vline(data = d_batches_temp, ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5)
+      p <- p + ggplot2::geom_vline(data = d_batches_temp, ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5,  na.rm = TRUE)
     }
     else {
       d_batches_temp <- d_batch_data  %>% dplyr::filter(.data$batch_no %% 2 != 1)
       p <- p + ggplot2::geom_rect(data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5 , xmax = .data$id_batch_end + 0.5, ymin = 0, ymax = .data$y_max, label = .data$batch_id),
-                         inherit.aes = FALSE, fill = batch_shading_color, color = NA, alpha = 0.5, linetype = "solid", size = 0.3)
+                         inherit.aes = FALSE, fill = batch_shading_color, color = NA, alpha = 0.5, linetype = "solid", size = 0.3,  na.rm = TRUE)
     }
   }
 
@@ -179,13 +297,13 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#fa9b9b", size = 3, alpha = .4)
 
   p <- p +
-    ggplot2::geom_point(aes_string(x = "run_id", y= "value_mod", color="qc_type", fill="qc_type", shape="qc_type", group="batch_id"), size=point_size, alpha=point_transparency, stroke = point_stroke_width)
+    ggplot2::geom_point(aes_string(x = "run_id", y= "value_mod", color="qc_type", fill="qc_type", shape="qc_type", group="batch_id"), size=point_size, alpha=point_transparency, stroke = point_stroke_width, na.rm = TRUE)
 
 
 
   if(after_correction & show_driftcorrection){
     p <- p +
-      ggplot2::geom_line(aes_string(x = "run_id", y= "CURVE_Y_PREDICTED", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5)
+      ggplot2::geom_line(aes_string(x = "run_id", y= "CURVE_Y_PREDICTED", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5,  na.rm = TRUE)
   }
 
   p <- p +
@@ -198,7 +316,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   if(show_driftcorrection){
     if(after_correction) {
       p <- p +
-        ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), se=TRUE,
+        ggplot2::geom_smooth(data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y= "value", group = "batch_id"), se=TRUE,na.rm = TRUE,
                     colour=pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], fill = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit],
                     method = MASS::rlm, alpha = 0.35, size=0.8)
 
@@ -248,7 +366,8 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
           axis.text.y = ggplot2::element_text( size=7*annot_scale, face=NULL),
           panel.grid.major =  ggplot2::element_blank(),
           panel.grid.minor =  ggplot2::element_blank(),
-          strip.switch.pad.wrap = ggplot2::unit(0,"mm"))
+          strip.switch.pad.wrap = ggplot2::unit(0,"mm"),
+          panel.border = element_rect(linewidth =1, color = "grey20"))
 
   if(show_grid)
     p <- p  + ggplot2::theme(panel.grid.major =  ggplot2::element_line(size=0.3,colour = "grey88",linetype = "dashed"))
@@ -259,6 +378,140 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 }
 
+
+
+
+#' Sample sequence Boxplots
+#'
+#' @param data MidarExperiment object
+#' @param relative_log_abundances Plot as RLA (Relative Log Abundnance Plot)
+#' @param plot_variable Variable to plot
+#' @param use_qc_filtered_data Use QC-filtered data
+#' @param min_feature_intensity Exclude features with median signal below this value
+#' @param qc_types QC types to be plotted
+#' @param ignore_outliers Exclude outlier values based on 3x IQR fences
+#' @param feature_filter Filter text to select specific features (regex string)
+#' @param show_batches Show batches
+#' @param batches_as_shades Show batches as shades
+#' @param batch_line_color batch separator color
+#' @param batch_shading_color batch shade color
+#' @param base_size base font size for plots (default is 8)
+#' @return ggplot object
+#'
+#' @export
+#'
+
+plot_runboxplots <- function(data,
+                             relative_log_abundances,
+                             plot_variable,
+                             use_qc_filtered_data,
+                             min_feature_intensity,
+                             qc_types,
+                             ignore_outliers,
+                             feature_filter,
+                             show_batches,
+                             batches_as_shades,
+                             batch_line_color,
+                             batch_shading_color,
+                             base_size = 8) {
+
+  plot_variable_sym = sym(plot_variable)
+
+  #https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
+  get_tails = function(x) {
+    q1 = quantile(x,na.rm = TRUE)[2]
+    q3 = quantile(x,na.rm = TRUE)[4]
+    iqr = q3 -q1
+    upper = q3+1.5*iqr
+    lower = q1-1.5*iqr
+    if(length(x) == 1){return(x)} # will deal with abnormal marks at the periphery of the plot if there is one value only
+    ##Trim upper and lower
+    up = max(x[x < upper])
+    lo = min(x[x > lower])
+    return(c(lo, up))
+  }
+
+
+
+  if(!use_qc_filtered_data)
+    d_temp <- data@dataset
+  else
+    d_temp <- data@dataset_filtered
+
+  d_temp <- d_temp %>%
+    dplyr::select(analysis_id, run_id, qc_type, batch_id, feature_name, feature_intensity, feature_norm_intensity, feature_conc) %>%
+    filter(feature_intensity > min_feature_intensity) %>%
+    filter(str_detect(qc_type, qc_types)) %>%
+    droplevels()
+
+  if(relative_log_abundances){
+    d_temp <- d_temp %>%
+      group_by(feature_name) %>%
+      mutate(val = !!plot_variable_sym) %>%
+      mutate(val = val/ mean(val[qc_type == "BQC"|qc_type == "TQC"|qc_type == "SPL"],na.rm = TRUE))
+  } else
+  {
+    d_temp <- d_temp %>% mutate(val = !!plot_variable_sym)
+  }
+
+  breaks <- data$dataset %>%
+    dplyr::select(run_id) %>% distinct() %>%
+    mutate(ticks_to_plot = run_id %% 10 == 0) %>%
+    pull(run_id)
+
+
+  #d_temp$run_id <- as_factor(d_temp$run_id)
+
+  p <- ggplot(d_temp, aes(x=run_id, y=log2(val), group=run_id))
+
+  if(show_batches){
+    if (!batches_as_shades){
+      p <- p + geom_vline(data = data@annot_batches %>% slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, linetype="solid", size=1)
+    }
+    else {
+      d_batch_2nd <- data$batch_info %>% slice(-1) %>% filter(batch_id %% 2 != 1)
+      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = id_batch_start-0.5 , xmax = id_batch_end+0.5, ymin = -Inf, ymax = Inf),
+                         inherit.aes=FALSE, fill=batch_shading_color, color= NA,alpha= 0.1, linetype="solid", size=0.5)
+    }
+  }
+
+  scale_dataset_size = 2^ceiling(log2(max(data$dataset$run_id)))/10
+
+  #geom_point(size=3, color = "#0053a8",alpha=0.6) +
+  #stat_summary(aes(x=lipidClass, y=BQC_normIntensity_CV),fun.data="plot.median", geom="errorbar", colour="#fc0000", width=0.8, size=2, inherit.aes=FALSE,na.rm = TRUE) +
+  p <- p +
+    geom_boxplot(aes(fill = qc_type, color = qc_type), notch=FALSE, outlier.colour = NA, linewidth = 0.2) +
+    #scale_colour_gradient(low = "white", high = "#004489") +
+    scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
+    scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
+    #scale_y_continuous(limits = c(0, 1e6)) +
+    #scale_x_continuous(breaks = seq(0, max(data$dataset$run_id)+1, scale_dataset_size)) +
+    #  scale_x_discrete(breaks = breaks) +
+    theme_bw(base_size = base_size) +
+    ylab(bquote(bold(log[2] ~ .(plot_variable)))) +
+    xlab("Run order") +
+    theme( panel.grid.major.y = element_blank(),
+           panel.grid.minor.y = element_blank(),
+           panel.grid.major.x =  element_line(colour="#bdbdbd", linetype="dotted", size=.5),
+           panel.grid.minor.x =  element_line(colour="#bdbdbd", linetype="dotted", size=.25),
+           axis.text.y = element_text(size = base_size),
+           axis.text.x = element_text(size = base_size),
+           axis.title = element_text(size = base_size*1, face = "bold"),
+           panel.border = element_rect(linewidth =1, color = "grey20"))
+
+  if(ignore_outliers){
+    tails <- get_tails(log2(d_temp$val))
+    p <- p + scale_y_continuous(limits = c(tails[1]*2,tails[2]*2))
+  }
+
+  if(relative_log_abundances){
+    p <- p + geom_hline(yintercept = 0, colour="#666666", linetype="dashed", size=0.8) +
+      ylab(bquote(bold( 'Rel. ' ~ log[2] ~ .(plot_variable))))
+  }
+
+
+  return(p)
+}
 
 
 # Define function to plot 1 page
@@ -436,7 +689,7 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
   x_sym <- rlang::ensym(x)
   y_sym <- rlang::ensym(y)
 
-  if(!c("LipidClass") %in% names(d_QC)) stop("This function currently only works with lipidomics data. Please add lipid names/class with the function `add_lipid_class_transition` before calling this function.")
+  if(!c("LipidClass") %in% names(d_QC)) stop("This function currently only works with lipidomics data. Please add lipid names/class with the function `lipidomics_get_lipid_class_names` before calling this function.")
   # get max value for the pair for each lipid class (so that 45deg line will be shown in the square plots)
   d_QC <- d_QC %>% group_by(.data$LipidClass) %>% mutate(xy_max = max(!!sym(x),!!sym(y),na.rm = TRUE)) %>% ungroup()
 
@@ -495,7 +748,7 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
 plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istds, point_size = 2, point_alpha = 0.5, ellipse_alpha = 0.8, font_base_size = 8) {
 
 
-  d_wide <- data@dataset_QC_filtered
+  d_wide <- data@dataset_filtered
 
   #TODO: (IS as criteria for ISTD.. dangerous...
   if(remove_istds)  d_wide <- d_wide |> filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
@@ -533,7 +786,7 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
   pca_annot <- pca_res |>
     broom::augment(d_metadata)
 
-  pca_annot$qc_type <- forcats::fct_relevel(pca_annot$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
+  pca_annot$qc_type <-  droplevels(factor(pca_annot$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
   pca_annot <- pca_annot %>%
     dplyr::arrange(.data$qc_type)
 
@@ -544,11 +797,11 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
                                            color = "qc_type",
                                            fill = "qc_type",
                                            shape = "qc_type",
-                                           label = "analysis_id"
+                                           group = "qc_type"
   )) +
     ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
-    ggplot2::stat_ellipse(geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3) +
+    ggplot2::stat_ellipse(geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3, na.rm = TRUE) +
     ggplot2::geom_point(size = point_size, alpha = point_alpha)
 
     p <- p +
@@ -694,7 +947,7 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
 
 plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1){
 
-  d_wide = data@dataset_QC_filtered  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
+  d_wide = data@dataset_filtered  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
   if(remove_istds)  d_wide <- d_wide |>  filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
 
@@ -713,10 +966,10 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   d_loading <- pca_res %>%
     broom::tidy(matrix = "rotation") %>%
     tidyr::pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |>
-    dplyr::rename(Compound = .data$column)
+    dplyr::rename(feauture_name = .data$column)
 
   d_loadings_selected <- d_loading |>
-    tidyr::pivot_longer(cols = -.data$Compound,  names_to = "PC", values_to = "Value") |>
+    tidyr::pivot_longer(cols = -.data$feauture_name,  names_to = "PC", values_to = "Value") |>
     dplyr::mutate(PC = as.numeric(stringr::str_remove(.data$PC, "PC"))) |>
     filter(.data$PC %in% pc_dimensions)
 
@@ -736,7 +989,7 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   d_loadings_selected <- d_loadings_selected  |>
     dplyr::slice_max(order_by = .data$abs_value, n = top_n) |>
     ungroup() |>
-    tidyr::unite("Feature", .data$Compound, .data$PC, remove = FALSE) |>
+    tidyr::unite("Feature", .data$feauture_name, .data$PC, remove = FALSE) |>
     mutate(PC = as.factor(.data$PC),
            Feature = forcats::fct_reorder(.data$Feature, .data$abs_value))
 
@@ -744,7 +997,7 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$Feature, y = .data$Value, color = .data$direction, fill = .data$direction)) +
     ggplot2::geom_col() +
     ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pc_dimensions))) +
-    ggplot2::scale_x_discrete(labels=d_loadings_selected$Compound, breaks=d_loadings_selected$Feature) +
+    ggplot2::scale_x_discrete(labels=d_loadings_selected$feauture_name, breaks=d_loadings_selected$Feature) +
     ggplot2::scale_color_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
     ggplot2::scale_fill_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
     ggplot2::labs(x = "Feature", y = "Loading") +
@@ -763,4 +1016,160 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   p
 
 }
+
+
+#' Plot results of QC filter per analyte class
+#' @param data MidarExperiment object
+#' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
+#' @param base_size font size of plots
+#' @return ggplot2 object
+#' @export
+
+
+plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size=8) {
+
+  if(user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
+
+  d_qc <- data@metrics_qc |>
+    filter(valid_integration, !is_istd) |>
+    mutate(feature_class = tidyr::replace_na(feature_class, "Undefined"))
+
+
+  #TODO: cleanup feature/lipidclasses
+  #if(!all(is.na(d_qc$feature_class)) & any(is.na(d_qc$lipid_class))) d_qc$feature_class <- d_qc$lipid_class
+
+  if(all(is.na(d_qc$feature_class))) stop("This plot required feature_class to be defined . Please define feature classes in the metadata or retrieve via corresponding {midar} functions.")
+
+
+  d_qc$feature_class <- forcats::fct(d_qc$feature_class)
+
+  d_QC_sum <- d_qc  %>%
+    group_by(feature_class) %>%
+    summarise(
+      has_only_na = sum(!pass_no_na),
+      below_lod = sum(pass_no_na & !pass_lod),
+      below_sb = sum(pass_lod & pass_no_na & !pass_sb),
+      above_cva = sum(pass_lod & pass_no_na & pass_sb & !pass_cva),
+      bad_linearity = sum(pass_lod & pass_no_na & pass_sb & pass_cva & !pass_linearity),
+      above_dratio = sum(pass_lod & pass_no_na & pass_sb & pass_cva & pass_linearity & !pass_dratio),
+      qc_pass = sum(qc_pass)
+    ) %>%
+    tidyr::pivot_longer(-feature_class, names_to = "qc_criteria", values_to  = "count_pass") %>%
+    ungroup() %>%
+    mutate(qc_criteria = factor(qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio",  "bad_linearity", "qc_pass")))
+
+
+
+  ggplot(d_QC_sum, aes(forcats::fct_rev(feature_class), count_pass)) +
+    geom_bar(aes(fill = qc_criteria), stat="identity", na.rm = TRUE) +
+    scale_fill_manual(values=  c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#009ec9", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
+    #facet_wrap(~Tissue) +
+    #guides(fill = guide_legend(override.aes = list(size = 6))) +
+    coord_flip() +
+    labs(y = "Number of features", x = "Feature class") +
+    scale_x_discrete(limits = rev(levels(d_QC_sum$feature_class))) +
+    theme_bw(base_size = base_size) +
+    theme(
+      legend.position = c(0.8,0.8),
+      panel.grid.major.x = element_line(color = "grey80", linewidth = .1),
+      panel.grid.major.y = element_line(color = "grey90", linewidth = .1),
+      panel.grid.minor = element_blank(),
+      legend.text = element_text(size = base_size-1 ), # Legend text size
+      legend.title = element_text(size = base_size ), # Legend title size
+      legend.key.size = unit(2, "mm")) # Legend key size
+}
+
+#' Plot summary of QC filtering
+#' @param data MidarExperiment object
+#' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
+#' @param base_size font size of plots
+#' @return ggplot2 object
+#' @export
+
+
+plot_qc_summary_venn <- function(data, user_defined_keeper, base_size) {
+
+  if(user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
+
+  d_qc <- data@metrics_qc |>
+    filter(valid_integration, !is_istd) |>
+    mutate(feature_class = tidyr::replace_na(feature_class, "Undefined"))
+
+
+  d_QC_sum_total <- d_qc  %>%
+    ungroup() |>
+    summarise(
+      has_only_na = sum(!pass_no_na),
+      below_lod = sum(pass_no_na & !pass_lod),
+      below_sb = sum(pass_lod & pass_no_na & !pass_sb),
+      above_cva = sum(pass_lod & pass_no_na & pass_sb & !pass_cva),
+      bad_linearity = sum(pass_lod & pass_no_na & pass_sb & pass_cva & !pass_linearity),
+      above_dratio = sum(pass_lod & pass_no_na & pass_sb & pass_cva & pass_linearity & !pass_dratio),
+      qc_pass = sum(qc_pass)
+    ) %>%
+    tidyr::pivot_longer(names_to = "qc_criteria", values_to  = "count_pass", cols = everything()) %>%
+    ungroup() %>%
+    mutate(qc_criteria = factor(qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
+
+
+
+  # d_QC_sum_total <- d_QC_sum %>%
+  #   group_by(qc_criteria) %>%
+  #   summarise(Count = sum(Count,na.rm = TRUE)) %>%
+  #   mutate(totalCount = sum(Count,na.rm = TRUE),
+  #          cumCount = cumsum(Count),
+  #          centres = totalCount - (cumCount - Count / 2)) %>% ungroup()
+
+  p_bar <- ggplot(d_QC_sum_total, aes(x=reorder(qc_criteria, count_pass), y=count_pass, fill=qc_criteria))+
+    geom_bar(width = 1, stat = "identity") +
+    coord_flip() +
+    scale_fill_manual(values=  c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#009ec9", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
+    #geom_text(aes(label = Count), size=4 ) +
+    geom_text(
+      aes(
+        label= count_pass,
+        hjust=ifelse(count_pass < max(d_QC_sum_total$count_pass) / 1.5, -2, 2) # <- Here lies the magic
+      )) +
+
+    #facet_wrap(~Tissue) +
+    theme_bw(base_size = base_size) +
+    theme(legend.position = "none",
+          axis.text.x = element_blank(),
+          legend.text = element_text(size = base_size - 2), # Legend text size
+          legend.title = element_text(size = base_size - 4), # Legend title size
+          legend.key.size = unit(3, "mm")) # Legend key size
+
+  # prevent creating log file
+
+    d_qc_venn <- d_qc
+
+    cva_failed = d_qc_venn$feature_name[!d_qc_venn$pass_cva & d_qc_venn$pass_no_na]
+    lod_sb_failed = d_qc_venn$feature_name[(!d_qc_venn$pass_lod | !d_qc_venn$pass_sb) & d_qc_venn$pass_no_na]
+    #sb_failed = d_qc_venn$feature_name[!d_qc_venn$pass_sb  & d_qc_venn$pass_no_na]
+    lin_failed = d_qc_venn$feature_name[!d_qc_venn$pass_linearity & d_qc_venn$pass_no_na]
+
+    lod_sb_label <- "below S/B or LoD" #paste0('LoD < ', parameter_processing$)
+    #sb_label <- "below S/B or LOD" #paste0('S/B < ', parameter_processing$)
+    cva_label <- "above CVa" #paste0('CV > ', percent(MAX_CV_NORM/100))
+    lin_label <- "below R^2" #paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
+
+    x2 = list(lod_sb_failed, cva_failed, lin_failed)
+    names(x2) <- c(lod_sb_label, cva_label, lin_label)
+
+    p_venn <- ggvenn::ggvenn(x2, c(lod_sb_label ,cva_label, lin_label),
+                     show_percentage = FALSE,
+                     fill_color = c("#c7c7c7", "#ff8080", "#009ec9"),
+                     fill_alpha = 0.5,
+                     stroke_size = 0.0,
+                     text_size = 2,
+                     set_name_size = 3) + ggplot2::coord_cartesian(clip="off")
+
+    p_venn
+
+  #plt <- arrangeGrob(p_bar, gTree(NULL),gTree(children=p_venn), ncol=3, widths=c(1.6, 0, 1.3), padding = 0)
+  plt <- p_bar +  p_venn + patchwork::plot_layout(ncol = 2, widths = c(1,1)) + patchwork::plot_annotation(tag_levels = c("A", "B"))
+
+  return(plt)
+}
+
 
