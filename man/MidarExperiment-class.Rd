@@ -19,7 +19,7 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{dataset}}{Processed analysis data. Required fields:}
 
-\item{\code{dataset_QC_filtered}}{Processed analysis data. Required fields:}
+\item{\code{dataset_filtered}}{Processed analysis data. Required fields:}
 
 \item{\code{annot_analyses}}{Annotation of analyses/runs}
 
@@ -31,9 +31,11 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{annot_studysamples}}{Annotation of study samples. Required fields:}
 
-\item{\code{annot_batch_info}}{Annotation of batches. Required fields:}
+\item{\code{annot_batches}}{Annotation of batches. Required fields:}
 
 \item{\code{metrics_qc}}{QC information for each measured feature}
+
+\item{\code{parameters_processing}}{Values of parameters used for the different processing steps}
 
 \item{\code{status_processing}}{Status within the data processing workflow}
 

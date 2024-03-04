@@ -7,14 +7,17 @@
 apply_qc_filter(
   data,
   exclude_technical_outliers,
-  Intensity_BQC_min = NA,
-  CV_BQC_max = NA,
-  Intensity_TQC_min = NA,
-  CV_TQC_max = NA,
-  SB_RATIO_min = NA,
-  R2_min = NA,
-  RQC_CURVE = NA,
-  quantifier_only = TRUE,
+  min_intensity_bqc = NA,
+  min_intensity_tqc = NA,
+  min_intensity_spl = NA,
+  min_signal_blank_ratio = NA,
+  min_cv_conc_bqc = NA,
+  min_cv_conc_tqc = NA,
+  max_dratio_conc_bqc = NA,
+  max_dratio_conc_tqc = NA,
+  min_response_rsquare = NA,
+  rqc_curve_used_for_filt = NA,
+  keep_quantifier_only = TRUE,
   exclude_istds = TRUE,
   features_to_keep = NULL
 )
@@ -24,23 +27,29 @@ apply_qc_filter(
 
 \item{exclude_technical_outliers}{Remove samples classified as outliers}
 
-\item{Intensity_BQC_min}{Minimum median signal intensity of BQC}
+\item{min_intensity_bqc}{Minimum median signal intensity of BQC}
 
-\item{CV_BQC_max}{= Maximum \%CV of BQC}
+\item{min_intensity_tqc}{Minimum median signal intensity of TQC}
 
-\item{Intensity_TQC_min}{Minimum median signal intensity of TQC}
+\item{min_intensity_spl}{Minimum median signal intensity of study samples (SPL)}
 
-\item{CV_TQC_max}{Maximum \%CV of TQC}
+\item{min_signal_blank_ratio}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
 
-\item{SB_RATIO_min}{= Signal-to-Blank ratio. Calculated from the 10\% percentile of all samples and the median of the Process Blank (PBLK)}
+\item{min_cv_conc_bqc}{= Maximum \%CV of BQC}
 
-\item{R2_min}{= Minimum r squared of RQC curve defined under \code{RQC_CURVE}}
+\item{min_cv_conc_tqc}{Maximum \%CV of TQC}
 
-\item{RQC_CURVE}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+\item{max_dratio_conc_bqc}{D-ratio defined as CV_BQC/CV_SPL}
 
-\item{quantifier_only}{Remove features where Quantifier is set to FALSE.}
+\item{max_dratio_conc_tqc}{D-ratio defined as CV_TQC/CV_SPL}
 
-\item{exclude_istds}{Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{SB_RATIO_min} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
+\item{min_response_rsquare}{= Minimum r squared of RQC curve defined under \code{rqc_curve_used_for_filt}}
+
+\item{rqc_curve_used_for_filt}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+
+\item{keep_quantifier_only}{Remove features where Quantifier is set to FALSE.}
+
+\item{exclude_istds}{Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
 
 \item{features_to_keep}{Features that must be kept, even if they did not meet the given QC criteria}
 }
@@ -51,5 +60,5 @@ MidarExperiment object
 Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
 Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
 
-Note: When \code{exclude_istds} is FALSE, then \code{SB_RATIO_min} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+Note: When \code{exclude_istds} is FALSE, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 }
