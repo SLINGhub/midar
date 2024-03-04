@@ -33,7 +33,7 @@ combine_experiments <- function(..., ordered_by_runsequence){
     dplyr::mutate(run_id = dplyr::row_number(), .before = .data$BATCH_run_id) %>%
     dplyr::ungroup()
 
-  mexp@annot_batch_info <- mexp@annot_analyses %>%
+  mexp@annot_batches <- mexp@annot_analyses %>%
     dplyr::group_by(.data$batch_id) %>%
     dplyr::summarise(
       batch_id = .data$batch_id[1],
