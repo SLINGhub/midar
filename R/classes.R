@@ -58,7 +58,7 @@ pkg.env$dataset_templates <- list(
     "feature_response_factor" = numeric(),
     "remarks" = character()
   ),
-  "annot_istd_template" = tibble::tibble(
+  annot_istd_template = tibble::tibble(
     "norm_istd_feature_name" = character(),
     "quant_istd_feature_name" = character(),
     "istd_conc_nmolar" = numeric()
@@ -74,7 +74,13 @@ pkg.env$dataset_templates <- list(
     "batch_no" = numeric(),
     "id_batch_start" = numeric(),
     "id_batch_end" = numeric()
+  ),
+
+  parameters_processing_template = tibble::tibble(
+    "parameter_name" = character()
   )
+
+
 )
 
 pkg.env$qc_type_annotation <- list(
@@ -146,14 +152,15 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @slot analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @slot dataset_orig Original imported analysis data. Required fields:
 #' @slot dataset Processed analysis data. Required fields:
-#' @slot dataset_QC_filtered Processed analysis data. Required fields:
+#' @slot dataset_filtered Processed analysis data. Required fields:
 #' @slot annot_analyses Annotation of analyses/runs
 #' @slot annot_features Annotation of measured features.
 #' @slot annot_istd Annotation of Internal Standard concs.
 #' @slot annot_responsecurves Annotation of  Response curves (RQC). Required fields
 #' @slot annot_studysamples Annotation of study samples. Required fields:
-#' @slot annot_batch_info Annotation of batches. Required fields:
+#' @slot annot_batches Annotation of batches. Required fields:
 #' @slot metrics_qc QC information for each measured feature
+#' @slot parameters_processing Values of parameters used for the different processing steps
 #' @slot status_processing Status within the data processing workflow
 #' @slot is_istd_normalized Flag if data has been ISTD normalized
 #' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
@@ -173,14 +180,15 @@ setClass("MidarExperiment",
            analysis_type = "character",
            dataset_orig = "tbl_df",
            dataset = "tbl_df",
-           dataset_QC_filtered = "tbl_df",
+           dataset_filtered = "tbl_df",
            annot_analyses = "tbl_df",
            annot_features = "tbl_df",
            annot_istd = "tbl_df",
            annot_responsecurves= "tbl_df",
            annot_studysamples = "tbl_df",
-           annot_batch_info = "tbl_df",
+           annot_batches = "tbl_df",
            metrics_qc = "tbl_df",
+           parameters_processing = "tbl_df",
            status_processing = "character",
            is_istd_normalized = "logical",
            is_quantitated = "logical",
@@ -194,14 +202,15 @@ setClass("MidarExperiment",
            analysis_type = "",
            dataset_orig = pkg.env$dataset_templates$annot_analyses_template,
            dataset = pkg.env$dataset_templates$annot_analyses_template,
-           dataset_QC_filtered = pkg.env$dataset_templates$annot_analyses_template,
+           dataset_filtered = pkg.env$dataset_templates$annot_analyses_template,
            annot_analyses = pkg.env$dataset_templates$annot_analyses_template,
            annot_features = pkg.env$dataset_templates$annot_features_template,
            annot_istd = pkg.env$dataset_templates$annot_istd_template,
            annot_responsecurves= pkg.env$dataset_templates$annot_responsecurves_template,
            annot_studysamples = tibble::tibble(),
-           annot_batch_info = tibble::tibble(),
+           annot_batches = tibble::tibble(),
            metrics_qc = tibble::tibble(),
+           parameters_processing = pkg.env$dataset_templates$parameters_processing_template,
            status_processing = "No Data",
            is_istd_normalized = FALSE,
            is_quantitated = FALSE,
@@ -305,7 +314,7 @@ setMethod(f = "$",
   definition = function(x,name) {
 
   # check for other struct slots
-  valid=c('analysis_type','dataset','annot_analyses', 'annot_features', 'annot_istd', 'metrics_qc', 'annot_batches', 'dataset_QC_filtered', 'is_istd_normalized')
+  valid=c('analysis_type','dataset','annot_analyses', 'annot_features', 'annot_istd', 'metrics_qc', 'annot_batches', 'dataset_filtered', 'is_istd_normalized')
   if (!name %in% valid) stop('"', name, '" is not valid for this object: ', class(x)[1])
   methods::slot(x,name)
   }
