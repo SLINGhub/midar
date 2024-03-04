@@ -40,7 +40,7 @@ analysis_outlier_detection <- function(data,
 
   if(summarize_fun == "rma") stop("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
 
-  d_wide <- data@dataset_QC_filtered  |>
+  d_wide <- data@dataset_filtered  |>
     filter(.data$qc_type %in% c("BQC", "TQC", "SPL")) |>
     filter(!.data$is_istd) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
@@ -75,7 +75,7 @@ analysis_outlier_detection <- function(data,
              outlier_technical_note = if_else(outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_))
     data@has_outliers_tech <- TRUE
     data@excl_outliers_tech <- TRUE
-    data@dataset_QC_filtered |> filter(run_id < 0)
+    data@dataset_filtered |> filter(run_id < 0)
   }
 
   if(print_outliers){
