@@ -26,7 +26,7 @@ plot_runsequence <- function(data,
                               batch_shading_color = "grey60",
                               scale_factor = 1,
                               show_outlier = TRUE,
-                              base_size = 8,
+                              base_size = 12,
                               factor_a=NA,
                               factor_b=NA) {
 
@@ -101,7 +101,7 @@ plot_runsequence <- function(data,
 
   if(show_batches){
     if (!batches_as_shades){
-      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, linetype="dashed", size=0.5)
+      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, size=0.5)
     }
   }
  # if (factor_a != "" & factor_b !=""){
@@ -163,16 +163,16 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"), feature_filter = "", filter_exclude = FALSE,
-                            cap_outliers = FALSE, cap_qc_iqr_factor = 1.5, cap_spl_iqr_factor = 1.5, cap_top_n_values = NA, qc_type_fit = "BQC",
+plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"), log_scale = FALSE, feature_filter = "", filter_exclude = FALSE,
+                            cap_outliers = FALSE, cap_qc_iqr_factor = 3, cap_spl_iqr_factor = 3, cap_top_n_values = NA, qc_type_fit = "BQC",
                             show_driftcorrection = FALSE, show_trend_samples, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
-                            show_batches = FALSE, batches_as_shades = TRUE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
-                            outputPDF = FALSE, filename = "", cols_page = 4, rows_page = 3, annot_scale = 1, paper_orientation = "LANDSCAPE" ,
-                            point_transparency=1, point_size=2, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = FALSE, return_plot_list = FALSE, base_size = 7, show_gridlines = FALSE) {
+                            show_batches = TRUE, batches_as_shades = FALSE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
+                            outputPDF = FALSE, filename = "", cols_page = 3, rows_page = 3, annot_scale = 1.2, paper_orientation = "LANDSCAPE" ,
+                            point_transparency=1, point_size=1.5, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = TRUE, return_plot_list = FALSE, base_size = 12, show_gridlines = FALSE) {
 
   plot_variable <- rlang::arg_match(plot_variable)
   plot_variable_s <- rlang::sym(plot_variable)
-  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_variable, y_label_text), " (capped at min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), plot_variable)
+  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_variable, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_variable, "feature\\_"))
 
   # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
   data@dataset$qc_type <- factor(as.character(data@dataset$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
@@ -223,7 +223,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
   else
     page_range <- page_no
 
-  if(!silent) print(paste0("Plotting ", max(page_range), " pages..."))
+  #TODO if(!silent) print(paste0("Plotting ", max(page_range), " pages..."))
 
   #p_list <- vector("list", length(page_range))
   p_list <- list()
@@ -233,7 +233,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
                              show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
                              point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
-                             batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width, show_grid = show_gridlines)
+                             batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width, show_grid = show_gridlines, log_scale = log_scale)
     plot(p)
     p_list[[i]] <- p
   }
@@ -244,7 +244,7 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width, show_grid){
+                                outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width, show_grid, log_scale){
 
   point_size = ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(outputPDF, .3, .2 * (1 + annot_scale/5))
@@ -313,6 +313,8 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     ggplot2::scale_fill_manual(values=pkg.env$qc_type_annotation$qc_type_fillcol, drop=TRUE)+
     ggplot2::scale_shape_manual(values=pkg.env$qc_type_annotation$qc_type_shape, drop=TRUE)
 
+
+
   if(show_driftcorrection){
     if(after_correction) {
       p <- p +
@@ -372,6 +374,8 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   if(show_grid)
     p <- p  + ggplot2::theme(panel.grid.major =  ggplot2::element_line(size=0.3,colour = "grey88",linetype = "dashed"))
 
+  if(log_scale)
+      p <- p + scale_y_log10()
 
 
   return(p)
@@ -406,13 +410,13 @@ plot_runboxplots <- function(data,
                              plot_variable,
                              use_qc_filtered_data,
                              min_feature_intensity,
-                             qc_types,
-                             ignore_outliers,
-                             feature_filter,
-                             show_batches,
-                             batches_as_shades,
-                             batch_line_color,
-                             batch_shading_color,
+                             qc_types = c("BQC|TQC|SPL|NIST|LTR"),
+                             ignore_outliers = TRUE,
+                             feature_filter = "",
+                             show_batches = TRUE,
+                             batches_as_shades = FALSE,
+                             batch_line_color = "red",
+                             batch_shading_color = "grey70",
                              base_size = 8) {
 
   plot_variable_sym = sym(plot_variable)
@@ -471,16 +475,16 @@ plot_runboxplots <- function(data,
     else {
       d_batch_2nd <- data$batch_info %>% slice(-1) %>% filter(batch_id %% 2 != 1)
       p <- p + geom_rect(data = d_batch_2nd, aes(xmin = id_batch_start-0.5 , xmax = id_batch_end+0.5, ymin = -Inf, ymax = Inf),
-                         inherit.aes=FALSE, fill=batch_shading_color, color= NA,alpha= 0.1, linetype="solid", size=0.5)
+                         inherit.aes=FALSE, fill=batch_shading_color, color= NA,alpha= 0.1, linetype="solid", size=0.5, na.rm = TRUE)
     }
   }
 
-  scale_dataset_size = 2^ceiling(log2(max(data$dataset$run_id)))/10
+  scale_dataset_size = 2^ceiling(log2(max(data$dataset$run_id)))/100
 
   #geom_point(size=3, color = "#0053a8",alpha=0.6) +
   #stat_summary(aes(x=lipidClass, y=BQC_normIntensity_CV),fun.data="plot.median", geom="errorbar", colour="#fc0000", width=0.8, size=2, inherit.aes=FALSE,na.rm = TRUE) +
   p <- p +
-    geom_boxplot(aes(fill = qc_type, color = qc_type), notch=FALSE, outlier.colour = NA, linewidth = 0.2) +
+    geom_boxplot(aes(fill = qc_type, color = qc_type), notch=FALSE, outlier.colour = NA, linewidth = 0.2, na.rm = TRUE) +
     #scale_colour_gradient(low = "white", high = "#004489") +
     scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
     scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
@@ -745,10 +749,10 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim=c(0,NA), ylim=c
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istds, point_size = 2, point_alpha = 0.5, ellipse_alpha = 0.8, font_base_size = 8) {
+plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istds, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
 
 
-  d_wide <- data@dataset_filtered
+  d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
 
   #TODO: (IS as criteria for ISTD.. dangerous...
   if(remove_istds)  d_wide <- d_wide |> filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
@@ -801,7 +805,7 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
   )) +
     ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
-    ggplot2::stat_ellipse(geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3, na.rm = TRUE) +
+    suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(qc_type %in% c("BQC", "TQC", "SPL")),  geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
     ggplot2::geom_point(size = point_size, alpha = point_alpha)
 
     p <- p +
@@ -1087,7 +1091,7 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
 #' @export
 
 
-plot_qc_summary_venn <- function(data, user_defined_keeper, base_size) {
+plot_qc_summary_venn <- function(data, user_defined_keeper, base_size= 12) {
 
   if(user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
 
@@ -1128,9 +1132,9 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size) {
     geom_text(
       aes(
         label= count_pass,
-        hjust=ifelse(count_pass < max(d_QC_sum_total$count_pass) / 1.5, -2, 2) # <- Here lies the magic
+        hjust=ifelse(count_pass < max(count_pass) / 1.5, -2, 2) # <- Here lies the magic
       )) +
-
+    labs(x="", "Number of analytes")
     #facet_wrap(~Tissue) +
     theme_bw(base_size = base_size) +
     theme(legend.position = "none",
@@ -1161,10 +1165,10 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size) {
                      fill_color = c("#c7c7c7", "#ff8080", "#009ec9"),
                      fill_alpha = 0.5,
                      stroke_size = 0.0,
-                     text_size = 2,
-                     set_name_size = 3) + ggplot2::coord_cartesian(clip="off")
+                     text_size = 5,
+                     set_name_size = 6) # + ggplot2::coord_cartesian(clip="off")
 
-    p_venn
+
 
   #plt <- arrangeGrob(p_bar, gTree(NULL),gTree(children=p_venn), ncol=3, widths=c(1.6, 0, 1.3), padding = 0)
   plt <- p_bar +  p_venn + patchwork::plot_layout(ncol = 2, widths = c(1,1)) + patchwork::plot_annotation(tag_levels = c("A", "B"))
