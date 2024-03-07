@@ -99,7 +99,7 @@ pkg.env$qc_type_annotation <- list(
     "NIST" = "#002e6b",
     "LTR" = "#880391",
     "PBLK" = "#08c105",
-    "SPL" = "#899ea3",
+    "SPL" = "#b7c6c9",
     "SST" = "#bafc03",
     "MBLK" = "black"),
 
