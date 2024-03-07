@@ -70,7 +70,7 @@ fun_loess <- function(tbl, qc_types, span_width, ...) {
 #' @param extrapolate Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.
 #' @return MidarExperiment object
 #' @export
-corr_drift_loess <- function(data, qc_types, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
+corr_drift_loess <- function(data, qc_types, within_batch = TRUE, apply_conditionally = FALSE, apply_conditionally_per_batch = TRUE,
                            log2_transform = TRUE, span = 0.75, feature_list = NULL, max_cv_ratio_before_after = 1, use_uncorrected_if_fit_fails = TRUE, extrapolate = FALSE){
 
   corr_drift_fun(data=data, smooth_fun = "fun_loess", qc_types=qc_types, within_batch=within_batch, apply_conditionally=apply_conditionally, apply_conditionally_per_batch=apply_conditionally_per_batch,
