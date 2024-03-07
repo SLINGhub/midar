@@ -272,8 +272,9 @@ saveQCinfo <- function(data, filename) {
 #' @return MidarExperiment object
 #' @export
 
+#TODO default
 apply_qc_filter <-  function(data,
-                             exclude_technical_outliers,
+                             exclude_technical_outliers = FALSE,
                              min_intensity_bqc = NA,
                              min_intensity_tqc = NA,
                              min_intensity_spl = NA,
