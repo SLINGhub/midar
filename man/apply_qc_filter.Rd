@@ -6,7 +6,7 @@
 \usage{
 apply_qc_filter(
   data,
-  exclude_technical_outliers,
+  exclude_technical_outliers = FALSE,
   min_intensity_bqc = NA,
   min_intensity_tqc = NA,
   min_intensity_spl = NA,

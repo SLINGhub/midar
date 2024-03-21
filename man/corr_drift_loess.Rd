@@ -7,8 +7,8 @@
 corr_drift_loess(
   data,
   qc_types,
-  within_batch,
-  apply_conditionally,
+  within_batch = TRUE,
+  apply_conditionally = FALSE,
   apply_conditionally_per_batch = TRUE,
   log2_transform = TRUE,
   span = 0.75,
