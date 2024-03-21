@@ -120,6 +120,7 @@ plot_runsequence <- function(data,
 #'
 #' @param data MidarExperiment object
 #' @param plot_variable Variable to plot
+#' @param log_scale Use log10 scale for the y axis
 #' @param feature_filter Filter features containing
 #' @param filter_exclude Exclude or include feature_filter
 #' @param cap_outliers Cap outliers to a specific range in the plot
