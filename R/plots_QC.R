@@ -120,9 +120,10 @@ plot_runsequence <- function(data,
 #'
 #' @param data MidarExperiment object
 #' @param plot_variable Variable to plot
+#' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
+#' @param feature_filter_include Filter features names matching the criteria (regex). When empty, NA or NULL all available features are included.
+#' @param feature_filter_exclude Exclude features names matching the criteria (regex).  When empty, NA or NULL all available features are included.
 #' @param log_scale Use log10 scale for the y axis
-#' @param feature_filter Filter features containing
-#' @param filter_exclude Exclude or include feature_filter
 #' @param cap_outliers Cap outliers to a specific range in the plot
 #' @param cap_spl_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples
 #' @param cap_qc_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of QCs
@@ -164,12 +165,15 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"), log_scale = FALSE, feature_filter = "", filter_exclude = FALSE,
+plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),  qc_types = NA, feature_filter_include = "", feature_filter_exclude = "", log_scale = FALSE,
                             cap_outliers = FALSE, cap_qc_iqr_factor = 3, cap_spl_iqr_factor = 3, cap_top_n_values = NA, qc_type_fit = "BQC",
                             show_driftcorrection = FALSE, show_trend_samples, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
                             show_batches = TRUE, batches_as_shades = FALSE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
                             outputPDF = FALSE, filename = "", cols_page = 3, rows_page = 3, annot_scale = 1.2, paper_orientation = "LANDSCAPE" ,
                             point_transparency=1, point_size=1.5, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = TRUE, return_plot_list = FALSE, base_size = 12, show_gridlines = FALSE) {
+
+
+  if(nrow(data@dataset ) < 1) stop("No annotated data available. Please import data and metadata first.")
 
   plot_variable <- rlang::arg_match(plot_variable)
   plot_variable_s <- rlang::sym(plot_variable)
@@ -178,10 +182,19 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
   # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
   data@dataset$qc_type <- factor(as.character(data@dataset$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
+
   #  filter data
-  dat_filt <- data@dataset %>% dplyr::ungroup() %>%
-    dplyr::arrange(.data$feature_name, .data$run_id) %>%
-    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter), negate = filter_exclude))
+
+  if(is.na(feature_filter_include) | is.null(feature_filter_include)) feature_filter_include = ""
+  if(is.na(feature_filter_exclude) | is.null(feature_filter_exclude)) feature_filter_exclude = ""
+
+  dat_filt <- data@dataset %>% dplyr::ungroup() |>
+    dplyr::arrange(.data$feature_name, .data$run_id) |>
+    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter_include), negate = FALSE)) |>
+    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter_exclude), negate = TRUE))
+
+
+  if(nrow(dat_filt) < 1) stop("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
 
   # Cap upper outliers to reduce skewness
   dat_filt <- dat_filt %>%
