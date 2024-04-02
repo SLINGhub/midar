@@ -165,12 +165,41 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),  qc_types = NA, feature_incl_filt = "", feature_excl_filt = "", log_scale = FALSE,
-                            cap_outliers = FALSE, cap_qc_iqr_factor = 3, cap_spl_iqr_factor = 3, cap_top_n_values = NA, qc_type_fit = "BQC",
-                            show_driftcorrection = FALSE, show_trend_samples, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
-                            show_batches = TRUE, batches_as_shades = FALSE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
-                            outputPDF = FALSE, filename = "", cols_page = 3, rows_page = 3, annot_scale = 1.2, paper_orientation = "LANDSCAPE" ,
-                            point_transparency=1, point_size=1.5, point_stroke_width = .8, page_no = NA, y_label_text=NA, silent = TRUE, return_plot_list = FALSE, base_size = 12, show_gridlines = FALSE) {
+plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+                            qc_types = NA,
+                            feature_incl_filt = "",
+                            feature_excl_filt = "",
+                            log_scale = FALSE,
+                            cap_outliers = FALSE,
+                            cap_qc_iqr_factor = 3,
+                            cap_spl_iqr_factor = 3,
+                            cap_top_n_values = NA,
+                            show_driftcorrection = FALSE,
+                            qc_type_fit = "BQC",
+                            show_trend_samples = FALSE,
+                            trend_samples_fun = "loess",
+                            trend_samples_col ="" ,
+                            after_correction = FALSE,
+                            plot_other_qc = TRUE,
+                            show_batches = TRUE,
+                            batches_as_shades = FALSE,
+                            batch_line_color = "#9dbecf",
+                            batch_shading_color = "grey90",
+                            outputPDF = FALSE,
+                            filename = "",
+                            cols_page = 3,
+                            rows_page = 3,
+                            annot_scale = 1.2,
+                            paper_orientation = "LANDSCAPE" ,
+                            point_transparency=1,
+                            point_size=1.5,
+                            point_stroke_width = .8,
+                            page_no = NA,
+                            y_label_text=NA,
+                            silent = TRUE,
+                            return_plot_list = FALSE,
+                            base_size = 12,
+                            show_gridlines = FALSE) {
 
 
   if(nrow(data@dataset ) < 1) stop("No annotated data available. Please import data and metadata first.")
@@ -179,35 +208,44 @@ plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_nor
   plot_var_s <- rlang::sym(plot_var)
   y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_var, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_var, "feature\\_"))
 
+
+
+
+  # Subset data ----
+
   dat_filt <- data@dataset %>% dplyr::ungroup()
 
-  # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
+  # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
   dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
-
-  # Subset data
-
   if(all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")){
-    feature_incl_filt <- ifelse(is.vector(feature_incl_filt), stringr::str_flatten(feature_incl_filt,collapse = "|"),feature_incl_filt)
-    dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+    if(length(feature_incl_filt) == 1)
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+    else
+      dat_filt <- dat_filt |> dplyr::filter(.data$feature_name %in% feature_incl_filt)
   }
 
   if(all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")){
-    feature_excl_filt <- ifelse(is.vector(feature_excl_filt), fixed(stringr::str_flatten(feature_excl_filt,collapse = "|")),feature_excl_filt)
-    dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))}
+    if(length(feature_excl_filt) == 1)
+      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))
+    else
+      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_name %in% feature_excl_filt)
+  }
 
   if(all(!is.na(qc_types)) & all(qc_types != "")){
-    qc_types <- ifelse(is.vector(qc_types), stringr::str_flatten(qc_types,collapse = "|"),qc_types)
-    dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
+    if(length(qc_types) == 1)
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
+    else
+      dat_filt <- dat_filt |> dplyr::filter(.data$qc_type %in% qc_types)
   }
 
   if(nrow(dat_filt) < 1) stop("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
 
 
-  # Cap upper outliers to reduce skewness
+  # Cap upper outliers  ----
+
   dat_filt <- dat_filt %>%
     dplyr::mutate(value =  !!plot_var_s)
-
 
   dat_filt <- dat_filt %>%
     dplyr::group_by(.data$feature_name) %>%
