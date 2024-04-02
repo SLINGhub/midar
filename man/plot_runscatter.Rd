@@ -6,7 +6,7 @@
 \usage{
 plot_runscatter(
   data,
-  plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+  plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
   log_scale = FALSE,
   feature_filter = "",
   filter_exclude = FALSE,
@@ -45,7 +45,7 @@ plot_runscatter(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{plot_variable}{Variable to plot}
+\item{plot_var}{Variable to plot}
 
 \item{log_scale}{Use log10 scale for the y axis}
 

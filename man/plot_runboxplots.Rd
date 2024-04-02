@@ -7,7 +7,7 @@
 plot_runboxplots(
   data,
   relative_log_abundances,
-  plot_variable,
+  plot_var,
   use_qc_filtered_data,
   min_feature_intensity,
   qc_types = c("BQC|TQC|SPL|NIST|LTR"),
@@ -25,7 +25,7 @@ plot_runboxplots(
 
 \item{relative_log_abundances}{Plot as RLA (Relative Log Abundnance Plot)}
 
-\item{plot_variable}{Variable to plot}
+\item{plot_var}{Variable to plot}
 
 \item{use_qc_filtered_data}{Use QC-filtered data}
 
