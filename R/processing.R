@@ -174,8 +174,11 @@ calculate_qc_metrics <- function(data) {
         conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
         conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
 
-        SB_Ratio_Q10 = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs  = 0.1, na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-        SB_Ratio_median = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+        SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs  = 0.1, na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+        SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+        SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
+        SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE)/median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+
 
         Int_CV_TQC = sd(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)/mean(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
         Int_CV_BQC = sd(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)/mean(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
@@ -278,12 +281,17 @@ apply_qc_filter <-  function(data,
                              min_intensity_bqc = NA,
                              min_intensity_tqc = NA,
                              min_intensity_spl = NA,
-                             min_signal_blank_ratio = NA,
+                             min_signal_blank_pblk = NA,
+                             min_signal_blank_ublk = NA,
+                             min_signal_blank_sblk = NA,
                              min_cv_conc_bqc = NA,
                              min_cv_conc_tqc = NA,
+                             min_cv_intensity_bqc = NA,
+                             min_cv_intensity_tqc = NA,
                              max_dratio_conc_bqc = NA,
                              max_dratio_conc_tqc = NA,
                              min_response_rsquare = NA,
+                             min_response_yintersect = NA,
                              rqc_curve_used_for_filt = NA,
                              keep_quantifier_only = TRUE,
                              exclude_istds = TRUE,
@@ -309,10 +317,15 @@ apply_qc_filter <-  function(data,
   if(is.na(min_intensity_spl)) min_intensity_spl <- -Inf
   if(is.na(min_cv_conc_bqc)) min_cv_conc_bqc <- Inf
   if(is.na(min_cv_conc_tqc)) min_cv_conc_tqc <- Inf
+  if(is.na(min_cv_intensity_bqc)) min_cv_intensity_bqc <- Inf
+  if(is.na(min_cv_intensity_tqc)) min_cv_intensity_tqc <- Inf
   if(is.na(max_dratio_conc_bqc)) max_dratio_conc_bqc <- Inf
   if(is.na(max_dratio_conc_tqc)) max_dratio_conc_tqc <- Inf
-  if(is.na(min_signal_blank_ratio)) min_signal_blank_ratio <- 0
+  if(is.na(min_signal_blank_pblk)) min_signal_blank_pblk <- 0
+  if(is.na(min_signal_blank_ublk)) min_signal_blank_ublk <- 0
+  if(is.na(min_signal_blank_sblk)) min_signal_blank_sblk <- 0
   if(is.na(min_response_rsquare)) min_response_rsquare <- 0
+  if(is.na(min_response_yintersect)) min_response_yintersect <- 1
 
   # TODO: fix some of the param below ie. features_to_keep
   data@parameters_processing <- data@parameters_processing |>
@@ -323,12 +336,16 @@ apply_qc_filter <-  function(data,
       min_intensity_spl = min_intensity_spl,
       min_cv_conc_bqc = min_cv_conc_bqc,
       min_cv_conc_tqc = min_cv_conc_tqc,
+      min_cv_intensity_bqc = min_cv_intensity_bqc,
+      min_cv_intensity_tqc = min_cv_intensity_tqc,
       max_dratio_conc_bqc = max_dratio_conc_bqc,
       max_dratio_conc_tqc = max_dratio_conc_tqc,
-      min_signal_blank_ratio = min_signal_blank_ratio,
+      min_signal_blank_pblk = min_signal_blank_pblk,
+      min_signal_blank_ublk = min_signal_blank_ublk,
+      min_signal_blank_sblk = min_signal_blank_sblk,
       rqc_curve_used_for_filt_used_for_filt = rqc_curve_used_for_filt,
       min_response_rsquare = min_response_rsquare,
-      min_response_yintersect = 0.4,
+      min_response_yintersect = min_response_yintersect,
       keep_quantifier_only = keep_quantifier_only,
       exclude_istds = exclude_istds,
       features_to_keep = NA )
@@ -341,8 +358,13 @@ apply_qc_filter <-  function(data,
       pass_lod = (is.na(.data$Int_med_BQC)|.data$Int_med_BQC > min_intensity_bqc) &
         (is.na(.data$Int_med_TQC)|.data$Int_med_TQC > min_intensity_tqc) &
         (is.na(.data$Int_med_SPL)|.data$Int_med_SPL > min_intensity_spl),
-      pass_sb =  (is.na(.data$SB_Ratio_median)|(.data$SB_Ratio_median > min_signal_blank_ratio|(.data$is_istd & !exclude_istds))),
-      pass_cva = (is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < min_cv_conc_bqc) & (is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < min_cv_conc_tqc),
+      pass_sb =  ((is.na(.data$SB_Ratio_pblk)| .data$SB_Ratio_pblk > min_signal_blank_pblk |.data$is_istd & !exclude_istds) &
+                 (is.na(.data$SB_Ratio_ublk)| .data$SB_Ratio_ublk > min_signal_blank_ublk) &
+                 (is.na(.data$SB_Ratio_sblk)| .data$SB_Ratio_sblk > min_signal_blank_sblk)),
+      pass_cva = (is.na(.data$conc_CV_BQC)|.data$conc_CV_BQC < min_cv_conc_bqc) &
+                 (is.na(.data$conc_CV_TQC)|.data$conc_CV_TQC < min_cv_conc_tqc) &
+                 (is.na(.data$Int_CV_BQC)|.data$Int_CV_BQC < min_cv_intensity_bqc) &
+                 (is.na(.data$Int_CV_TQC)|.data$Int_CV_TQC < min_cv_intensity_tqc),
       pass_dratio = (is.na(.data$conc_dratio_cv_bqc)|.data$conc_dratio_cv_bqc < max_dratio_conc_bqc) & (is.na(.data$conc_dratio_cv_tqc)|.data$conc_dratio_cv_tqc < max_dratio_conc_tqc),
       pass_linearity = TRUE,
       pass_no_na = !(.data$na_in_all_spl)
@@ -354,14 +376,19 @@ apply_qc_filter <-  function(data,
   if(is.numeric(rqc_curve_used_for_filt)) {
     rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))]
     rqc_r2_col <- rqc_r2_col_names[rqc_curve_used_for_filt]
-    if(is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please resivit `rqc_curve_used_for_filt` value."))
+    rqc_y0_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "Y0_RQC"))]
+    rqc_y0_col <- rqc_y0_col_names[rqc_curve_used_for_filt]
+
+    if(is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `rqc_curve_used_for_filt` value."))
   } else {
     rqc_r2_col <- paste0("R2_RQC_", rqc_curve_used_for_filt)
+    rqc_y0_col <- paste0("Y0_RQC_", rqc_curve_used_for_filt)
   }
   if(rqc_r2_col %in% names(data@metrics_qc)) {
     data@metrics_qc <- data@metrics_qc |>
       mutate(
-        pass_linearity  = if_else(is.na(!!ensym(rqc_r2_col)), NA,  !!ensym(rqc_r2_col) > min_response_rsquare)
+        pass_linearity  = if_else(is.na(!!ensym(rqc_r2_col)), NA,  !!ensym(rqc_r2_col) > min_response_rsquare &
+                                                                   !!ensym(rqc_y0_col) < min_response_yintersect)
       )
 
     d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col)) | pass_linearity | (.data$feature_name %in% features_to_keep))
