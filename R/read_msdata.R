@@ -25,7 +25,7 @@
 
 import_data_masshunter <- function(data, file_dir_names, file_format = "csv") {
   if(file_format == "csv")
-    import_data_analysis(data, file_dir_names, "read_masshunter_csv", ".csv" )
+    import_data_analysis(data, file_dir_names, "read_masshunter_csv", "*.csv" )
   else
     stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
 }
@@ -36,6 +36,7 @@ import_data_analysis <- function(data, file_dir_names, import_function, file_ext
     file_paths <- fs::path_tidy(file_dir_names)
   else
     file_paths <- fs::dir_ls(file_dir_names, glob = file_ext)
+  #browser()
   if(!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
   if(any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
 
