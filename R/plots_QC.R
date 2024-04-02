@@ -591,9 +591,7 @@ plot_runboxplots <- function(data,
 
 # Define function to plot 1 page
 plot_responsecurves_page <- function(dataset,
-                                     include_features_containing,
-                                     exclude_features_containing,
-                                     output_PDF,
+                                     output_pdf,
                                      response_variable,
                                      regr_max_percent,
                                      pdf_filename,
@@ -639,10 +637,11 @@ plot_responsecurves_page <- function(dataset,
 
 #' Response curves plot
 #' @param data MidarExperiment object
-#' @param output_PDF Save as PDF
+#' @param use_filt_data Use QC-filtered data
+#' @param output_pdf Save as PDF
 #' @param response_variable Variable to plot
-#' @param include_features_containing Filter features containing
-#' @param exclude_features_containing Exclude features containing
+#' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
+#' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
 #' @param regr_max_percent Max relative sample amount to use in regressionb
 #' @param pdf_filename file name of pdf file
 #' @param rows_page rows per page
@@ -657,10 +656,11 @@ plot_responsecurves_page <- function(dataset,
 #' @importFrom utils tail
 #' @export
 plot_responsecurves <- function(data,
-                                output_PDF,
+                                use_filt_data,
+                                output_pdf,
                                 response_variable = "feature_intensity",
-                                include_features_containing = "",
-                                exclude_features_containing = "",
+                                feature_incl_filt = "",
+                                feature_excl_filt = "",
                                 regr_max_percent = NA,
                                 pdf_filename = "",
                                 rows_page = 4,
@@ -670,18 +670,42 @@ plot_responsecurves <- function(data,
                                 text_scale_factor = 1,
                                 return_plot_list = FALSE, base_size = 7) {
 
-  if (output_PDF & pdf_filename == "") stop("Please set 'pdf_filename'")
+  if (output_pdf & pdf_filename == "") stop("Please define parameter `pdf_filename`")
 
   rows_page = rows_page
   columns_page = columns_page
 
-  #
-  d_rqc <- data@dataset |>
+
+  if(nrow(mexp@dataset) < 1) stop("No data available. Please import data and metadata first.")
+
+  if (use_filt_data){
+    dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
+    if(nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+  } else {
+    dat_filt <- mexp@dataset %>% dplyr::ungroup()
+  }
+
+
+
+  if(all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")){
+    if(length(feature_incl_filt) == 1)
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+    else
+      dat_filt <- dat_filt |> dplyr::filter(.data$feature_name %in% feature_incl_filt)
+  }
+
+  if(all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")){
+    if(length(feature_excl_filt) == 1)
+      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))
+    else
+      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_name %in% feature_excl_filt)
+  }
+
+  d_rqc <- dat_filt |>
+    filter(.data$qc_type == "RQC") |>
     dplyr::select(tidyselect::any_of(
       c("analysis_id", "feature_name", "feature_intensity", "feature_norm_intensity")
     )) |>
-    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", include_features_containing))) |>
-    dplyr::filter(!stringr::str_detect(.data$feature_name, paste0("^$|", exclude_features_containing, negate = TRUE))) |>
     dplyr::right_join(data@annot_responsecurves, by = c("analysis_id" = "analysis_id"))
 
 
@@ -704,9 +728,7 @@ plot_responsecurves <- function(data,
       function(x)
         plot_responsecurves_page(
           dataset = x,
-          include_features_containing = include_features_containing,
-          exclude_features_containing = exclude_features_containing,
-          output_PDF = output_PDF,
+          output_pdf = output_pdf,
           response_variable = response_variable,
           regr_max_percent = regr_max_percent,
           pdf_filename = pdf_filename,
@@ -721,7 +743,7 @@ plot_responsecurves <- function(data,
 
   # Print pages
   #browser()
-  if (!output_PDF) {
+  if (!output_pdf) {
     if (!return_plot_list)
       d_rqc_grp$plt
   } else{
