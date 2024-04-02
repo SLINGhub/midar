@@ -119,6 +119,7 @@ plot_runsequence <- function(data,
 #' RunScatter plot
 #'
 #' @param data MidarExperiment object
+#' @param use_filt_data Use QC-filtered data
 #' @param plot_var Variable to plot
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
@@ -165,7 +166,9 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+plot_runscatter <- function(data,
+                            plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+                            use_filt_data = FALSE,
                             qc_types = NA,
                             feature_incl_filt = "",
                             feature_excl_filt = "",
@@ -201,8 +204,16 @@ plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_nor
                             base_size = 12,
                             show_gridlines = FALSE) {
 
+  if(nrow(mexp@dataset) < 1) stop("No data available. Please import data and metadata first.")
 
-  if(nrow(data@dataset ) < 1) stop("No annotated data available. Please import data and metadata first.")
+  if (use_filt_data){
+    dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
+    if(nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+  } else {
+    dat_filt <- mexp@dataset %>% dplyr::ungroup()
+  }
+
+
 
   plot_var <- rlang::arg_match(plot_var)
   plot_var_s <- rlang::sym(plot_var)
