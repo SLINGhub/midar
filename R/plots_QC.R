@@ -119,10 +119,10 @@ plot_runsequence <- function(data,
 #' RunScatter plot
 #'
 #' @param data MidarExperiment object
-#' @param plot_variable Variable to plot
+#' @param plot_var Variable to plot
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
-#' @param feature_filter_include Filter features names matching the criteria (regex). When empty, NA or NULL all available features are included.
-#' @param feature_filter_exclude Exclude features names matching the criteria (regex).  When empty, NA or NULL all available features are included.
+#' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
+#' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
 #' @param log_scale Use log10 scale for the y axis
 #' @param cap_outliers Cap outliers to a specific range in the plot
 #' @param cap_spl_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples
@@ -165,7 +165,7 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data, plot_variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),  qc_types = NA, feature_filter_include = "", feature_filter_exclude = "", log_scale = FALSE,
+plot_runscatter <- function(data, plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),  qc_types = NA, feature_incl_filt = "", feature_excl_filt = "", log_scale = FALSE,
                             cap_outliers = FALSE, cap_qc_iqr_factor = 3, cap_spl_iqr_factor = 3, cap_top_n_values = NA, qc_type_fit = "BQC",
                             show_driftcorrection = FALSE, show_trend_samples, trend_samples_fun = "loess", trend_samples_col ="" , after_correction = FALSE,  plot_other_qc = TRUE,
                             show_batches = TRUE, batches_as_shades = FALSE, batch_line_color = "#9dbecf", batch_shading_color = "grey90",
@@ -175,30 +175,38 @@ plot_runscatter <- function(data, plot_variable = c("feature_intensity", "featur
 
   if(nrow(data@dataset ) < 1) stop("No annotated data available. Please import data and metadata first.")
 
-  plot_variable <- rlang::arg_match(plot_variable)
-  plot_variable_s <- rlang::sym(plot_variable)
-  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_variable, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_variable, "feature\\_"))
+  plot_var <- rlang::arg_match(plot_var)
+  plot_var_s <- rlang::sym(plot_var)
+  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_var, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_var, "feature\\_"))
+
+  dat_filt <- data@dataset %>% dplyr::ungroup()
 
   # Re-order qc_type levels to define plot layers, e.g. that QCs are plotted over StudySamples
-  data@dataset$qc_type <- factor(as.character(data@dataset$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
+  dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
 
-  #  filter data
+  # Subset data
 
-  if(is.na(feature_filter_include) | is.null(feature_filter_include)) feature_filter_include = ""
-  if(is.na(feature_filter_exclude) | is.null(feature_filter_exclude)) feature_filter_exclude = ""
+  if(all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")){
+    feature_incl_filt <- ifelse(is.vector(feature_incl_filt), stringr::str_flatten(feature_incl_filt,collapse = "|"),feature_incl_filt)
+    dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+  }
 
-  dat_filt <- data@dataset %>% dplyr::ungroup() |>
-    dplyr::arrange(.data$feature_name, .data$run_id) |>
-    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter_include), negate = FALSE)) |>
-    dplyr::filter(stringr::str_detect(.data$feature_name, paste0("^$|", feature_filter_exclude), negate = TRUE))
+  if(all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")){
+    feature_excl_filt <- ifelse(is.vector(feature_excl_filt), fixed(stringr::str_flatten(feature_excl_filt,collapse = "|")),feature_excl_filt)
+    dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))}
 
+  if(all(!is.na(qc_types)) & all(qc_types != "")){
+    qc_types <- ifelse(is.vector(qc_types), stringr::str_flatten(qc_types,collapse = "|"),qc_types)
+    dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
+  }
 
   if(nrow(dat_filt) < 1) stop("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
 
+
   # Cap upper outliers to reduce skewness
   dat_filt <- dat_filt %>%
-    dplyr::mutate(value =  !!plot_variable_s)
+    dplyr::mutate(value =  !!plot_var_s)
 
 
   dat_filt <- dat_filt %>%
@@ -403,7 +411,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 #'
 #' @param data MidarExperiment object
 #' @param relative_log_abundances Plot as RLA (Relative Log Abundnance Plot)
-#' @param plot_variable Variable to plot
+#' @param plot_var Variable to plot
 #' @param use_qc_filtered_data Use QC-filtered data
 #' @param min_feature_intensity Exclude features with median signal below this value
 #' @param qc_types QC types to be plotted
@@ -421,7 +429,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 plot_runboxplots <- function(data,
                              relative_log_abundances,
-                             plot_variable,
+                             plot_var,
                              use_qc_filtered_data,
                              min_feature_intensity,
                              qc_types = c("BQC|TQC|SPL|NIST|LTR"),
@@ -433,7 +441,7 @@ plot_runboxplots <- function(data,
                              batch_shading_color = "grey70",
                              base_size = 8) {
 
-  plot_variable_sym = sym(plot_variable)
+  plot_var_sym = sym(plot_var)
 
   #https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
   get_tails = function(x) {
@@ -465,11 +473,11 @@ plot_runboxplots <- function(data,
   if(relative_log_abundances){
     d_temp <- d_temp %>%
       group_by(feature_name) %>%
-      mutate(val = !!plot_variable_sym) %>%
+      mutate(val = !!plot_var_sym) %>%
       mutate(val = val/ mean(val[qc_type == "BQC"|qc_type == "TQC"|qc_type == "SPL"],na.rm = TRUE))
   } else
   {
-    d_temp <- d_temp %>% mutate(val = !!plot_variable_sym)
+    d_temp <- d_temp %>% mutate(val = !!plot_var_sym)
   }
 
   breaks <- data$dataset %>%
@@ -506,7 +514,7 @@ plot_runboxplots <- function(data,
     #scale_x_continuous(breaks = seq(0, max(data$dataset$run_id)+1, scale_dataset_size)) +
     #  scale_x_discrete(breaks = breaks) +
     theme_bw(base_size = base_size) +
-    ylab(bquote(bold(log[2] ~ .(plot_variable)))) +
+    ylab(bquote(bold(log[2] ~ .(plot_var)))) +
     xlab("Run order") +
     theme( panel.grid.major.y = element_blank(),
            panel.grid.minor.y = element_blank(),
@@ -524,7 +532,7 @@ plot_runboxplots <- function(data,
 
   if(relative_log_abundances){
     p <- p + geom_hline(yintercept = 0, colour="#666666", linetype="dashed", size=0.8) +
-      ylab(bquote(bold( 'Rel. ' ~ log[2] ~ .(plot_variable))))
+      ylab(bquote(bold( 'Rel. ' ~ log[2] ~ .(plot_var))))
   }
 
 
@@ -547,14 +555,14 @@ plot_responsecurves_page <- function(dataset,
                                      text_scale_factor,
                                      base_size){
 
-  plot_variable <- rlang::sym(response_variable)
+  plot_var <- rlang::sym(response_variable)
   ggplot2::ggplot(data = dataset,
                   ggplot2::aes(x = .data$relative_sample_amount ,
-             y = !!plot_variable,
+             y = !!plot_var,
              color = .data$rqc_series_id)) +
     ggpmisc::stat_poly_line(data = subset(dataset, dataset$relative_sample_amount<= (regr_max_percent/100)),
                             ggplot2::aes(x = .data$relative_sample_amount ,
-                       y  = !!plot_variable,
+                       y  = !!plot_var,
                        color = .data$rqc_series_id),
                    se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE ) +
     ggpmisc::stat_poly_eq(
