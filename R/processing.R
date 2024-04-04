@@ -150,7 +150,7 @@ calculate_qc_metrics <- function(data) {
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
 
   ds1 <- data@dataset %>%
-      dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK")) %>%
+      dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) %>%
       dplyr::group_by(.data$feature_name, .data$feature_class) %>%
       dplyr::summarise(
         #PrecursorMz = paste0(unique(.data$precursor_mz), collapse = ","),
@@ -202,6 +202,7 @@ calculate_qc_metrics <- function(data) {
 
   data@metrics_qc <- ds1
 
+
    if ("RQC" %in% data@dataset$qc_type){
     model <- as.formula("feature_intensity ~ relative_sample_amount")
     ds2 <- data@dataset %>%
@@ -214,10 +215,12 @@ calculate_qc_metrics <- function(data) {
           models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
           #mandel = map(data, \(x) DCVtestkit::calculate_mandel(x, "relative_sample_amount", "feature_intensity")),
           #ppa = map(data, \(x) DCVtestkit::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
-          tidy = purrr::map(.data$models, function(x) broom::glance(x))) %>%
-      tidyr::unnest(c("tidy")) %>%
-      dplyr::select("feature_name", "rqc_series_id", R2 = "r.squared", Y0 = "sigma") %>%
-      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("R2", "Y0"), names_prefix = "RQC_") |>
+          stats = purrr::map(.data$models, function(x) broom::glance(x)),
+          model = purrr::map(.data$models, function(x) broom::tidy(x) |> select(term, estimate) |> pivot_wider(names_from = "term", values_from = "estimate"))) %>%
+      tidyr::unnest(c("stats", "model")) %>%
+      dplyr::mutate(y0rel = `(Intercept)`/relative_sample_amount) |>
+      dplyr::select("feature_name", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
+      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
       ungroup()
 
     data@metrics_qc <- data@metrics_qc  %>%
@@ -291,7 +294,7 @@ apply_qc_filter <-  function(data,
                              max_dratio_conc_bqc = NA,
                              max_dratio_conc_tqc = NA,
                              min_response_rsquare = NA,
-                             min_response_yintersect = NA,
+                             min_response_y0_rel = NA,
                              rqc_curve_used_for_filt = NA,
                              keep_quantifier_only = TRUE,
                              exclude_istds = TRUE,
@@ -325,7 +328,7 @@ apply_qc_filter <-  function(data,
   if(is.na(min_signal_blank_ublk)) min_signal_blank_ublk <- 0
   if(is.na(min_signal_blank_sblk)) min_signal_blank_sblk <- 0
   if(is.na(min_response_rsquare)) min_response_rsquare <- 0
-  if(is.na(min_response_yintersect)) min_response_yintersect <- 1
+  if(is.na(min_response_y0_rel)) min_response_y0_rel <- 1
 
   # TODO: fix some of the param below ie. features_to_keep
   data@parameters_processing <- data@parameters_processing |>
@@ -345,7 +348,7 @@ apply_qc_filter <-  function(data,
       min_signal_blank_sblk = min_signal_blank_sblk,
       rqc_curve_used_for_filt_used_for_filt = rqc_curve_used_for_filt,
       min_response_rsquare = min_response_rsquare,
-      min_response_yintersect = min_response_yintersect,
+      min_response_y0_rel = min_response_y0_rel,
       keep_quantifier_only = keep_quantifier_only,
       exclude_istds = exclude_istds,
       features_to_keep = NA )
@@ -371,34 +374,36 @@ apply_qc_filter <-  function(data,
     )
 
 
-  d_filt <-  data@metrics_qc %>% filter((pass_lod & pass_sb & pass_cva) | (.data$feature_name %in% features_to_keep))
 
   if(is.numeric(rqc_curve_used_for_filt)) {
-    rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "R2_RQC"))]
+    rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "r2_rqc"))]
     rqc_r2_col <- rqc_r2_col_names[rqc_curve_used_for_filt]
-    rqc_y0_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "Y0_RQC"))]
+    rqc_y0_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "y0rel_rqc"))]
     rqc_y0_col <- rqc_y0_col_names[rqc_curve_used_for_filt]
 
     if(is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `rqc_curve_used_for_filt` value."))
   } else {
-    rqc_r2_col <- paste0("R2_RQC_", rqc_curve_used_for_filt)
-    rqc_y0_col <- paste0("Y0_RQC_", rqc_curve_used_for_filt)
+    rqc_r2_col <- paste0("r2_rqc_", rqc_curve_used_for_filt)
+    rqc_y0_col <- paste0("y0_rqc_", rqc_curve_used_for_filt)
   }
+
+
   if(rqc_r2_col %in% names(data@metrics_qc)) {
     data@metrics_qc <- data@metrics_qc |>
       mutate(
         pass_linearity  = if_else(is.na(!!ensym(rqc_r2_col)), NA,  !!ensym(rqc_r2_col) > min_response_rsquare &
-                                                                   !!ensym(rqc_y0_col) < min_response_yintersect)
+                                                                   !!ensym(rqc_y0_col) < min_response_y0_rel)
       )
-
-    d_filt <- d_filt %>% filter(is.na(!!ensym(rqc_r2_col)) | pass_linearity | (.data$feature_name %in% features_to_keep))
   }
+
+  d_filt <-  data@metrics_qc %>%
+    filter((pass_lod & pass_sb & pass_cva & pass_dratio & pass_no_na & pass_linearity) | (.data$feature_name %in% features_to_keep)) |>
+    filter(.data$valid_integration)
 
 
   if(exclude_istds) d_filt <- d_filt |> filter(!.data$is_istd)
   if(keep_quantifier_only) d_filt <- d_filt |> filter(.data$is_quantifier)
 
-  d_filt <- d_filt |> filter(.data$valid_integration)
 
 
   data@metrics_qc <- data@metrics_qc |>
@@ -406,11 +411,12 @@ apply_qc_filter <-  function(data,
       qc_pass  = pass_no_na & pass_lod & pass_sb & pass_cva & pass_linearity
     )
 
-  n_valid <- data@metrics_qc |> filter(.data$valid_integration)
+  n_valid <- data@metrics_qc
   if(keep_quantifier_only) n_valid <- n_valid |> filter(.data$is_quantifier)
   if(exclude_istds) n_valid <- n_valid |> filter(!.data$is_istd)
 
   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt)} of {nrow(n_valid)} valid features passed QC criteria")))
+
   data@dataset_filtered <- data@dataset %>%
     dplyr::right_join(d_filt|> dplyr::select("feature_name"), by = "feature_name") |>
     filter(.data$valid_analysis, !(.data$outlier_technical & exclude_technical_outliers))
