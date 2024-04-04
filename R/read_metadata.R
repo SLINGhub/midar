@@ -54,14 +54,20 @@ import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyse
 
 
   d_dataset <- data@dataset_orig  %>%
-    dplyr::inner_join(data@annot_analyses  %>% dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen" ,"sample_id", "replicate_no", "valid_analysis", "batch_id"), by = c("raw_data_filename")) %>%
-    dplyr::inner_join(d_annot$annot_features %>% filter(.data$valid_integration) |>  dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interfering_feature_name", "interference_proportion"))),
+    dplyr::inner_join(data@annot_analyses  %>%
+                        dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen" ,"sample_id", "replicate_no", "valid_analysis", "batch_id"), by = c("raw_data_filename")) %>%
+    dplyr::inner_join(d_annot$annot_features %>%
+                        filter(.data$valid_integration) |>
+                        dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interfering_feature_name", "interference_proportion"))),
                       by = c("feature_name"), keep = FALSE)
+
 
   data@dataset <-
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_template, d_dataset) |>
     mutate(corrected_interference = FALSE,
-           outlier_technical = FALSE)
+           outlier_technical = FALSE) |>
+    dplyr::arrange(match(.data$feature_name, d_annot$annot_features$feature_name))
+
   #stopifnot(methods::validObject(data, excl_nonannotated_analyses))
   check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
   data@status_processing <- "Annotated Raw Data"
