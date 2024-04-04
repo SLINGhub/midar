@@ -213,8 +213,6 @@ plot_runscatter <- function(data,
     dat_filt <- data@dataset %>% dplyr::ungroup()
   }
 
-
-
   plot_var <- rlang::arg_match(plot_var)
   plot_var_s <- rlang::sym(plot_var)
   y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_var, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_var, "feature\\_"))
