@@ -204,7 +204,7 @@ plot_runscatter <- function(data,
                             base_size = 12,
                             show_gridlines = FALSE) {
 
-  if(nrow(mexp@dataset) < 1) stop("No data available. Please import data and metadata first.")
+  if(nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
 
   if (use_filt_data){
     dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
@@ -673,13 +673,13 @@ plot_responsecurves <- function(data,
   columns_page = columns_page
 
 
-  if(nrow(mexp@dataset) < 1) stop("No data available. Please import data and metadata first.")
+  if(nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
 
   if (use_filt_data){
     dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
     if(nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
-    dat_filt <- mexp@dataset %>% dplyr::ungroup()
+    dat_filt <- data@dataset %>% dplyr::ungroup()
   }
 
 
