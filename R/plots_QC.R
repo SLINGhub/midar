@@ -224,11 +224,6 @@ plot_runscatter <- function(data,
 
   # Subset data ----
 
-  dat_filt <- data@dataset %>% dplyr::ungroup()
-
-  # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
-  dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
-
   if(all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")){
     if(length(feature_incl_filt) == 1)
       dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
@@ -252,6 +247,8 @@ plot_runscatter <- function(data,
 
   if(nrow(dat_filt) < 1) stop("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
 
+  # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
+  dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
   # Cap upper outliers  ----
 
