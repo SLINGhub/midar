@@ -6,7 +6,7 @@
 \usage{
 plot_responsecurves(
   data,
-  output_PDF,
+  output_pdf,
   response_variable = "feature_intensity",
   include_features_containing = "",
   exclude_features_containing = "",
@@ -24,7 +24,7 @@ plot_responsecurves(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{output_PDF}{Save as PDF}
+\item{output_pdf}{Save as PDF}
 
 \item{response_variable}{Variable to plot}
 
