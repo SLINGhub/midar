@@ -7,16 +7,18 @@
 plot_runscatter(
   data,
   plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+  use_filt_data = FALSE,
+  qc_types = NA,
+  feature_incl_filt = "",
+  feature_excl_filt = "",
   log_scale = FALSE,
-  feature_filter = "",
-  filter_exclude = FALSE,
   cap_outliers = FALSE,
   cap_qc_iqr_factor = 3,
   cap_spl_iqr_factor = 3,
   cap_top_n_values = NA,
-  qc_type_fit = "BQC",
   show_driftcorrection = FALSE,
-  show_trend_samples,
+  qc_type_fit = "BQC",
+  show_trend_samples = FALSE,
   trend_samples_fun = "loess",
   trend_samples_col = "",
   after_correction = FALSE,
@@ -47,11 +49,15 @@ plot_runscatter(
 
 \item{plot_var}{Variable to plot}
 
+\item{use_filt_data}{Use QC-filtered data}
+
+\item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
+
+\item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
+
+\item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
+
 \item{log_scale}{Use log10 scale for the y axis}
-
-\item{feature_filter}{Filter features containing}
-
-\item{filter_exclude}{Exclude or include feature_filter}
 
 \item{cap_outliers}{Cap outliers to a specific range in the plot}
 
@@ -61,9 +67,9 @@ plot_runscatter(
 
 \item{cap_top_n_values}{Cap top n values}
 
-\item{qc_type_fit}{QC TYPE used for loess fit}
-
 \item{show_driftcorrection}{Show drift correction}
+
+\item{qc_type_fit}{QC TYPE used for loess fit}
 
 \item{show_trend_samples}{Fit trend line for study samples, if show_driftcorrection is TRUE}
 

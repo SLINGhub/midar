@@ -4,7 +4,12 @@
 \alias{import_metadata_msorganizer}
 \title{Import metadata from the MSOrganizer template (.XLM) and associates it with the analysis data}
 \usage{
-import_metadata_msorganizer(data, filename, excl_unannotated_analyses = FALSE)
+import_metadata_msorganizer(
+  data,
+  filename,
+  analysis_sequence = c("timestamp", "resultfile", "metadata"),
+  excl_unannotated_analyses = FALSE
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}

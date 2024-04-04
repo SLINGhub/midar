@@ -6,10 +6,11 @@
 \usage{
 plot_responsecurves(
   data,
+  use_filt_data,
   output_pdf,
   response_variable = "feature_intensity",
-  include_features_containing = "",
-  exclude_features_containing = "",
+  feature_incl_filt = "",
+  feature_excl_filt = "",
   regr_max_percent = NA,
   pdf_filename = "",
   rows_page = 4,
@@ -24,13 +25,15 @@ plot_responsecurves(
 \arguments{
 \item{data}{MidarExperiment object}
 
+\item{use_filt_data}{Use QC-filtered data}
+
 \item{output_pdf}{Save as PDF}
 
 \item{response_variable}{Variable to plot}
 
-\item{include_features_containing}{Filter features containing}
+\item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
 
-\item{exclude_features_containing}{Exclude features containing}
+\item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
 
 \item{regr_max_percent}{Max relative sample amount to use in regressionb}
 

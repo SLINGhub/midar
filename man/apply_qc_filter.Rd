@@ -10,12 +10,17 @@ apply_qc_filter(
   min_intensity_bqc = NA,
   min_intensity_tqc = NA,
   min_intensity_spl = NA,
-  min_signal_blank_ratio = NA,
+  min_signal_blank_pblk = NA,
+  min_signal_blank_ublk = NA,
+  min_signal_blank_sblk = NA,
   min_cv_conc_bqc = NA,
   min_cv_conc_tqc = NA,
+  min_cv_intensity_bqc = NA,
+  min_cv_intensity_tqc = NA,
   max_dratio_conc_bqc = NA,
   max_dratio_conc_tqc = NA,
   min_response_rsquare = NA,
+  min_response_y0_rel = NA,
   rqc_curve_used_for_filt = NA,
   keep_quantifier_only = TRUE,
   exclude_istds = TRUE,
@@ -32,8 +37,6 @@ apply_qc_filter(
 \item{min_intensity_tqc}{Minimum median signal intensity of TQC}
 
 \item{min_intensity_spl}{Minimum median signal intensity of study samples (SPL)}
-
-\item{min_signal_blank_ratio}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
 
 \item{min_cv_conc_bqc}{= Maximum \%CV of BQC}
 
@@ -52,6 +55,8 @@ apply_qc_filter(
 \item{exclude_istds}{Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
 
 \item{features_to_keep}{Features that must be kept, even if they did not meet the given QC criteria}
+
+\item{min_signal_blank_ratio}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
 }
 \value{
 MidarExperiment object
