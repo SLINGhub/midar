@@ -99,7 +99,7 @@ pkg.env$qc_type_annotation <- list(
     "NIST" = "#002e6b",
     "LTR" = "#880391",
     "PBLK" = "#08c105",
-    "SPL" = "#b7c6c9",
+    "SPL" = "#8e9b9e",
     "SST" = "#bafc03",
     "MBLK" = "black"),
 
@@ -263,7 +263,7 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 
 
 check_integrity <-  function(object, excl_unannotated_analyses) {
-  #browser()
+
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
     d_xy <- length(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename))
     d_yx <- length(setdiff(object@annot_analyses$raw_data_filename,object@dataset_orig$raw_data_filename %>% unique()))
@@ -272,14 +272,18 @@ check_integrity <-  function(object, excl_unannotated_analyses) {
         if(!excl_unannotated_analyses){
           stop(glue::glue("Error: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
         if (d_xy < 50)
-          writeLines(glue::glue("No metadata present for: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")} measurements."))
+          writeLines(glue::glue("No metadata present for: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")}"))
         else
           print("No metadata present for: Too many (> 50) to display")
         } else {
             writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
         }
       } else if(d_yx > 0) {
-        stop(glue::glue("{d_yx} of {object@annot_analyses$raw_data_filename %>% length()} sample metadata are not found in the measurement data."))
+        if (d_yx < 50)
+          writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()), collapse = ", ")}"))
+        else
+          writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
+        stop(glue::glue(""))
       } else {
       object@status_processing <- "DataMetadataLoaded"
       TRUE
