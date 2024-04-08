@@ -15,7 +15,6 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     broom,
-    ComplexHeatmap,
     crayon,
     dplyr,
     forcats,
@@ -50,6 +49,7 @@ Suggests:
     ggrepel,
     ggsignif,
     knitr,
+    ComplexHeatmap,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: 

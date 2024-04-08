@@ -50,16 +50,61 @@ writeReportXLS <- function(data, filename) {
     "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit))
 
 
- table_list <- list(
-            "Intensities_All" = d_intensity_wide,
-            "Conc_All" = d_conc_wide,
-            "Conc_QCfilt" = d_conc_wide_QC,
-            "QC" = data@metrics_qc,
-            "Info" = d_info,
-            "SampleMetadata" = data@annot_analyses,
-            "FeatureMetadata" = data@annot_features,
-            "InternalStandards" = data@annot_istd,
-            "BatchInfo" = data@annot_batches)
+  table_list <- list(
+    "Intensities_All" = d_intensity_wide,
+    "Conc_All" = d_conc_wide,
+    "Conc_QCfilt" = d_conc_wide_QC,
+    "QC" = data@metrics_qc,
+    "Info" = d_info,
+    "SampleMetadata" = data@annot_analyses,
+    "FeatureMetadata" = data@annot_features,
+    "InternalStandards" = data@annot_istd,
+    "BatchInfo" = data@annot_batches)
 
   openxlsx::write.xlsx(x = table_list, file = filename, overwrite = TRUE )
+}
+
+
+
+#' Export any parameter to a wide-format table
+#'
+#' @param data MidarExperiment object
+#' @param variable Variable to be exported
+#' @param filename File name with path of exported CSV file
+#' @importFrom glue glue
+#' @importFrom readr write_csv
+#' @importFrom tidyr pivot_wider
+#' @export
+exportWideCSV <- function(data, variable, filename) {
+
+  var <- dplyr::sym(variable)
+
+  if (!(variable %in% names(data@dataset))) stop("Variable '", variable,  "' does not (yet) exist in dataset.")
+
+  ds <- data@dataset |>
+    dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", !!var) %>%
+    tidyr::pivot_wider(names_from = .data$feature_name, values_from = !!var)
+
+  readr::write_csv(ds, file = filename, num_threads = 4, col_names = TRUE)
+  invisible(ds)
+
+}
+
+
+#' Save the QC table to a CSV file
+#'
+#' @param data MidarExperiment object
+#' @param filename File name with path of exported CSV file
+#' @importFrom glue glue
+#' @importFrom readr write_csv
+#' @importFrom tidyr pivot_wider
+#' @export
+
+saveQCinfo <- function(data, filename) {
+
+  if (nrow(data@metrics_qc)==0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+
+  readr::write_csv(data@metrics_qc, file = filename, num_threads = 4, col_names = TRUE)
+  invisible(data@metrics_qc)
+
 }
