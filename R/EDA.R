@@ -131,8 +131,6 @@ add_lipid_transition_classnames <- function(datLong){
 
 
 
-library(ComplexHeatmap)
-
 plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_variable = NULL, clust_rows = TRUE, clust_columns = FALSE, row_names_size = 8, col_names_size = 8) {
 
   annot_col = ComplexHeatmap::columnAnnotation(
@@ -163,7 +161,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
   z_score_seq <-
     seq(ceiling(min(t(m_scaled),na.rm = T)), ceiling(max(t(m_scaled),na.rm = T)), by = 1)
 
-  lgd = Legend(title = "Row z score", at = z_score_seq)
+  lgd = ComplexHeatmap::Legend(title = "Row z score", at = z_score_seq)
 
 
 
@@ -206,14 +204,14 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 
   df_compounds <- data.frame(Compound = colnames(m_scaled))  %>% add_lipid_transition_classnames(.data$.)
 
-  ha2 = rowAnnotation(
+  ha2 = ComplexHeatmap::rowAnnotation(
     df = data.frame(lipidClass = df_compounds$lipidClass),
     col = list(lipidClass = lipidCat_color),
     gap = unit(10, "mm"),
     width = unit(10, "mm"),show_annotation_name = FALSE
   )
 
-  Heatmap(
+  ComplexHeatmap::Heatmap(
     t(m_scaled),
     row_dend_side = "left",
     cluster_columns = clust_columns,
