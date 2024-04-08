@@ -80,7 +80,7 @@ plot_runsequence <- function(data,
       yend = as.integer(qc_type) + 0.4
     ),
     size = segment_width) +
-    labs(x="Analysis Sequence Number",
+    labs(x="Analysis order",
          y = "Sample Type") +
     scale_x_continuous(breaks = seq(0, max(d_temp$run_id), scale_dataset_size)) +
     scale_y_discrete(
@@ -192,11 +192,11 @@ plot_runscatter <- function(data,
                             filename = "",
                             cols_page = 3,
                             rows_page = 3,
-                            annot_scale = 1.2,
+                            annot_scale = 1.0,
                             paper_orientation = "LANDSCAPE" ,
-                            point_transparency=1,
-                            point_size=1.5,
-                            point_stroke_width = .8,
+                            point_transparency= 1,
+                            point_size=2,
+                            point_stroke_width = 1,
                             page_no = NA,
                             y_label_text=NA,
                             silent = TRUE,
@@ -250,20 +250,23 @@ plot_runscatter <- function(data,
 
   # Cap upper outliers  ----
 
-  dat_filt <- dat_filt %>%
-    dplyr::mutate(value =  !!plot_var_s)
+  dat_filt <- dat_filt %>% dplyr::mutate(value =  !!plot_var_s)
+
 
   dat_filt <- dat_filt %>%
     dplyr::group_by(.data$feature_name) %>%
     dplyr::mutate(
       #value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
       #value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
-      value_max_spl = quantile(.data$value[.data$qc_type == "SPL"], 0.75, na.rm = TRUE) + cap_spl_iqr_factor * IQR(.data$value[.data$qc_type=="SPL"], na.rm = TRUE),
-      value_max_qc = quantile(.data$value[.data$qc_type == qc_type_fit], 0.75, na.rm = TRUE) + cap_qc_iqr_factor * IQR(.data$value[.data$qc_type == qc_type_fit], na.rm = TRUE),
-
-      value_max = max(.data$value_max_spl, .data$value_max_qc, na.rm = TRUE),
-      value_mod = dplyr::if_else(cap_outliers & .data$value > .data$value_max, suppressWarnings(max(.data$value[.data$value < .data$value_max], na.rm = TRUE)), .data$value)
-    ) %>%
+      value_max_spl = quantile(.data$value[.data$qc_type == "SPL"], 0.75, names = FALSE, na.rm = TRUE) + cap_spl_iqr_factor * IQR(.data$value[.data$qc_type=="SPL"], na.rm = TRUE),
+      value_max_qc = quantile(.data$value[.data$qc_type == qc_type_fit], 0.75, names = FALSE, na.rm = TRUE) + cap_qc_iqr_factor * IQR(.data$value[.data$qc_type == qc_type_fit], na.rm = TRUE),
+      value_max =  pmax(.data$value_max_spl, .data$value_max_qc, na.rm = TRUE),
+      value_mod = dplyr::if_else(cap_outliers & .data$value > .data$value_max,
+                                 if(!all(is.na(.data$value)))
+                                   max(.data$value[.data$value < .data$value_max], na.rm = TRUE)
+                                 else
+                                   NA_real_,
+                                 .data$value)) %>%
     dplyr::ungroup()
 
   dat_filt <- dat_filt %>%
@@ -310,7 +313,7 @@ plot_runscatter <- function(data,
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                outputPDF, annot_scale, point_transparency, point_size=2, y_label, base_size, point_stroke_width, show_grid, log_scale){
+                                outputPDF, annot_scale, point_transparency, point_size=point_size, y_label, base_size, point_stroke_width, show_grid, log_scale){
 
   point_size = ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(outputPDF, .3, .2 * (1 + annot_scale/5))
@@ -320,7 +323,6 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   n_cmpd <- length(unique(dat_filt$analysis_id))
   row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
   row_end <- n_cmpd * cols_page * rows_page * page_no
-
 
 
   dat_subset <- dat_filt %>%
@@ -335,9 +337,15 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
-  dMax <- dat_subset %>%
-    dplyr::group_by(.data$feature_name) %>%
-    dplyr::summarise(y_max = max(.data$value_mod, na.rm = TRUE)*1.0)
+  if (nrow(dat_subset) > 0){
+    dMax <- dat_subset %>%
+      dplyr::group_by(.data$feature_name) %>%
+      dplyr::summarise(y_max =
+                         if(!all(is.na(.data$value_mod)))
+                           max(.data$value_mod, na.rm = TRUE)*1.0
+                       else
+                         NA_real_)
+  }
 
 
   d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
@@ -417,25 +425,25 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     }
   }
 
-
   p <- p  +
     #aes(ymin=0) +
-    ggplot2::xlab("Injection number") +
+    ggplot2::xlab("Analysis order") +
     ggplot2::ylab(label = y_label) +
     ggplot2::scale_y_continuous(limits = c(0, NA), expand = ggplot2::expansion(mult = c(0.02,0.03))) +
     #expand_limits(y = 0) +
     ggplot2::theme_bw(base_size = base_size) +
 
     ggplot2::theme(plot.title = ggplot2::element_text(size=1, face="bold"),
-          strip.text = ggplot2::element_text(size=10*annot_scale, face="bold"),
-            strip.background = ggplot2::element_rect(size=0.0001,fill="#00283d"),
+          strip.text = ggplot2::element_text(size=9*annot_scale, face="bold"),
+          strip.background = ggplot2::element_rect(size=0.0001,fill="#00283d"),
           strip.text.x = ggplot2::element_text(color = "white"),
-          axis.text.x = ggplot2::element_text( size=9*annot_scale, face=NULL),
+          axis.text.x = ggplot2::element_text( size=7*annot_scale, face=NULL),
           axis.text.y = ggplot2::element_text( size=7*annot_scale, face=NULL),
+          axis.title = ggplot2::element_text( size=8*annot_scale, face=NULL),
           panel.grid.major =  ggplot2::element_blank(),
           panel.grid.minor =  ggplot2::element_blank(),
-          strip.switch.pad.wrap = ggplot2::unit(0,"mm"),
-          panel.border = element_rect(linewidth =1, color = "grey20"))
+          strip.switch.pad.wrap = ggplot2::unit(-1,"mm"),
+          panel.border = element_rect(linewidth = 0.5, color = "grey40"))
 
   if(show_grid)
     p <- p  + ggplot2::theme(panel.grid.major =  ggplot2::element_line(size=0.3,colour = "grey88",linetype = "dashed"))
@@ -559,7 +567,7 @@ plot_runboxplots <- function(data,
     #  scale_x_discrete(breaks = breaks) +
     theme_bw(base_size = base_size) +
     ylab(bquote(bold(log[2] ~ .(plot_var)))) +
-    xlab("Run order") +
+    xlab("Analysis order") +
     theme( panel.grid.major.y = element_blank(),
            panel.grid.minor.y = element_blank(),
            panel.grid.major.x =  element_line(colour="#bdbdbd", linetype="dotted", size=.5),
