@@ -30,7 +30,7 @@ plot_runsequence <- function(data,
                               factor_a=NA,
                               factor_b=NA) {
 
-  d_temp <- data$dataset %>% dplyr::select(run_id, batch_id, analysis_id, qc_type, sample_id) %>% distinct()
+  d_temp <- data$dataset %>% dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type, .data$sample_id) %>% distinct()
 
   d_temp$qc_type <- factor(d_temp$qc_type, c("EQC", "SST", "MBLK", "SBLK", "UBLK", "PBLK", "RQC",   "LTR", "NIST", "TQC" ,"BQC", "SPL"))
 
@@ -57,27 +57,27 @@ plot_runsequence <- function(data,
   # }
 
   #d_temp <- d_temp %>% mutate(sample_category = forcats::fct_rev(forcats::as_factor(sample_category)))
-  d_temp <- d_temp %>% filter(str_detect(as.character(sample_category), qc_type_subet)) %>%
+  d_temp <- d_temp %>% filter(str_detect(as.character(.data$sample_category), qc_type_subet)) %>%
     {if (show_qc_dataset_only|qc_type_subet != "") droplevels(.) else .}
 
   d_batch_info <- data@annot_batches
 
   # round to next 10 and divide by number of breaks will be showb
   scale_dataset_size = 10^ceiling(log10(max(d_temp$run_id)))/10
-  p <- ggplot(d_temp, aes(x = run_id, y = rev(qc_type), color = sample_category))
+  p <- ggplot(d_temp, aes(x = .data$run_id, y = rev(.data$qc_type), color = .data$sample_category))
   if(show_batches){
     if (batches_as_shades){
-      d_batch_2nd <- d_batch_info %>% dplyr::slice(-1) %>% filter(batch_no %% 2 != 1)
-      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = id_batch_start-0.5 , xmax = id_batch_end+0.5, ymin = -Inf, ymax = Inf),
+      d_batch_2nd <- d_batch_info %>% dplyr::slice(-1) %>% filter(.data$batch_no %% 2 != 1)
+      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = .data$id_batch_start-0.5 , xmax = .data$id_batch_end+0.5, ymin = -Inf, ymax = Inf),
                          inherit.aes=FALSE, fill=batch_shading_color, alpha = 0.1, color= NA,linetype="solid", size=0.5)
     }
   }
   p <- p + geom_segment(
     aes(
-      x = run_id,
-      xend = run_id,
-      y = as.integer(qc_type) - 0.4,
-      yend = as.integer(qc_type) + 0.4
+      x = .data$run_id,
+      xend = .data$run_id,
+      y = as.integer(.data$qc_type) - 0.4,
+      yend = as.integer(.data$qc_type) + 0.4
     ),
     size = segment_width) +
     labs(x="Analysis order",
@@ -101,7 +101,7 @@ plot_runsequence <- function(data,
 
   if(show_batches){
     if (!batches_as_shades){
-      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, size=0.5)
+      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept = .data$id_batch_start-0.5), colour=batch_line_color, size=0.5)
     }
   }
  # if (factor_a != "" & factor_b !=""){
@@ -517,38 +517,38 @@ plot_runboxplots <- function(data,
     d_temp <- data@dataset_filtered
 
   d_temp <- d_temp %>%
-    dplyr::select(analysis_id, run_id, qc_type, batch_id, feature_name, feature_intensity, feature_norm_intensity, feature_conc) %>%
-    filter(feature_intensity > min_feature_intensity) %>%
-    filter(str_detect(qc_type, qc_types)) %>%
+    dplyr::select(.data$analysis_id, .data$run_id, .data$qc_type, .data$batch_id, .data$feature_name, .data$feature_intensity, .data$feature_norm_intensity, .data$feature_conc) %>%
+    filter(.data$feature_intensity > min_feature_intensity) %>%
+    filter(str_detect(.data$qc_type, qc_types)) %>%
     droplevels()
 
   if(relative_log_abundances){
     d_temp <- d_temp %>%
-      group_by(feature_name) %>%
+      group_by(.data$feature_name) %>%
       mutate(val = !!plot_var_sym) %>%
-      mutate(val = val/ mean(val[qc_type == "BQC"|qc_type == "TQC"|qc_type == "SPL"],na.rm = TRUE))
+      mutate(val = .data$val/ mean(.data$val[.data$qc_type == "BQC"|.data$qc_type == "TQC"|.data$qc_type == "SPL"],na.rm = TRUE))
   } else
   {
     d_temp <- d_temp %>% mutate(val = !!plot_var_sym)
   }
 
   breaks <- data$dataset %>%
-    dplyr::select(run_id) %>% distinct() %>%
-    mutate(ticks_to_plot = run_id %% 10 == 0) %>%
-    pull(run_id)
+    dplyr::select(.data$run_id) %>% distinct() %>%
+    mutate(ticks_to_plot = .data$run_id %% 10 == 0) %>%
+    pull(.data$run_id)
 
 
   #d_temp$run_id <- as_factor(d_temp$run_id)
 
-  p <- ggplot(d_temp, aes(x=run_id, y=log2(val), group=run_id))
+  p <- ggplot(d_temp, aes(x=.data$run_id, y=log2(.data$val), group=.data$run_id))
 
   if(show_batches){
     if (!batches_as_shades){
-      p <- p + geom_vline(data = data@annot_batches %>% slice(-1), aes(xintercept=id_batch_start-0.5), colour=batch_line_color, linetype="solid", size=1)
+      p <- p + geom_vline(data = data@annot_batches %>% slice(-1), aes(xintercept=.data$id_batch_start-0.5), colour=batch_line_color, linetype="solid", size=1)
     }
     else {
-      d_batch_2nd <- data$batch_info %>% slice(-1) %>% filter(batch_id %% 2 != 1)
-      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = id_batch_start-0.5 , xmax = id_batch_end+0.5, ymin = -Inf, ymax = Inf),
+      d_batch_2nd <- data$batch_info %>% slice(-1) %>% filter(.data$batch_id %% 2 != 1)
+      p <- p + geom_rect(data = d_batch_2nd, aes(xmin = .data$id_batch_start-0.5 , xmax = .data$id_batch_end+0.5, ymin = -Inf, ymax = Inf),
                          inherit.aes=FALSE, fill=batch_shading_color, color= NA,alpha= 0.1, linetype="solid", size=0.5, na.rm = TRUE)
     }
   }
@@ -558,7 +558,7 @@ plot_runboxplots <- function(data,
   #geom_point(size=3, color = "#0053a8",alpha=0.6) +
   #stat_summary(aes(x=lipidClass, y=BQC_normIntensity_CV),fun.data="plot.median", geom="errorbar", colour="#fc0000", width=0.8, size=2, inherit.aes=FALSE,na.rm = TRUE) +
   p <- p +
-    geom_boxplot(aes(fill = qc_type, color = qc_type), notch=FALSE, outlier.colour = NA, linewidth = 0.2, na.rm = TRUE) +
+    geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch=FALSE, outlier.colour = NA, linewidth = 0.2, na.rm = TRUE) +
     #scale_colour_gradient(low = "white", high = "#004489") +
     scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
     scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
@@ -851,7 +851,7 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
   d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
 
   #TODO: (IS as criteria for ISTD.. dangerous...
-  if(remove_istds)  d_wide <- d_wide |> filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+  if(remove_istds)  d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
 
   d_wide <- d_wide |>  filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), .data$is_quantifier ) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
@@ -901,7 +901,7 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
   )) +
     ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
-    suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(qc_type %in% c("BQC", "TQC", "SPL")),  geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
+    suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(.data$qc_type %in% c("BQC", "TQC", "SPL")),  geom = "polygon", level = 0.95,alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
     ggplot2::geom_point(size = point_size, alpha = point_alpha)
 
     p <- p +
@@ -1049,7 +1049,7 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
 
   d_wide = data@dataset_filtered  %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
-  if(remove_istds)  d_wide <- d_wide |>  filter(!is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+  if(remove_istds)  d_wide <- d_wide |>  filter(!.data$is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
 
   d_filt <- d_wide |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}}) |>
@@ -1110,7 +1110,7 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   {
     p <- p +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust=0.5, hjust=1)) +
-      scale_x_discrete(limits = rev)
+      ggplot2::scale_x_discrete(limits = rev)
   }
 
   p
@@ -1131,8 +1131,8 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
   if(user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
-    filter(valid_integration, !is_istd) |>
-    mutate(feature_class = tidyr::replace_na(feature_class, "Undefined"))
+    filter(.data$valid_integration, !.data$is_istd) |>
+    mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 
   #TODO: cleanup feature/lipidclasses
@@ -1144,30 +1144,30 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
   d_qc$feature_class <- forcats::fct(d_qc$feature_class)
 
   d_QC_sum <- d_qc  %>%
-    group_by(feature_class) %>%
+    group_by(.data$feature_class) %>%
     summarise(
-      has_only_na = sum(!pass_no_na),
-      below_lod = sum(pass_no_na & !pass_lod),
-      below_sb = sum(pass_lod & pass_no_na & !pass_sb),
-      above_cva = sum(pass_lod & pass_no_na & pass_sb & !pass_cva),
-      bad_linearity = sum(pass_lod & pass_no_na & pass_sb & pass_cva & !pass_linearity),
-      above_dratio = sum(pass_lod & pass_no_na & pass_sb & pass_cva & pass_linearity & !pass_dratio),
-      qc_pass = sum(qc_pass)
+      has_only_na = sum(!.data$pass_no_na),
+      below_lod = sum(.data$pass_no_na & !.data$pass_lod),
+      below_sb = sum(.data$pass_lod & .data$pass_no_na & !.data$pass_sb),
+      above_cva = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & !.data$pass_cva),
+      bad_linearity = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & !.data$pass_linearity),
+      above_dratio = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & .data$pass_linearity & !.data$pass_dratio),
+      qc_pass = sum(.data$qc_pass)
     ) %>%
-    tidyr::pivot_longer(-feature_class, names_to = "qc_criteria", values_to  = "count_pass") %>%
+    tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to  = "count_pass") %>%
     ungroup() %>%
-    mutate(qc_criteria = factor(qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio",  "bad_linearity", "qc_pass")))
+    mutate(qc_criteria = factor(.data$qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio",  "bad_linearity", "qc_pass")))
 
 
 
-  ggplot(d_QC_sum, aes(forcats::fct_rev(feature_class), count_pass)) +
-    geom_bar(aes(fill = qc_criteria), stat="identity", na.rm = TRUE) +
+  ggplot(d_QC_sum, aes(forcats::fct_rev(.data$feature_class), .data$count_pass)) +
+    ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat="identity", na.rm = TRUE) +
     scale_fill_manual(values=  c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#009ec9", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
     #facet_wrap(~Tissue) +
     #guides(fill = guide_legend(override.aes = list(size = 6))) +
-    coord_flip() +
+    ggplot2::coord_flip() +
     labs(y = "Number of features", x = "Feature class") +
-    scale_x_discrete(limits = rev(levels(d_QC_sum$feature_class))) +
+    ggplot2::scale_x_discrete(limits = rev(levels(d_QC_sum$feature_class))) +
     theme_bw(base_size = base_size) +
     theme(
       legend.position = c(0.8,0.8),
@@ -1192,24 +1192,24 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size= 12) {
   if(user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
-    filter(valid_integration, !is_istd) |>
-    mutate(feature_class = tidyr::replace_na(feature_class, "Undefined"))
+    filter(.data$valid_integration, !.data$is_istd) |>
+    mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 
   d_QC_sum_total <- d_qc  %>%
     ungroup() |>
     summarise(
-      has_only_na = sum(!pass_no_na),
-      below_lod = sum(pass_no_na & !pass_lod),
-      below_sb = sum(pass_lod & pass_no_na & !pass_sb),
-      above_cva = sum(pass_lod & pass_no_na & pass_sb & !pass_cva),
-      bad_linearity = sum(pass_lod & pass_no_na & pass_sb & pass_cva & !pass_linearity),
-      above_dratio = sum(pass_lod & pass_no_na & pass_sb & pass_cva & pass_linearity & !pass_dratio),
-      qc_pass = sum(qc_pass)
+      has_only_na = sum(!.data$pass_no_na),
+      below_lod = sum(.data$pass_no_na & !.data$pass_lod),
+      below_sb = sum(.data$pass_lod & .data$pass_no_na & !.data$pass_sb),
+      above_cva = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & !.data$pass_cva),
+      bad_linearity = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & !.data$pass_linearity),
+      above_dratio = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & .data$pass_linearity & !.data$pass_dratio),
+      qc_pass = sum(.data$qc_pass)
     ) %>%
     tidyr::pivot_longer(names_to = "qc_criteria", values_to  = "count_pass", cols = everything()) %>%
     ungroup() %>%
-    mutate(qc_criteria = factor(qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
+    mutate(qc_criteria = factor(.data$qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
 
 
 
@@ -1220,15 +1220,15 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size= 12) {
   #          cumCount = cumsum(Count),
   #          centres = totalCount - (cumCount - Count / 2)) %>% ungroup()
 
-  p_bar <- ggplot(d_QC_sum_total, aes(x=reorder(qc_criteria, count_pass), y=count_pass, fill=qc_criteria))+
+  p_bar <- ggplot(d_QC_sum_total, aes(x=reorder(.data$qc_criteria, .data$count_pass), y=.data$count_pass, fill=.data$qc_criteria))+
     geom_bar(width = 1, stat = "identity") +
     coord_flip() +
     scale_fill_manual(values=  c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#009ec9", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
     #geom_text(aes(label = Count), size=4 ) +
     geom_text(
       aes(
-        label= count_pass,
-        hjust=ifelse(count_pass < max(count_pass) / 1.5, -2, 2) # <- Here lies the magic
+        label= .data$count_pass,
+        hjust=ifelse(.data$count_pass < max(.data$count_pass) / 1.5, -2, 2) # <- Here lies the magic
       )) +
     labs(x="", "Number of analytes")
     #facet_wrap(~Tissue) +

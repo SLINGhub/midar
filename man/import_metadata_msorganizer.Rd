@@ -7,7 +7,7 @@
 import_metadata_msorganizer(
   data,
   filename,
-  analysis_sequence = c("timestamp", "resultfile", "metadata"),
+  analysis_sequence = "timestamp",
   excl_unannotated_analyses = FALSE
 )
 }
@@ -15,6 +15,8 @@ import_metadata_msorganizer(
 \item{data}{MidarExperiment object}
 
 \item{filename}{file name and path}
+
+\item{analysis_sequence}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
 
 \item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 }

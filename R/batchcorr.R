@@ -33,7 +33,7 @@ fun_gaussiankernel = function(tbl, qc_types, span_width, ...) {
 #' @param ... Additional parameters forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
 fun_loess <- function(tbl, qc_types, span_width, ...) {
-  tbl <- tbl |>     filter(!outlier_technical)
+  tbl <- tbl |>     filter(!.data$outlier_technical)
   arguments <- list(...)
   surface <- ifelse(arguments$extrapolate, "direct", "interpolate")
   res <- tryCatch({

@@ -134,7 +134,7 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
       tidyr::fill("_prefixXXX_")
   } else {
     feature_name_tbl <- feature_name_tbl |>
-      mutate(temp = `_prefixXXX_`) |>
+      mutate(temp = .data$`_prefixXXX_`) |>
       tidyr::fill("temp") |>
       mutate(temp = if_else(!str_detect(.data$temp, "Qualifier \\(") & expand_qualifier_names, "", .data$temp)) |>
       mutate(`_prefixXXX_` = if_else(str_detect(.data$`_prefixXXX_`, "Qualifier \\(") & expand_qualifier_names, NA_character_, .data$`_prefixXXX_`)) |>
@@ -142,7 +142,7 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
       mutate(temp = str_replace(.data$temp, "Qualifier \\(", "[QUAL ")) |>
       mutate(temp = str_replace(.data$temp, "\\)", "]")) |>
       mutate(`_prefixXXX_` = paste0(.data$`_prefixXXX_`, " ", .data$temp)) |>
-      select(-temp)
+      select(-.data$temp)
   }
 
   datWide[1, ] <- feature_name_tbl |> unlist() |> as.list()
@@ -314,9 +314,9 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
 
   datLong <- datLong |>
     mutate(
-      integration_qualifier = ((expand_qualifier_names & str_detect(feature_name, " \\[QUAL ")) |
-        (!expand_qualifier_names & str_detect(feature_name, "^Qualifier \\("))),
-      .after = feature_name
+      integration_qualifier = ((expand_qualifier_names & str_detect(.data$feature_name, " \\[QUAL ")) |
+        (!expand_qualifier_names & str_detect(.data$feature_name, "^Qualifier \\("))),
+      .after = .data$feature_name
     )
 
   if(!silent){
@@ -519,7 +519,7 @@ read_analysisresults_long_format <- function(file, analysis_id_col = NULL, featu
 
   if (!is.null(analysis_id_col) & analysis_id_col %in% names(d)) stop("Analysis Id column not defined. ")
 
-  dplyr::select(tidyselect::any_of(sample_def_cols), "feature_name", feature_intensity = {{field}})
+  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_name", feature_intensity = {{.data$field}})
 
   d
 }

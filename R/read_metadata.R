@@ -4,6 +4,7 @@
 #' @description Requires version 1.9.1 of the template
 #' @param data MidarExperiment object
 #' @param filename file name and path
+#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
 #' @return MidarExperiment object
 #' @export
@@ -21,7 +22,7 @@ import_metadata_msorganizer <- function(data, filename, analysis_sequence = "tim
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
   if("acquisition_time_stamp" %in% names(data@annot_analyses) & analysis_sequence == "timestamp"){
-        data@annot_analyses <- data@annot_analyses |> arrange(acquisition_time_stamp)
+        data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
   } else {
     if(analysis_sequence == "resultfile")
       data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
@@ -137,19 +138,19 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       batch_id = as.character(.data$batch_id),
       analysis_no = dplyr::row_number()) |>
     dplyr::select(
-      analysis_no,
-      analysis_id,
-      raw_data_filename ,
+      .data$analysis_no,
+      .data$analysis_id,
+      .data$raw_data_filename ,
       qc_type = "sample_type",
-      sample_amount,
-      sample_amount_unit,
+      .data$sample_amount,
+      .data$sample_amount_unit,
       istd_volume ="istd_mixture_volume_[ul]",
-      batch_id ,
-      replicate_no ,
-      valid_analysis,
-      specimen,
-      sample_id,
-      remarks
+      .data$batch_id ,
+      .data$replicate_no ,
+      .data$valid_analysis,
+      .data$specimen,
+      .data$sample_id,
+      .data$remarks
     ) |>
     dplyr::mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id")) |>
     dplyr::mutate(
@@ -195,22 +196,22 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       quant_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
       is_istd = (.data$feature_name == .data$norm_istd_feature_name),
       is_quantifier = if_else(tolower(.data$quantifier) %in% c("yes","true"), TRUE, FALSE),
-      is_quantifier = as.logical(is_quantifier),
+      is_quantifier = as.logical(.data$is_quantifier),
       interference_feature_name = stringr::str_squish(.data$interference_feature_name),
       remarks = NA_character_) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) %>%
     dplyr::select(
-      feature_name,
-      feature_class,
-      is_istd,
-      norm_istd_feature_name,
-      quant_istd_feature_name,
+      .data$feature_name,
+      .data$feature_class,
+      .data$is_istd,
+      .data$norm_istd_feature_name,
+      .data$quant_istd_feature_name,
       feature_response_factor = "response_factor",
-      is_quantifier,
-      valid_integration,
-      interference_feature_name,
-      interference_proportion,
-      remarks)
+      .data$is_quantifier,
+      .data$valid_integration,
+      .data$interference_feature_name,
+      .data$interference_proportion,
+      .data$remarks)
 
   #ToDo: Merged cell in template
   annot_istd <- readxl::read_excel(filename,
@@ -237,10 +238,10 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
 
   d_annot$annot_responsecurves <- d_annot_responsecurves |>
     dplyr::select(
-      raw_data_filename,
+      "raw_data_filename",
       rqc_series_id = "response_curve_name",
-      relative_sample_amount = "relative_sample_amount_[%]",
-      injection_volumne = "injection_volume_[ul]") |>
+      "relative_sample_amount" = "relative_sample_amount_[%]",
+      "injection_volumne" = "injection_volume_[ul]") |>
     dplyr::mutate(
       raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       raw_data_filename = stringr::str_squish(as.character(.data$raw_data_filename)),

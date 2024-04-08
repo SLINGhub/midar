@@ -194,8 +194,8 @@ calculate_qc_metrics <- function(data) {
         conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
         conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)/mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
 
-        conc_dratio_cv_bqc = conc_CV_BQC/conc_CV_SPL,
-        conc_dratio_cv_tqc = conc_CV_TQC/conc_CV_SPL,
+        conc_dratio_cv_bqc = .data$conc_CV_BQC/.data$conc_CV_SPL,
+        conc_dratio_cv_tqc = .data$conc_CV_TQC/.data$conc_CV_SPL,
 
         na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"])))
 
@@ -216,9 +216,9 @@ calculate_qc_metrics <- function(data) {
           #mandel = map(data, \(x) DCVtestkit::calculate_mandel(x, "relative_sample_amount", "feature_intensity")),
           #ppa = map(data, \(x) DCVtestkit::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
           stats = purrr::map(.data$models, function(x) broom::glance(x)),
-          model = purrr::map(.data$models, function(x) broom::tidy(x) |> select(term, estimate) |> pivot_wider(names_from = "term", values_from = "estimate"))) %>%
+          model = purrr::map(.data$models, function(x) broom::tidy(x) |> select(.data$term, .data$estimate) |> pivot_wider(names_from = "term", values_from = "estimate"))) %>%
       tidyr::unnest(c("stats", "model")) %>%
-      dplyr::mutate(y0rel = `(Intercept)`/relative_sample_amount) |>
+      dplyr::mutate(y0rel = .data$`(Intercept)`/.data$relative_sample_amount) |>
       dplyr::select("feature_name", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
       tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
       ungroup()
@@ -263,14 +263,24 @@ saveQCinfo <- function(data, filename) {
 #' @param data MidarExperiment object
 #' @param outlier_technical_exlude Remove samples classified as outliers
 #' @param intensity_min_bqc Minimum median signal intensity of BQC
+#' @param intensity_min_tqc Minimum median signal intensity of TQC
+#' @param intensity_min_spl Minimum median signal intensity of SPL
 #' @param cv_conc_min_bqc = Maximum %CV of BQC
+#' @param cv_conc_min_tqc Maximum %CV of TQC
+#' @param cv_conc_min_tqc = Maximum %CV of TQC
+#' @param cv_intensity_min_bqc Maximum %CV of BQC
+#' @param cv_intensity_min_tqc Maximum %CV of TQC
+#' @param intensity_min_bqc Minimum median signal intensity of TQC
 #' @param intensity_min_tqc Minimum median signal intensity of TQC
 #' @param intensity_min_spl Minimum median signal intensity of study samples (SPL)
-#' @param cv_conc_min_tqc Maximum %CV of TQC
+
 #' @param dratio_conc_max_bqc D-ratio defined as CV_BQC/CV_SPL
 #' @param dratio_conc_max_tqc D-ratio defined as CV_TQC/CV_SPL
-#' @param min_signal_blank_ratio = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
+#' @param signal_blank_min_pblk = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
+#' @param signal_blank_min_ublk = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)
+#' @param signal_blank_min_sblk = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)
 #' @param response_rsquare_min = Minimum r squared of RQC curve defined under `response_curve_name`
+#' @param response_y0_rel_max = Minimum relative y0 intersect, whereby 1 refers to a `relative_sample_amount` of 100%. Used to filter for curves that have a good r2 but are flat or even have a negative slope.
 #' @param response_curve_name Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)
 #' @param qualifier_exclude Remove features where Quantifier is set to FALSE.
 #' @param istds_exclude Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
@@ -397,7 +407,7 @@ apply_qc_filter <-  function(data,
   }
 
   d_filt <-  data@metrics_qc %>%
-    filter((pass_lod & pass_sb & pass_cva & pass_dratio & pass_no_na & pass_linearity) | (.data$feature_name %in% features_to_keep)) |>
+    filter((.data$pass_lod & .data$pass_sb & .data$pass_cva & .data$pass_dratio & .data$pass_no_na & .data$pass_linearity) | (.data$feature_name %in% features_to_keep)) |>
     filter(.data$valid_integration)
 
 
@@ -408,7 +418,7 @@ apply_qc_filter <-  function(data,
 
   data@metrics_qc <- data@metrics_qc |>
     mutate(
-      qc_pass  = pass_no_na & pass_lod & pass_sb & pass_cva & pass_linearity
+      qc_pass  = .data$pass_no_na & .data$pass_lod & .data$pass_sb & .data$pass_cva & .data$pass_linearity
     )
 
   n_valid <- data@metrics_qc

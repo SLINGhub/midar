@@ -71,11 +71,12 @@ analysis_outlier_detection <- function(data,
 
   if(nrow(d_outlier) > 0) {
     data@dataset <- data@dataset |>
-      mutate(outlier_technical = analysis_id %in% d_outlier$analysis_id,
-             outlier_technical_note = if_else(outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_))
+      mutate(outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
+             outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_))
+
     data@has_outliers_tech <- TRUE
     data@excl_outliers_tech <- TRUE
-    data@dataset_filtered |> filter(run_id < 0)
+    data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_id < 0) #Todo: check if (still neeeded)
   }
 
   if(print_outliers){
