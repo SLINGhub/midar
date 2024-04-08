@@ -9,13 +9,40 @@
 #' @export
 #'
 
-import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyses = FALSE) {
+import_metadata_msorganizer <- function(data, filename, analysis_sequence = "timestamp", excl_unannotated_analyses = FALSE) {
+
+  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata"), multiple = FALSE)
+
   d_annot <- read_msorganizer_xlm(filename)
   data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("raw_data_filename") %>%
+    dplyr::select("raw_data_filename", dplyr::any_of("acquisition_time_stamp") ) %>%
     dplyr::distinct() %>%
     dplyr::right_join(d_annot$annot_analyses, by = c("raw_data_filename" = "raw_data_filename"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
+
+  if("acquisition_time_stamp" %in% names(data@annot_analyses) & analysis_sequence == "timestamp"){
+        data@annot_analyses <- data@annot_analyses |> arrange(acquisition_time_stamp)
+  } else {
+    if(analysis_sequence == "resultfile")
+      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
+    else if(analysis_sequence == "metadata")
+      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$annot_analyses$analysis_id))
+    else
+      writeLines(crayon::yellow(glue::glue("\u2713 No acquisition timestamps present in analysis results, analysis order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use metadata sequence as analysis order.")))
+  }
+
+  data@annot_analyses <- data@annot_analyses |>
+    mutate(run_id = row_number(), .before = 1)
+
+  data@annot_batches <- data@annot_analyses %>%
+    dplyr::group_by(.data$batch_no) %>%
+    dplyr::summarise(
+      batch_id = .data$batch_id[1],
+      id_batch_start = dplyr::first(.data$run_id),
+      id_batch_end = dplyr::last(.data$run_id)) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(.data$id_batch_start)%>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
 
   data@annot_features <- data@dataset_orig %>%
     dplyr::select("feature_name") %>%
@@ -39,16 +66,6 @@ import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyse
     dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
 
-  data@annot_batches <- data@annot_analyses %>%
-    dplyr::group_by(.data$batch_no) %>%
-    dplyr::summarise(
-      batch_id = .data$batch_id[1],
-      id_batch_start = dplyr::first(.data$run_id),
-      id_batch_end = dplyr::last(.data$run_id)) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(.data$id_batch_start)%>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
-
   data@dataset_orig <- data@dataset_orig %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
 
@@ -67,6 +84,10 @@ import_metadata_msorganizer <- function(data, filename, excl_unannotated_analyse
     mutate(corrected_interference = FALSE,
            outlier_technical = FALSE) |>
     dplyr::arrange(match(.data$feature_name, d_annot$annot_features$feature_name))
+
+  data@dataset <- data@dataset |> arrange(.data$run_id)
+
+
 
   #stopifnot(methods::validObject(data, excl_nonannotated_analyses))
   check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
@@ -114,9 +135,9 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
     dplyr::mutate(
       valid_analysis = TRUE,
       batch_id = as.character(.data$batch_id),
-      run_id = dplyr::row_number()) |>
+      analysis_no = dplyr::row_number()) |>
     dplyr::select(
-      run_id,
+      analysis_no,
       analysis_id,
       raw_data_filename ,
       qc_type = "sample_type",
