@@ -3,34 +3,39 @@
 #' @title Import metadata from the MSOrganizer template (.XLM) and associates it with the analysis data
 #' @description Requires version 1.9.1 of the template
 #' @param data MidarExperiment object
-#' @param filename file name and path
+#' @param path file name and path
 #' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
 #' @return MidarExperiment object
 #' @export
 #'
 
-import_metadata_msorganizer <- function(data, filename, analysis_sequence = "timestamp", excl_unannotated_analyses = FALSE) {
+import_metadata_msorganizer <- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
 
-  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata"), multiple = FALSE)
+  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
 
-  d_annot <- read_msorganizer_xlm(filename)
+  d_annot <- read_msorganizer_xlm(path)
+
+  #browser()
   data@annot_analyses <- data@dataset_orig %>%
     dplyr::select("raw_data_filename", dplyr::any_of("acquisition_time_stamp") ) %>%
     dplyr::distinct() %>%
     dplyr::right_join(d_annot$annot_analyses, by = c("raw_data_filename" = "raw_data_filename"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
-  if("acquisition_time_stamp" %in% names(data@annot_analyses) & analysis_sequence == "timestamp"){
+  if("acquisition_time_stamp" %in% names(data@annot_analyses) & (analysis_sequence %in% c("timestamp", "default"))){
         data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
   } else {
     if(analysis_sequence == "resultfile")
       data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
     else if(analysis_sequence == "metadata")
       data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$annot_analyses$analysis_id))
+    else if(analysis_sequence == "timestamp")
+      stop(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
     else
-      writeLines(crayon::yellow(glue::glue("\u2713 No acquisition timestamps present in analysis results, analysis order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use metadata sequence as analysis order.")))
-  }
+      writeLines(crayon::yellow(glue::glue("\u2713 No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
+
+    }
 
   data@annot_analyses <- data@annot_analyses |>
     mutate(run_id = row_number(), .before = 1)
@@ -79,7 +84,6 @@ import_metadata_msorganizer <- function(data, filename, analysis_sequence = "tim
                         dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interfering_feature_name", "interference_proportion"))),
                       by = c("feature_name"), keep = FALSE)
 
-
   data@dataset <-
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_template, d_dataset) |>
     mutate(corrected_interference = FALSE,
@@ -104,7 +108,7 @@ import_metadata_msorganizer <- function(data, filename, analysis_sequence = "tim
 #' @title Reads and parses metadata provided by the MSOrganizer EXCEL  template.
 #' @description Requires version 1.9.1 of the template
 #'
-#' @param filename File path of the MSOrganizer EXCEL template (*.xlm)
+#' @param path File path of the MSOrganizer EXCEL template (*.xlm)
 #' @param trim_ws Trim all white spaces and double spaces
 #' @importFrom stats na.omit setNames
 #' @importFrom utils tail
@@ -112,13 +116,13 @@ import_metadata_msorganizer <- function(data, filename, analysis_sequence = "tim
 #' @importFrom dplyr select mutate filter group_by row_number
 #' @importFrom stringr regex
 #' @return A list of tibbles with different metadata
-read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
+read_msorganizer_xlm <- function(path, trim_ws = TRUE){
   d_annot <- list()
 
   # ANALYSIS/SAMPLE annotation
   # ToDo: Make note if feature names are not original
 
-  d_temp_analyses <- readxl::read_excel(filename, sheet = "Analyses (Samples)", trim_ws = TRUE)
+  d_temp_analyses <- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "analysis_id", init_value = NA_character_, make_lowercase = FALSE)
@@ -138,19 +142,19 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       batch_id = as.character(.data$batch_id),
       analysis_no = dplyr::row_number()) |>
     dplyr::select(
-      .data$analysis_no,
-      .data$analysis_id,
-      .data$raw_data_filename ,
+      "analysis_no",
+      "analysis_id",
+      "raw_data_filename" ,
       qc_type = "sample_type",
-      .data$sample_amount,
-      .data$sample_amount_unit,
+      "sample_amount",
+      "sample_amount_unit",
       istd_volume ="istd_mixture_volume_[ul]",
-      .data$batch_id ,
-      .data$replicate_no ,
-      .data$valid_analysis,
-      .data$specimen,
-      .data$sample_id,
-      .data$remarks
+      "batch_id" ,
+      "replicate_no" ,
+      "valid_analysis",
+      "specimen",
+      "sample_id",
+      "remarks"
     ) |>
     dplyr::mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id")) |>
     dplyr::mutate(
@@ -169,7 +173,7 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
   # FEATURE annotation
 
   # ToDo: Make note if feature names are not original
-  d_temp_features <- readxl::read_excel(filename, sheet = "Features (Analytes)", trim_ws = TRUE)
+  d_temp_features <- readxl::read_excel(path, sheet = "Features (Analytes)", trim_ws = TRUE)
   names(d_temp_features) <- tolower(names(d_temp_features))
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
@@ -201,20 +205,20 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
       remarks = NA_character_) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) %>%
     dplyr::select(
-      .data$feature_name,
-      .data$feature_class,
-      .data$is_istd,
-      .data$norm_istd_feature_name,
-      .data$quant_istd_feature_name,
+      "feature_name",
+      "feature_class",
+      "is_istd",
+      "norm_istd_feature_name",
+      "quant_istd_feature_name",
       feature_response_factor = "response_factor",
-      .data$is_quantifier,
-      .data$valid_integration,
-      .data$interference_feature_name,
-      .data$interference_proportion,
-      .data$remarks)
+      "is_quantifier",
+      "valid_integration",
+      "interference_feature_name",
+      "interference_proportion",
+      "remarks")
 
   #ToDo: Merged cell in template
-  annot_istd <- readxl::read_excel(filename,
+  annot_istd <- readxl::read_excel(path,
                            sheet = "Internal Standards",
                            trim_ws = TRUE, .name_repair = ~ ifelse(nzchar(.x), .x,LETTERS [seq_along(.x)]))
 
@@ -230,7 +234,7 @@ read_msorganizer_xlm <- function(filename, trim_ws = TRUE){
 
   names(annot_istd) <- tolower(names(annot_istd))
 
-  d_annot_responsecurves <- readxl::read_excel(filename, sheet = "Response Curves")
+  d_annot_responsecurves <- readxl::read_excel(path, sheet = "Response Curves")
 
   names(d_annot_responsecurves) <- tolower(names(d_annot_responsecurves))
 

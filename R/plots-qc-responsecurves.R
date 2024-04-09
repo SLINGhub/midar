@@ -5,7 +5,7 @@ plot_responsecurves_page <- function(dataset,
                                      output_pdf,
                                      response_variable,
                                      regr_max_percent,
-                                     pdf_filename,
+                                     path,
                                      rows_page,
                                      columns_page,
                                      point_size,
@@ -54,7 +54,7 @@ plot_responsecurves_page <- function(dataset,
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
 #' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
 #' @param regr_max_percent Max relative sample amount to use in regressionb
-#' @param pdf_filename file name of pdf file
+#' @param path file name of pdf file
 #' @param rows_page rows per page
 #' @param columns_page columns per page
 #' @param point_size point size
@@ -73,7 +73,7 @@ plot_responsecurves <- function(data,
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
                                 regr_max_percent = NA,
-                                pdf_filename = "",
+                                path = "",
                                 rows_page = 4,
                                 columns_page = 5,
                                 point_size = 2,
@@ -81,7 +81,7 @@ plot_responsecurves <- function(data,
                                 text_scale_factor = 1,
                                 return_plot_list = FALSE, base_size = 7) {
 
-  if (output_pdf & pdf_filename == "") stop("Please define parameter `pdf_filename`")
+  if (output_pdf & path == "") stop("Please define parameter `path`")
 
   rows_page = rows_page
   columns_page = columns_page
@@ -142,7 +142,7 @@ plot_responsecurves <- function(data,
           output_pdf = output_pdf,
           response_variable = response_variable,
           regr_max_percent = regr_max_percent,
-          pdf_filename = pdf_filename,
+          path = path,
           rows_page = rows_page,
           columns_page = columns_page,
           point_size = point_size,
@@ -159,7 +159,7 @@ plot_responsecurves <- function(data,
       d_rqc_grp$plt
   } else{
     pdf(
-      file = pdf_filename,
+      file = path,
       onefile = TRUE,
       paper = "A4r",
       width = 11

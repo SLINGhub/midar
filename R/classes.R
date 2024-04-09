@@ -270,11 +270,11 @@ check_integrity <-  function(object, excl_unannotated_analyses) {
     if(d_xy > 0){
       if(d_xy == length(object@dataset_orig$raw_data_filename %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
         if(!excl_unannotated_analyses){
-          stop(glue::glue("Error: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
-        if (d_xy < 50)
-          writeLines(glue::glue("No metadata present for: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")}"))
-        else
-          print("No metadata present for: Too many (> 50) to display")
+        if (d_xy < 50){
+          writeLines(glue::glue(""))
+          stop(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")}"))
+        } else
+          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
         } else {
             writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
         }

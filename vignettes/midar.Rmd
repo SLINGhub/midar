@@ -40,10 +40,10 @@ mexp <- MidarExperiment()
 
 # Load data and metadata
 mexp <- midar::import_data_masshunter(data = mexp, 
-                                      file_dir_names = masshunter_file, 
+                                      path = masshunter_file, 
                                       file_format = "csv")
 mexp <- midar::import_metadata_msorganizer(data = mexp, 
-                                           filename = metadata_file, 
+                                           path = metadata_file, 
                                            analysis_sequence = "timestamp", 
                                            excl_unannotated_analyses = TRUE)
 

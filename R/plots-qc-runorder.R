@@ -140,8 +140,8 @@ plot_runsequence <- function(data,
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
-#' @param outputPDF save as PDF
-#' @param filename file name of PDF
+#' @param save_pdf save as PDF
+#' @param path file name of PDF
 #' @param cols_page columns per page
 #' @param rows_page rows per page
 #' @param annot_scale scale factor of text elements
@@ -188,8 +188,8 @@ plot_runscatter <- function(data,
                             batches_as_shades = FALSE,
                             batch_line_color = "#9dbecf",
                             batch_shading_color = "grey90",
-                            outputPDF = FALSE,
-                            filename = "",
+                            save_pdf = FALSE,
+                            path = "",
                             cols_page = 3,
                             rows_page = 3,
                             annot_scale = 1.0,
@@ -279,12 +279,12 @@ plot_runscatter <- function(data,
     dplyr::ungroup()
 
 
-  if (outputPDF & !is.na(filename)){
-    filename = ifelse(stringr::str_detect(filename, ".pdf"), filename, paste0(filename, ".pdf"))
+  if (save_pdf & !is.na(path)){
+    path = ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
     if(paper_orientation == "LANDSCAPE")
-      pdf(file=filename , onefile=T, paper="A4r", useDingbats=FALSE, width=28/2.54, height=20/2.54)
+      pdf(file=path , onefile=T, paper="A4r", useDingbats=FALSE, width=28/2.54, height=20/2.54)
     else
-      pdf(file=filename , onefile=T, paper="A4", useDingbats=FALSE, height=28/2.54, width=20/2.54)
+      pdf(file=path , onefile=T, paper="A4", useDingbats=FALSE, height=28/2.54, width=20/2.54)
   }
 
   if(is.na(page_no))
@@ -299,24 +299,24 @@ plot_runscatter <- function(data,
   for (i in page_range){
     if(!silent) print(paste0("page ", i))
     p <- runscatter_one_page(dat_filt = dat_filt, data= data, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
-                             show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, outputPDF = outputPDF, page_no = i,
+                             show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
                              point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
                              show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
                              batch_shading_color = batch_shading_color, y_label=y_label, base_size=base_size, point_stroke_width=point_stroke_width, show_grid = show_gridlines, log_scale = log_scale)
     plot(p)
     p_list[[i]] <- p
   }
-  on.exit(if(outputPDF) {dev.off()})
+  on.exit(if(save_pdf) {dev.off()})
   if(return_plot_list) return(p_list)
 }
 #' @importFrom ggplot2 Stat
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit,cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                outputPDF, annot_scale, point_transparency, point_size=point_size, y_label, base_size, point_stroke_width, show_grid, log_scale){
+                                save_pdf, annot_scale, point_transparency, point_size=point_size, y_label, base_size, point_stroke_width, show_grid, log_scale){
 
   point_size = ifelse(missing(point_size), 2, point_size)
-  point_stroke_width <- dplyr::if_else(outputPDF, .3, .2 * (1 + annot_scale/5))
+  point_stroke_width <- dplyr::if_else(save_pdf, .3, .2 * (1 + annot_scale/5))
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page

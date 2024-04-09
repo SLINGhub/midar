@@ -35,8 +35,8 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- read_masshunter_csv(data = mexp, filename = masshunter_file)
-mexp <- read_msorganizer_xlm(data = mexp, filename = metadata_file)
+mexp <- read_masshunter_csv(data = mexp, path = masshunter_file)
+mexp <- read_msorganizer_xlm(data = mexp, path = metadata_file)
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)

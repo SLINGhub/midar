@@ -4,12 +4,12 @@
 \alias{saveQCinfo}
 \title{Save the QC table to a CSV file}
 \usage{
-saveQCinfo(data, filename)
+saveQCinfo(data, path)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{filename}{File name with path of exported CSV file}
+\item{path}{File name with path of exported CSV file}
 }
 \description{
 Save the QC table to a CSV file

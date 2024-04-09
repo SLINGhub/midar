@@ -8,7 +8,7 @@
 #' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
 #'
 #' @param data MidarExperiment object
-#' @param file_dir_names One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
+#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
 #' @param file_format File format of the MassHunter export. One of "csv", "xls"
 #'
 #' @importFrom methods validObject
@@ -23,19 +23,19 @@
 
 #' @export
 
-import_data_masshunter <- function(data, file_dir_names, file_format = "csv") {
+import_data_masshunter <- function(data, path, file_format = "csv") {
   if(file_format == "csv")
-    import_data_analysis(data, file_dir_names, "read_masshunter_csv", "*.csv" )
+    import_data_analysis(data, path, "read_masshunter_csv", "*.csv" )
   else
     stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
 }
 
 
-import_data_analysis <- function(data, file_dir_names, import_function, file_ext) {
-  if(!fs::is_dir(file_dir_names))
-    file_paths <- fs::path_tidy(file_dir_names)
+import_data_analysis <- function(data, path, import_function, file_ext) {
+  if(!fs::is_dir(path))
+    file_paths <- fs::path_tidy(path)
   else
-    file_paths <- fs::dir_ls(file_dir_names, glob = file_ext)
+    file_paths <- fs::dir_ls(path, glob = file_ext)
   #browser()
   if(!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
   if(any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
@@ -85,15 +85,15 @@ import_data_analysis <- function(data, file_dir_names, import_function, file_ext
 
 #' Reads and parses one Agilent MassHunter Quant CSV result file
 #'
-#' @param filename File path of MassHunter Quant CSV file
+#' @param path File path of MassHunter Quant CSV file
 #' @param silent Suppress messages
 #' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` ransition names of quantifier will be added to qualifier names
 #' @return A tibble with the parse results in the long format
 #' @export
 
-read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent = FALSE) {
+read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = FALSE) {
 
-  #if(!silent) print(glue::glue("Reading [{basename(filename)}] ..."))
+  #if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
   # if (shiny::isRunning())
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
   #
@@ -101,7 +101,7 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
   suppressWarnings(suppressMessages(
     datWide <-
       readr::read_csv(
-        file = filename,
+        file = path,
         col_names = FALSE,
         na = c("#N/A", "NULL", "NA"),
         trim_ws = TRUE,
@@ -142,7 +142,7 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
       mutate(temp = str_replace(.data$temp, "Qualifier \\(", "[QUAL ")) |>
       mutate(temp = str_replace(.data$temp, "\\)", "]")) |>
       mutate(`_prefixXXX_` = paste0(.data$`_prefixXXX_`, " ", .data$temp)) |>
-      select(-.data$temp)
+      select(!"temp")
   }
 
   datWide[1, ] <- feature_name_tbl |> unlist() |> as.list()
@@ -316,7 +316,7 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
     mutate(
       integration_qualifier = ((expand_qualifier_names & str_detect(.data$feature_name, " \\[QUAL ")) |
         (!expand_qualifier_names & str_detect(.data$feature_name, "^Qualifier \\("))),
-      .after = .data$feature_name
+      .after = "feature_name"
     )
 
   if(!silent){
@@ -335,24 +335,24 @@ read_masshunter_csv <- function(filename, expand_qualifier_names = FALSE, silent
 #' Reads MRMkit results
 #'
 #' @param data MidarExperiment object
-#' @param file_dir_names file path of MRMkit csv output with raw peak areas
+#' @param path file path of MRMkit csv output with raw peak areas
 #' @return A tibble in the long format
 #' @export
-import_data_mrmkit <- function(data, file_dir_names) {
-  import_data_analysis(data, file_dir_names, "read_mrmkit_result", "*.tsv|*.csv")
+import_data_mrmkit <- function(data, path) {
+  import_data_analysis(data, path, "read_mrmkit_result", "*.tsv|*.csv")
 }
 
 
 #' Reads a long CSV file with Feature Intensities
 #'
-#' @param filename File name of the MRMkit result file (*.tsv or *.csv)
+#' @param path File name of the MRMkit result file (*.tsv or *.csv)
 #' @param use_normalized_data Import raw peak areas or normalized peak areas from the file
 #' @param silent No comments printed
 #' @return A tibble in the long format
 #' @export
-read_mrmkit_result <- function(filename, use_normalized_data = FALSE, silent = FALSE) {
+read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE) {
 
-  ext_file <-tolower(fs::path_ext(filename))
+  ext_file <-tolower(fs::path_ext(path))
 
   sep <- case_when(
     ext_file == "csv" ~ "csv",
@@ -361,7 +361,7 @@ read_mrmkit_result <- function(filename, use_normalized_data = FALSE, silent = F
 
   if(is.na(sep)) stop("Data file type/extension not supported. Please re-export results from MRMkit.")
 
-  d_mrmkit_raw <- readr::read_delim(filename, delim = sep, col_types = readr::cols(.default = "c"),
+  d_mrmkit_raw <- readr::read_delim(path, delim = sep, col_types = readr::cols(.default = "c"),
                                     col_names = TRUE, trim_ws = TRUE)
 
 
@@ -377,7 +377,7 @@ read_mrmkit_result <- function(filename, use_normalized_data = FALSE, silent = F
 
   d_mrmkit_data <- d_mrmkit_raw |>
     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
-    dplyr::mutate(file_run_id = dplyr::row_number(), .before = .data$name) |>
+    dplyr::mutate(file_run_id = dplyr::row_number(), .before = "name") |>
     tidyr::pivot_longer(-.data$file_run_id:-.data$name, names_to = "feature_name", values_to = "value") |>
     dplyr::rename(raw_data_filename  = .data$name) |>
     dplyr::mutate(raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
@@ -406,8 +406,8 @@ read_mrmkit_result <- function(filename, use_normalized_data = FALSE, silent = F
   # if (final_results_file !=""){
   #   d_results <- readr::read_delim(final_results_file, delim = sep, col_names = TRUE, trim_ws = TRUE, progress = TRUE, show_col_types = FALSE) |>
   #     dplyr::filter(!is.na(.data$type))|>
-  #     dplyr::mutate(filename = stringr::str_squish(str_remove(.data$filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)))) |>
-  #     dplyr::rename(raw_data_filename = .data$filename) |>
+  #     dplyr::mutate(path = stringr::str_squish(str_remove(.data$path, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)))) |>
+  #     dplyr::rename(raw_data_filename = .data$path) |>
   #     #dplyr::mutate(run_id = row_number(), .before = ANALYSIS_ID) |>
   #     dplyr::select(-tidyselect::any_of(c("batch", "type"))) |>
   #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_name", values_to = "feature_norm_intensity")
@@ -528,21 +528,21 @@ read_analysisresults_long_format <- function(file, analysis_id_col = NULL, featu
 
 
 #' @title internal method to read excel sheets
-#' @param filename excel file name
+#' @param path excel file name
 #' @return tibble table
 #' @noRd
-.read_generic_excel <- function(filename, sheetname) {
-  nms <- names(readxl::read_excel(path = filename, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
+.read_generic_excel <- function(path, sheetname) {
+  nms <- names(readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
   n_col <- length(nms) - 1
   c_numeric <- rep("numeric", n_col)
   ct <- c("text", c_numeric)
   cat("c_numeric contains:", ct, "\n")
-  readxl::read_excel(path = filename, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
+  readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
 }
 
 
 #' @title internal method to read csv files
-#' @param filename csv file name
+#' @param path csv file name
 #' @return tibble table
 #' @noRd
 # TODO remove this test function

@@ -11,6 +11,20 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase) {
 }
 
 
+#https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
+get_tails = function(x) {
+  q1 = quantile(x,na.rm = TRUE)[2]
+  q3 = quantile(x,na.rm = TRUE)[4]
+  iqr = q3 -q1
+  upper = q3+1.5*iqr
+  lower = q1-1.5*iqr
+  if(length(x) == 1){return(x)} # will deal with abnormal marks at the periphery of the plot if there is one value only
+  ##Trim upper and lower
+  up = max(x[x < upper])
+  lo = min(x[x > lower])
+  return(c(lo, up))
+}
+
 
 # Flag outliers, based on Tukey’s IQR fences
 flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5){

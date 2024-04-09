@@ -1,7 +1,7 @@
 #' Writes all a data processing report to an EXCEL file
 #'
 #' @param data MidarExperiment object
-#' @param filename File name and path of the Excel file
+#' @param path File name and path of the Excel file
 #' @export
 #'
 #' @importFrom glue glue
@@ -11,10 +11,10 @@
 #' @importFrom utils packageVersion
 
 #'
-writeReportXLS <- function(data, filename) {
+writeReportXLS <- function(data, path) {
 
   if (!("feature_conc" %in% names(data@dataset))) stop("Variable '", "feature_conc",  "' does not (yet) exist in dataset")
-  if (!stringr::str_detect(filename, ".xlsx")) filename = paste0(filename, ".xlsx")
+  if (!stringr::str_detect(path, ".xlsx")) path = paste0(path, ".xlsx")
 
   d_intensity_wide <- data@dataset %>%
     dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
@@ -61,7 +61,7 @@ writeReportXLS <- function(data, filename) {
     "InternalStandards" = data@annot_istd,
     "BatchInfo" = data@annot_batches)
 
-  openxlsx::write.xlsx(x = table_list, file = filename, overwrite = TRUE )
+  openxlsx::write.xlsx(x = table_list, file = path, overwrite = TRUE )
 }
 
 
@@ -70,12 +70,12 @@ writeReportXLS <- function(data, filename) {
 #'
 #' @param data MidarExperiment object
 #' @param variable Variable to be exported
-#' @param filename File name with path of exported CSV file
+#' @param path File name with path of exported CSV file
 #' @importFrom glue glue
 #' @importFrom readr write_csv
 #' @importFrom tidyr pivot_wider
 #' @export
-exportWideCSV <- function(data, variable, filename) {
+exportWideCSV <- function(data, variable, path) {
 
   var <- dplyr::sym(variable)
 
@@ -85,7 +85,7 @@ exportWideCSV <- function(data, variable, filename) {
     dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", !!var) %>%
     tidyr::pivot_wider(names_from = .data$feature_name, values_from = !!var)
 
-  readr::write_csv(ds, file = filename, num_threads = 4, col_names = TRUE)
+  readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
   invisible(ds)
 
 }
@@ -94,17 +94,17 @@ exportWideCSV <- function(data, variable, filename) {
 #' Save the QC table to a CSV file
 #'
 #' @param data MidarExperiment object
-#' @param filename File name with path of exported CSV file
+#' @param path File name with path of exported CSV file
 #' @importFrom glue glue
 #' @importFrom readr write_csv
 #' @importFrom tidyr pivot_wider
 #' @export
 
-saveQCinfo <- function(data, filename) {
+saveQCinfo <- function(data, path) {
 
   if (nrow(data@metrics_qc)==0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
 
-  readr::write_csv(data@metrics_qc, file = filename, num_threads = 4, col_names = TRUE)
+  readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)
   invisible(data@metrics_qc)
 
 }

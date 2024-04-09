@@ -4,14 +4,14 @@
 \alias{exportWideCSV}
 \title{Export any parameter to a wide-format table}
 \usage{
-exportWideCSV(data, variable, filename)
+exportWideCSV(data, variable, path)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
 \item{variable}{Variable to be exported}
 
-\item{filename}{File name with path of exported CSV file}
+\item{path}{File name with path of exported CSV file}
 }
 \description{
 Export any parameter to a wide-format table
