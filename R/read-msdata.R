@@ -18,20 +18,20 @@
 #' @examples
 #' path_csvfile <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- import_data_masshunter(mexp, path_csvfile)
+#' mexp <- import_masshunter(mexp, path_csvfile)
 #' mexp
 
 #' @export
 
-import_data_masshunter <- function(data, path, file_format = "csv") {
+import_masshunter <- function(data, path, file_format = "csv") {
   if(file_format == "csv")
-    import_data_analysis(data, path, "read_masshunter_csv", "*.csv" )
+    import_analysis(data, path, "read_masshunter_csv", "*.csv" )
   else
     stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
 }
 
 
-import_data_analysis <- function(data, path, import_function, file_ext) {
+import_analysis <- function(data, path, import_function, file_ext) {
   if(!fs::is_dir(path))
     file_paths <- fs::path_tidy(path)
   else
@@ -338,8 +338,8 @@ read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = F
 #' @param path file path of MRMkit csv output with raw peak areas
 #' @return A tibble in the long format
 #' @export
-import_data_mrmkit <- function(data, path) {
-  import_data_analysis(data, path, "read_mrmkit_result", "*.tsv|*.csv")
+import_mrmkit <- function(data, path) {
+  import_analysis(data, path, "read_mrmkit_result", "*.tsv|*.csv")
 }
 
 
