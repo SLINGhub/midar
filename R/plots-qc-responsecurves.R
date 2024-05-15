@@ -170,3 +170,4 @@ plot_responsecurves <- function(data,
   if (return_plot_list)
     d_rqc_grp
 }
+

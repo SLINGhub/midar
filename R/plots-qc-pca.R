@@ -161,10 +161,10 @@ plot_pca_pairs <- function(data, variable, dim_range = c(1,8), log_transform = T
     plot_list[[j]] <- p + ggplot2::theme(legend.position = "none")
     j = j + 1
   }
-  lg <- cowplot::get_legend(plot_list[[1]] + theme(legend.position = legend_pos,
-                                                   legend.margin = ggplot2::margin(c(0,0,0,0))))
-  pl1 <- cowplot::plot_grid( plotlist = plot_list, ncol = ncol)
-  print(cowplot::plot_grid( pl1,lg, ncol = 1, rel_heights = c(1,0.2)))
+  # lg <- cowplot::get_legend(plot_list[[1]] + theme(legend.position = legend_pos,
+  #                                                  legend.margin = ggplot2::margin(c(0,0,0,0))))
+  # pl1 <- cowplot::plot_grid( plotlist = plot_list, ncol = ncol)
+  # print(cowplot::plot_grid( pl1,lg, ncol = 1, rel_heights = c(1,0.2)))
 }
 
 plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, top_n, text_size = 1, fill_alpha = 0.1){
