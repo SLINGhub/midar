@@ -72,14 +72,14 @@ correct_interferences <- function(data, variable = "feature_intensity")  {
 
   #ToDo: check if interering feature is in the feature list
   d_corrected_features <- data@dataset |>
-    mutate(is_interfering = .data$feature_name %in% data@annot_features$interfering_feature_name,
-           interference_group = if_else(.data$is_interfering, .data$feature_name, .data$interfering_feature_name)) |>
+    mutate(is_interfering = .data$feature_name %in% data@annot_features$interference_feature_name,
+           interference_group = if_else(.data$is_interfering, .data$feature_name, .data$interference_feature_name)) |>
     filter(!is.na(.data$interference_group)) |>
-    arrange(desc(.data$interfering_feature_name)) |>
+    arrange(desc(.data$interference_feature_name)) |>
     group_by(.data$analysis_id, .data$interference_group) |>
-    mutate(value_corr_interf = if_else(!.data$is_interfering & !is.na(.data$interfering_feature_name), .data$feature_intensity_raw - .data$feature_intensity_raw[.data$is_interfering] * .data$interference_proportion, NA_real_),
+    mutate(value_corr_interf = if_else(!.data$is_interfering & !is.na(.data$interference_feature_name), .data$feature_intensity_raw - .data$feature_intensity_raw[.data$is_interfering] * .data$interference_proportion, NA_real_),
            corrected_interference = TRUE) |>
-    select("analysis_id", "feature_name", "interfering_feature_name", "is_interfering", "interference_group", "feature_intensity", "interference_proportion", "value_corr_interf", "corrected_interference") |>
+    select("analysis_id", "feature_name", "interference_feature_name", "is_interfering", "interference_group", "feature_intensity", "interference_proportion", "value_corr_interf", "corrected_interference") |>
     filter(!.data$is_interfering) |>
     ungroup()
 
@@ -90,7 +90,7 @@ correct_interferences <- function(data, variable = "feature_intensity")  {
     select(!"value_corr_interf", !"corrected_interference.x", !"corrected_interference.y")
 
   data@is_isotope_corr <- TRUE
-  n_corr <- data@annot_features |> filter(!is.na(.data$interfering_feature_name)) |> nrow()
+  n_corr <- data@annot_features |> filter(!is.na(.data$interference_feature_name)) |> nrow()
   writeLines(crayon::green(glue::glue("\u2713 Interference/isotope corection has been applied to {n_corr} of {nrow(data@annot_features)} features.")))
 
   data

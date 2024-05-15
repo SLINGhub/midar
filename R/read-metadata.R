@@ -81,7 +81,7 @@ import_metadata_msorganizer <- function(data, path, analysis_sequence = "default
                         dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen" ,"sample_id", "replicate_no", "valid_analysis", "batch_id"), by = c("raw_data_filename")) %>%
     dplyr::inner_join(d_annot$annot_features %>%
                         filter(.data$valid_integration) |>
-                        dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interfering_feature_name", "interference_proportion"))),
+                        dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interference_feature_name", "interference_proportion"))),
                       by = c("feature_name"), keep = FALSE)
 
   data@dataset <-
