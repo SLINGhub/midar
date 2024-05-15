@@ -26,7 +26,6 @@ test_that("Orders samples according to parameter analysis_sequence", {
                                              path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
                                              excl_unannotated_analyses = FALSE)
   expect_equal(mexp@dataset[1,] |> pull("analysis_id"), "020_SPL_S001")
-
 })
 
 
@@ -45,7 +44,6 @@ test_that("Orders samples in daraset without timestamp field according to parame
                                              analysis_sequence = "timestamp",
                                              excl_unannotated_analyses = FALSE),
                regexp = "No acquisition timestamp field present")
-
 })
 
 test_that("Orders features by default according to order in metadata", {
