@@ -1,5 +1,7 @@
 # midar (development version)
 
+# midar 0.1.2
+
 # midar 0.1.1
 
 # midar 0.1.0.0000
