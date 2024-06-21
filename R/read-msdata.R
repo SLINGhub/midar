@@ -91,7 +91,7 @@ import_analysis <- function(data, path, import_function, file_ext) {
 #' @return A tibble with the parse results in the long format
 #' @export
 
-read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = FALSE) {
+read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE) {
 
   #if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
   # if (shiny::isRunning())
@@ -119,14 +119,19 @@ read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = F
   datWide[2, ] <- lapply(datWide[2, ], \ (y) gsub("/", "", y))
 
 
+
   datWide <- datWide |> dplyr::add_row(.after = 1)
 
   if(datWide[1, 1] != "Sample") stop("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
 
   feature_name_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1,] |> unlist() |> dplyr::na_if(""))
 
+
+
   int_quantifiers <- NULL
 
+
+  browser()
 
   # if parameter set, then use prefix the feature name and modify the qualifier name
   if (!expand_qualifier_names) {
@@ -144,6 +149,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = F
       mutate(`_prefixXXX_` = paste0(.data$`_prefixXXX_`, " ", .data$temp)) |>
       select(!"temp")
   }
+
 
   datWide[1, ] <- feature_name_tbl |> unlist() |> as.list()
 
@@ -169,6 +175,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = FALSE, silent = F
   colnames(datWide) <- paste(datWide[2, ], datWide[1, ], sep = "\t")
   datWide <- datWide[-1:-2, ]
 
+  browser()
   # prefix columns from Method and Results Group
   datWide <- datWide |>
     dplyr::rename_with(.fn = ~ stringr::str_c("Method_",.x), .cols = dplyr::ends_with(" Method")) |>
