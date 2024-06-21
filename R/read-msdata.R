@@ -36,7 +36,8 @@ import_analysis <- function(data, path, import_function, file_ext) {
     file_paths <- fs::path_tidy(path)
   else
     file_paths <- fs::dir_ls(path, glob = file_ext)
-  #browser()
+
+
   if(!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
   if(any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
 
@@ -131,7 +132,6 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   int_quantifiers <- NULL
 
 
-  browser()
 
   # if parameter set, then use prefix the feature name and modify the qualifier name
   if (!expand_qualifier_names) {
@@ -175,7 +175,6 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   colnames(datWide) <- paste(datWide[2, ], datWide[1, ], sep = "\t")
   datWide <- datWide[-1:-2, ]
 
-  browser()
   # prefix columns from Method and Results Group
   datWide <- datWide |>
     dplyr::rename_with(.fn = ~ stringr::str_c("Method_",.x), .cols = dplyr::ends_with(" Method")) |>
