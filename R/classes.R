@@ -9,7 +9,6 @@ pkg.env$dataset_templates <- list(
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
   ),
-
   dataset_template = tibble::tibble(
     "run_id" = integer(),
     "analysis_id" = character(),
@@ -29,10 +28,9 @@ pkg.env$dataset_templates <- list(
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
   ),
-
   annot_analyses_template = tibble::tibble(
     "analysis_id" = character(),
-    "raw_data_filename"= character(),
+    "raw_data_filename" = character(),
     "sample_id" = character(),
     "qc_type" = factor(),
     "replicate_no" = integer(),
@@ -75,18 +73,16 @@ pkg.env$dataset_templates <- list(
     "id_batch_start" = numeric(),
     "id_batch_end" = numeric()
   ),
-
   parameters_processing_template = tibble::tibble(
     "parameter_name" = character()
   )
-
-
 )
 
 pkg.env$qc_type_annotation <- list(
-  qc_type_levels = c("SBLK", "TBLK", "UBLK", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
-                     "LTR", "PBLK", "SPL", "SST", "MBLK"),
-
+  qc_type_levels = c(
+    "SBLK", "TBLK", "UBLK", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
+    "LTR", "PBLK", "SPL", "SST", "MBLK"
+  ),
   qc_type_col = c(
     "SBLK" = "#1854f9",
     "TBLK" = "#db0202",
@@ -101,8 +97,8 @@ pkg.env$qc_type_annotation <- list(
     "PBLK" = "#08c105",
     "SPL" = "#8e9b9e",
     "SST" = "#bafc03",
-    "MBLK" = "black"),
-
+    "MBLK" = "black"
+  ),
   qc_type_fillcol = c(
     "SBLK" = "#f891ff",
     "TBLK" = "#fffb03",
@@ -117,8 +113,8 @@ pkg.env$qc_type_annotation <- list(
     "PBLK" = "#08c105",
     "SPL" = "NA",
     "SST" = "#aaaeaf",
-    "MBLK" = "black"),
-
+    "MBLK" = "black"
+  ),
   qc_type_shape = c(
     "SBLK" = 23,
     "TBLK" = 23,
@@ -133,7 +129,8 @@ pkg.env$qc_type_annotation <- list(
     "PBLK" = 23,
     "SPL" = 21,
     "SST" = 10,
-    "MBLK" = 10)
+    "MBLK" = 10
+  )
 )
 
 # allow S4 to see the class tbl_df
@@ -176,50 +173,50 @@ setOldClass(c("tbl_df", "tbl", "data.frame"))
 #' @importFrom tibble tibble
 
 setClass("MidarExperiment",
-         slots = c(
-           analysis_type = "character",
-           dataset_orig = "tbl_df",
-           dataset = "tbl_df",
-           dataset_filtered = "tbl_df",
-           annot_analyses = "tbl_df",
-           annot_features = "tbl_df",
-           annot_istd = "tbl_df",
-           annot_responsecurves= "tbl_df",
-           annot_studysamples = "tbl_df",
-           annot_batches = "tbl_df",
-           metrics_qc = "tbl_df",
-           parameters_processing = "tbl_df",
-           status_processing = "character",
-           is_istd_normalized = "logical",
-           is_quantitated = "logical",
-           is_drift_corrected = "logical",
-           is_batch_corrected = "logical",
-           has_outliers_tech = "logical",
-           is_isotope_corr = "logical",
-           excl_outliers_tech = "logical"
-         ),
-         prototype = list(
-           analysis_type = "",
-           dataset_orig = pkg.env$dataset_templates$annot_analyses_template,
-           dataset = pkg.env$dataset_templates$annot_analyses_template,
-           dataset_filtered = pkg.env$dataset_templates$annot_analyses_template,
-           annot_analyses = pkg.env$dataset_templates$annot_analyses_template,
-           annot_features = pkg.env$dataset_templates$annot_features_template,
-           annot_istd = pkg.env$dataset_templates$annot_istd_template,
-           annot_responsecurves= pkg.env$dataset_templates$annot_responsecurves_template,
-           annot_studysamples = tibble::tibble(),
-           annot_batches = tibble::tibble(),
-           metrics_qc = tibble::tibble(),
-           parameters_processing = pkg.env$dataset_templates$parameters_processing_template,
-           status_processing = "No Data",
-           is_istd_normalized = FALSE,
-           is_quantitated = FALSE,
-           is_drift_corrected = FALSE,
-           is_batch_corrected = FALSE,
-           has_outliers_tech = FALSE,
-           is_isotope_corr = FALSE,
-           excl_outliers_tech = FALSE
-         )
+  slots = c(
+    analysis_type = "character",
+    dataset_orig = "tbl_df",
+    dataset = "tbl_df",
+    dataset_filtered = "tbl_df",
+    annot_analyses = "tbl_df",
+    annot_features = "tbl_df",
+    annot_istd = "tbl_df",
+    annot_responsecurves = "tbl_df",
+    annot_studysamples = "tbl_df",
+    annot_batches = "tbl_df",
+    metrics_qc = "tbl_df",
+    parameters_processing = "tbl_df",
+    status_processing = "character",
+    is_istd_normalized = "logical",
+    is_quantitated = "logical",
+    is_drift_corrected = "logical",
+    is_batch_corrected = "logical",
+    has_outliers_tech = "logical",
+    is_isotope_corr = "logical",
+    excl_outliers_tech = "logical"
+  ),
+  prototype = list(
+    analysis_type = "",
+    dataset_orig = pkg.env$dataset_templates$annot_analyses_template,
+    dataset = pkg.env$dataset_templates$annot_analyses_template,
+    dataset_filtered = pkg.env$dataset_templates$annot_analyses_template,
+    annot_analyses = pkg.env$dataset_templates$annot_analyses_template,
+    annot_features = pkg.env$dataset_templates$annot_features_template,
+    annot_istd = pkg.env$dataset_templates$annot_istd_template,
+    annot_responsecurves = pkg.env$dataset_templates$annot_responsecurves_template,
+    annot_studysamples = tibble::tibble(),
+    annot_batches = tibble::tibble(),
+    metrics_qc = tibble::tibble(),
+    parameters_processing = pkg.env$dataset_templates$parameters_processing_template,
+    status_processing = "No Data",
+    is_istd_normalized = FALSE,
+    is_quantitated = FALSE,
+    is_drift_corrected = FALSE,
+    is_batch_corrected = FALSE,
+    has_outliers_tech = FALSE,
+    is_isotope_corr = FALSE,
+    excl_outliers_tech = FALSE
+  )
 )
 
 #' Constructor for the MidarExperiment object.
@@ -262,41 +259,42 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 })
 
 
-check_integrity <-  function(object, excl_unannotated_analyses) {
-
+check_integrity <- function(object, excl_unannotated_analyses) {
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
     d_xy <- length(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename))
-    d_yx <- length(setdiff(object@annot_analyses$raw_data_filename,object@dataset_orig$raw_data_filename %>% unique()))
-    if(d_xy > 0){
-      if(d_xy == length(object@dataset_orig$raw_data_filename %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
-        if(!excl_unannotated_analyses){
-        if (d_xy < 50){
+    d_yx <- length(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()))
+    if (d_xy > 0) {
+      if (d_xy == length(object@dataset_orig$raw_data_filename %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
+      if (!excl_unannotated_analyses) {
+        if (d_xy < 50) {
           writeLines(glue::glue(""))
           stop(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")}"))
-        } else
-          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
         } else {
-            writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
+          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
         }
-      } else if(d_yx > 0) {
-        if (d_yx < 50)
-          writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()), collapse = ", ")}"))
-        else
-          writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
-        stop(glue::glue(""))
       } else {
+        writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
+      }
+    } else if (d_yx > 0) {
+      if (d_yx < 50) {
+        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()), collapse = ", ")}"))
+      } else {
+        writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
+      }
+      stop(glue::glue(""))
+    } else {
       object@status_processing <- "DataMetadataLoaded"
       TRUE
-      }
+    }
   }
 }
 
 ##' @importFrom methods setValidity
 ##'
-#methods::setValidity("MidarExperiment")
+# methods::setValidity("MidarExperiment")
 
 
-get_status_flag <- function(x) if_else(x, crayon::green$bold('\u2713'), crayon::red$bold('\u2717'))
+get_status_flag <- function(x) if_else(x, crayon::green$bold("\u2713"), crayon::red$bold("\u2717"))
 
 
 
@@ -308,55 +306,50 @@ get_status_flag <- function(x) if_else(x, crayon::green$bold('\u2713'), crayon::
 #' @param x MidarExperiment object
 #' @param name MidarExperiment slot
 #' @examples
-#' mexp = MidarExperiment()
+#' mexp <- MidarExperiment()
 #' mexp$analysis_type
 #' mexp$annot_analyses
 #' @importFrom methods slot
 #' @export
-setMethod(f = "$",
+setMethod(
+  f = "$",
   signature = c("MidarExperiment"),
-  definition = function(x,name) {
-
-  # check for other struct slots
-  valid=c('analysis_type','dataset','annot_analyses', 'annot_features', 'annot_istd', 'metrics_qc', 'annot_batches', 'dataset_filtered', 'is_istd_normalized')
-  if (!name %in% valid) stop('"', name, '" is not valid for this object: ', class(x)[1])
-  methods::slot(x,name)
+  definition = function(x, name) {
+    # check for other struct slots
+    valid <- c("analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized")
+    if (!name %in% valid) stop('"', name, '" is not valid for this object: ', class(x)[1])
+    methods::slot(x, name)
   }
 )
 
 
 
 setMethod("show", "MidarExperiment", function(object) {
-  cat("\n", is(object)[[1]], "\n",
-      "\n",
-      "  Processing status: ",object@status_processing, "\n",
-      "\n",
-      "  Data: ", "\n",
-      "  \u2022 Samples: ", length(unique(object@dataset$analysis_id)), "\n",
-      "  \u2022 Features:  ", length(unique(object@dataset$feature_name)), "\n",
-      "\n",
-      "  Metadata: ", "\n",
-      "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses) > 0), "\n",
-      "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features) > 0), "\n",
-      "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd) > 0), "\n",
-      "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves) > 0), "\n",
-      "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples) > 0), "\n",
-      "\n",
-      "  Processing: ", "\n",
-      "  \u2022 Isotope corrected: ", get_status_flag(object@is_isotope_corr), "\n",
-      "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
-      "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
-      "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
-      "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n",
-      "\n",
-      "  Outliers: ", "\n",
-      "  \u2022 Technical Outliers detected ", get_status_flag(object@has_outliers_tech), "\n",
-      "  \u2022 Technical Outliers excluded from filtered data ", get_status_flag(object@excl_outliers_tech), "\n"
+  cat(
+    "\n", is(object)[[1]], "\n",
+    "\n",
+    "  Processing status: ", object@status_processing, "\n",
+    "\n",
+    "  Data: ", "\n",
+    "  \u2022 Samples: ", length(unique(object@dataset$analysis_id)), "\n",
+    "  \u2022 Features:  ", length(unique(object@dataset$feature_name)), "\n",
+    "\n",
+    "  Metadata: ", "\n",
+    "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses) > 0), "\n",
+    "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features) > 0), "\n",
+    "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd) > 0), "\n",
+    "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves) > 0), "\n",
+    "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples) > 0), "\n",
+    "\n",
+    "  Processing: ", "\n",
+    "  \u2022 Isotope corrected: ", get_status_flag(object@is_isotope_corr), "\n",
+    "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
+    "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
+    "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
+    "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n",
+    "\n",
+    "  Outliers: ", "\n",
+    "  \u2022 Technical Outliers detected ", get_status_flag(object@has_outliers_tech), "\n",
+    "  \u2022 Technical Outliers excluded from filtered data ", get_status_flag(object@excl_outliers_tech), "\n"
   )
 })
-
-
-
-
-
-
