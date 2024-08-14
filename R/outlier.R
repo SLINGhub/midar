@@ -1,4 +1,3 @@
-
 #' Get list of analyses classified as technical outliers
 #'
 #' @description
@@ -21,72 +20,71 @@
 #' @export
 
 analysis_outlier_detection <- function(data,
-                                  variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
-                                  summarize_fun = c("pca", "rma"),
-                                  outlier_detection = c("sd", "mad"),
-                                  fence_multiplicator,
-                                  pca_component,
-                                  log_transform = TRUE,
-                                  print_outliers = TRUE)
-{
-
-
+                                       variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+                                       summarize_fun = c("pca", "rma"),
+                                       outlier_detection = c("sd", "mad"),
+                                       fence_multiplicator,
+                                       pca_component,
+                                       log_transform = TRUE,
+                                       print_outliers = TRUE) {
   variable <- rlang::arg_match(variable)
   summarize_fun <- rlang::arg_match(summarize_fun)
   outlier_detection <- rlang::arg_match(outlier_detection)
 
   variable_s <- rlang::sym(variable)
-  pc_x = rlang::sym(paste0(".fittedPC",pca_component))
+  pc_x <- rlang::sym(paste0(".fittedPC", pca_component))
 
-  if(summarize_fun == "rma") stop("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
+  if (summarize_fun == "rma") stop("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
 
-  d_wide <- data@dataset_filtered  |>
+  d_wide <- data@dataset_filtered |>
     filter(.data$qc_type %in% c("BQC", "TQC", "SPL")) |>
     filter(!.data$is_istd) |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{variable}})
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }})
 
   d_filt <- d_wide |>
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{variable}})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
 
-  m_raw <- d_filt  |>
+  m_raw <- d_filt |>
     tibble::column_to_rownames("analysis_id") |>
-    dplyr::select(where(~!any(is.na(.)))) |>
+    dplyr::select(where(~ !any(is.na(.)))) |>
     as.matrix()
 
-  if(log_transform) m_raw <- log2(m_raw)
+  if (log_transform) m_raw <- log2(m_raw)
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
 
-  d_metadata <- d_wide  %>% dplyr::select("analysis_id", "qc_type", "batch_id") |> dplyr::distinct()
+  d_metadata <- d_wide %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id") |>
+    dplyr::distinct()
   pca_annot <- pca_res |> broom::augment(d_metadata)
 
-  if(summarize_fun == "sd"){
-    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (mean(.data$.fittedPC1 ) + fence_multiplicator * sd(.data$.fittedPC1 )) |
-                                     .data$.fittedPC1 < (mean(.data$.fittedPC1 ) - fence_multiplicator * sd(.data$.fittedPC1 )))
-
+  if (summarize_fun == "sd") {
+    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (mean(.data$.fittedPC1) + fence_multiplicator * sd(.data$.fittedPC1)) |
+      .data$.fittedPC1 < (mean(.data$.fittedPC1) - fence_multiplicator * sd(.data$.fittedPC1)))
   } else {
-    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (median(.data$.fittedPC1 ) + fence_multiplicator * mad(.data$.fittedPC1 )) |
-                                       .data$.fittedPC1 < (median(.data$.fittedPC1 ) - fence_multiplicator * mad(.data$.fittedPC1 )))
+    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (median(.data$.fittedPC1) + fence_multiplicator * mad(.data$.fittedPC1)) |
+      .data$.fittedPC1 < (median(.data$.fittedPC1) - fence_multiplicator * mad(.data$.fittedPC1)))
   }
 
 
-  if(nrow(d_outlier) > 0) {
+  if (nrow(d_outlier) > 0) {
     data@dataset <- data@dataset |>
-      mutate(outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
-             outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_))
+      mutate(
+        outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
+        outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
+      )
 
     data@has_outliers_tech <- TRUE
     data@excl_outliers_tech <- TRUE
-    data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_id < 0) #Todo: check if (still neeeded)
+    data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_id < 0) # Todo: check if (still neeeded)
   }
 
-  if(print_outliers){
+  if (print_outliers) {
     writeLines(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 80, last = ", and "))
-   }
+  }
 
   writeLines(crayon::green(glue::glue("\u2713 {nrow(d_outlier)} analyses/samples were classified as technical outlier(s). Please (re)apply 'apply_qc_filter()' and use 'clear_outlier()' to clear all outlier classifications. \n")))
 
   data
-
 }
 
 #' Clear all analysis/sample outlier classifications
@@ -96,7 +94,7 @@ analysis_outlier_detection <- function(data,
 #' @return MidarExperiment object
 #'
 #' @export
-clear_outlier <- function(data){
+clear_outlier <- function(data) {
   data@dataset$outlier_technical <- FALSE
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE
