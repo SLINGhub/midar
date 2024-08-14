@@ -1,5 +1,3 @@
-
-
 # Define function to plot 1 page
 plot_responsecurves_page <- function(dataset,
                                      output_pdf,
@@ -11,38 +9,51 @@ plot_responsecurves_page <- function(dataset,
                                      point_size,
                                      line_width,
                                      text_scale_factor,
-                                     base_size){
-
+                                     base_size) {
   plot_var <- rlang::sym(response_variable)
-  ggplot2::ggplot(data = dataset,
-                  ggplot2::aes(x = .data$relative_sample_amount ,
-                               y = !!plot_var,
-                               color = .data$rqc_series_id)) +
-    ggpmisc::stat_poly_line(data = subset(dataset, dataset$relative_sample_amount<= (regr_max_percent/100)),
-                            ggplot2::aes(x = .data$relative_sample_amount ,
-                                         y  = !!plot_var,
-                                         color = .data$rqc_series_id),
-                            se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE ) +
+  ggplot2::ggplot(
+    data = dataset,
+    ggplot2::aes(
+      x = .data$relative_sample_amount,
+      y = !!plot_var,
+      color = .data$rqc_series_id
+    )
+  ) +
+    ggpmisc::stat_poly_line(
+      data = subset(dataset, dataset$relative_sample_amount <= (regr_max_percent / 100)),
+      ggplot2::aes(
+        x = .data$relative_sample_amount,
+        y = !!plot_var,
+        color = .data$rqc_series_id
+      ),
+      se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE
+    ) +
     ggpmisc::stat_poly_eq(
       ggplot2::aes(group = .data$rqc_series_id, label = ggplot2::after_stat(.data$rr.label)),
-      size = 2* text_scale_factor, rr.digits = 3, vstep = .1) +
-    #color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
-    ggplot2::scale_color_manual(values = c("#4575b4", "#91bfdb","#fc8d59",  "#d73027"))+
+      size = 2 * text_scale_factor, rr.digits = 3, vstep = .1
+    ) +
+    # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
+    ggplot2::scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
     ggplot2::scale_y_continuous(limits = c(0, NA)) +
-    ggplot2::scale_x_continuous(limits = c(0, NA),
-                                breaks = c(0,0.5,1,1.5,2,4),
-                                labels = scales::percent_format(accuracy = NULL))+
+    ggplot2::scale_x_continuous(
+      limits = c(0, NA),
+      breaks = c(0, 0.5, 1, 1.5, 2, 4),
+      labels = scales::percent_format(accuracy = NULL)
+    ) +
     ggh4x::facet_wrap2(
       ggplot2::vars(.data$feature_name),
       scales = "free",
       nrow = rows_page,
       ncol = columns_page,
-      trim_blank = FALSE) +
+      trim_blank = FALSE
+    ) +
     ggplot2::geom_point(size = point_size) +
-    ggplot2::xlab("Sample Amount (Relative to BQC/TQC)")+
+    ggplot2::xlab("Sample Amount (Relative to BQC/TQC)") +
     ggplot2::theme_light(base_size = base_size) +
-    ggplot2::theme(strip.text = ggplot2::element_text(size=9*text_scale_factor, face="bold"),
-                   strip.background = ggplot2::element_rect(size=0.0001,fill="#8C8C8C"))
+    ggplot2::theme(
+      strip.text = ggplot2::element_text(size = 9 * text_scale_factor, face = "bold"),
+      strip.background = ggplot2::element_rect(size = 0.0001, fill = "#8C8C8C")
+    )
 }
 
 
@@ -80,36 +91,37 @@ plot_responsecurves <- function(data,
                                 line_width = 1,
                                 text_scale_factor = 1,
                                 return_plot_list = FALSE, base_size = 7) {
-
   if (output_pdf & path == "") stop("Please define parameter `path`")
 
-  rows_page = rows_page
-  columns_page = columns_page
+  rows_page <- rows_page
+  columns_page <- columns_page
 
 
-  if(nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
+  if (nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
 
-  if (use_filt_data){
+  if (use_filt_data) {
     dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
-    if(nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+    if (nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
     dat_filt <- data@dataset %>% dplyr::ungroup()
   }
 
 
 
-  if(all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")){
-    if(length(feature_incl_filt) == 1)
+  if (all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")) {
+    if (length(feature_incl_filt) == 1) {
       dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
-    else
+    } else {
       dat_filt <- dat_filt |> dplyr::filter(.data$feature_name %in% feature_incl_filt)
+    }
   }
 
-  if(all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")){
-    if(length(feature_excl_filt) == 1)
+  if (all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")) {
+    if (length(feature_excl_filt) == 1) {
       dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))
-    else
+    } else {
       dat_filt <- dat_filt |> dplyr::filter(!.data$feature_name %in% feature_excl_filt)
+    }
   }
 
   d_rqc <- dat_filt |>
@@ -126,17 +138,17 @@ plot_responsecurves <- function(data,
       max(d_rqc$relative_sample_amount * 100),
       regr_max_percent
     )
-  #browser()
+  # browser()
   d_rqc_grp <- d_rqc %>%
     dplyr::left_join(tibble::tibble(feature_name = unique(d_rqc$feature_name)) |>
-                       mutate(grp = ceiling(
-                         row_number() / (rows_page * columns_page)
-                       )), by = "feature_name") %>%
+      mutate(grp = ceiling(
+        row_number() / (rows_page * columns_page)
+      )), by = "feature_name") %>%
     dplyr::group_by(.data$grp) %>%
     tidyr::nest() %>%
     dplyr::mutate(plt = purrr::map(
       data,
-      function(x)
+      function(x) {
         plot_responsecurves_page(
           dataset = x,
           output_pdf = output_pdf,
@@ -150,14 +162,16 @@ plot_responsecurves <- function(data,
           text_scale_factor = text_scale_factor,
           base_size = base_size
         )
+      }
     ))
 
   # Print pages
-  #browser()
+  # browser()
   if (!output_pdf) {
-    if (!return_plot_list)
+    if (!return_plot_list) {
       d_rqc_grp$plt
-  } else{
+    }
+  } else {
     pdf(
       file = path,
       onefile = TRUE,
@@ -167,7 +181,7 @@ plot_responsecurves <- function(data,
     print(d_rqc_grp$plt)
     dev.off()
   }
-  if (return_plot_list)
+  if (return_plot_list) {
     d_rqc_grp
+  }
 }
-
