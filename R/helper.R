@@ -1,40 +1,47 @@
+min_val <- function(x, na.rm = FALSE){
+  if_else(all(is.na(x) | is.nan(x)), NA, min(x, na.rm))
+}
 
+max_val <- function(x, na.rm = FALSE){
+  if_else(all(is.na(x) | is.nan(x)), NA, max(x, na.rm))
+}
 
 add_missing_column <- function(data, col_name, init_value, make_lowercase) {
-  if (!tolower(col_name) %in% tolower(names(data)))
-    data |> tibble::add_column({{col_name}}:= init_value)
-  else
-  {
-    if(make_lowercase) data <- data |>  dplyr::rename_with(tolower, dplyr::matches(c(col_name), ignore.case = TRUE))
+  if (!tolower(col_name) %in% tolower(names(data))) {
+    data |> tibble::add_column({{ col_name }} := init_value)
+  } else {
+    if (make_lowercase) data <- data |> dplyr::rename_with(tolower, dplyr::matches(c(col_name), ignore.case = TRUE))
     data
   }
 }
 
 
-#https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
-get_tails = function(x) {
-  q1 = quantile(x,na.rm = TRUE)[2]
-  q3 = quantile(x,na.rm = TRUE)[4]
-  iqr = q3 -q1
-  upper = q3+1.5*iqr
-  lower = q1-1.5*iqr
-  if(length(x) == 1){return(x)} # will deal with abnormal marks at the periphery of the plot if there is one value only
-  ##Trim upper and lower
-  up = max(x[x < upper])
-  lo = min(x[x > lower])
+# https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
+get_tails <- function(x) {
+  q1 <- quantile(x, na.rm = TRUE)[2]
+  q3 <- quantile(x, na.rm = TRUE)[4]
+  iqr <- q3 - q1
+  upper <- q3 + 1.5 * iqr
+  lower <- q1 - 1.5 * iqr
+  if (length(x) == 1) {
+    return(x)
+  } # will deal with abnormal marks at the periphery of the plot if there is one value only
+  ## Trim upper and lower
+  up <- max(x[x < upper])
+  lo <- min(x[x > lower])
   return(c(lo, up))
 }
 
 
 # Flag outliers, based on Tukey’s IQR fences
-flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5){
+flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
   data <- data |>
     group_by(.data$ceramideName, .data$SampleType) %>%
     mutate(
       IQR_sp = IQR(.data$C_SinglePoint_mean, na.rm = TRUE),
       Q1_sp = quantile(.data$C_SinglePoint_mean, 0.25, na.rm = TRUE),
       Q3_sp = quantile(.data$C_SinglePoint_mean, 0.75, na.rm = TRUE),
-      Outlier_sp = !dplyr::between(.data$C_SinglePoint_mean,(.data$Q1_sp - limit_iqr * .data$IQR_sp),(.data$Q3_sp + limit_iqr * .data$IQR_sp)),
+      Outlier_sp = !dplyr::between(.data$C_SinglePoint_mean, (.data$Q1_sp - limit_iqr * .data$IQR_sp), (.data$Q3_sp + limit_iqr * .data$IQR_sp)),
     ) |>
     ungroup()
   data
@@ -45,9 +52,7 @@ flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5){
 
 FacetEqualWrap <- ggplot2::ggproto(
   "FacetEqualWrap", FacetWrap,
-
   train_scales = function(self, x_scales, y_scales, layout, data, params) {
-
     # doesn't make sense if there is not an x *and* y scale
     if (is.null(x_scales) || is.null(x_scales)) {
       stop("X and Y scales required for facet_equal_wrap")
@@ -69,7 +74,6 @@ FacetEqualWrap <- ggplot2::ggproto(
       SCALE_Y <- layout$SCALE_Y[match_id]
       ggplot2:::scale_apply(layer_data, x_vars, "train", SCALE_Y, y_scales)
     }
-
   }
 )
 #' @importFrom ggplot2 ggproto
@@ -78,7 +82,7 @@ facet_wrap_equal <- function(...) {
   facet_super <- facet_wrap(...)
 
   ggplot2::ggproto(NULL, FacetEqualWrap,
-          shrink = facet_super$shrink,
-          params = facet_super$params
+    shrink = facet_super$shrink,
+    params = facet_super$params
   )
 }
