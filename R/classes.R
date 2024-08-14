@@ -5,6 +5,7 @@ pkg.env$dataset_templates <- list(
   dataset_orig_template = tibble::tibble(
     "raw_data_filename" = character(),
     "acquisition_time_stamp" = as.Date(character()),
+    "inj_volume" = numeric(),
     "feature_intensity" = numeric(),
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
