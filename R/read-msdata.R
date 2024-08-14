@@ -1,6 +1,6 @@
 #' @title Imports an Agilent MassHunter Quant CSV file
 #' @description
-#' Imports .csv file(s) exported from `Agilent MassHunter (MH) Quantitative Analysis` containing peak integration results.
+#' Imports .csv file(s) exported from `Agilent MassHunter (MH) Quantitative Anal  ysis` containing peak integration results.
 #' Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
 #' Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the `MidarExperiment` object for downstream analyses.
 #'
@@ -24,60 +24,65 @@
 #' @export
 
 import_masshunter <- function(data, path, file_format = "csv") {
-  if(file_format == "csv")
-    import_analysis(data, path, "read_masshunter_csv", "*.csv" )
-  else
+  if (file_format == "csv") {
+    import_analysis(data, path, "read_masshunter_csv", "*.csv")
+  } else {
     stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
+  }
 }
 
 
 import_analysis <- function(data, path, import_function, file_ext) {
-  if(!fs::is_dir(path))
+  if (!fs::is_dir(path)) {
     file_paths <- fs::path_tidy(path)
-  else
+  } else {
     file_paths <- fs::dir_ls(path, glob = file_ext)
+  }
 
 
-  if(!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
-  if(any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
+  if (!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
+  if (any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
 
   names(file_paths) <- file_paths
 
   # d_temp <- file_paths  |>
   #   map_dfr(read_masshunter_csv, .id = "data_source")
 
-  d_temp <- file_paths  |>
-    map_dfr(.f = \(x) do.call(import_function, list(x)), .id = "data_source")
+  d_temp <- file_paths |>
+    purrr::map_dfr(.f = \(x) do.call(import_function, list(x)), .id = "data_source")
 
 
   # Test if analysis_ids (=raw_data_filename), feature_names, and values are replicated
-  if(nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = FALSE))){
+  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = FALSE))) {
     has_duplicated_id <- TRUE
-    if(nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = TRUE)))
+    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = TRUE))) {
       has_duplicated_id_values <- TRUE
-    else
+    } else {
       has_duplicated_id_values <- FALSE
+    }
   } else {
     has_duplicated_id <- FALSE
   }
 
-  if(has_duplicated_id)
-    if(has_duplicated_id_values)
+  if (has_duplicated_id) {
+    if (has_duplicated_id_values) {
       stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical intensity values. Please check dataset(s)."))
-  else
-    stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different intensity values.Please check dataset(s)."))
+    } else {
+      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different intensity values.Please check dataset(s)."))
+    }
+  }
 
 
 
   data@dataset_orig <- d_temp
 
-  data@dataset_orig <- data@dataset_orig %>% dplyr::rename(feature_intensity = "feature_area")
+  data@dataset_orig <- data@dataset_orig |> dplyr::rename(feature_intensity = "feature_area")
   # TODO: excl_unannotated_analyses below
 
 
 
   check_integrity(data, excl_unannotated_analyses = FALSE)
-  #stopifnot(methods::validObject(data))
+  # stopifnot(methods::validObject(data))
   data@status_processing <- "Raw Data"
   data
 }
@@ -93,8 +98,7 @@ import_analysis <- function(data, path, import_function, file_ext) {
 #' @export
 
 read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE) {
-
-  #if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
+  # if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
   # if (shiny::isRunning())
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
   #
@@ -108,30 +112,24 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
         trim_ws = TRUE,
         col_types = readr::cols(.default = "c"),
         locale = readr::locale(encoding = "UTF-8"),
-        progress = TRUE)
-    )
-  )
+        progress = TRUE
+      )
+  ))
   warnings_datWide <- readr::problems(datWide)
 
   # Remove text that is not required and remove dot chars that interfere later with the conversion wide to long
   # TODO: Convert to tidyverse functions
   datWide[2, ] <- lapply(datWide[2, ], \(y) gsub("\\. ", "", y))
   datWide[2, ] <- lapply(datWide[2, ], \(y) gsub("\\.", "", y))
-  datWide[2, ] <- lapply(datWide[2, ], \ (y) gsub("/", "", y))
+  datWide[2, ] <- lapply(datWide[2, ], \(y) gsub("/", "", y))
 
 
 
   datWide <- datWide |> dplyr::add_row(.after = 1)
 
-  if(datWide[1, 1] != "Sample") stop("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
+  if (datWide[1, 1] != "Sample") stop("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
 
-  feature_name_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1,] |> unlist() |> dplyr::na_if(""))
-
-
-
-  int_quantifiers <- NULL
-
-
+  feature_name_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
 
   # if parameter set, then use prefix the feature name and modify the qualifier name
   if (!expand_qualifier_names) {
@@ -151,17 +149,22 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   }
 
 
-  datWide[1, ] <- feature_name_tbl |> unlist() |> as.list()
+  datWide[1, ] <- feature_name_tbl |>
+    unlist() |>
+    as.list()
 
-  datWide[1, ] <- replace(datWide[1,], stringr::str_detect(string = datWide[1,] , pattern = "_prefixXXX_"),"")
-  datWide[2, ] <- replace(datWide[1,], !stringr::str_detect(string = datWide[1,] , pattern = "_prefixXXX_"),"")
+  datWide[1, ] <- replace(datWide[1, ], stringr::str_detect(string = datWide[1, ], pattern = "_prefixXXX_"), "")
+  datWide[2, ] <- replace(datWide[1, ], !stringr::str_detect(string = datWide[1, ], pattern = "_prefixXXX_"), "")
 
-  datWide[1, ] <- tibble::tibble(`_prefixXXX_` = datWide[1,] |> unlist() |> dplyr::na_if("")) |>  tidyr::fill("_prefixXXX_") |> unlist() |> as.list()
-
-
+  datWide[1, ] <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if("")) |>
+    tidyr::fill("_prefixXXX_") |>
+    unlist() |>
+    as.list()
 
   # Concatenate rows
-  datWide[1, ] <- paste(datWide[1, ], datWide[2, ], sep = " ") |> stringr::str_squish() |> as.list()
+  datWide[1, ] <- paste(datWide[1, ], datWide[2, ], sep = " ") |>
+    stringr::str_squish() |>
+    as.list()
   datWide <- datWide[-2, ]
 
 
@@ -177,8 +180,8 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   # prefix columns from Method and Results Group
   datWide <- datWide |>
-    dplyr::rename_with(.fn = ~ stringr::str_c("Method_",.x), .cols = dplyr::ends_with(" Method")) |>
-    dplyr::rename_with(.fn = ~ stringr::str_c("Results_",.x), .cols = dplyr::ends_with(" Results")) |>
+    dplyr::rename_with(.fn = ~ stringr::str_c("Method_", .x), .cols = dplyr::ends_with(" Method")) |>
+    dplyr::rename_with(.fn = ~ stringr::str_c("Results_", .x), .cols = dplyr::ends_with(" Results")) |>
     dplyr::rename_with(.fn = ~ stringr::str_remove(.x, " Method$| Results$"))
 
   if (expand_qualifier_names) datWide <- datWide |> dplyr::rename_with(.fn = ~ stringr::str_replace(.x, " Method \\[QUAL| Results \\[QUAL", " [QUAL"))
@@ -186,7 +189,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   # Rename some known column header names and remove columns that are not needed or not informative.
 
-  new_colnames = c(
+  new_colnames <- c(
     "raw_data_filename" = "Data File\tSample",
     "sample_name" = "Name\tSample",
     "acquisition_time_stamp" = "AcqDate-Time\tSample",
@@ -209,17 +212,17 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   datWide <- datWide |> dplyr::rename(dplyr::any_of(new_colnames))
 
   # TODO: check if all these are caught
-  if("message_quantitation" %in% names(datWide))  stop("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
-  if("compound_name" %in% names(datWide)) stop("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if(! "raw_data_filename" %in% names(datWide)) stop("Error parsing this Masshunter .csv file. The file may be in an unsupported format or corrupt. Please try re-export from Masshunter.")
-  if (nrow(warnings_datWide)> 0) stop("Unknown format, or data file is corrupt. Please try re-export from MH.")
+  if ("message_quantitation" %in% names(datWide)) stop("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
+  if ("compound_name" %in% names(datWide)) stop("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
+  if (!"raw_data_filename" %in% names(datWide)) stop("Error parsing this Masshunter .csv file. The file may be in an unsupported format or corrupt. Please try re-export from Masshunter.")
+  if (nrow(warnings_datWide) > 0) stop("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
     datWide[, !(names(datWide) %in% c("NA\tSample", "Level\tSample", "Sample"))]
   names(datWide) <- sub("\\\tSample", "", names(datWide))
 
   keep.cols <- names(datWide) %in% c("")
-  datWide <- datWide [!keep.cols]
+  datWide <- datWide[!keep.cols]
 
 
 
@@ -227,22 +230,26 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   datWide <- datWide |>
     dplyr::mutate(
-      dplyr::across(.cols = dplyr::any_of(c("acquisition_time_stamp")),
-                    .fns = \(x) lubridate::parse_date_time(x, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p"))),
-      dplyr::across(.cols = dplyr::any_of(c("sample_name")),
-                    .fns = stringr::str_squish)
+      dplyr::across(
+        .cols = dplyr::any_of(c("acquisition_time_stamp")),
+        .fns = \(x) lubridate::parse_date_time(x, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p"))
+      ),
+      dplyr::across(
+        .cols = dplyr::any_of(c("sample_name")),
+        .fns = stringr::str_squish
+      )
     )
 
   # obtain list with column names of the columns that define transition values (e.g. "RT Cer d16:0/18:0"). Delimuter is currently tab (\t)
   param_transition_names <-
-    colnames(datWide[, -1:-tail(grep("\\\t", colnames(datWide), invert =  TRUE), 1)])
+    colnames(datWide[, -1:-tail(grep("\\\t", colnames(datWide), invert = TRUE), 1)])
 
 
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide |>
     dplyr::mutate(file_run_id = dplyr::row_number(), .before = 1) |>
     tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_name")) |>
-    tidyr::pivot_wider(names_from = "Param" ,values_from = "value")
+    tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
   # Convert types of knows parameters and fields in the data set
 
@@ -267,7 +274,8 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
     "method_collision_energy" = "Method_Collision Energy",
     "method_fragmentor" = "Method_Fragmentor",
     "method_multiplier" = "Method_Multiplier",
-    "method_noise_raw_signal" = "Method_Noise of Raw Signal"
+    "method_noise_raw_signal" = "Method_Noise of Raw Signal",
+    "inj_volume" = "inj_volume"
   )
 
   new_int_colnames <- c(
@@ -297,25 +305,35 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   )
 
   datLong <- datLong |>
-    dplyr::rename(dplyr::any_of(c(new_numeric_colnames,new_int_colnames, new_logical_colnames, new_factor_colnames, new_char_colnames)))
+    dplyr::rename(dplyr::any_of(c(new_numeric_colnames, new_int_colnames, new_logical_colnames, new_factor_colnames, new_char_colnames)))
 
   # replace , with . for german systems
   datLong <- datLong |>
     dplyr::mutate(
-      dplyr::across(.cols = dplyr::any_of(names(new_numeric_colnames)),
-                    .fns = \(x) as.numeric(stringr::str_replace(x, ",", "."))),
-      dplyr::across(.cols = dplyr::any_of(names(new_int_colnames)),
-                    .fns = as.integer),
-      dplyr::across(.cols = dplyr::any_of(names(new_logical_colnames)),
-                    .fns = as.logical),
-      dplyr::across(.cols = dplyr::any_of(names(new_char_colnames)),
-                    .fns = as.character),
-      dplyr::across(.cols = dplyr::any_of(names(new_factor_colnames)),
-                    .fns = as.factor)
+      dplyr::across(
+        .cols = dplyr::any_of(names(new_numeric_colnames)),
+        .fns = \(x) as.numeric(stringr::str_replace(x, ",", "."))
+      ),
+      dplyr::across(
+        .cols = dplyr::any_of(names(new_int_colnames)),
+        .fns = as.integer
+      ),
+      dplyr::across(
+        .cols = dplyr::any_of(names(new_logical_colnames)),
+        .fns = as.logical
+      ),
+      dplyr::across(
+        .cols = dplyr::any_of(names(new_char_colnames)),
+        .fns = as.character
+      ),
+      dplyr::across(
+        .cols = dplyr::any_of(names(new_factor_colnames)),
+        .fns = as.factor
+      )
     ) |>
-  dplyr::mutate(raw_data_filename = stringr::str_replace(.data$raw_data_filename, "\\.d", "")) |>
-  dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
-  dplyr::relocate("sample_name", .after = "raw_data_filename")
+    dplyr::mutate(raw_data_filename = stringr::str_replace(.data$raw_data_filename, "\\.d", "")) |>
+    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
+    dplyr::relocate("sample_name", .after = "raw_data_filename")
 
 
   datLong <- datLong |>
@@ -325,12 +343,12 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
       .after = "feature_name"
     )
 
-  if(!silent){
-    if(!any(datLong$integration_qualifier))
+  if (!silent) {
+    if (!any(datLong$integration_qualifier)) {
       txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features \n")
-    else
-      if (any(datLong$integration_qualifier))
-        txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n")
+    } else if (any(datLong$integration_qualifier)) {
+      txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n")
+    }
 
     writeLines(crayon::green(txt))
   }
@@ -358,25 +376,28 @@ import_mrmkit <- function(data, path) {
 #' @export
 read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE) {
 
-  ext_file <-tolower(fs::path_ext(path))
+  ext_file <- tolower(fs::path_ext(path))
 
   sep <- case_when(
     ext_file == "csv" ~ "csv",
     ext_file == "tsv" ~ "\t",
-    TRUE ~ NA_character_)
+    TRUE ~ NA_character_
+  )
 
-  if(is.na(sep)) stop("Data file type/extension not supported. Please re-export results from MRMkit.")
+  if (is.na(sep)) stop("Data file type/extension not supported. Please re-export results from MRMkit.")
 
-  d_mrmkit_raw <- readr::read_delim(path, delim = sep, col_types = readr::cols(.default = "c"),
-                                    col_names = TRUE, trim_ws = TRUE)
+  d_mrmkit_raw <- readr::read_delim(path,
+    delim = sep, col_types = readr::cols(.default = "c"),
+    col_names = TRUE, trim_ws = TRUE
+  )
 
 
   # Extract MRMkit's "QC" info
   d_mrmkit_featureinfo <- d_mrmkit_raw |>
     dplyr::filter(.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
     tidyr::pivot_longer(-.data$name, names_to = "feature_name", values_to = "value") |>
-    tidyr::pivot_wider(names_from = "name" ,values_from = "value") |>
-    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")),.data$feature_name)) |>
+    tidyr::pivot_wider(names_from = "name", values_from = "value") |>
+    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")), .data$feature_name)) |>
     dplyr::rename(precursor_mz = .data$Q1, product_mz = .data$Q1) |>
     dplyr::mutate(dplyr::across(dplyr::any_of(c("precursor_mz", "product_mz", "RT")), as.numeric))
 
@@ -385,21 +406,20 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
     dplyr::mutate(file_run_id = dplyr::row_number(), .before = "name") |>
     tidyr::pivot_longer(-.data$file_run_id:-.data$name, names_to = "feature_name", values_to = "value") |>
-    dplyr::rename(raw_data_filename  = .data$name) |>
+    dplyr::rename(raw_data_filename = .data$name) |>
     dplyr::mutate(raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
     dplyr::mutate(raw_data_filename = stringr::str_squish(.data$raw_data_filename)) |>
-    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")),.data$feature_name)) |>
+    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")), .data$feature_name)) |>
     dplyr::mutate(dplyr::across(.data$value, as.numeric)) |>
     dplyr::left_join(d_mrmkit_featureinfo, by = "feature_name") |>
     dplyr::relocate(.data$value, .after = dplyr::last_col()) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
-  if(use_normalized_data){
+  if (use_normalized_data) {
     d_mrmkit_data <- d_mrmkit_data |>
       filter(str_detect(.data$raw_data_filename, "^norm_")) |>
       dplyr::rename(norm_intensity = "value")
-    }
-  else {
+  } else {
     d_mrmkit_data <- d_mrmkit_data |>
       filter(!str_detect(.data$raw_data_filename, "^norm_")) |>
       dplyr::rename(feature_area = "value")
@@ -407,7 +427,7 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
 
   names(d_mrmkit_data) <- tolower(names(d_mrmkit_data))
 
-  #sep <- if_else(fs::path_ext(final_results_file) == "csv", ",", "\t")
+  # sep <- if_else(fs::path_ext(final_results_file) == "csv", ",", "\t")
 
   # if (final_results_file !=""){
   #   d_results <- readr::read_delim(final_results_file, delim = sep, col_names = TRUE, trim_ws = TRUE, progress = TRUE, show_col_types = FALSE) |>
@@ -422,9 +442,9 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
   #
   # }
 
-  if(!silent){
-        txt <- glue::glue("\u2713 Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_name))} features \n")
-        writeLines(crayon::green(txt))
+  if (!silent) {
+    txt <- glue::glue("\u2713 Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_name))} features \n")
+    writeLines(crayon::green(txt))
   }
 
   d_mrmkit_data
@@ -446,7 +466,6 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
 #' @export
 #'
 read_analysisresult_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
-
   value_type <- match.arg(value_type)
 
   value_type <- dplyr::case_match(
@@ -464,26 +483,26 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
     .default = NULL
   )
 
-  var_value_type<- rlang::ensym(value_type)
+  var_value_type <- rlang::ensym(value_type)
   ext <- fs::path_ext(file)
 
-  if(ext == "csv"){
+  if (ext == "csv") {
     d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE, na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."), col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
-  } else if(ext == "xls" | ext == "xlsx"| ext == "xlm"| ext == "xlmx"){
-    if(sheet == "") stop("Please define sheet name via the `sheet` parameter")
-    #nms <- names(readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
-    #ct <- c("text", rep("numeric",length(nms)-1))
-    #d <- readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
+  } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
+    if (sheet == "") stop("Please define sheet name via the `sheet` parameter")
+    # nms <- names(readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
+    # ct <- c("text", rep("numeric",length(nms)-1))
+    # d <- readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
     d <- .read_generic_excel(file, sheet)
   } else {
     stop("Invalid file format. Only CSV, XLS and XLSX supported.")
   }
 
   d |>
-    dplyr::mutate(run_id = dplyr::row_number(),.before = 1) |>
-    tidyr::pivot_longer(cols = -1:-2, names_to = "feature_name" , values_to = value_type) |>
+    dplyr::mutate(run_id = dplyr::row_number(), .before = 1) |>
+    tidyr::pivot_longer(cols = -1:-2, names_to = "feature_name", values_to = value_type) |>
     dplyr::rename(analysis_id = 2) |>
-    mutate({{value_type}} := as.numeric(!!var_value_type))
+    mutate({{ value_type }} := as.numeric(!!var_value_type))
 }
 
 
@@ -499,8 +518,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 #' @return A tibble in the long format
 #' @export
 read_analysisresults_long_format <- function(file, analysis_id_col = NULL, feature_name_col = NULL, silent = FALSE) {
-
-  analysis_inf_cols = c(
+  analysis_inf_cols <- c(
     "analysis_id",
     "raw_data_filename",
     "feature_name",
@@ -510,7 +528,8 @@ read_analysisresults_long_format <- function(file, analysis_id_col = NULL, featu
     "vial_position",
     "inj_volume",
     "sample_type",
-    "run_id")
+    "run_id"
+  )
 
   quant_cols <- c(
     "feature_area",
@@ -519,13 +538,14 @@ read_analysisresults_long_format <- function(file, analysis_id_col = NULL, featu
     "feature_intensity",
     "feature_rt",
     "feature_fwhm",
-    "feature_sn_ratio")
+    "feature_sn_ratio"
+  )
 
   d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), progress = TRUE)
 
-  if (!is.null(analysis_id_col) & analysis_id_col %in% names(d)) stop("Analysis Id column not defined. ")
+  if (!is.null(analysis_id_col) && analysis_id_col %in% names(d)) stop("Analysis Id column not defined. ")
 
-  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_name", feature_intensity = {{.data$field}})
+  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_name", feature_intensity = {{ .data$field }})
 
   d
 }
@@ -553,11 +573,7 @@ read_analysisresults_long_format <- function(file, analysis_id_col = NULL, featu
 #' @noRd
 # TODO remove this test function
 .test_mult <- function(a, b) {
-  nms <- c(1,2,3)
+  nms <- c(1, 2, 3)
   n_col <- length(nms)
   rep("numeric", n_col)
 }
-
-
-
-
