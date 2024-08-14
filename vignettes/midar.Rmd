@@ -39,13 +39,17 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::import_masshunter(data = mexp, 
-                                      path = masshunter_file, 
-                                      file_format = "csv")
-mexp <- midar::import_metadata_msorganizer(data = mexp, 
-                                           path = metadata_file, 
-                                           analysis_sequence = "timestamp", 
-                                           excl_unannotated_analyses = TRUE)
+mexp <- midar::import_masshunter(
+  data = mexp,
+  path = masshunter_file,
+  file_format = "csv"
+)
+mexp <- midar::import_metadata_msorganizer(
+  data = mexp,
+  path = metadata_file,
+  analysis_sequence = "timestamp",
+  excl_unannotated_analyses = TRUE
+)
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)
@@ -55,18 +59,18 @@ mexp <- quantitate_by_istd(mexp)
 mexp <- calculate_qc_metrics(mexp)
 
 # Filter features according to QC criteria
-mexp <- apply_qc_filter(data = mexp,
-                        intensity_min_bqc = 500, 
-                        signal_blank_min_pblk = 10, 
-                        cv_conc_min_bqc = 25, 
-                        dratio_conc_max_bqc = 0.5,
-                        response_rsquare_min = 0.8, 
-                        response_curve_name = 1, 
-                        qualifier_exclude = TRUE, 
-                        istds_exclude = TRUE, 
-                        response_y0_rel_max = 0.4) 
-
-
+mexp <- apply_qc_filter(
+  data = mexp,
+  intensity_min_bqc = 500,
+  signal_blank_min_pblk = 10,
+  cv_conc_min_bqc = 25,
+  dratio_conc_max_bqc = 0.5,
+  response_rsquare_min = 0.8,
+  response_curve_name = 1,
+  qualifier_exclude = TRUE,
+  istds_exclude = TRUE,
+  response_y0_rel_max = 0.4
+)
 ```
 
 ## Contributor Code of Conduct

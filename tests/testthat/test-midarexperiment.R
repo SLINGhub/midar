@@ -23,4 +23,3 @@ testthat::test_that("import_msorganizer_xlm: Template with all information", {
   # expect_snapshot_file(r_to_rds(mexp), "mexp.rds")
   # testthat::snapshot_review(path = "mexp.rds")
 })
-
