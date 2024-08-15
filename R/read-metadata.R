@@ -254,7 +254,7 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
       "raw_data_filename",
       rqc_series_id = "response_curve_name",
       "relative_sample_amount" = "relative_sample_amount_[%]",
-      "injection_volumne" = "injection_volume_[ul]"
+      "injection_volume" = "injection_volume_[ul]"
     ) |>
     dplyr::mutate(
       raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
