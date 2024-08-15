@@ -125,7 +125,7 @@ calculate_qc_metrics <- function(data) {
 #' @param intensity.median.bqc.min Minimum median signal intensity of BQC
 #' @param intensity.median.tqc.min Minimum median signal intensity of TQC
 #' @param intensity.median.spl.min Minimum median signal intensity of study samples (SPL)
-#' @param intensity_spl_max_min Minimum maximun signal intensity oof study samples (SPL)
+#' @param intensity.max.spl.min Minimum maximun signal intensity oof study samples (SPL)
 #' @param cv.conc.bqc.min = Maximum %CV of BQC
 #' @param cv.conc.tqc.min Maximum %CV of TQC
 #' @param cv.conc.tqc.min = Maximum %CV of TQC
@@ -155,7 +155,7 @@ apply_qc_filter <- function(data,
                             intensity.median.bqc.min = NA,
                             intensity.median.tqc.min = NA,
                             intensity.median.spl.min = NA,
-                            intensity_spl_max_min = NA,
+                            intensity.max.spl.min = NA,
                             signalblank.median.pblk.min = NA,
                             signalblank.median.ublk.min = NA,
                             signalblank.median.sblk.min = NA,
@@ -193,7 +193,7 @@ apply_qc_filter <- function(data,
   if (is.na(intensity.median.tqc.min)) intensity.median.tqc.min <- -Inf
   if (is.na(intensity.median.spl.min)) intensity.median.spl.min <- -Inf
 
-  if (is.na(intensity_spl_max_min)) intensity_spl_max_min <- -Inf
+  if (is.na(intensity.max.spl.min)) intensity.max.spl.min <- -Inf
 
   if (is.na(cv.conc.bqc.min)) cv.conc.bqc.min <- Inf
   if (is.na(cv.conc.tqc.min)) cv.conc.tqc.min <- Inf
@@ -219,7 +219,7 @@ apply_qc_filter <- function(data,
       intensity.median.bqc.min = intensity.median.bqc.min,
       intensity.median.tqc.min = intensity.median.tqc.min,
       intensity.median.spl.min = intensity.median.spl.min,
-      intensity_spl_max_min = intensity_spl_max_min,
+      intensity.max.spl.min = intensity.max.spl.min,
       cv.conc.bqc.min = cv.conc.bqc.min,
       cv.conc.tqc.min = cv.conc.tqc.min,
       cv.intensity.bqc.min = cv.intensity.bqc.min,
@@ -248,7 +248,7 @@ apply_qc_filter <- function(data,
         (is.na(.data$Int_median_SPL) | .data$Int_median_BQC > intensity.median.bqc.min) &
         (is.na(.data$Int_median_TQC) | .data$Int_median_TQC > intensity.median.tqc.min) &
         (is.na(.data$Int_median_SPL) | .data$Int_median_SPL > intensity.median.spl.min) &
-        (is.na(.data$Int_max_SPL) | .data$Int_max_SPL > intensity_spl_max_min),
+        (is.na(.data$Int_max_SPL) | .data$Int_max_SPL > intensity.max.spl.min),
 
       pass_sb = (
         (is.na(.data$SB_Ratio_pblk) | .data$SB_Ratio_pblk > signalblank.median.pblk.min | .data$is_istd & !istds.include) &
