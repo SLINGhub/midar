@@ -321,27 +321,50 @@ apply_qc_filter <- function(data,
           )
     )
 
+    #TODO: deal with invalid integrations (as defined by user in metadata)
+
+
+    d_filt <- data@metrics_qc |> filter(qc_pass)
+
+    n_istd_quant <- nrow(data@metrics_qc |> filter(is_istd, .data$is_quantifier))
+    n_istd_qual <- nrow(data@metrics_qc |> filter(is_istd, !.data$is_quantifier))
+
+    n_all_quant <- nrow(data@metrics_qc |> filter(.data$is_quantifier))
+    n_all_qual <- nrow(data@metrics_qc |> filter(!.data$is_quantifier))
+
+    n_filt_quant <- nrow(d_filt |>  filter(.data$is_quantifier))
+    n_filt_qual <- nrow(d_filt |>  filter(!.data$is_quantifier))
+
+    if (istds_exclude) {
+      d_filt <- d_filt |> filter(!.data$is_istd)
+
+      n_all_quant <- n_all_quant - n_istd_quant
+      n_all_qual <- n_all_qual - n_istd_qual
+
+      n_filt_quant <- n_filt_quant - n_istd_quant
+      n_filt_qual <- n_filt_qual - n_istd_qual
+
+    }
 
 
 
-  d_filt <- data@metrics_qc |> filter(qc_pass)
 
 
-  if (istds_exclude) d_filt <- d_filt |> filter(!.data$is_istd)
+
+
   if (qualifier_exclude) d_filt <- d_filt |> filter(.data$is_quantifier)
 
 
 
 
 
-  n_valid <- data@metrics_qc
-  if (qualifier_exclude) n_valid <- n_valid |> filter(.data$is_quantifier)
-  if (istds_exclude) n_valid <- n_valid |> filter(!.data$is_istd)
+
+
 
   if(!qualifier_exclude)
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt |> filter(is_quantifier))} of {nrow(data@metrics_qc |> filter(is_quantifier, is_istd))} quantifier and {nrow(d_filt |> filter(!is_quantifier))} of {nrow(data@metrics_qc |> filter(!is_quantifier))} qualifier features passewd QC criteria ({if_else(istds_exclude, 'excluding', 'including')} ISTDs)")))
+   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(istds_exclude, 'excluding', 'including')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {nrow(d_filt |> filter(is_quantifier))} of {nrow(data@metrics_qc |> filter(is_quantifier))} valid quantifier features passed QC criteria ({if_else(istds_exclude, 'excluding', 'including')} ISTDs).")))
+   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(istds_exclude, 'excluding', 'including')} {n_istd_quant} ISTDs).")))
 
 
 
