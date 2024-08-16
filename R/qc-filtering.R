@@ -24,7 +24,9 @@ calculate_qc_metrics <- function(data) {
       # PrecursorMz = paste0(unique(.data$precursor_mz), collapse = ","),
       # ProductMz = paste0(unique(.data$product_mz), collapse = ","),
       valid_integration = unique(.data$valid_integration),
-      missing_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
+      missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
+      missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
+      missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
       na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"])),
       is_quantifier = unique(.data$is_quantifier),
       is_istd = unique(.data$is_istd),
@@ -122,7 +124,9 @@ calculate_qc_metrics <- function(data) {
 #' @param qualifier.include Include qualifier features
 #' @param istds.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
-#' @param missingval.spl.prop.max NA Proportion of missing values, default is 0.00
+#' @param missing.intensity.spl.prop.max NA Proportion of missing raw intensities
+#' @param missing.normintensity.spl.prop.max NA Proportion of missing normalized intensities
+#' @param missing.conc.spl.prop.max NA Proportion of missing final concentrations
 #' @param outlier.technical.exlude Remove samples classified as outliers
 #' @param intensity.min.bqc.min Minimum median signal intensity of BQC
 #' @param intensity.min.tqc.min Minimum median signal intensity of TQC
@@ -152,7 +156,9 @@ calculate_qc_metrics <- function(data) {
 apply_qc_filter <- function(data,
                             qualifier.include = FALSE,
                             istds.include = FALSE,
-                            missingval.spl.prop.max = NA,
+                            missing.intensity.spl.prop.max  = NA,
+                            missing.normintensity.spl.prop.max  = NA,
+                            missing.conc.spl.prop.max  = NA,
                             intensity.min.bqc.min = NA,
                             intensity.min.tqc.min = NA,
                             intensity.min.spl.min = NA,
@@ -218,6 +224,9 @@ apply_qc_filter <- function(data,
   data@parameters_processing <- data@parameters_processing |>
     mutate(
       outlier.technical.exlude = outlier.technical.exlude,
+      missing.intensity.spl.prop.max  = missing.intensity.spl.prop.max,
+      missing.normintensity.spl.prop.max  = missing.normintensity.spl.prop.max,
+      missing.conc.spl.prop.max  = missing.conc.spl.prop.max,
       intensity.min.bqc.min = intensity.min.bqc.min,
       intensity.min.tqc.min = intensity.min.tqc.min,
       intensity.min.spl.min = intensity.min.spl.min,
@@ -237,7 +246,6 @@ apply_qc_filter <- function(data,
       response.curve.id_used_for_filt = response.curve.id,
       response.rsquare.min = response.rsquare.min,
       response.yintersect.rel.max = response.yintersect.rel.max,
-      missingval.spl.prop.max = missingval.spl.prop.max,
       qualifier.include = qualifier.include,
       istds.include = istds.include,
       features_to_keep = NA
@@ -307,7 +315,9 @@ apply_qc_filter <- function(data,
         .operator = "AND"),
 
       pass_missingval = comp_lgl_vec(
-        comp_val(.data$missing_prop_spl, missingval.spl.prop.max, "<="),
+        c(comp_val(.data$missing_intensity_prop_spl, missing.intensity.spl.prop.max, "<="),
+        comp_val(.data$missing_normintensity_prop_spl, missing.normintensity.spl.prop.max, "<="),
+        comp_val(.data$missing_conc_prop_spl, missing.conc.spl.prop.max, "<=")),
         .operator = "AND"),
 
       #pass_no_na = !(.data$na_in_all_spl)
@@ -376,14 +386,15 @@ apply_qc_filter <- function(data,
       n_filt_qual <- nrow(d_filt |>  filter(!.data$is_istd, !.data$is_quantifier))
     }
 
-  if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
+
 
   if(qualifier.include)
    writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
    writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features).")))
 
-
+  if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
+  if (!istds.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
   data@dataset_filtered <- data@dataset %>%
     dplyr::right_join(d_filt |> dplyr::select("feature_name"), by = "feature_name") |>
