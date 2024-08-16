@@ -34,13 +34,14 @@ calculate_qc_metrics <- function(data) {
       Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
       Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
       Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+      Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
       Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
       Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
       Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
       Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
       Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
       Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
-      Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+
       conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
       conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
       conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
@@ -111,7 +112,11 @@ calculate_qc_metrics <- function(data) {
 #' Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
 #' Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
 #'
-#' Note: When `istds.include` is TRUE, then `min_signal_blank_ratio` is ignored for ISTDs, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+#' Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
+#' - If a filter is applied (e.g. `intensity.min.bqc.min`) but qc value is NA then this feature will be excluded.
+#' - If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
+#'
+#' Note: When `istds.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 #'
 #' @param data MidarExperiment object
 #' @param qualifier.include Include qualifier features
@@ -126,9 +131,8 @@ calculate_qc_metrics <- function(data) {
 #' @param intensity.median.tqc.min Minimum median signal intensity of TQC
 #' @param intensity.median.spl.min Minimum median signal intensity of study samples (SPL)
 #' @param intensity.max.spl.min Minimum maximun signal intensity oof study samples (SPL)
-#' @param cv.conc.bqc.min = Maximum %CV of BQC
-#' @param cv.conc.tqc.min Maximum %CV of TQC
-#' @param cv.conc.tqc.min = Maximum %CV of TQC
+#' @param cv.conc.bqc.max = Maximum %CV of BQC
+#' @param cv.conc.tqc.max Maximum %CV of TQC
 #' @param cv.intensity.bqc.min Maximum %CV of BQC
 #' @param cv.intensity.tqc.min Maximum %CV of TQC
 
@@ -144,11 +148,11 @@ calculate_qc_metrics <- function(data) {
 #' @return MidarExperiment object
 #' @export
 
-# TODO default
+# TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
 apply_qc_filter <- function(data,
                             qualifier.include = FALSE,
                             istds.include = FALSE,
-                            missingval.spl.prop.max = 1.00,
+                            missingval.spl.prop.max = NA,
                             intensity.min.bqc.min = NA,
                             intensity.min.tqc.min = NA,
                             intensity.min.spl.min = NA,
@@ -159,8 +163,8 @@ apply_qc_filter <- function(data,
                             signalblank.median.pblk.min = NA,
                             signalblank.median.ublk.min = NA,
                             signalblank.median.sblk.min = NA,
-                            cv.conc.bqc.min = NA,
-                            cv.conc.tqc.min = NA,
+                            cv.conc.bqc.max = NA,
+                            cv.conc.tqc.max = NA,
                             cv.intensity.bqc.min = NA,
                             cv.intensity.tqc.min = NA,
                             dratio.conc.bqc.max = NA,
@@ -185,30 +189,31 @@ apply_qc_filter <- function(data,
   if(nrow(data@metrics_qc) == 0)
     data <- calculate_qc_metrics(data)
 
-  if (is.na(intensity.min.bqc.min)) intensity.min.bqc.min <- -Inf
-  if (is.na(intensity.min.tqc.min)) intensity.min.tqc.min <- -Inf
-  if (is.na(intensity.min.spl.min)) intensity.min.spl.min <- -Inf
+  # if (is.na(intensity.min.bqc.min)) intensity.min.bqc.min <- NA
+  # if (is.na(intensity.min.tqc.min)) intensity.min.tqc.min <- NA
+  # if (is.na(intensity.min.spl.min)) intensity.min.spl.min <- NA
+  #
+  # if (is.na(intensity.median.bqc.min)) intensity.median.bqc.min <- NA
+  # if (is.na(intensity.median.tqc.min)) intensity.median.tqc.min <- NA
+  # if (is.na(intensity.median.spl.min)) intensity.median.spl.min <- NA
+  #
+  # if (is.na(intensity.max.spl.min)) intensity.max.spl.min <- NA
+  #
+  # if (is.na(cv.conc.bqc.max)) cv.conc.bqc.max <- NA
+  # if (is.na(cv.conc.tqc.max)) cv.conc.tqc.max <- NA
+  # if (is.na(cv.intensity.bqc.min)) cv.intensity.bqc.min <- NA
+  # if (is.na(cv.intensity.tqc.min)) cv.intensity.tqc.min <- NA
+  # if (is.na(dratio.conc.bqc.max)) dratio.conc.bqc.max <- NA
+  # if (is.na(dratio.conc.tqc.max)) dratio.conc.tqc.max <- NA
+  # if (is.na(signalblank.median.pblk.min)) signalblank.median.pblk.min <- NA
+  # if (is.na(signalblank.median.ublk.min)) signalblank.median.ublk.min <- NA
+  # if (is.na(signalblank.median.sblk.min)) signalblank.median.sblk.min <- NA
+  # if (is.na(response.rsquare.min)) response.rsquare.min <- NA
+  # if (is.na(response.yintersect.rel.max)) response.yintersect.rel.max <- NA
+  # if (is.na(missingval.spl.prop.max)) missingval.spl.prop.max <- NA
 
-  if (is.na(intensity.median.bqc.min)) intensity.median.bqc.min <- -Inf
-  if (is.na(intensity.median.tqc.min)) intensity.median.tqc.min <- -Inf
-  if (is.na(intensity.median.spl.min)) intensity.median.spl.min <- -Inf
 
-  if (is.na(intensity.max.spl.min)) intensity.max.spl.min <- -Inf
-
-  if (is.na(cv.conc.bqc.min)) cv.conc.bqc.min <- Inf
-  if (is.na(cv.conc.tqc.min)) cv.conc.tqc.min <- Inf
-  if (is.na(cv.intensity.bqc.min)) cv.intensity.bqc.min <- Inf
-  if (is.na(cv.intensity.tqc.min)) cv.intensity.tqc.min <- Inf
-  if (is.na(dratio.conc.bqc.max)) dratio.conc.bqc.max <- Inf
-  if (is.na(dratio.conc.tqc.max)) dratio.conc.tqc.max <- Inf
-  if (is.na(signalblank.median.pblk.min)) signalblank.median.pblk.min <- -Inf
-  if (is.na(signalblank.median.ublk.min)) signalblank.median.ublk.min <- -Inf
-  if (is.na(signalblank.median.sblk.min)) signalblank.median.sblk.min <- -Inf
-  if (is.na(response.rsquare.min)) response.rsquare.min <- -Inf
-  if (is.na(response.yintersect.rel.max)) response.yintersect.rel.max <- Inf
-  if (is.na(missingval.spl.prop.max)) missingval.spl.prop.max <- Inf
-
-
+  # Save QC filters
   # TODO: fix some of the param below ie. features_to_keep
   data@parameters_processing <- data@parameters_processing |>
     mutate(
@@ -220,8 +225,8 @@ apply_qc_filter <- function(data,
       intensity.median.tqc.min = intensity.median.tqc.min,
       intensity.median.spl.min = intensity.median.spl.min,
       intensity.max.spl.min = intensity.max.spl.min,
-      cv.conc.bqc.min = cv.conc.bqc.min,
-      cv.conc.tqc.min = cv.conc.tqc.min,
+      cv.conc.bqc.max = cv.conc.bqc.max,
+      cv.conc.tqc.max = cv.conc.tqc.max,
       cv.intensity.bqc.min = cv.intensity.bqc.min,
       cv.intensity.tqc.min = cv.intensity.tqc.min,
       dratio.conc.bqc.max = dratio.conc.bqc.max,
@@ -239,39 +244,74 @@ apply_qc_filter <- function(data,
     )
 
 
+  # Function to used to compare qc values with criteria and deal with NA
+  # Behaviour:
+  # value is NA , threshold NA -> NA
+  # value is num , threshold NA -> NA
+  # value is NA , threshold is Num -> FALSE
+  # value is num , threshold is num -> TRUE/FALSE
+
+  # TODO: Add to function description,
+  # TODO: make this function public for user to build own?
+
+  comp_val <- function(val, threshold, operator) {
+    if (is.na(val))
+      if (is.na(threshold)) NA else FALSE
+    else
+      if (is.na(threshold)) NA else get(operator)(val, threshold)
+  }
+
+  # Get the result of AND/OR of boolean elements of vectors, return NA when all NA
+  comp_lgl_vec <- function(lgl_vec, .operator){
+
+    v <- lgl_vec[!is.na(lgl_vec)]
+    if (length(v) == 0) return(NA)
+    if (.operator == "AND")
+      all(v)
+    else eif (.operator == "OR")
+      any(v)
+
+  }
+
   data@metrics_qc <- data@metrics_qc |>
+    rowwise() |>
     mutate(
-      pass_lod =
-        (is.na(.data$Int_min_BQC) | .data$Int_min_BQC > intensity.min.bqc.min) &
-        (is.na(.data$Int_min_TQC) | .data$Int_min_TQC > intensity.min.tqc.min) &
-        (is.na(.data$Int_min_SPL) | .data$Int_min_SPL > intensity.min.spl.min) &
-        (is.na(.data$Int_median_SPL) | .data$Int_median_BQC > intensity.median.bqc.min) &
-        (is.na(.data$Int_median_TQC) | .data$Int_median_TQC > intensity.median.tqc.min) &
-        (is.na(.data$Int_median_SPL) | .data$Int_median_SPL > intensity.median.spl.min) &
-        (is.na(.data$Int_max_SPL) | .data$Int_max_SPL > intensity.max.spl.min),
+      pass_lod = comp_lgl_vec(
+        c(comp_val(.data$Int_min_BQC, intensity.min.bqc.min, ">"),
+        comp_val(.data$Int_min_TQC, intensity.min.tqc.min, ">"),
+        comp_val(.data$Int_min_SPL, intensity.min.spl.min, ">"),
+        comp_val(.data$Int_median_BQC, intensity.median.bqc.min, ">"),
+        comp_val(.data$Int_median_TQC, intensity.median.tqc.min, ">"),
+        comp_val(.data$Int_median_SPL, intensity.median.spl.min, ">"),
+        comp_val(.data$Int_max_SPL, intensity.max.spl.min, ">")),
+        .operator = "AND"),
 
-      pass_sb = (
-        (is.na(.data$SB_Ratio_pblk) | .data$SB_Ratio_pblk > signalblank.median.pblk.min | .data$is_istd & !istds.include) &
-        (is.na(.data$SB_Ratio_ublk) | .data$SB_Ratio_ublk > signalblank.median.ublk.min) &
-        (is.na(.data$SB_Ratio_sblk) | .data$SB_Ratio_sblk > signalblank.median.sblk.min)),
+      pass_sb = comp_lgl_vec(
+        c(comp_val(.data$SB_Ratio_pblk, signalblank.median.pblk.min, ">") | .data$is_istd & !istds.include,
+        comp_val(.data$SB_Ratio_ublk, signalblank.median.ublk.min, ">") | .data$is_istd & !istds.include,
+        comp_val(.data$SB_Ratio_sblk, signalblank.median.sblk.min, ">")),
+        .operator = "AND"),
 
-      pass_cva =
-        (is.na(.data$conc_CV_BQC) | .data$conc_CV_BQC < cv.conc.bqc.min) &
-        (is.na(.data$conc_CV_TQC) | .data$conc_CV_TQC < cv.conc.tqc.min) &
-        (is.na(.data$Int_CV_BQC) | .data$Int_CV_BQC < cv.intensity.bqc.min) &
-        (is.na(.data$Int_CV_TQC) | .data$Int_CV_TQC < cv.intensity.tqc.min),
 
-      pass_dratio =
-        (is.na(.data$conc_dratio_cv_bqc) | .data$conc_dratio_cv_bqc < dratio.conc.bqc.max) &
-        (is.na(.data$conc_dratio_cv_tqc) | .data$conc_dratio_cv_tqc < dratio.conc.tqc.max),
+      pass_cva = comp_lgl_vec(
+        c(comp_val(.data$conc_CV_BQC, cv.conc.bqc.max, "<"),
+        comp_val(.data$conc_CV_TQC, cv.conc.tqc.max, "<"),
+        comp_val(.data$Int_CV_BQC,  cv.intensity.bqc.min, "<"),
+        comp_val(.data$Int_CV_TQC, cv.intensity.tqc.min, "<")),
+        .operator = "AND"),
 
-      pass_missingval =
-        (is.na(.data$missing_prop_spl) |.data$missing_prop_spl <= missingval.spl.prop.max)
+
+      pass_dratio = comp_lgl_vec(
+        c(comp_val(.data$conc_dratio_cv_bqc, dratio.conc.bqc.max, "<"),
+        comp_val( .data$conc_dratio_cv_tqc, dratio.conc.tqc.max, "<")),
+        .operator = "AND"),
+
+      pass_missingval = comp_lgl_vec(
+        comp_val(.data$missing_prop_spl, missingval.spl.prop.max, "<="),
+        .operator = "AND"),
 
       #pass_no_na = !(.data$na_in_all_spl)
     )
-
-  #pass_linearity = TRUE,
 
   if (is.numeric(response.curve.id)) {
     rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "r2_rqc"))]
@@ -304,49 +344,44 @@ apply_qc_filter <- function(data,
         qc_pass =
           (
             (is.na(.data$pass_lod) | .data$pass_lod) &
-            (is.na(.data$pass_sb) | .data$pass_sb) &
-            (is.na(.data$pass_cva) | .data$pass_cva) &
-            (is.na(.data$pass_linearity) | .data$pass_linearity) &
-            (is.na(.data$pass_dratio) | .data$pass_dratio) &
-            (is.na(.data$pass_missingval) | .data$pass_missingval) &
-            (is.na(.data$valid_integration) | .data$valid_integration)
+              (is.na(.data$pass_sb) | .data$pass_sb) &
+              (is.na(.data$pass_cva) | .data$pass_cva) &
+              (is.na(.data$pass_linearity) | .data$pass_linearity) &
+              (is.na(.data$pass_dratio) | .data$pass_dratio) &
+              (is.na(.data$pass_missingval) | .data$pass_missingval) &
+              (is.na(.data$valid_integration) | .data$valid_integration)
           ) |
-          (
-            .data$feature_name %in% features_to_keep
-          )
-    )
+            (
+              .data$feature_name %in% features_to_keep
+            )
+      )
 
     #TODO: deal with invalid integrations (as defined by user in metadata)
 
 
     d_filt <- data@metrics_qc |> filter(qc_pass)
 
-    n_istd_quant <- nrow(data@metrics_qc |> filter(is_istd, .data$is_quantifier))
-    n_istd_qual <- nrow(data@metrics_qc |> filter(is_istd, !.data$is_quantifier))
-
     n_all_quant <- nrow(data@metrics_qc |> filter(.data$is_quantifier))
     n_all_qual <- nrow(data@metrics_qc |> filter(!.data$is_quantifier))
-
     n_filt_quant <- nrow(d_filt |>  filter(.data$is_quantifier))
     n_filt_qual <- nrow(d_filt |>  filter(!.data$is_quantifier))
 
-    if (!istds.include) {
-      d_filt <- d_filt |> filter(!.data$is_istd)
+    n_istd_quant <- nrow(data@metrics_qc |> filter(is_istd, .data$is_quantifier))
+    n_istd_qual <- nrow(data@metrics_qc |> filter(is_istd, !.data$is_quantifier))
 
+    if (!istds.include) {
       n_all_quant <- n_all_quant - n_istd_quant
       n_all_qual <- n_all_qual - n_istd_qual
-
-      n_filt_quant <- n_filt_quant - n_istd_quant
-      n_filt_qual <- n_filt_qual - n_istd_qual
-
+      n_filt_quant <- nrow(d_filt |>  filter(!.data$is_istd, .data$is_quantifier))
+      n_filt_qual <- nrow(d_filt |>  filter(!.data$is_istd, !.data$is_quantifier))
     }
 
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
 
   if(qualifier.include)
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding', 'including')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding', 'including')} {n_istd_quant} ISTDs).")))
+   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features).")))
 
 
 
