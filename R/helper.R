@@ -1,9 +1,9 @@
 min_val <- function(x, na.rm = FALSE){
-  if_else(all(is.na(x) | is.nan(x)), NA, min(x, na.rm))
+  if (all(is.na(x) | is.nan(x))) NA_real_ else min(x, na.rm = na.rm)
 }
 
-max_val <- function(x, na.rm = FALSE){
-  if_else(all(is.na(x) | is.nan(x)), NA, max(x, na.rm))
+max_val <- function(x, na.rm = FALSE) {
+  if (all(is.na(x) | is.nan(x))) NA_real_ else max(x, na.rm = na.rm)
 }
 
 add_missing_column <- function(data, col_name, init_value, make_lowercase) {
