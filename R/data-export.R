@@ -11,6 +11,9 @@
 #' @importFrom utils packageVersion
 
 #'
+
+
+# TODO: filtering of names containing "(IS"
 writeReportXLS <- function(data, path) {
   if (!("feature_conc" %in% names(data@dataset))) stop("Variable '", "feature_conc", "' does not (yet) exist in dataset")
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
@@ -29,13 +32,13 @@ writeReportXLS <- function(data, path) {
   if ("feature_name" %in% names(data@dataset_filtered)) {
     d_conc_wide_QC <- data@dataset_filtered %>%
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_istd.x", "is_quantifier", "acquisition_time_stamp", "feature_name", "feature_conc"))) %>%
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "feature_conc"))) %>%
       dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
       tidyr::pivot_wider(names_from = "feature_name", values_from = "feature_conc")
 
     d_conc_wide_QC_SPL <- d_conc_wide_QC |>
       dplyr::filter(.data$qc_type == "SPL") |>
-      dplyr::select(!"qc_type":"is_quantifier")
+      dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
     d_conc_wide_QC <- data@dataset_filtered
   }
@@ -44,13 +47,13 @@ writeReportXLS <- function(data, path) {
   if ("feature_name" %in% names(data@dataset_filtered)) {
     d_normint_wide_QC <- data@dataset_filtered %>%
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_istd.x", "is_quantifier", "acquisition_time_stamp", "feature_name", "feature_norm_intensity"))) %>%
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_name", "feature_norm_intensity"))) %>%
       dplyr::filter(!str_detect(.data$feature_name, "\\(IS")) %>%
       tidyr::pivot_wider(names_from = "feature_name", values_from = "feature_norm_intensity")
 
-    d_normint_wide_QC <- d_conc_wide_QC |>
+    d_normint_wide_QC <- d_normint_wide_QC |>
       dplyr::filter(.data$qc_type == "SPL") |>
-      dplyr::select(!"qc_type":"is_quantifier")
+      dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
     d_normint_wide_QC <- data@dataset_filtered
   }
@@ -59,7 +62,7 @@ writeReportXLS <- function(data, path) {
     ~Info, ~Value,
     "Date Report", lubridate::now(),
     "Author", Sys.info()[["user"]],
-    "LIDAR Version", packageVersion("midar"),
+    "MiDAR Version", packageVersion("midar"),
     "", "",
     "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit)
   )
