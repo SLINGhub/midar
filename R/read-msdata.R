@@ -23,16 +23,17 @@
 
 #' @export
 
-rawdata_import_agilent <- function(data, path, file_format = "csv") {
+rawdata_import_agilent <- function(data, path, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   if (file_format == "csv") {
-    import_analysis(data, path, "read_masshunter_csv", "*.csv")
+    import_analysis(data, path, "read_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
   } else {
     stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
   }
 }
 
 
-import_analysis <- function(data, path, import_function, file_ext) {
+import_analysis <- function(data, path, import_function, file_ext, ...) {
+
   if (!fs::is_dir(path)) {
     file_paths <- fs::path_tidy(path)
   } else {
@@ -44,18 +45,16 @@ import_analysis <- function(data, path, import_function, file_ext) {
   if (any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
 
   names(file_paths) <- file_paths
-
-  # d_temp <- file_paths  |>
-  #   map_dfr(read_masshunter_csv, .id = "data_source")
+  args <- list(...)
 
   d_temp <- file_paths |>
-    purrr::map_dfr(.f = \(x) do.call(import_function, list(x)), .id = "data_source")
+    purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source")
 
 
-  # Test if analysis_ids (=raw_data_filename), feature_names, and values are replicated
-  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = FALSE))) {
+  # Test if analysis_ids, feature_names, and values are replicated
+  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_name, .keep_all = FALSE))) {
     has_duplicated_id <- TRUE
-    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$raw_data_filename, .data$feature_name, .keep_all = TRUE))) {
+    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_name, .keep_all = TRUE))) {
       has_duplicated_id_values <- TRUE
     } else {
       has_duplicated_id_values <- FALSE
@@ -72,14 +71,10 @@ import_analysis <- function(data, path, import_function, file_ext) {
     }
   }
 
-
-
   data@dataset_orig <- d_temp
 
   data@dataset_orig <- data@dataset_orig |> dplyr::rename(feature_intensity = "feature_area")
   # TODO: excl_unannotated_analyses below
-
-
 
   check_integrity(data, excl_unannotated_analyses = FALSE)
   # stopifnot(methods::validObject(data))
@@ -95,7 +90,7 @@ import_analysis <- function(data, path, import_function, file_ext) {
 #' @param silent Suppress messages
 #' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` ransition names of quantifier will be added to qualifier names
 #' @return A tibble with the parse results in the long format
-#' @export
+
 
 read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE) {
   # if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
@@ -103,6 +98,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
   #
   # Read Agilent MassHunter Quant Export file (CSV)
+
   suppressWarnings(suppressMessages(
     datWide <-
       readr::read_csv(
@@ -354,8 +350,6 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
     } else if (any(datLong$integration_qualifier)) {
       cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n"))
     }
-
-    writeLines(cli::col_green(txt))
   }
 
   datLong
