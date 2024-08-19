@@ -1,0 +1,44 @@
+
+# Response Curves -----
+
+setGeneric("metadata_responsecurves", function(x) standardGeneric("metadata_responsecurves"))
+setGeneric("metadata_responsecurves<-", function(x, value) standardGeneric("metadata_responsecurves<-"))
+
+#' Get response curve metadata
+#' @description
+#' Get curve IDs and sample amount information for response curves
+#' @return Tibble
+#' @export
+setMethod("metadata_responsecurves", "MidarExperiment", function(x) x@annot_responsecurves)
+
+#' Set response curve metadata
+#' @description
+#' Set curve IDs and sample amount information for response curves
+#' @param value A data.frame or tibble
+#' @return MidarExperiment object
+#' @export
+setMethod("metadata_responsecurves<-", "MidarExperiment", function(x, value) {
+  if(check_rawdata_present(x))
+    cli::cli_abort(message = "No analysis data loaded. Please first import raw data.")
+  if(!(is.data.frame(value)))
+    cli::cli_abort(message = "`metadata` must be a data.frame or tibble.")
+  if(!"analysis_id" %in% names(value))
+    cli::cli_abort(message = "`metadata` must contain a column `analysis_id` defining the ")
+  if(!"rqc_series_id" %in% names(value))
+    cli::cli_abort(message = "`metadata` must contain a column `rqc_series_id` defining response curve series")
+  if(!any(c("relative_sample_amount", "injection_volume")) %in% names(value))
+    cli::cli_abort(message = "`metadata` must contain a column `relative_sample_amount` or `injection_volume`")
+
+  if(!all(value %in% x@annot_analyses))
+    cli::cli_abort(message = "One or more analysis are not present in the analysis data. Please ensure all `analysis_id` are present in the analysis data.")
+  if(any(is.na(value$rqc_series_id)))
+    cli::cli_abort(message = "One or `more rqc_series_id` is not defined. Please check your data.")
+  if(any(is.na(value$rqc_series_id)) &
+     !(all(is.numeric(value$relative_sample_amount)) |
+       all(is.numeric(value$injection_volume))))
+    cli::cli_abort(message = "One or more `relative_sample_amount` or `injection_volume` are not defined. Please ensure completness of at least one of the variables.")
+
+  x@annot_responsecurves <- value
+
+})
+
