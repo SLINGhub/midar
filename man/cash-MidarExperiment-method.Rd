@@ -18,7 +18,7 @@ Value with a variable or a tibble
 $ syntax can be used to as a shortcut for getting specific variables and results from a MidarExperiment object
 }
 \examples{
-mexp = MidarExperiment()
+mexp <- MidarExperiment()
 mexp$analysis_type
 mexp$annot_analyses
 }

@@ -31,7 +31,7 @@ import_metadata_msorganizer <- function(data, path, analysis_sequence = "default
     } else if (analysis_sequence == "timestamp") {
       stop(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
     } else {
-      writeLines(crayon::yellow(glue::glue("\u2713 No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
+      cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
     }
   }
 
@@ -102,7 +102,7 @@ import_metadata_msorganizer <- function(data, path, analysis_sequence = "default
   data@status_processing <- "Annotated Raw Data"
 
 
-  writeLines(crayon::green(glue::glue("\u2713 Metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples and {length(data@dataset$feature_name %>% unique())} features.")))
+  cli_alert_success(col_green(glue::glue("Metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples and {length(data@dataset$feature_name %>% unique())} features.")))
   data
 }
 

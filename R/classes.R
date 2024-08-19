@@ -274,7 +274,7 @@ check_integrity <- function(object, excl_unannotated_analyses) {
           stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
         }
       } else {
-        writeLines(crayon::yellow(glue::glue("! Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
+        cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
       }
     } else if (d_yx > 0) {
       if (d_yx < 50) {
@@ -295,7 +295,7 @@ check_integrity <- function(object, excl_unannotated_analyses) {
 # methods::setValidity("MidarExperiment")
 
 
-get_status_flag <- function(x) if_else(x, crayon::green$bold("\u2713"), crayon::red$bold("\u2717"))
+get_status_flag <- function(x) if_else(x, cli::col_green$bold("\u2713"), cli::col_red$bold("\u2717"))
 
 
 

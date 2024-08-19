@@ -6,65 +6,86 @@
 \usage{
 apply_qc_filter(
   data,
-  intensity_min_bqc = NA,
-  intensity_min_tqc = NA,
-  intensity_min_spl = NA,
-  signal_blank_min_pblk = NA,
-  signal_blank_min_ublk = NA,
-  signal_blank_min_sblk = NA,
-  cv_conc_min_bqc = NA,
-  cv_conc_min_tqc = NA,
-  cv_intensity_min_bqc = NA,
-  cv_intensity_min_tqc = NA,
-  dratio_conc_max_bqc = NA,
-  dratio_conc_max_tqc = NA,
-  response_rsquare_min = NA,
-  response_y0_rel_max = NA,
-  response_curve_name = NA,
-  outlier_technical_exlude = FALSE,
-  qualifier_exclude = TRUE,
-  istds_exclude = TRUE,
+  qualifier.include = FALSE,
+  istds.include = FALSE,
+  missing.intensity.spl.prop.max = NA,
+  missing.normintensity.spl.prop.max = NA,
+  missing.conc.spl.prop.max = NA,
+  intensity.min.bqc.min = NA,
+  intensity.min.tqc.min = NA,
+  intensity.min.spl.min = NA,
+  intensity.median.bqc.min = NA,
+  intensity.median.tqc.min = NA,
+  intensity.median.spl.min = NA,
+  intensity.max.spl.min = NA,
+  signalblank.median.pblk.min = NA,
+  signalblank.median.ublk.min = NA,
+  signalblank.median.sblk.min = NA,
+  cv.conc.bqc.max = NA,
+  cv.conc.tqc.max = NA,
+  cv.intensity.bqc.min = NA,
+  cv.intensity.tqc.min = NA,
+  dratio.conc.bqc.max = NA,
+  dratio.conc.tqc.max = NA,
+  response.rsquare.min = NA,
+  response.yintersect.rel.max = NA,
+  response.curve.id = NA,
+  outlier.technical.exlude = FALSE,
   features_to_keep = NULL
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{intensity_min_bqc}{Minimum median signal intensity of TQC}
+\item{qualifier.include}{Include qualifier features}
 
-\item{intensity_min_tqc}{Minimum median signal intensity of TQC}
+\item{istds.include}{Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
 
-\item{intensity_min_spl}{Minimum median signal intensity of study samples (SPL)}
+\item{missing.intensity.spl.prop.max}{NA Proportion of missing raw intensities}
 
-\item{signal_blank_min_pblk}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
+\item{missing.normintensity.spl.prop.max}{NA Proportion of missing normalized intensities}
 
-\item{signal_blank_min_ublk}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)}
+\item{missing.conc.spl.prop.max}{NA Proportion of missing final concentrations}
 
-\item{signal_blank_min_sblk}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)}
+\item{intensity.min.bqc.min}{Minimum median signal intensity of BQC}
 
-\item{cv_conc_min_bqc}{= Maximum \%CV of BQC}
+\item{intensity.min.tqc.min}{Minimum median signal intensity of TQC}
 
-\item{cv_conc_min_tqc}{= Maximum \%CV of TQC}
+\item{intensity.min.spl.min}{Minimum median signal intensity of study samples (SPL)}
 
-\item{cv_intensity_min_bqc}{Maximum \%CV of BQC}
+\item{intensity.median.bqc.min}{Minimum median signal intensity of BQC}
 
-\item{cv_intensity_min_tqc}{Maximum \%CV of TQC}
+\item{intensity.median.tqc.min}{Minimum median signal intensity of TQC}
 
-\item{dratio_conc_max_bqc}{D-ratio defined as CV_BQC/CV_SPL}
+\item{intensity.median.spl.min}{Minimum median signal intensity of study samples (SPL)}
 
-\item{dratio_conc_max_tqc}{D-ratio defined as CV_TQC/CV_SPL}
+\item{intensity.max.spl.min}{Minimum maximun signal intensity oof study samples (SPL)}
 
-\item{response_rsquare_min}{= Minimum r squared of RQC curve defined under \code{response_curve_name}}
+\item{signalblank.median.pblk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
 
-\item{response_y0_rel_max}{= Minimum relative y0 intersect, whereby 1 refers to a \code{relative_sample_amount} of 100\%. Used to filter for curves that have a good r2 but are flat or even have a negative slope.}
+\item{signalblank.median.ublk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)}
 
-\item{response_curve_name}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+\item{signalblank.median.sblk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)}
 
-\item{outlier_technical_exlude}{Remove samples classified as outliers}
+\item{cv.conc.bqc.max}{= Maximum \%CV of BQC}
 
-\item{qualifier_exclude}{Remove features where Quantifier is set to FALSE.}
+\item{cv.conc.tqc.max}{Maximum \%CV of TQC}
 
-\item{istds_exclude}{Remove Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
+\item{cv.intensity.bqc.min}{Maximum \%CV of BQC}
+
+\item{cv.intensity.tqc.min}{Maximum \%CV of TQC}
+
+\item{dratio.conc.bqc.max}{D-ratio defined as CV_BQC/CV_SPL}
+
+\item{dratio.conc.tqc.max}{D-ratio defined as CV_TQC/CV_SPL}
+
+\item{response.rsquare.min}{= Minimum r squared of RQC curve defined under \code{response.curve.id}}
+
+\item{response.yintersect.rel.max}{= Minimum relative y0 intersect, whereby 1 refers to a \code{relative_sample_amount} of 100\%. Used to filter for curves that have a good r2 but are flat or even have a negative slope.}
+
+\item{response.curve.id}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+
+\item{outlier.technical.exlude}{Remove samples classified as outliers}
 
 \item{features_to_keep}{Features that must be kept, even if they did not meet the given QC criteria}
 }
@@ -75,5 +96,11 @@ MidarExperiment object
 Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
 Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
 
-Note: When \code{istds_exclude} is FALSE, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
+\itemize{
+\item If a filter is applied (e.g. \code{intensity.min.bqc.min}) but qc value is NA then this feature will be excluded.
+\item If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
+}
+
+Note: When \code{istds.include} is TRUE, then \code{signalblank.median.sblk.min} and \code{signalblank.median.sblk.min} are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 }

@@ -82,7 +82,7 @@ analysis_outlier_detection <- function(data,
     writeLines(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 80, last = ", and "))
   }
 
-  writeLines(crayon::green(glue::glue("\u2713 {nrow(d_outlier)} analyses/samples were classified as technical outlier(s). Please (re)apply 'apply_qc_filter()' and use 'clear_outlier()' to clear all outlier classifications. \n")))
+  cli_alert_success(col_green(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s). Please (re)apply 'apply_qc_filter()' and use 'clear_outlier()' to clear all outlier classifications. \n")))
 
   data
 }
@@ -99,6 +99,6 @@ clear_outlier <- function(data) {
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE
   data@excl_outliers_tech <- FALSE
-  writeLines(crayon::green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'apply_qc_filter()'. \n")))
+  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'apply_qc_filter()'. \n")))
   data
 }

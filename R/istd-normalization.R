@@ -49,7 +49,7 @@ normalize_by_istd <- function(data, interference_correction = TRUE) {
 
   n_features <- length(data@dataset$feature_name |> unique())
   n_istd <- length(unique(data@dataset$norm_istd_feature_name))
-  writeLines(crayon::green(glue::glue("\u2713 {n_features} features normalized with {n_istd} ISTDs. \n")))
+  cli_alert_success(col_green(glue::glue("{n_features} features normalized with {n_istd} ISTDs. \n")))
   data@status_processing <- "ISTD-normalized Data"
   data@is_istd_normalized <- TRUE
   data@is_quantitated <- FALSE
@@ -90,7 +90,7 @@ quantitate_by_istd <- function(data) {
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 
-  writeLines(crayon::green(glue::glue("\u2713 {n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_istd} spiked-in ISTDs and sample amounts.
+  cli_alert_success(col_green(glue::glue("{n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_istd} spiked-in ISTDs and sample amounts.
                    feature_conc unit: [{conc_unit}].")))
 
   data@status_processing <- "Quantitated Data"

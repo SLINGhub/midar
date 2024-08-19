@@ -15,7 +15,7 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     broom,
-    crayon,
+    cli,
     dplyr,
     forcats,
     fs,

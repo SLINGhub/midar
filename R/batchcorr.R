@@ -244,7 +244,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   }
   if (within_batch) mode_text <- "was applied batch-wise" else mode_text <- "across all batches was applied"
 
-  writeLines(crayon::green(glue::glue("\u2713 Drift correction {mode_text} to raw concs {count_feature_text} Median study-sample CV of all features before and after correction: {cv_median_raw}% and {cv_median_adj}%.")))
+  cli_alert_success(col_green(glue::glue("Drift correction {mode_text} to raw concs {count_feature_text} Median study-sample CV of all features before and after correction: {cv_median_raw}% and {cv_median_adj}%.")))
 
 
 
@@ -266,7 +266,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   if (n_ltr_excl > 0) txt_5 <- paste0(n_ltr_excl, " of ", sum(d_sum_span$qc_type == "LTR"), " LTRs")
 
   txt_final <- paste(c(txt_1, txt_2, txt_3, txt_4, txt_5), collapse = ", ")
-  if (txt_final != "") writeLines(crayon::yellow(glue::glue("Warning: {txt_final} excluded from correction (beyond regions spanned by QCs).")))
+  if (txt_final != "") cli_alert_warning(col_yellow(glue::glue("Warning: {txt_final} excluded from correction (beyond regions spanned by QCs).")))
 
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_drift_corrected <- TRUE
@@ -274,8 +274,8 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 
 
 
-  if (data@is_batch_corrected) writeLines(crayon::yellow(glue::glue("Note: previous batch correction has been removed.")))
-  if (fit_errors > 0) writeLines(crayon::yellow(glue::glue("Warning: No smoothing applied for {fit_errors} features because the fit algorithm failed (insufficient or invalid data points): {features_with_fiterror_text}")))
+  if (data@is_batch_corrected) cli_alert_warning(col_yellow(glue::glue("Note: previous batch correction has been removed.")))
+  if (fit_errors > 0) cli_alert_warning(col_yellow(glue::glue("Warning: No smoothing applied for {fit_errors} features because the fit algorithm failed (insufficient or invalid data points): {features_with_fiterror_text}")))
   data@dataset$feature_conc <- data@dataset$CONC_ADJ
   data
 }
@@ -312,12 +312,12 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 
   data@dataset <- ds
   if (data@is_drift_corrected) {
-    writeLines(crayon::green(glue::glue("\u2713 Batch correction was applied to drift-corrected concs of all {nrow(data@annot_features)} features.")))
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concs of all {nrow(data@annot_features)} features.")))
   } else {
-    writeLines(crayon::green(glue::glue("\u2713 Batch correction was applied to raw concs of all {nrow(data@annot_features)} features.")))
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {nrow(data@annot_features)} features.")))
   }
 
-  if (data@is_drift_corrected & use_raw_concs) writeLines(crayon::yellow(glue::glue("Note: previous drift correction has been removed.\n")))
+  if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.\n")))
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_batch_corrected <- TRUE
   data@dataset$feature_conc <- data@dataset$CONC_ADJ

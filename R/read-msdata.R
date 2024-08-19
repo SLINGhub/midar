@@ -350,7 +350,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
       txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n")
     }
 
-    writeLines(crayon::green(txt))
+    writeLines(cli::col_green(txt))
   }
 
   datLong
@@ -444,7 +444,7 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
 
   if (!silent) {
     txt <- glue::glue("\u2713 Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_name))} features \n")
-    writeLines(crayon::green(txt))
+    writeLines(col_green(txt))
   }
 
   d_mrmkit_data

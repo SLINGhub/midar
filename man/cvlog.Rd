@@ -19,6 +19,6 @@ Computes the coefficient of variation (CV) after log-transformation of the provi
 }
 \examples{
 library(midar)
-cvlog(c(5,6,3,4,5, NA), na.rm = TRUE)
+cvlog(c(5, 6, 3, 4, 5, NA), na.rm = TRUE)
 
 }

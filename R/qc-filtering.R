@@ -389,9 +389,9 @@ apply_qc_filter <- function(data,
 
 
   if(qualifier.include)
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+    cli::cli_alert_success(cli::col_green(glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
-   writeLines(crayon::green(glue::glue("\u2713 QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features).")))
+    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
 
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
   if (!istds.include) d_filt <- d_filt |> filter(!.data$is_istd)

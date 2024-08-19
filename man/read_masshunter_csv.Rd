@@ -4,7 +4,7 @@
 \alias{read_masshunter_csv}
 \title{Reads and parses one Agilent MassHunter Quant CSV result file}
 \usage{
-read_masshunter_csv(path, expand_qualifier_names = FALSE, silent = FALSE)
+read_masshunter_csv(path, expand_qualifier_names = TRUE, silent = FALSE)
 }
 \arguments{
 \item{path}{File path of MassHunter Quant CSV file}

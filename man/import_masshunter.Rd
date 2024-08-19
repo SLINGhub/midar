@@ -17,7 +17,7 @@ import_masshunter(data, path, file_format = "csv")
 MidarExperiment object
 }
 \description{
-Imports .csv file(s) exported from \verb{Agilent MassHunter (MH) Quantitative Analysis} containing peak integration results.
+Imports .csv file(s) exported from \verb{Agilent MassHunter (MH) Quantitative Anal  ysis} containing peak integration results.
 Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
 Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the \code{MidarExperiment} object for downstream analyses.
 
