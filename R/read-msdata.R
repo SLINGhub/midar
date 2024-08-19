@@ -343,11 +343,16 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
       .after = "feature_name"
     )
 
+    # Defines the field from the raw data to used as analysis id
+  datLong <- datLong |>
+    mutate(analysis_id = raw_data_filename, .before = 1)
+
+
   if (!silent) {
     if (!any(datLong$integration_qualifier)) {
-      txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features \n")
+      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features \n"))
     } else if (any(datLong$integration_qualifier)) {
-      txt <- glue::glue("\u2713 Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n")
+      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n"))
     }
 
     writeLines(cli::col_green(txt))

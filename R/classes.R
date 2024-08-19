@@ -3,6 +3,7 @@ pkg.env <- new.env()
 # Data structure templates
 pkg.env$dataset_templates <- list(
   dataset_orig_template = tibble::tibble(
+    "analysis_id" = character(),
     "raw_data_filename" = character(),
     "acquisition_time_stamp" = as.Date(character()),
     "inj_volume" = numeric(),
@@ -262,23 +263,23 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 
 check_integrity <- function(object, excl_unannotated_analyses) {
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
-    d_xy <- length(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename))
-    d_yx <- length(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()))
+    d_xy <- length(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id))
+    d_yx <- length(setdiff(object@annot_analyses$analysis_id, object@dataset_orig$analysis_id %>% unique()))
     if (d_xy > 0) {
-      if (d_xy == length(object@dataset_orig$raw_data_filename %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
+      if (d_xy == length(object@dataset_orig$analysis_id %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
       if (!excl_unannotated_analyses) {
         if (d_xy < 50) {
           writeLines(glue::glue(""))
-          stop(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$raw_data_filename %>% unique(), object@annot_analyses$raw_data_filename), collapse = ", ")}"))
+          stop(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id), collapse = ", ")}"))
         } else {
-          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements have no matching metadata."))
+          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} measurements have no matching metadata."))
         }
       } else {
-        cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {object@dataset_orig$raw_data_filename %>% unique() %>% length()} measurements without matching metadata were excluded.")))
+        cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} measurements without matching metadata were excluded.")))
       }
     } else if (d_yx > 0) {
       if (d_yx < 50) {
-        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$raw_data_filename, object@dataset_orig$raw_data_filename %>% unique()), collapse = ", ")}"))
+        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$analysis_id, object@dataset_orig$analysis_id %>% unique()), collapse = ", ")}"))
       } else {
         writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
       }

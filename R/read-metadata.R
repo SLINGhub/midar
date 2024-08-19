@@ -14,11 +14,10 @@ metadata_import_exceltemplate <- function(data, path, analysis_sequence = "defau
 
   d_annot <- read_msorganizer_xlm(path)
 
-  # browser()
   data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("raw_data_filename", dplyr::any_of("acquisition_time_stamp")) %>%
+    dplyr::select("analysis_id", "raw_data_filename", dplyr::any_of("acquisition_time_stamp")) %>%
     dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_analyses, by = c("raw_data_filename" = "raw_data_filename"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_analyses, by = c("analysis_id", "raw_data_filename"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
   if ("acquisition_time_stamp" %in% names(data@annot_analyses) & (analysis_sequence %in% c("timestamp", "default"))) {
@@ -76,8 +75,10 @@ metadata_import_exceltemplate <- function(data, path, analysis_sequence = "defau
 
 
   d_dataset <- data@dataset_orig %>%
-    dplyr::inner_join(data@annot_analyses %>%
-      dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"), by = c("raw_data_filename")) %>%
+    dplyr::inner_join(
+      data@annot_analyses %>%
+        dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
+      by = c("analysis_id", "raw_data_filename")) %>%
     dplyr::inner_join(
       d_annot$annot_features %>%
         filter(.data$valid_integration) |>
