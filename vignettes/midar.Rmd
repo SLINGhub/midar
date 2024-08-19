@@ -39,12 +39,12 @@ metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "mi
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::import_masshunter(
+mexp <- midar::rawdata_import_agilent(
   data = mexp,
   path = masshunter_file,
   file_format = "csv"
 )
-mexp <- midar::import_metadata_msorganizer(
+mexp <- midar::metadata_import_exceltemplate(
   data = mexp,
   path = metadata_file,
   analysis_sequence = "timestamp",

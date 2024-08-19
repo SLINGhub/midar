@@ -9,7 +9,7 @@
 #' @export
 #'
 
-import_metadata_msorganizer <- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
+metadata_import_exceltemplate <- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
 
   d_annot <- read_msorganizer_xlm(path)

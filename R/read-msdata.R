@@ -18,12 +18,12 @@
 #' @examples
 #' path_csvfile <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- import_masshunter(mexp, path_csvfile)
+#' mexp <- rawdata_import_agilent(mexp, path_csvfile)
 #' mexp
 
 #' @export
 
-import_masshunter <- function(data, path, file_format = "csv") {
+rawdata_import_agilent <- function(data, path, file_format = "csv") {
   if (file_format == "csv") {
     import_analysis(data, path, "read_masshunter_csv", "*.csv")
   } else {
