@@ -126,10 +126,10 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
 
   data@annot_responsecurves <- data@annot_analyses %>%
     dplyr::filter(.data$qc_type == "RQC") %>%
-    dplyr::select("analysis_id", "raw_data_filename") %>%
+    dplyr::select("analysis_id") %>%
     dplyr::distinct() %>%
     dplyr::ungroup() %>%
-    dplyr::right_join(d_annot$annot_responsecurves, by = c("raw_data_filename" = "raw_data_filename"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_responsecurves, by = c("analysis_id" = "analysis_id"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
 
@@ -315,14 +315,14 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
   d_annot$annot_responsecurves <- d_annot_responsecurves |>
     dplyr::select(
-      "raw_data_filename",
+      analysis_id = "raw_data_filename",
       rqc_series_id = "response_curve_name",
       "relative_sample_amount" = "relative_sample_amount_[%]",
       "injection_volume" = "injection_volume_[ul]"
     ) |>
     dplyr::mutate(
-      raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
-      raw_data_filename = stringr::str_squish(as.character(.data$raw_data_filename)),
+      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+      analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
       rqc_series_id = stringr::str_squish(as.character(.data$rqc_series_id)),
       relative_sample_amount = .data$relative_sample_amount / 100
     ) %>%
