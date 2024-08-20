@@ -1,3 +1,61 @@
+
+#' @title Retrieve available metadata from imported analysis data
+#' @description Available information will depend on the format of imported raw analysis data. See [rawdata_import_agilent()] and [rawdata_import_mrmkit()]
+#' @param data MidarExperiment object
+#' @param analysis_sequence Must by any of: "resultfile" or "timestamp". Defines how the analysis order is according the sequence (default) in the loaded analysis data or the timestamp, if available, in the analysis data.
+#' @return MidarExperiment object
+#' @export
+#'
+
+metadata_from_data<- function(data, analysis_sequence = "resultfile") {
+  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile"))
+
+  # get analysis metadata
+   data@annot_analyses <- data@dataset_orig %>%
+    dplyr::select("analysis_id", dplyr::any_of(c("acquisition_time_stamp", "qc_type", "batch_no"))) %>%
+    dplyr::distinct() %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
+
+  if ("acquisition_time_stamp" %in% names(data@dataset_orig) & (analysis_sequence %in% c("timestamp", "default"))) {
+    data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
+  } else {
+    if (analysis_sequence == "timestamp") {
+      stop(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
+    }
+  }
+
+  data@annot_analyses <- data@annot_analyses |>
+    mutate(run_id = row_number(), .before = 1)
+
+  # retrieve batches
+
+
+  if ("batch_id" %in% names(data@dataset_orig)) {
+    data@annot_batches <- data@annot_analyses %>%
+      dplyr::group_by(.data$batch_no) %>%
+      dplyr::summarise(
+        batch_id = .data$batch_id[1],
+        id_batch_start = dplyr::first(.data$run_id),
+        id_batch_end = dplyr::last(.data$run_id)
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::arrange(.data$id_batch_start) %>%
+      dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
+  }
+
+
+
+  # get feature metadata
+
+  data@annot_features <- data@dataset_orig %>%
+    dplyr::select("feature_name", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "norm_istd_feature"))) %>%
+    dplyr::distinct() %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
+
+  data
+}
+
+
 # TODO: This below has to be changed, mapping of metadata to data should be a distinct function
 #' @title Import metadata from the MSOrganizer template (.XLM) and associates it with the analysis data
 #' @description Requires version 1.9.1 of the template
@@ -9,7 +67,8 @@
 #' @export
 #'
 
-metadata_import_exceltemplate <- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
+metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
+
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
 
   d_annot <- read_msorganizer_xlm(path)
