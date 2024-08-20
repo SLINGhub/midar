@@ -68,6 +68,7 @@ quantitate_by_istd <- function(data) {
   if (nrow(data@annot_istd) < 1) stop("ISTD concetrations are missing...please import them first.")
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) stop("Data needs first to be ISTD normalized. Please apply function 'normalize_by_istd' first.")
   d_temp <- data@dataset %>%
+    select(!any_of(c("sample_amount", "istd_volume"))) |>
     dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
     # dplyr::left_join(data@annot_features %>% dplyr::select("feature_name", "quant_istd_feature_name"), by = c("feature_name")) %>%
     dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_name"))

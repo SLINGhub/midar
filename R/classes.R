@@ -262,7 +262,7 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 
 
 check_rawdata_present <- function(object){
-  nrow(object@datase_orig) > 0
+  nrow(object@dataset_orig) > 0
 }
 
 check_integrity <- function(object, excl_unannotated_analyses) {

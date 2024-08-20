@@ -516,7 +516,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 #'
 #' @return A tibble in the long format
 #' @export
-read_analysisresults_long_format <- function(file, analysis_id_col = NULL, feature_name_col = NULL, silent = FALSE) {
+rawdata_import_mrmkit <- function(file, analysis_id_col = NULL, feature_name_col = NULL, silent = FALSE) {
   analysis_inf_cols <- c(
     "analysis_id",
     "raw_data_filename",
