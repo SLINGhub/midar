@@ -228,7 +228,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
     dplyr::mutate(
       dplyr::across(
         .cols = dplyr::any_of(c("acquisition_time_stamp")),
-        .fns = \(x) lubridate::parse_date_time(x, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p"))
+        .fns = \(x) lubridate::parse_date_time(x, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)
       ),
       dplyr::across(
         .cols = dplyr::any_of(c("sample_name")),
