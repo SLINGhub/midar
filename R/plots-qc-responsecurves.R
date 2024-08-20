@@ -126,7 +126,6 @@ plot_responsecurves <- function(data,
   }
 
   d_rqc <- dat_filt |>
-    #filter(.data$qc_type == "RQC") |>
     dplyr::select(tidyselect::any_of(
       c("analysis_id", "feature_name", "feature_intensity", "feature_norm_intensity")
     )) |>
