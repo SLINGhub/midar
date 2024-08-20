@@ -169,7 +169,7 @@ plot_responsecurves <- function(data,
   # browser()
   if (!output_pdf) {
     if (!return_plot_list) {
-      d_rqc_grp$plt
+    print(d_rqc_grp$plt)
     }
   } else {
     pdf(
