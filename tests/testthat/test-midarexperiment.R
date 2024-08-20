@@ -1,7 +1,7 @@
 testthat::test_that("import_msorganizer_xlm: Template with all information", {
   # mexp <- midar::MidarExperiment()
   # mexp <- midar::rawdata_import_agilent(mexp, "21_Test_MH.csv")
-  # mexp <- midar::metadata_import_exceltemplate(mexp, "20_MSTemplate_Creator_forTest.xlsm", excl_unannotated_analyses = TRUE)
+  # mexp <- midar::metadata_import_midarxlm(mexp, "20_MSTemplate_Creator_forTest.xlsm", excl_unannotated_analyses = TRUE)
   #
   # mexp <- midar::normalize_by_istd(mexp)
   # mexp <- midar::quantitate_by_istd(mexp)

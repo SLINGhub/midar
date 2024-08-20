@@ -44,7 +44,7 @@ mexp <- midar::rawdata_import_agilent(
   path = masshunter_file,
   file_format = "csv"
 )
-mexp <- midar::metadata_import_exceltemplate(
+mexp <- midar::metadata_import_midarxlm(
   data = mexp,
   path = metadata_file,
   analysis_sequence = "timestamp",
