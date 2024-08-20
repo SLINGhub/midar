@@ -52,6 +52,10 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile") {
     dplyr::distinct() %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
+  # TODO
+  data@dataset <- data@dataset_orig
+
+
   data
 }
 
