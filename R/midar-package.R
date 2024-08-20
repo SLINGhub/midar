@@ -8,7 +8,7 @@
 #' @importFrom tidyselect vars_select_helpers everything
 #' @importFrom dplyr group_by desc ungroup mutate summarise slice if_else rowwise arrange left_join right_join inner_join full_join anti_join join_by cur_group_id case_when distinct rename relocate pull across all_of any_of if_any if_all case_match case_when
 #' @importFrom stringr str_remove str_replace str_detect str_trim str_extract str_squish
-#' @importFrom tibble column_to_rownames
+#' @importFrom tibble column_to_rownames as_tibble
 #' @importFrom tidyr unite drop_na
 #' @importFrom grid gpar
 #' @importFrom methods is
