@@ -11,6 +11,7 @@ plot_responsecurves_page <- function(dataset,
                                      text_scale_factor,
                                      base_size) {
   plot_var <- rlang::sym(response_variable)
+
   ggplot2::ggplot(
     data = dataset,
     ggplot2::aes(
@@ -106,7 +107,7 @@ plot_responsecurves <- function(data,
     dat_filt <- data@dataset %>% dplyr::ungroup()
   }
 
-
+  dat_filt <- dat_filt |> dplyr::semi_join(data@annot_responsecurves, by = c("analysis_id"))
 
   if (all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")) {
     if (length(feature_incl_filt) == 1) {
@@ -125,7 +126,7 @@ plot_responsecurves <- function(data,
   }
 
   d_rqc <- dat_filt |>
-    filter(.data$qc_type == "RQC") |>
+    #filter(.data$qc_type == "RQC") |>
     dplyr::select(tidyselect::any_of(
       c("analysis_id", "feature_name", "feature_intensity", "feature_norm_intensity")
     )) |>
