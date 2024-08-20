@@ -41,7 +41,7 @@ setMethod("metadata_responsecurves<-", "MidarExperiment", function(x, value) {
 
     cli::cli_abort(message = "One or more `relative_sample_amount` or `injection_volume` are not defined. Please ensure completness of at least one of the variables.")
 
-  x@annot_responsecurves <- value
+  x@annot_responsecurves <- as_tibble(value)
   validObject(x)
   x
 })
