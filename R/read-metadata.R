@@ -35,7 +35,7 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile") {
   # get feature metadata
 
   data@annot_features <- data@dataset_orig %>%
-    dplyr::select("feature_name", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "norm_istd_feature"))) %>%
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "norm_istd_feature"))) %>%
     dplyr::distinct() %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
@@ -115,15 +115,15 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
     dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
 
   data@annot_features <- data@dataset_orig %>%
-    dplyr::select("feature_name") %>%
+    dplyr::select("feature_id") %>%
     dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_features, by = c("feature_name" = "feature_name"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_features, by = c("feature_id" = "feature_id"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
   data@annot_istd <- data@annot_features %>%
-    dplyr::select("quant_istd_feature_name") %>%
+    dplyr::select("quant_istd_feature_id") %>%
     dplyr::distinct() %>%
-    dplyr::left_join(d_annot$annot_istd, by = c("quant_istd_feature_name" = "quant_istd_feature_name"), keep = FALSE) %>%
+    dplyr::left_join(d_annot$annot_istd, by = c("quant_istd_feature_id" = "quant_istd_feature_id"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
 
 
@@ -148,8 +148,8 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
     dplyr::inner_join(
       d_annot$annot_features %>%
         filter(.data$valid_integration) |>
-        dplyr::select(dplyr::any_of(c("feature_name", "feature_name", "feature_class", "norm_istd_feature_name", "quant_istd_feature_name", "is_istd", "feature_name", "is_quantifier", "valid_integration", "feature_response_factor", "interference_feature_name", "interference_proportion"))),
-      by = c("feature_name"), keep = FALSE
+        dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_integration", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
+      by = c("feature_id"), keep = FALSE
     )
 
   data@dataset <-
@@ -158,7 +158,7 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
       corrected_interference = FALSE,
       outlier_technical = FALSE
     ) |>
-    dplyr::arrange(match(.data$feature_name, d_annot$annot_features$feature_name))
+    dplyr::arrange(match(.data$feature_id, d_annot$annot_features$feature_id))
 
   data@dataset <- data@dataset |> arrange(.data$run_id)
 
@@ -169,7 +169,7 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
   data@status_processing <- "Annotated Raw Data"
 
 
-  cli_alert_success(col_green(glue::glue("Metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples and {length(data@dataset$feature_name %>% unique())} features.")))
+  cli_alert_success(col_green(glue::glue("Metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples and {length(data@dataset$feature_id %>% unique())} features.")))
   data
 }
 
@@ -253,26 +253,26 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "quantifier", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_integration", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_name", init_value = NA_character_, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_name", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
 
 
-  # NOTE: If feature_name is defined, then it will overwrite the feature name defined in the raw data files
+  # NOTE: If feature_id is defined, then it will overwrite the feature name defined in the raw data files
   # Todo: if user-defined feature names are provided, then it should be reported somewhere,  possible source of user-error!
 
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
-      feature_name = stringr::str_squish(.data$feature_name),
-      feature_name_orig = .data$feature_name,
-      new_feature_name = stringr::str_squish(.data$new_feature_name),
-      feature_name = if_else(is.na(.data$new_feature_name), .data$feature_name_orig, .data$new_feature_name),
+      feature_id = stringr::str_squish(.data$feature_id),
+      feature_id_orig = .data$feature_id,
+      new_feature_id = stringr::str_squish(.data$new_feature_id),
+      feature_id = if_else(is.na(.data$new_feature_id), .data$feature_id_orig, .data$new_feature_id),
       feature_class = stringr::str_squish(.data$feature_class),
-      norm_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
-      quant_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
-      is_istd = (.data$feature_name == .data$norm_istd_feature_name),
+      norm_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
+      quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
+      is_istd = (.data$feature_id == .data$norm_istd_feature_id),
       is_quantifier = as.logical(case_match(tolower(.data$quantifier),
                                              "yes" ~ TRUE,
                                              "no"~ FALSE,
@@ -285,19 +285,19 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
                                             "true" ~ TRUE,
                                             "false" ~ FALSE,
                                             .default = NA)),
-      interference_feature_name = stringr::str_squish(.data$interference_feature_name),
+      interference_feature_id = stringr::str_squish(.data$interference_feature_id),
       remarks = NA_character_) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     dplyr::select(
-      "feature_name",
+      "feature_id",
       "feature_class",
       "is_istd",
-      "norm_istd_feature_name",
-      "quant_istd_feature_name",
+      "norm_istd_feature_id",
+      "quant_istd_feature_id",
       feature_response_factor = "response_factor",
       "is_quantifier",
       "valid_integration",
-      "interference_feature_name",
+      "interference_feature_id",
       "interference_proportion",
       "remarks"
     )
@@ -326,12 +326,12 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
   )
 
   names(annot_istd) <- tolower(names(annot_istd))
-  names(annot_istd)[1] <- "istd_feature_name"
+  names(annot_istd)[1] <- "istd_feature_id"
 
   d_annot$annot_istd <- annot_istd |>
     # dplyr::mutate(istd_compound_name = na_character_) |>
     dplyr::select(
-      quant_istd_feature_name = "istd_feature_name",
+      quant_istd_feature_id = "istd_feature_id",
       istd_conc_nmolar = "istd_conc_[nm]"
     ) %>%
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))

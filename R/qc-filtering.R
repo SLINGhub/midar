@@ -19,7 +19,7 @@ calculate_qc_metrics <- function(data) {
 
   ds1 <- data@dataset %>%
     dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) %>%
-    dplyr::group_by(.data$feature_name, .data$feature_class) %>%
+    dplyr::group_by(.data$feature_id, .data$feature_class) %>%
     dplyr::summarise(
       # PrecursorMz = paste0(unique(.data$precursor_mz), collapse = ","),
       # ProductMz = paste0(unique(.data$product_mz), collapse = ","),
@@ -30,8 +30,8 @@ calculate_qc_metrics <- function(data) {
       na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"])),
       is_quantifier = unique(.data$is_quantifier),
       is_istd = unique(.data$is_istd),
-      norm_istd = unique(.data$norm_istd_feature_name),
-      quant_istd = unique(.data$quant_istd_feature_name),
+      norm_istd = unique(.data$norm_istd_feature_id),
+      quant_istd = unique(.data$quant_istd_feature_id),
       feature_response_factor = unique(.data$feature_response_factor),
       Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
       Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
@@ -77,7 +77,7 @@ calculate_qc_metrics <- function(data) {
     ds2 <- data@dataset %>%
       dplyr::filter(.data$qc_type %in% c("RQC")) %>%
       dplyr::full_join(data@annot_responsecurves, by = "analysis_id") %>%
-      dplyr::group_by(.data$feature_name, .data$rqc_series_id) %>%
+      dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
       dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
       tidyr::nest() %>%
       mutate(
@@ -93,12 +93,12 @@ calculate_qc_metrics <- function(data) {
       ) %>%
       tidyr::unnest(c("stats", "model")) %>%
       dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
-      dplyr::select("feature_name", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
+      dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
       tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
       ungroup()
 
     data@metrics_qc <- data@metrics_qc %>%
-      dplyr::left_join(ds2, by = "feature_name") |>
+      dplyr::left_join(ds2, by = "feature_id") |>
       ungroup()
   }
 
@@ -188,7 +188,7 @@ apply_qc_filter <- function(data,
     stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
   }
   if (!is.null(features_to_keep)) {
-    keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_name))
+    keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
     if (length(keepers_not_defined) > 0) stop(glue::glue("Following defined in features_to_keep are not present in this dataset: {txt}"))
   }
@@ -362,7 +362,7 @@ apply_qc_filter <- function(data,
               (is.na(.data$valid_integration) | .data$valid_integration)
           ) |
             (
-              .data$feature_name %in% features_to_keep
+              .data$feature_id %in% features_to_keep
             )
       )
 
@@ -397,7 +397,7 @@ apply_qc_filter <- function(data,
   if (!istds.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
   data@dataset_filtered <- data@dataset %>%
-    dplyr::right_join(d_filt |> dplyr::select("feature_name"), by = "feature_name") |>
+    dplyr::right_join(d_filt |> dplyr::select("feature_id"), by = "feature_id") |>
     filter(.data$valid_analysis, !(.data$outlier_technical & outlier.technical.exlude))
   data
 }

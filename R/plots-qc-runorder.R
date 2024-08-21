@@ -236,17 +236,17 @@ plot_runscatter <- function(data,
 
   if (all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")) {
     if (length(feature_incl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, feature_incl_filt))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$feature_name %in% feature_incl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(.data$feature_id %in% feature_incl_filt)
     }
   }
 
   if (all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")) {
     if (length(feature_excl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))
+      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, feature_excl_filt))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_name %in% feature_excl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_id %in% feature_excl_filt)
     }
   }
 
@@ -269,7 +269,7 @@ plot_runscatter <- function(data,
 
 
   dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$feature_name) %>%
+    dplyr::group_by(.data$feature_id) %>%
     dplyr::mutate(
       # value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
       # value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
@@ -288,12 +288,12 @@ plot_runscatter <- function(data,
     dplyr::ungroup()
 
   dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$feature_name) %>%
+    dplyr::group_by(.data$feature_id) %>%
     dplyr::arrange(.data$value) %>%
     mutate(
       value = ifelse(dplyr::row_number() < cap_top_n_values, .data$value[cap_top_n_values], .data$value)
     ) |>
-    dplyr::arrange(.data$feature_name, .data$run_id) %>%
+    dplyr::arrange(.data$feature_id, .data$run_id) %>%
     dplyr::ungroup()
 
 
@@ -307,7 +307,7 @@ plot_runscatter <- function(data,
   }
 
   if (is.na(page_no)) {
-    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$feature_name) / (cols_page * rows_page))
+    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$feature_id) / (cols_page * rows_page))
   } else {
     page_range <- page_no
   }
@@ -351,7 +351,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
   dat_subset <- dat_filt %>%
-    dplyr::arrange(.data$feature_name, .data$run_id) %>%
+    dplyr::arrange(.data$feature_id, .data$run_id) %>%
     dplyr::slice(row_start:row_end)
 
   dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
@@ -364,7 +364,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
   if (nrow(dat_subset) > 0) {
     dMax <- dat_subset %>%
-      dplyr::group_by(.data$feature_name) %>%
+      dplyr::group_by(.data$feature_id) %>%
       dplyr::summarise(
         y_max =
           if (!all(is.na(.data$value_mod))) {
@@ -377,8 +377,8 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
   d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
-  d_batch_data$feature_name <- rep(dMax$feature_name, times = nrow(d_batches))
-  d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by = c("feature_name"))
+  d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
+  d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by = c("feature_id"))
   p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x = "run_id"))
 
   # browser()
@@ -410,7 +410,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   }
 
   p <- p +
-    ggh4x::facet_wrap2(ggplot2::vars(.data$feature_name), scales = "free_y", ncol = cols_page, nrow = rows_page, trim_blank = FALSE) +
+    ggh4x::facet_wrap2(ggplot2::vars(.data$feature_id), scales = "free_y", ncol = cols_page, nrow = rows_page, trim_blank = FALSE) +
     ggplot2::expand_limits(y = 0) +
     ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
@@ -545,14 +545,14 @@ plot_runboxplots <- function(data,
   }
 
   d_temp <- d_temp %>%
-    dplyr::select(.data$analysis_id, .data$run_id, .data$qc_type, .data$batch_id, .data$feature_name, .data$feature_intensity, .data$feature_norm_intensity, .data$feature_conc) %>%
+    dplyr::select(.data$analysis_id, .data$run_id, .data$qc_type, .data$batch_id, .data$feature_id, .data$feature_intensity, .data$feature_norm_intensity, .data$feature_conc) %>%
     filter(.data$feature_intensity > min_feature_intensity) %>%
     filter(str_detect(.data$qc_type, qc_types)) %>%
     droplevels()
 
   if (relative_log_abundances) {
     d_temp <- d_temp %>%
-      group_by(.data$feature_name) %>%
+      group_by(.data$feature_id) %>%
       mutate(val = !!plot_var_sym) %>%
       mutate(val = .data$val / mean(.data$val[.data$qc_type == "BQC" | .data$qc_type == "TQC" | .data$qc_type == "SPL"], na.rm = TRUE))
   } else {

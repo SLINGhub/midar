@@ -51,10 +51,10 @@ import_analysis <- function(data, path, import_function, file_ext, ...) {
     purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source")
 
 
-  # Test if analysis_ids, feature_names, and values are replicated
-  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_name, .keep_all = FALSE))) {
+  # Test if analysis_ids, feature_ids, and values are replicated
+  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_id, .keep_all = FALSE))) {
     has_duplicated_id <- TRUE
-    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_name, .keep_all = TRUE))) {
+    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_id, .keep_all = TRUE))) {
       has_duplicated_id_values <- TRUE
     } else {
       has_duplicated_id_values <- FALSE
@@ -125,14 +125,14 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   if (datWide[1, 1] != "Sample") stop("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
 
-  feature_name_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
+  feature_id_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
 
   # if parameter set, then use prefix the feature name and modify the qualifier name
   if (!expand_qualifier_names) {
-    feature_name_tbl <- feature_name_tbl |>
+    feature_id_tbl <- feature_id_tbl |>
       tidyr::fill("_prefixXXX_")
   } else {
-    feature_name_tbl <- feature_name_tbl |>
+    feature_id_tbl <- feature_id_tbl |>
       mutate(temp = .data$`_prefixXXX_`) |>
       tidyr::fill("temp") |>
       mutate(temp = if_else(!str_detect(.data$temp, "Qualifier \\(") & expand_qualifier_names, "", .data$temp)) |>
@@ -145,7 +145,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   }
 
 
-  datWide[1, ] <- feature_name_tbl |>
+  datWide[1, ] <- feature_id_tbl |>
     unlist() |>
     as.list()
 
@@ -244,7 +244,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide |>
     dplyr::mutate(file_run_id = dplyr::row_number(), .before = 1) |>
-    tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_name")) |>
+    tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_id")) |>
     tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
   # Convert types of knows parameters and fields in the data set
@@ -334,9 +334,9 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   datLong <- datLong |>
     mutate(
-      integration_qualifier = ((expand_qualifier_names & str_detect(.data$feature_name, " \\[QUAL ")) |
-        (!expand_qualifier_names & str_detect(.data$feature_name, "^Qualifier \\("))),
-      .after = "feature_name"
+      integration_qualifier = ((expand_qualifier_names & str_detect(.data$feature_id, " \\[QUAL ")) |
+        (!expand_qualifier_names & str_detect(.data$feature_id, "^Qualifier \\("))),
+      .after = "feature_id"
     )
 
     # Defines the field from the raw data to used as analysis id
@@ -346,9 +346,9 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   if (!silent) {
     if (!any(datLong$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features \n"))
+      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_id))} features \n"))
     } else if (any(datLong$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_name))} features ({length(unique(datLong$feature_name[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_name[!datLong$integration_qualifier]))} qualifiers) \n"))
+      cli_alert_success(cli::col_green("Imported {length(unique(datLong$raw_data_filename))} samples with {length(unique(datLong$feature_id))} features ({length(unique(datLong$feature_id[!datLong$integration_qualifier]))} quantifiers, {length(unique(datLong$feature_id[!datLong$integration_qualifier]))} qualifiers) \n"))
     }
   }
 
@@ -394,9 +394,9 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
   # Extract MRMkit's "QC" info
   d_mrmkit_featureinfo <- d_mrmkit_raw |>
     dplyr::filter(.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
-    tidyr::pivot_longer(-.data$name, names_to = "feature_name", values_to = "value") |>
+    tidyr::pivot_longer(-.data$name, names_to = "feature_id", values_to = "value") |>
     tidyr::pivot_wider(names_from = "name", values_from = "value") |>
-    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")), .data$feature_name)) |>
+    dplyr::mutate(feature_id = dplyr::if_else(stringr::str_detect(.data$feature_id, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_id, ".*(?= RT)")), .data$feature_id)) |>
     dplyr::rename(precursor_mz = .data$Q1, product_mz = .data$Q1) |>
     dplyr::mutate(dplyr::across(dplyr::any_of(c("precursor_mz", "product_mz", "RT")), as.numeric))
 
@@ -404,13 +404,13 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
   d_mrmkit_data <- d_mrmkit_raw |>
     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
     dplyr::mutate(file_run_id = dplyr::row_number(), .before = "name") |>
-    tidyr::pivot_longer(-.data$file_run_id:-.data$name, names_to = "feature_name", values_to = "value") |>
+    tidyr::pivot_longer(-.data$file_run_id:-.data$name, names_to = "feature_id", values_to = "value") |>
     dplyr::rename(raw_data_filename = .data$name) |>
     dplyr::mutate(raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
     dplyr::mutate(raw_data_filename = stringr::str_squish(.data$raw_data_filename)) |>
-    dplyr::mutate(feature_name = dplyr::if_else(stringr::str_detect(.data$feature_name, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_name, ".*(?= RT)")), .data$feature_name)) |>
+    dplyr::mutate(feature_id = dplyr::if_else(stringr::str_detect(.data$feature_id, "RT"), stringr::str_squish(stringr::str_extract(.data$feature_id, ".*(?= RT)")), .data$feature_id)) |>
     dplyr::mutate(dplyr::across(.data$value, as.numeric)) |>
-    dplyr::left_join(d_mrmkit_featureinfo, by = "feature_name") |>
+    dplyr::left_join(d_mrmkit_featureinfo, by = "feature_id") |>
     dplyr::relocate(.data$value, .after = dplyr::last_col()) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
@@ -435,14 +435,14 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
   #     dplyr::rename(raw_data_filename = .data$path) |>
   #     #dplyr::mutate(run_id = row_number(), .before = ANALYSIS_ID) |>
   #     dplyr::select(-tidyselect::any_of(c("batch", "type"))) |>
-  #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_name", values_to = "feature_norm_intensity")
+  #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_id", values_to = "feature_norm_intensity")
   #
-  #   data@dataset <- data@dataset_orig |> left_join(d_results, by=c("raw_data_filename", "feature_name"))
+  #   data@dataset <- data@dataset_orig |> left_join(d_results, by=c("raw_data_filename", "feature_id"))
   #
   # }
 
   if (!silent) {
-    txt <- glue::glue("\u2713 Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_name))} features \n")
+    txt <- glue::glue("\u2713 Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_id))} features \n")
     writeLines(col_green(txt))
   }
 
@@ -499,7 +499,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 
   d |>
     dplyr::mutate(run_id = dplyr::row_number(), .before = 1) |>
-    tidyr::pivot_longer(cols = -1:-2, names_to = "feature_name", values_to = value_type) |>
+    tidyr::pivot_longer(cols = -1:-2, names_to = "feature_id", values_to = value_type) |>
     dplyr::rename(analysis_id = 2) |>
     mutate({{ value_type }} := as.numeric(!!var_value_type))
 }
@@ -511,16 +511,16 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 #'
 #' @param file File name and path of a plain long-format CSV file
 #' @param analysis_id_col Column to be used as analysis_id
-#' @param feature_name_col Column to be used feature_name
+#' @param feature_id_col Column to be used feature_id
 #' @param silent Suppress messages
 #'
 #' @return A tibble in the long format
 #' @export
-rawdata_import_mrmkit <- function(file, analysis_id_col = NULL, feature_name_col = NULL, silent = FALSE) {
+rawdata_import_mrmkit <- function(file, analysis_id_col = NULL, feature_id_col = NULL, silent = FALSE) {
   analysis_inf_cols <- c(
     "analysis_id",
     "raw_data_filename",
-    "feature_name",
+    "feature_id",
     "sample_name",
     "acquisition_time_stamp",
     "sample_type",
@@ -544,7 +544,7 @@ rawdata_import_mrmkit <- function(file, analysis_id_col = NULL, feature_name_col
 
   if (!is.null(analysis_id_col) && analysis_id_col %in% names(d)) stop("Analysis Id column not defined. ")
 
-  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_name", feature_intensity = {{ .data$field }})
+  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_id", feature_intensity = {{ .data$field }})
 
   d
 }

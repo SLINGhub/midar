@@ -16,14 +16,14 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
   d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
 
   # TODO: (IS as criteria for ISTD.. dangerous...
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_wide <- d_wide |>
     filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), .data$is_quantifier) |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }})
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
 
   # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
@@ -96,11 +96,11 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
 plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), log_transform = TRUE, grouping = "qc_type", sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
   d_wide <- data@dataset %>%
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS")) %>%
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }})
+    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
 
   d_metadata <- d_wide %>%
@@ -174,11 +174,11 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   PCy <- rlang::sym(paste0("PC", dim_y))
 
   d_wide <- data@dataset %>%
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_name, "\\(IS")) %>%
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }})
+    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) %>%
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   d_filt <- d_wide %>%
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
   m_raw <- d_filt |>
     dplyr::select(where(~ !any(is.na(.)))) |>
@@ -224,11 +224,11 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
 plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
   d_wide <- data@dataset_filtered %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_name, "\\(IS")
+  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_filt <- d_wide |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }}) |>
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }}) |>
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
   m_raw <- d_filt |>
     tibble::column_to_rownames("analysis_id") |>

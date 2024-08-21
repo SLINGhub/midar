@@ -139,7 +139,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   if (is.null(feature_list)) {
     ds <- data@dataset
   } else {
-    ds <- data@dataset %>% dplyr::filter(stringr::str_detect(.data$feature_name, feature_list))
+    ds <- data@dataset %>% dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
   }
   ds$x <- ds$run_id
   ds$y <- ds$conc_raw
@@ -147,7 +147,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 
   if (log2_transform) suppressWarnings(ds$y <- log2(ds$y))
 
-  if (within_batch) adj_groups <- c("feature_name", "batch_id") else adj_groups <- c("feature_name")
+  if (within_batch) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
   suppressWarnings(
     d <- ds %>%
       group_by(group_by(across(all_of(adj_groups)))) %>%
@@ -179,7 +179,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   }
 
   # Calculate CVs and apply to all or conditionally
-  if (apply_conditionally_per_batch & within_batch) filter_groups <- c("feature_name", "batch_id") else filter_groups <- c("feature_name")
+  if (apply_conditionally_per_batch & within_batch) filter_groups <- c("feature_id", "batch_id") else filter_groups <- c("feature_id")
   ddd <- dd %>%
     # filter(!is.na(.data$Y_PREDICTED)) |>
     group_by(across(all_of(filter_groups))) %>%
@@ -196,11 +196,11 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   data@dataset <- data@dataset %>%
     # filter(!outlier_technical) |>
     dplyr::left_join(
-      ddd %>% dplyr::select("analysis_id", "feature_name",
+      ddd %>% dplyr::select("analysis_id", "feature_id",
         CURVE_Y_PREDICTED = "Y_PREDICTED", Y_MEDIAN = "Y_MEDIAN", CONC_DRIFT_ADJ = "Y_ADJ",
         "CV_RAW_SPL", "CV_ADJ_SPL", "DRIFT_CORRECTED", FIT_ERROR = "fit_error", CONC_ADJ = "Y_FINAL"
       ),
-      by = c("analysis_id", "feature_name")
+      by = c("analysis_id", "feature_id")
     )
 
 
@@ -213,7 +213,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
 
   d_fit <- data@dataset |>
     # filter(!outlier_technical) |>
-    group_by(.data$feature_name) |>
+    group_by(.data$feature_id) |>
     summarise(
       FIT_ERROR = any(.data$FIT_ERROR, na.rm = TRUE),
       CV_RAW_SPL = sd(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$conc_raw[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
@@ -224,7 +224,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   cv_median_adj <- round(median(d_fit$CV_ADJ_SPL, na.rm = TRUE), 2)
   features_with_fiterror <- d_fit |>
     filter(.data$FIT_ERROR) |>
-    pull(.data$feature_name)
+    pull(.data$feature_id)
   if (length(features_with_fiterror) > 9) {
     features_with_fiterror_text <- glue::glue("{glue::glue_collapse(features_with_fiterror[1:9], sep = ", ")}, and {fit_errors-9} more features.")
   } else {
@@ -299,13 +299,13 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
   if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
   # Normalize by the median (or user-defined function)
   ds <- ds %>%
-    dplyr::group_by(.data$feature_name, .data$batch_id) %>%
+    dplyr::group_by(.data$feature_id, .data$batch_id) %>%
     dplyr::mutate(CONC_ADJ_NEW = {{ var }} / do.call(center_fun, list(({{ var }}[.data$qc_type %in% qc_types]), na.rm = TRUE))) |>
     dplyr::ungroup()
 
   # Re-level data to the median of all batches
   ds <- ds %>%
-    dplyr::group_by(.data$feature_name) %>%
+    dplyr::group_by(.data$feature_id) %>%
     dplyr::mutate(CONC_ADJ = .data$CONC_ADJ_NEW * do.call(center_fun, list({{ var }}[.data$qc_type %in% qc_types], na.rm = TRUE))) |>
     dplyr::select(-"CONC_ADJ_NEW") |>
     dplyr::ungroup()

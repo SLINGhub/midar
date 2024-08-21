@@ -1,6 +1,6 @@
 #' Get FC and p values from a t test contrast
 #'
-#' @param d_FC  data.frame with feature_name, p and log2FC
+#' @param d_FC  data.frame with feature_id, p and log2FC
 #' @param p_adjust calculate and use FDR
 #' @param sig_FC_min |FC| treshold
 #' @param sig_p_value_min P value treshold
@@ -69,7 +69,7 @@ volcano_plot <- function(d_FC, p_adjust, sig_FC_min, sig_p_value_min, symmetric_
     # scale_y_continuous(trans = "log1p", limits=c(0,5), breaks = c(1, 2, 3,4,5),  expand = c(0,0)) +
     ggrepel::geom_text_repel(
       data = d_FC %>% filter(.data$Significant == "sign"),
-      aes(label = .data$feature_name),
+      aes(label = .data$feature_id),
       size = 3 * scale_factor_species_label,
       box.padding = unit(0.15, "lines"),
       point.padding = unit(0.1, "lines")
@@ -142,7 +142,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
   )
 
   d_wide <- data %>%
-    pivot_wider(names_from = "feature_name", values_from = "feature_conc")
+    pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
   d_filt <- left_join(d_metadata[, "analysis_id"], d_wide)
 
@@ -240,7 +240,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 
 plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1, ellipse = TRUE, mark_ellipse = FALSE, show_labels = FALSE, label_size = 6, max_label_overlaps = Inf) {
   d_wide <- data %>%
-    pivot_wider(names_from = "feature_name", values_from = "feature_conc")
+    pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
   d_filt <- left_join(d_metadata[, "analysis_id"], d_wide)
 
@@ -340,7 +340,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
     print(group_levels)
     d_stat <- data |>
       arrange({{ GroupInner }}) |>
-      group_by({{ GroupOuter }}, .data$feature_name) |>
+      group_by({{ GroupOuter }}, .data$feature_id) |>
       nest() |>
       mutate(res = map(.x = data, .f = \(x) res <- get_pval(x, {{ GroupInner }}, contrasts = contrasts, paired = paired))) |>
       unnest(-data) |>
@@ -351,11 +351,11 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
         )
       ) |>
       mutate(y_max = max(.data$y_max)) |>
-      group_by(.data$feature_name) |>
+      group_by(.data$feature_id) |>
       mutate(y_max_all = max(.data$y_max)) |>
       group_by({{ GroupOuter }}) |>
       mutate(group_outer_id = cur_group_id()) |>
-      group_by(.data$feature_name, {{ GroupOuter }}) |>
+      group_by(.data$feature_id, {{ GroupOuter }}) |>
       mutate(
         x_min = (.data$group_outer_id - 0.4) + 0.8 / n_groups / 2 + 0.8 * 1 / (n_groups) * (match(.data$grp1, group_levels) - 1),
         x_max = (.data$group_outer_id - 0.4) + 0.8 / n_groups / 2 + 0.8 * 1 / (n_groups) * (match(.data$grp2, group_levels) - 1),
@@ -381,7 +381,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
         position = position_dodge(width = 0.8)
       ) +
       geom_point(aes(color = {{ GroupInner }}, fill = {{ GroupInner }}), size = point_size, position = pos, width = .4, shape = 1, stroke = 0.7) +
-      facet_wrap2(vars(.data$feature_name), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, .15))) +
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +
@@ -440,7 +440,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
         alpha = 0.2, lwd = 0.1, outlier.shape = NA
       ) +
       ggbeeswarm::geom_quasirandom(aes(color = {{ GroupInner }}, fill = {{ GroupInner }}), size = point_size, na.rm = TRUE, shape = 1, stroke = 0.4, width = 0.2) +
-      facet_wrap2(vars(.data$feature_name), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, .25))) +
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +
@@ -486,10 +486,10 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
     right_join(d_metadata |> rename(analysis_id = .data$sample_id))
 
   d_lipidnames <- d_long_full |>
-    dplyr::select(Compound = .data$feature_name) |>
+    dplyr::select(Compound = .data$feature_id) |>
     distinct() %>%
     add_lipid_transition_classnames(.data$.) |>
-    dplyr::select(feature_name = "Compound", "lipidClass", "lipidClassSL")
+    dplyr::select(feature_id = "Compound", "lipidClass", "lipidClassSL")
 
   df <- d_long_full |>
     left_join(d_lipidnames)
@@ -499,8 +499,8 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
     group_by(.data$lipidClass) |>
     mutate(lipidclass_id = cur_group_id()) |>
     group_by(.data$lipidClass, .data$analysis_id) |>
-    mutate(lipid_class_page_no = max(ceiling(which(unique(.data$feature_name) == .data$feature_name) / (rows_page * columns_page)))) |>
-    group_by(.data$feature_name) |>
+    mutate(lipid_class_page_no = max(ceiling(which(unique(.data$feature_id) == .data$feature_id) / (rows_page * columns_page)))) |>
+    group_by(.data$feature_id) |>
     mutate(page_no = ceiling(cur_group_id() / (rows_page * columns_page)))
 
   if (class_per_page) {

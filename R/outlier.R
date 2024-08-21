@@ -39,10 +39,10 @@ analysis_outlier_detection <- function(data,
   d_wide <- data@dataset_filtered |>
     filter(.data$qc_type %in% c("BQC", "TQC", "SPL")) |>
     filter(!.data$is_istd) |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_name", {{ variable }})
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   d_filt <- d_wide |>
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_name", values_from = {{ variable }})
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
   m_raw <- d_filt |>
     tibble::column_to_rownames("analysis_id") |>

@@ -31,24 +31,24 @@ get_conc_unit <- function(sample_amount_unit) {
 normalize_by_istd <- function(data, interference_correction = TRUE) {
   if (nrow(data@annot_features) < 1) stop("ISTD map is missing...please import transition annotations.")
 
-  if (any(!is.na(data@annot_features$interference_feature_name) & interference_correction)) data <- correct_interferences(data)
+  if (any(!is.na(data@annot_features$interference_feature_id) & interference_correction)) data <- correct_interferences(data)
 
   if ("feature_norm_intensity" %in% names(data@dataset)) {
     if (!all(is.na(data@dataset$feature_norm_intensity))) warning("Overwriting exiting normalized Intensities")
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))
   }
 
-  d_temp <- data@dataset # %>%     dplyr::full_join(data@annot_features, by = c("feature_name" = "feature_name"),)
+  d_temp <- data@dataset # %>%     dplyr::full_join(data@annot_features, by = c("feature_id" = "feature_id"),)
   d_temp <- d_temp %>%
-    dplyr::group_by(.data$norm_istd_feature_name, .data$analysis_id) %>%
+    dplyr::group_by(.data$norm_istd_feature_id, .data$analysis_id) %>%
     dplyr::mutate(feature_norm_intensity = .data$feature_intensity / .data$feature_intensity[.data$is_istd]) %>%
     dplyr::ungroup()
 
   data@dataset <- data@dataset %>%
-    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "is_istd", "feature_norm_intensity"), by = c("analysis_id", "feature_name", "is_istd"))
+    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_id", "is_istd", "feature_norm_intensity"), by = c("analysis_id", "feature_id", "is_istd"))
 
-  n_features <- length(data@dataset$feature_name |> unique())
-  n_istd <- length(unique(data@dataset$norm_istd_feature_name))
+  n_features <- length(data@dataset$feature_id |> unique())
+  n_istd <- length(unique(data@dataset$norm_istd_feature_id))
   cli_alert_success(col_green(glue::glue("{n_features} features normalized with {n_istd} ISTDs. \n")))
   data@status_processing <- "ISTD-normalized Data"
   data@is_istd_normalized <- TRUE
@@ -70,8 +70,8 @@ quantitate_by_istd <- function(data) {
   d_temp <- data@dataset %>%
     select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
     dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
-    # dplyr::left_join(data@annot_features %>% dplyr::select("feature_name", "quant_istd_feature_name"), by = c("feature_name")) %>%
-    dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_name"))
+    # dplyr::left_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id"), by = c("feature_id")) %>%
+    dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_id"))
 
   d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$feature_response_factor / 1000)
   d_temp <- d_temp %>% mutate(feature_conc = .data$pmol_total / .data$sample_amount)
@@ -82,12 +82,12 @@ quantitate_by_istd <- function(data) {
   }
 
   data@dataset <- data@dataset %>%
-    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_name"))
+    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_id", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
 
   data@dataset$conc_raw <- data@dataset$feature_conc
 
-  n_features <- length(unique(data@dataset$feature_name))
-  n_istd <- length(unique(data@dataset$norm_istd_feature_name))
+  n_features <- length(unique(data@dataset$feature_id))
+  n_istd <- length(unique(data@dataset$norm_istd_feature_id))
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 

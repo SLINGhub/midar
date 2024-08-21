@@ -61,6 +61,6 @@ test_that("Orders features by default according to order in metadata", {
     path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
     excl_unannotated_analyses = FALSE
   )
-  expect_equal(mexp@dataset_orig[1, ] |> pull("feature_name"), "S1P d18:0 [M>113]")
-  expect_equal(mexp@dataset[1, ] |> pull("feature_name"), "S1P d16:1 [M>60]")
+  expect_equal(mexp@dataset_orig[1, ] |> pull("feature_id"), "S1P d18:0 [M>113]")
+  expect_equal(mexp@dataset[1, ] |> pull("feature_id"), "S1P d16:1 [M>60]")
 })

@@ -125,10 +125,10 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
 
   d_qc_venn <- d_qc
 
-  cva_failed <- d_qc_venn$feature_name[!d_qc_venn$pass_cva & d_qc_venn$pass_no_na]
-  lod_sb_failed <- d_qc_venn$feature_name[(!d_qc_venn$pass_lod | !d_qc_venn$pass_sb) & d_qc_venn$pass_no_na]
-  # sb_failed = d_qc_venn$feature_name[!d_qc_venn$pass_sb  & d_qc_venn$pass_no_na]
-  lin_failed <- d_qc_venn$feature_name[!d_qc_venn$pass_linearity & d_qc_venn$pass_no_na]
+  cva_failed <- d_qc_venn$feature_id[!d_qc_venn$pass_cva & d_qc_venn$pass_no_na]
+  lod_sb_failed <- d_qc_venn$feature_id[(!d_qc_venn$pass_lod | !d_qc_venn$pass_sb) & d_qc_venn$pass_no_na]
+  # sb_failed = d_qc_venn$feature_id[!d_qc_venn$pass_sb  & d_qc_venn$pass_no_na]
+  lin_failed <- d_qc_venn$feature_id[!d_qc_venn$pass_linearity & d_qc_venn$pass_no_na]
 
   lod_sb_label <- "below S/B or LoD" # paste0('LoD < ', parameter_processing$)
   # sb_label <- "below S/B or LOD" #paste0('S/B < ', parameter_processing$)

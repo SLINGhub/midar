@@ -63,5 +63,5 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
       summarise(log2FC = mean(log2(.data$feature_conc[!!grouping == group_case] / .data$feature_conc[!!grouping == group_ref])))
   }
 
-  d_stats |> inner_join(d_fc, by = "feature_name")
+  d_stats |> inner_join(d_fc, by = "feature_id")
 }

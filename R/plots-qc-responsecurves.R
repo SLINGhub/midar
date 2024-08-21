@@ -42,7 +42,7 @@ plot_responsecurves_page <- function(dataset,
       labels = scales::percent_format(accuracy = NULL)
     ) +
     ggh4x::facet_wrap2(
-      ggplot2::vars(.data$feature_name),
+      ggplot2::vars(.data$feature_id),
       scales = "free",
       nrow = rows_page,
       ncol = columns_page,
@@ -111,23 +111,23 @@ plot_responsecurves <- function(data,
 
   if (all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")) {
     if (length(feature_incl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_name, feature_incl_filt))
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, feature_incl_filt))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$feature_name %in% feature_incl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(.data$feature_id %in% feature_incl_filt)
     }
   }
 
   if (all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")) {
     if (length(feature_excl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_name, feature_excl_filt))
+      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, feature_excl_filt))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_name %in% feature_excl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_id %in% feature_excl_filt)
     }
   }
 
   d_rqc <- dat_filt |>
     dplyr::select(tidyselect::any_of(
-      c("analysis_id", "feature_name", "feature_intensity", "feature_norm_intensity")
+      c("analysis_id", "feature_id", "feature_intensity", "feature_norm_intensity")
     )) |>
     dplyr::right_join(data@annot_responsecurves, by = c("analysis_id" = "analysis_id"))
 
@@ -140,10 +140,10 @@ plot_responsecurves <- function(data,
     )
   # browser()
   d_rqc_grp <- d_rqc %>%
-    dplyr::left_join(tibble::tibble(feature_name = unique(d_rqc$feature_name)) |>
+    dplyr::left_join(tibble::tibble(feature_id = unique(d_rqc$feature_id)) |>
       mutate(grp = ceiling(
         row_number() / (rows_page * columns_page)
-      )), by = "feature_name") %>%
+      )), by = "feature_id") %>%
     dplyr::group_by(.data$grp) %>%
     tidyr::nest() %>%
     dplyr::mutate(plt = purrr::map(

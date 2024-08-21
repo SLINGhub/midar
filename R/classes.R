@@ -22,7 +22,7 @@ pkg.env$dataset_templates <- list(
     "valid_analysis" = logical(),
     "outlier_technical" = logical(),
     "outlier_technical_note" = character(),
-    "feature_name" = character(),
+    "feature_id" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
     "valid_integration" = logical(),
@@ -47,21 +47,21 @@ pkg.env$dataset_templates <- list(
     "remarks" = character()
   ),
   annot_features_template = tibble::tibble(
-    "feature_name" = character(),
-    "feature_name_orig" = character(),
-    "feature_name_new" = character(),
+    "feature_id" = character(),
+    "feature_id_orig" = character(),
+    "feature_id_new" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
-    "norm_istd_feature_name" = character(),
-    "quant_istd_feature_name" = character(),
+    "norm_istd_feature_id" = character(),
+    "quant_istd_feature_id" = character(),
     "is_quantifier" = logical(),
     "valid_integration" = logical(),
     "feature_response_factor" = numeric(),
     "remarks" = character()
   ),
   annot_istd_template = tibble::tibble(
-    "norm_istd_feature_name" = character(),
-    "quant_istd_feature_name" = character(),
+    "norm_istd_feature_id" = character(),
+    "quant_istd_feature_id" = character(),
     "istd_conc_nmolar" = numeric()
   ),
   annot_responsecurves_template = tibble::tibble(
@@ -339,7 +339,7 @@ setMethod("show", "MidarExperiment", function(object) {
     "\n",
     "  Data: ", "\n",
     "  \u2022 Samples: ", length(unique(object@dataset$analysis_id)), "\n",
-    "  \u2022 Features:  ", length(unique(object@dataset$feature_name)), "\n",
+    "  \u2022 Features:  ", length(unique(object@dataset$feature_id)), "\n",
     "\n",
     "  Metadata: ", "\n",
     "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses) > 0), "\n",
