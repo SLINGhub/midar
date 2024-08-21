@@ -32,7 +32,6 @@ pkg.env$dataset_templates <- list(
   ),
   annot_analyses_template = tibble::tibble(
     "analysis_id" = character(),
-    "raw_data_filename" = character(),
     "sample_id" = character(),
     "qc_type" = factor(),
     "replicate_no" = integer(),
@@ -49,6 +48,8 @@ pkg.env$dataset_templates <- list(
   ),
   annot_features_template = tibble::tibble(
     "feature_name" = character(),
+    "feature_name_orig" = character(),
+    "feature_name_new" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
     "norm_istd_feature_name" = character(),
