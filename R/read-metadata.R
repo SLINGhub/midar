@@ -266,9 +266,7 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
       feature_id = stringr::str_squish(.data$feature_id),
-      feature_id_orig = .data$feature_id,
-      new_feature_id = stringr::str_squish(.data$new_feature_id),
-      feature_id = if_else(is.na(.data$new_feature_id), .data$feature_id_orig, .data$new_feature_id),
+      feature_name = stringr::str_squish(.data$new_feature_name),
       feature_class = stringr::str_squish(.data$feature_class),
       norm_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),

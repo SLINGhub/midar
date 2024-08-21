@@ -48,8 +48,7 @@ pkg.env$dataset_templates <- list(
   ),
   annot_features_template = tibble::tibble(
     "feature_id" = character(),
-    "feature_id_orig" = character(),
-    "feature_id_new" = character(),
+    "feature_name" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
     "norm_istd_feature_id" = character(),
