@@ -188,14 +188,13 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
 #' @importFrom tidyselect vars_select_helpers
 #' @importFrom dplyr select mutate filter group_by row_number
 #' @importFrom stringr regex
-#' @return A list of tibbles with different metadata
+#' @return A list with tibbles containing different metadata
 read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
+
   d_annot <- list()
 
   # ANALYSIS/SAMPLE annotation
-  # ToDo: Make note if feature names are not original
-
-  d_temp_analyses <- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
+  d_temp_analyses<- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
   #d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "analysis_id", init_value = NA_character_, make_lowercase = FALSE)
@@ -225,18 +224,18 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
       batch_id = as.character(.data$batch_id),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
       analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
-      valid_analysis = as.logical(case_match(tolower(valid_analysis),
+      valid_analysis = as.logical(case_match(tolower(.data$valid_analysis),
                                   "yes" ~ TRUE,
                                   "no"~ FALSE,
                                   "true" ~ TRUE,
                                   "false" ~ FALSE,
                                   .default = NA)),
-      qc_type = if_else(.data$qc_type == "Sample" | is.na(.data$qc_type), "SPL", .data$qc_type)
-    ) |>
+      qc_type = if_else(.data$qc_type == "Sample" | is.na(.data$qc_type), "SPL", .data$qc_type)) |>
     mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id"), .before = batch_id) |>
     mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     ungroup()
 
+    # Handle the non-mandatory field Valid_Analysis
     if (all(is.na(d_annot$annot_analyses$valid_analysis)))
       d_annot$annot_analyses$valid_analysis <- TRUE
     else
@@ -244,7 +243,7 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
         cli::cli_abort("`Valid_Analysis` is not defined for one or more analyses/samples. Please check sheet 'Analyses (Samples)'")
 
 
-  # FEATURE annotation
+  # FEATURE annotation  -------------------------
 
   # ToDo: Make note if feature names are not original
   d_temp_features <- readxl::read_excel(path, sheet = "Features (Analytes)", trim_ws = TRUE)
@@ -266,15 +265,26 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
-      new_feature_name = stringr::str_squish(.data$new_feature_name),
       feature_name = stringr::str_squish(.data$feature_name),
-      feature_name = if_else(is.na(.data$new_feature_name), .data$feature_name, .data$new_feature_name),
+      feature_name_orig = .data$feature_name,
+      new_feature_name = stringr::str_squish(.data$new_feature_name),
+      feature_name = if_else(is.na(.data$new_feature_name), .data$feature_name_orig, .data$new_feature_name),
       feature_class = stringr::str_squish(.data$feature_class),
       norm_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
       quant_istd_feature_name = stringr::str_squish(.data$istd_feature_name),
       is_istd = (.data$feature_name == .data$norm_istd_feature_name),
-      is_quantifier = if_else(tolower(.data$quantifier) %in% c("yes", "true"), TRUE, FALSE),
-      is_quantifier = as.logical(.data$is_quantifier),
+      is_quantifier = as.logical(case_match(tolower(.data$quantifier),
+                                             "yes" ~ TRUE,
+                                             "no"~ FALSE,
+                                             "true" ~ TRUE,
+                                             "false" ~ FALSE,
+                                             .default = NA)),
+      valid_integration = as.logical(case_match(tolower(.data$valid_integration),
+                                            "yes" ~ TRUE,
+                                            "no"~ FALSE,
+                                            "true" ~ TRUE,
+                                            "false" ~ FALSE,
+                                            .default = NA)),
       interference_feature_name = stringr::str_squish(.data$interference_feature_name),
       remarks = NA_character_) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
@@ -292,7 +302,24 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
       "remarks"
     )
 
-  # ToDo: Merged cell in template
+  # Handle the non-mandatory field Valid_Analysis
+  if (all(is.na(d_annot$annot_features$valid_integration)))
+    d_annot$annot_features$valid_integration <- TRUE
+  else
+    if (any(is.na(d_annot$annot_features$valid_integration)))
+      cli::cli_abort("`Valid_Integration` is not defined for one or more features/analytes. Please check sheet 'Features (Analytes)'")
+
+  # Handle the non-mandatory field Valid_Analysis
+  if (all(is.na(d_annot$annot_features$is_quantifier)))
+    d_annot$annot_features$is_quantifier <- TRUE
+  else
+    if (any(is.na(d_annot$annot_features$is_quantifier)))
+      cli::cli_abort("`Quantifier` is not defined for one or more features/analytes. Please check sheet 'Features (Analytes)'")
+
+
+
+  # ISTD annotation -------------------------
+
   annot_istd <- readxl::read_excel(path,
     sheet = "Internal Standards",
     trim_ws = TRUE, .name_repair = ~ ifelse(nzchar(.x), .x, LETTERS[seq_along(.x)])
@@ -311,11 +338,10 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
   names(annot_istd) <- tolower(names(annot_istd))
 
+  # RESPONSE CURVE annotation -------------------------
+
   d_annot_responsecurves <- readxl::read_excel(path, sheet = "Response Curves")
-
   names(d_annot_responsecurves) <- tolower(names(d_annot_responsecurves))
-
-
 
   d_annot$annot_responsecurves <- d_annot_responsecurves |>
     dplyr::select(
