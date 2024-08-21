@@ -28,20 +28,7 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile") {
     mutate(run_id = row_number(), .before = 1)
 
   # retrieve batches
-
-
-  if ("batch_id" %in% names(data@dataset_orig)) {
-    data@annot_batches <- data@annot_analyses %>%
-      dplyr::group_by(.data$batch_no) %>%
-      dplyr::summarise(
-        batch_id = .data$batch_id[1],
-        id_batch_start = dplyr::first(.data$run_id),
-        id_batch_end = dplyr::last(.data$run_id)
-      ) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(.data$id_batch_start) %>%
-      dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
-  }
+  if ("batch_id" %in% names(data@dataset_orig)) data <- load_metadata_batches(data)
 
 
 
@@ -56,6 +43,22 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile") {
   data@dataset <- data@dataset_orig
 
 
+  data
+}
+
+# Retreive batch info from analysis metadata
+
+load_metadata_batches <- function(data){
+  data@annot_batches <- data@annot_analyses %>%
+    dplyr::group_by(.data$batch_no) %>%
+    dplyr::summarise(
+      batch_id = .data$batch_id[1],
+      id_batch_start = dplyr::first(.data$run_id),
+      id_batch_end = dplyr::last(.data$run_id)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(.data$id_batch_start) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
   data
 }
 
@@ -78,9 +81,9 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
   d_annot <- read_msorganizer_xlm(path)
 
   data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("analysis_id", "raw_data_filename", dplyr::any_of("acquisition_time_stamp")) %>%
+    dplyr::select("analysis_id",  dplyr::any_of("acquisition_time_stamp")) %>%
     dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_analyses, by = c("analysis_id", "raw_data_filename"), keep = FALSE) %>%
+    dplyr::right_join(d_annot$annot_analyses, by = c("analysis_id"), keep = FALSE) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
   if ("acquisition_time_stamp" %in% names(data@annot_analyses) & (analysis_sequence %in% c("timestamp", "default"))) {
@@ -136,12 +139,12 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
   data@dataset_orig <- data@dataset_orig %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
 
-
+  #TODO
   d_dataset <- data@dataset_orig %>%
     dplyr::inner_join(
       data@annot_analyses %>%
-        dplyr::select("run_id", "analysis_id", "raw_data_filename", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
-      by = c("analysis_id", "raw_data_filename")) %>%
+        dplyr::select("run_id", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
+      by = c("analysis_id")) %>%
     dplyr::inner_join(
       d_annot$annot_features %>%
         filter(.data$valid_integration) |>
@@ -174,7 +177,10 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
 
 #' @title Reads and parses metadata provided by the MSOrganizer EXCEL  template.
 #' @description Requires version 1.9.1 of the template
-#'
+#' NOTES
+#' - if no sample_type is defined then SPL will be assigned
+#' - if valid_analysis is left blank for all analyses then samples then it will be replace by TRUE
+#' - if valid_analysis is undefined for one or more, but all all samples, then an error will be returned
 #' @param path File path of the MSOrganizer EXCEL template (*.xlm)
 #' @param trim_ws Trim all white spaces and double spaces
 #' @importFrom stats na.omit setNames
@@ -192,7 +198,7 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
   d_temp_analyses <- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
-  d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "analysis_id", init_value = NA_character_, make_lowercase = FALSE)
+  #d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "analysis_id", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "valid_analysis", init_value = TRUE, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "replicate_no", init_value = 1L, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "specimen", init_value = NA_character_, make_lowercase = FALSE)
@@ -200,43 +206,42 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "sample_id", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
-  # TODO: If analysis_id is defined, then it will overwrite the raw_data_filename defined in the raw data files
-  # TODO: if user-defined analysis_id names (=remapping if IDs) are provided, then it should be reported somewhere,  possible source of user-error!
-
   d_annot$annot_analyses <- d_temp_analyses |>
-    dplyr::mutate(
-      valid_analysis = TRUE,
-      batch_id = as.character(.data$batch_id),
-      analysis_no = dplyr::row_number()
-    ) |>
-    dplyr::select(
-      "analysis_no",
-      "analysis_id",
-      "raw_data_filename",
+    select(
+      "analysis_id" = "raw_data_filename",
       qc_type = "sample_type",
       "sample_amount",
       "sample_amount_unit",
       istd_volume = "istd_mixture_volume_[ul]",
       "batch_id",
       "replicate_no",
-      "valid_analysis",
       "specimen",
       "sample_id",
+      "valid_analysis",
       "remarks"
     ) |>
-    dplyr::mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id")) |>
-    dplyr::mutate(
-      raw_data_filename = stringr::str_squish(as.character(.data$raw_data_filename)),
-      raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
-      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+    mutate(analysis_no = dplyr::row_number(), .before = 1) |>
+    mutate(
+      batch_id = as.character(.data$batch_id),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
-      analysis_id = if_else(is.na(.data$analysis_id), .data$raw_data_filename, .data$analysis_id),
-      specimen = stringr::str_squish(as.character(.data$specimen)),
-      valid_analysis = as.logical(.data$valid_analysis),
+      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+      valid_analysis = as.logical(case_match(tolower(valid_analysis),
+                                  "yes" ~ TRUE,
+                                  "no"~ FALSE,
+                                  "true" ~ TRUE,
+                                  "false" ~ FALSE,
+                                  .default = NA)),
       qc_type = if_else(.data$qc_type == "Sample" | is.na(.data$qc_type), "SPL", .data$qc_type)
     ) |>
-    dplyr::ungroup() %>%
-    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
+    mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id"), .before = batch_id) |>
+    mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
+    ungroup()
+
+    if (all(is.na(d_annot$annot_analyses$valid_analysis)))
+      d_annot$annot_analyses$valid_analysis <- TRUE
+    else
+      if (any(is.na(d_annot$annot_analyses$valid_analysis)))
+        cli::cli_abort("`Valid_Analysis` is not defined for one or more analyses/samples. Please check sheet 'Analyses (Samples)'")
 
 
   # FEATURE annotation
@@ -271,9 +276,8 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
       is_quantifier = if_else(tolower(.data$quantifier) %in% c("yes", "true"), TRUE, FALSE),
       is_quantifier = as.logical(.data$is_quantifier),
       interference_feature_name = stringr::str_squish(.data$interference_feature_name),
-      remarks = NA_character_
-    ) %>%
-    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) %>%
+      remarks = NA_character_) |>
+    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     dplyr::select(
       "feature_name",
       "feature_class",
