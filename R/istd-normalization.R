@@ -68,7 +68,7 @@ quantitate_by_istd <- function(data) {
   if (nrow(data@annot_istd) < 1) stop("ISTD concetrations are missing...please import them first.")
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) stop("Data needs first to be ISTD normalized. Please apply function 'normalize_by_istd' first.")
   d_temp <- data@dataset %>%
-    select(!any_of(c("sample_amount", "istd_volume"))) |>
+    select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
     dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
     # dplyr::left_join(data@annot_features %>% dplyr::select("feature_name", "quant_istd_feature_name"), by = c("feature_name")) %>%
     dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_name"))
@@ -82,7 +82,7 @@ quantitate_by_istd <- function(data) {
   }
 
   data@dataset <- data@dataset %>%
-    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "sample_amount", "istd_volume", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_name"))
+    dplyr::inner_join(d_temp %>% dplyr::select("analysis_id", "feature_name", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_name"))
 
   data@dataset$conc_raw <- data@dataset$feature_conc
 
