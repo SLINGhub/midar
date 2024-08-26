@@ -31,7 +31,7 @@ writeReportXLS <- function(data, path) {
 
   if ("feature_id" %in% names(data@dataset_filtered)) {
     d_conc_wide_QC <- data@dataset_filtered %>%
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) %>%
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) %>%
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) %>%
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
@@ -46,13 +46,13 @@ writeReportXLS <- function(data, path) {
 
   if ("feature_id" %in% names(data@dataset_filtered)) {
     d_normint_wide_QC <- data@dataset_filtered %>%
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) %>%
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) %>%
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) %>%
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
     d_normint_wide_QC <- d_normint_wide_QC |>
-      dplyr::filter(.data$qc_type == "SPL") |>
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
     d_normint_wide_QC <- data@dataset_filtered
