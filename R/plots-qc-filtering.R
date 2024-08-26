@@ -7,7 +7,7 @@
 
 
 plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size = 8) {
-  if (user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
+  if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_integration, !.data$is_istd) |>
@@ -17,7 +17,7 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
   # TODO: cleanup feature/lipidclasses
   # if(!all(is.na(d_qc$feature_class)) & any(is.na(d_qc$lipid_class))) d_qc$feature_class <- d_qc$lipid_class
 
-  if (all(is.na(d_qc$feature_class))) stop("This plot required feature_class to be defined . Please define feature classes in the metadata or retrieve via corresponding {midar} functions.")
+  if (all(is.na(d_qc$feature_class))) cli::cli_abort("This plot required feature_class to be defined . Please define feature classes in the metadata or retrieve via corresponding {midar} functions.")
 
 
   d_qc$feature_class <- forcats::fct(d_qc$feature_class)
@@ -68,7 +68,7 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
 
 
 plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
-  if (user_defined_keeper) stop("user_defined_keeper = TRUE not yet supported")
+  if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_integration, !.data$is_istd) |>

@@ -21,7 +21,7 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim = c(0, NA), yli
   x_sym <- rlang::ensym(x)
   y_sym <- rlang::ensym(y)
 
-  if (!c("LipidClass") %in% names(d_QC)) stop("This function currently only works with lipidomics data. Please add lipid names/class with the function `lipidomics_get_lipid_class_names` before calling this function.")
+  if (!c("LipidClass") %in% names(d_QC)) cli::cli_abort("This function currently only works with lipidomics data. Please add lipid names/class with the function `lipidomics_get_lipid_class_names` before calling this function.")
   # get max value for the pair for each lipid class (so that 45deg line will be shown in the square plots)
   d_QC <- d_QC %>%
     group_by(.data$LipidClass) %>%

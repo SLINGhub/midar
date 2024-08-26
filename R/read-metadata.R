@@ -20,7 +20,7 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile") {
     data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
   } else {
     if (analysis_sequence == "timestamp") {
-      stop(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
+      cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
     }
   }
 
@@ -94,7 +94,7 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
     } else if (analysis_sequence == "metadata") {
       data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$annot_analyses$analysis_id))
     } else if (analysis_sequence == "timestamp") {
-      stop(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
+      cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
     } else {
       cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
     }
@@ -261,11 +261,12 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
 
   # TODO: feauture_id and (new)_feature_name...find a clear way
+  # feature_label... idea from
 
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
       feature_id = stringr::str_squish(.data$feature_name),
-      feature_name = stringr::str_squish(.data$new_feature_name),
+      feature_label = stringr::str_squish(.data$new_feature_name),
       feature_class = stringr::str_squish(.data$feature_class),
       norm_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_name),

@@ -92,17 +92,17 @@ plot_responsecurves <- function(data,
                                 line_width = 1,
                                 text_scale_factor = 1,
                                 return_plot_list = FALSE, base_size = 7) {
-  if (output_pdf & path == "") stop("Please define parameter `path`")
+  if (output_pdf & path == "") cli::cli_abort("Please define parameter `path`")
 
   rows_page <- rows_page
   columns_page <- columns_page
 
 
-  if (nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
+  if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
-    if (nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
     dat_filt <- data@dataset %>% dplyr::ungroup()
   }

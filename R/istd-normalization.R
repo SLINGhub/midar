@@ -29,12 +29,12 @@ get_conc_unit <- function(sample_amount_unit) {
 #' @export
 
 normalize_by_istd <- function(data, interference_correction = TRUE) {
-  if (nrow(data@annot_features) < 1) stop("ISTD map is missing...please import transition annotations.")
+  if (nrow(data@annot_features) < 1) cli::cli_abort("ISTD map is missing...please import transition annotations.")
 
   if (any(!is.na(data@annot_features$interference_feature_id) & interference_correction)) data <- correct_interferences(data)
 
   if ("feature_norm_intensity" %in% names(data@dataset)) {
-    if (!all(is.na(data@dataset$feature_norm_intensity))) warning("Overwriting exiting normalized Intensities")
+    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_warn("Overwriting exiting normalized Intensities")
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))
   }
 
@@ -65,8 +65,8 @@ normalize_by_istd <- function(data, interference_correction = TRUE) {
 #' @importFrom glue glue
 #' @export
 quantitate_by_istd <- function(data) {
-  if (nrow(data@annot_istd) < 1) stop("ISTD concetrations are missing...please import them first.")
-  if (!(c("feature_norm_intensity") %in% names(data@dataset))) stop("Data needs first to be ISTD normalized. Please apply function 'normalize_by_istd' first.")
+  if (nrow(data@annot_istd) < 1) cli::cli_abort("ISTD concetrations are missing...please import them first.")
+  if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please apply function 'normalize_by_istd' first.")
   d_temp <- data@dataset %>%
     select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
     dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%

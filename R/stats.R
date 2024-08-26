@@ -12,7 +12,7 @@
 #' @return tibble with p values, fdr and log2FC
 #' @export
 get_stats <- function(data, feature, grouping, group_case, group_ref, paired, min_groupsize = 3, log_transform = FALSE) {
-  if (min_groupsize <= 2) stop("group size must be >= 2 for the statistical tests")
+  if (min_groupsize <= 2) cli::cli_abort("group size must be >= 2 for the statistical tests")
 
   feature <- rlang::ensym(feature)
   grouping <- rlang::ensym(grouping)

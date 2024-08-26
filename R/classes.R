@@ -270,13 +270,13 @@ check_integrity <- function(object, excl_unannotated_analyses) {
     d_xy <- length(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id))
     d_yx <- length(setdiff(object@annot_analyses$analysis_id, object@dataset_orig$analysis_id %>% unique()))
     if (d_xy > 0) {
-      if (d_xy == length(object@dataset_orig$analysis_id %>% unique())) stop("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
+      if (d_xy == length(object@dataset_orig$analysis_id %>% unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
       if (!excl_unannotated_analyses) {
         if (d_xy < 50) {
           writeLines(glue::glue(""))
-          stop(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id), collapse = ", ")}"))
+          cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} analyses/samples: {paste0(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id), collapse = ", ")}"))
         } else {
-          stop(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} measurements have no matching metadata."))
+          cli::cli_abort(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} measurements have no matching metadata."))
         }
       } else {
         cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {object@dataset_orig$analysis_id %>% unique() %>% length()} measurements without matching metadata were excluded.")))
@@ -287,7 +287,7 @@ check_integrity <- function(object, excl_unannotated_analyses) {
       } else {
         writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
       }
-      stop(glue::glue(""))
+      cli::cli_abort(glue::glue(""))
     } else {
       object@status_processing <- "DataMetadataLoaded"
       TRUE
@@ -323,7 +323,7 @@ setMethod(
   definition = function(x, name) {
     # check for other struct slots
     valid <- c("analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized")
-    if (!name %in% valid) stop('"', name, '" is not valid for this object: ', class(x)[1])
+    if (!name %in% valid) cli::cli_abort('"', name, '" is not valid for this object: ', class(x)[1])
     methods::slot(x, name)
   }
 )

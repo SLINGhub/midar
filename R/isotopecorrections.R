@@ -21,11 +21,11 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
   new_feature_id <- ifelse(is.null(new_feature_id) | is.na(new_feature_id), "", new_feature_id)
 
   # Validate input
-  if (!feature %in% data@annot_features$feature_id) stop("Feature is not present in the dataset")
-  if (!interfering_feature %in% data@annot_features$feature_id) stop("Interfering feature is not present in the dataset")
+  if (!feature %in% data@annot_features$feature_id) cli::cli_abort("Feature is not present in the dataset")
+  if (!interfering_feature %in% data@annot_features$feature_id) cli::cli_abort("Interfering feature is not present in the dataset")
   if (!variable %in% names(data@dataset)) stop(glue::glue("Variable `{variable` is not defined in the dataset"))
-  if (relative_contribution < 0 | relative_contribution >= 1) stop("`relative_contribution` must be between 0 and 1")
-  if (new_feature_id %in% data@annot_features$feature_id) stop("Mew fFeature name must not present already be present in the dataset")
+  if (relative_contribution < 0 | relative_contribution >= 1) cli::cli_abort("`relative_contribution` must be between 0 and 1")
+  if (new_feature_id %in% data@annot_features$feature_id) cli::cli_abort("Mew fFeature name must not present already be present in the dataset")
 
   browser()
 
@@ -61,7 +61,7 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 
 correct_interferences <- function(data, variable = "feature_intensity") {
   if (data@is_isotope_corr) cli_alert_info(cli::col_grey(glue::glue("Note: Data is already corrected for interferences. Correction will be reapplied to raw data.")))
-  if (variable != "feature_intensity") stop("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
+  if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
   # variable_var <- rlang::ensym(variable)
 

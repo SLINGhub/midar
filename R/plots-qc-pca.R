@@ -26,7 +26,7 @@ plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istd
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
 
-  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
+  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) cli::cli_abort("Data and Metadata missmatch")
 
   # ToDo: warning when rows/cols with NA
   d_clean <- d_filt |>
@@ -106,7 +106,7 @@ plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), log_transform = 
   d_metadata <- d_wide %>%
     dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct()
-  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) stop("Data and Metadata missmatch")
+  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) cli::cli_abort("Data and Metadata missmatch")
 
   m_raw <- d_filt |>
     dplyr::select(where(~ !any(is.na(.)))) |>

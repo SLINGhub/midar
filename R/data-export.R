@@ -15,7 +15,7 @@
 
 # TODO: filtering of names containing "(IS"
 writeReportXLS <- function(data, path) {
-  if (!("feature_conc" %in% names(data@dataset))) stop("Variable '", "feature_conc", "' does not (yet) exist in dataset")
+  if (!("feature_conc" %in% names(data@dataset))) cli::cli_abort("Variable '", "feature_conc", "' does not (yet) exist in dataset")
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
   d_intensity_wide <- data@dataset %>%
@@ -98,7 +98,7 @@ writeReportXLS <- function(data, path) {
 exportWideCSV <- function(data, variable, path) {
   var <- dplyr::sym(variable)
 
-  if (!(variable %in% names(data@dataset))) stop("Variable '", variable, "' does not (yet) exist in dataset.")
+  if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does not (yet) exist in dataset.")
 
   ds <- data@dataset |>
     dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", !!var) %>%
@@ -119,7 +119,7 @@ exportWideCSV <- function(data, variable, path) {
 #' @export
 
 saveQCinfo <- function(data, path) {
-  if (nrow(data@metrics_qc) == 0) stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+  if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
 
   readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)
   invisible(data@metrics_qc)

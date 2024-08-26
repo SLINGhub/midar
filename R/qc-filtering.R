@@ -180,17 +180,17 @@ apply_qc_filter <- function(data,
                             response.curve.id = NA,
                             outlier.technical.exlude = FALSE,
                             features_to_keep = NULL) {
-  if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) stop("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
-  if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) stop("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
+  if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) cli::cli_abort("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
+  if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) cli::cli_abort("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
 
 
   if (nrow(data@metrics_qc) == 0) {
-    stop("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+    cli::cli_abort("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
   }
   if (!is.null(features_to_keep)) {
     keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
-    if (length(keepers_not_defined) > 0) stop(glue::glue("Following defined in features_to_keep are not present in this dataset: {txt}"))
+    if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following defined in features_to_keep are not present in this dataset: {txt}"))
   }
   if(nrow(data@metrics_qc) == 0)
     data <- calculate_qc_metrics(data)
@@ -329,7 +329,7 @@ apply_qc_filter <- function(data,
     rqc_y0_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "y0rel_rqc"))]
     rqc_y0_col <- rqc_y0_col_names[response.curve.id]
 
-    if (is.na(rqc_r2_col)) stop(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `response.curve.id` value."))
+    if (is.na(rqc_r2_col)) cli::cli_abort(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `response.curve.id` value."))
   } else {
     rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
     rqc_y0_col <- paste0("y0_rqc_", response.curve.id)

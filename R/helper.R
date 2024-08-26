@@ -55,7 +55,7 @@ FacetEqualWrap <- ggplot2::ggproto(
   train_scales = function(self, x_scales, y_scales, layout, data, params) {
     # doesn't make sense if there is not an x *and* y scale
     if (is.null(x_scales) || is.null(x_scales)) {
-      stop("X and Y scales required for facet_equal_wrap")
+      cli::cli_abort("X and Y scales required for facet_equal_wrap")
     }
 
     # regular training of scales

@@ -245,7 +245,7 @@ plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform,
   d_filt <- left_join(d_metadata[, "analysis_id"], d_wide)
 
 
-  if (!all(d_filt |> pull(.data$analysis_id) == d_metadata |> pull(.data$analysis_id))) stop("Data and Metadata missmatch")
+  if (!all(d_filt |> pull(.data$analysis_id) == d_metadata |> pull(.data$analysis_id))) cli::cli_abort("Data and Metadata missmatch")
 
   m_raw <- d_filt |>
     dplyr::select(where(~ !any(is.na(.)))) |>

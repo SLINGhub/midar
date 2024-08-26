@@ -27,7 +27,7 @@ rawdata_import_agilent <- function(data, path, file_format = "csv", expand_quali
   if (file_format == "csv") {
     import_analysis(data, path, "read_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
   } else {
-    stop(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
+    cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
   }
 }
 
@@ -41,8 +41,8 @@ import_analysis <- function(data, path, import_function, file_ext, ...) {
   }
 
 
-  if (!all(fs::file_exists(file_paths))) stop("One or more given files do not exist. Please check file paths.")
-  if (any(duplicated(file_paths))) stop("One or more given files are replicated. Please check file paths.")
+  if (!all(fs::file_exists(file_paths))) cli::cli_abort("One or more given files do not exist. Please check file paths.")
+  if (any(duplicated(file_paths))) cli::cli_abort("One or more given files are replicated. Please check file paths.")
 
   names(file_paths) <- file_paths
   args <- list(...)
@@ -65,9 +65,9 @@ import_analysis <- function(data, path, import_function, file_ext, ...) {
 
   if (has_duplicated_id) {
     if (has_duplicated_id_values) {
-      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical intensity values. Please check dataset(s)."))
+      cli::cli_abort(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with identical intensity values. Please check dataset(s)."))
     } else {
-      stop(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different intensity values.Please check dataset(s)."))
+      cli::cli_abort(glue::glue("Dataset(s) contains replicated reportings (analysis and feature pairs) with different intensity values.Please check dataset(s)."))
     }
   }
 
@@ -123,7 +123,7 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
 
   datWide <- datWide |> dplyr::add_row(.after = 1)
 
-  if (datWide[1, 1] != "Sample") stop("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
+  if (datWide[1, 1] != "Sample") cli::cli_abort("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
 
   feature_id_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
 
@@ -208,10 +208,10 @@ read_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FA
   datWide <- datWide |> dplyr::rename(dplyr::any_of(new_colnames))
 
   # TODO: check if all these are caught
-  if ("message_quantitation" %in% names(datWide)) stop("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
-  if ("compound_name" %in% names(datWide)) stop("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if (!"raw_data_filename" %in% names(datWide)) stop("Error parsing this Masshunter .csv file. The file may be in an unsupported format or corrupt. Please try re-export from Masshunter.")
-  if (nrow(warnings_datWide) > 0) stop("Unknown format, or data file is corrupt. Please try re-export from MH.")
+  if ("message_quantitation" %in% names(datWide)) cli::cli_abort("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
+  if ("compound_name" %in% names(datWide)) cli::cli_abort("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
+  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("Error parsing this Masshunter .csv file. The file may be in an unsupported format or corrupt. Please try re-export from Masshunter.")
+  if (nrow(warnings_datWide) > 0) cli::cli_abort("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
     datWide[, !(names(datWide) %in% c("NA\tSample", "Level\tSample", "Sample"))]
@@ -383,7 +383,7 @@ read_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE
     TRUE ~ NA_character_
   )
 
-  if (is.na(sep)) stop("Data file type/extension not supported. Please re-export results from MRMkit.")
+  if (is.na(sep)) cli::cli_abort("Data file type/extension not supported. Please re-export results from MRMkit.")
 
   d_mrmkit_raw <- readr::read_delim(path,
     delim = sep, col_types = readr::cols(.default = "c"),
@@ -488,13 +488,13 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
   if (ext == "csv") {
     d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE, na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."), col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
   } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
-    if (sheet == "") stop("Please define sheet name via the `sheet` parameter")
+    if (sheet == "") cli::cli_abort("Please define sheet name via the `sheet` parameter")
     # nms <- names(readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
     # ct <- c("text", rep("numeric",length(nms)-1))
     # d <- readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
     d <- .read_generic_excel(file, sheet)
   } else {
-    stop("Invalid file format. Only CSV, XLS and XLSX supported.")
+    cli::cli_abort("Invalid file format. Only CSV, XLS and XLSX supported.")
   }
 
   d |>
@@ -542,7 +542,7 @@ rawdata_import_mrmkit <- function(file, analysis_id_col = NULL, feature_id_col =
 
   d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), progress = TRUE)
 
-  if (!is.null(analysis_id_col) && analysis_id_col %in% names(d)) stop("Analysis Id column not defined. ")
+  if (!is.null(analysis_id_col) && analysis_id_col %in% names(d)) cli::cli_abort("Analysis Id column not defined. ")
 
   dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_id", feature_intensity = {{ .data$field }})
 

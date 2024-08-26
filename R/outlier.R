@@ -34,7 +34,7 @@ analysis_outlier_detection <- function(data,
   variable_s <- rlang::sym(variable)
   pc_x <- rlang::sym(paste0(".fittedPC", pca_component))
 
-  if (summarize_fun == "rma") stop("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
+  if (summarize_fun == "rma") cli::cli_abort("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
 
   d_wide <- data@dataset_filtered |>
     filter(.data$qc_type %in% c("BQC", "TQC", "SPL")) |>

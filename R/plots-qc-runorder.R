@@ -216,11 +216,11 @@ plot_runscatter <- function(data,
                             return_plot_list = FALSE,
                             base_size = 12,
                             show_gridlines = FALSE) {
-  if (nrow(data@dataset) < 1) stop("No data available. Please import data and metadata first.")
+  if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
-    if (nrow(dat_filt) < 1) stop("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
     dat_filt <- data@dataset %>% dplyr::ungroup()
   }
@@ -258,7 +258,7 @@ plot_runscatter <- function(data,
     }
   }
 
-  if (nrow(dat_filt) < 1) stop("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
+  if (nrow(dat_filt) < 1) cli::cli_abort("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
 
   # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
   dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
