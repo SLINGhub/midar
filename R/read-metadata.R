@@ -193,7 +193,7 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
   d_annot <- list()
 
-  # ANALYSIS/SAMPLE annotation
+  # ANALYSIS/SAMPLE annotation --------
   d_temp_analyses<- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
@@ -320,7 +320,8 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
   annot_istd <- readxl::read_excel(path,
     sheet = "Internal Standards",
-    trim_ws = TRUE, .name_repair = ~ ifelse(nzchar(.x), .x, LETTERS[seq_along(.x)])
+    trim_ws = TRUE,
+    .name_repair = ~ if_else(nzchar(.x), .x, LETTERS[seq_along(.x)])
   )
 
   names(annot_istd) <- tolower(names(annot_istd))
