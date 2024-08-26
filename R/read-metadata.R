@@ -260,16 +260,15 @@ read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
 
 
 
-  # NOTE: If feature_id is defined, then it will overwrite the feature name defined in the raw data files
-  # Todo: if user-defined feature names are provided, then it should be reported somewhere,  possible source of user-error!
+  # TODO: feauture_id and (new)_feature_name...find a clear way
 
   d_annot$annot_features <- d_temp_features |>
     dplyr::mutate(
-      feature_id = stringr::str_squish(.data$feature_id),
+      feature_id = stringr::str_squish(.data$feature_name),
       feature_name = stringr::str_squish(.data$new_feature_name),
       feature_class = stringr::str_squish(.data$feature_class),
-      norm_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
-      quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
+      norm_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
+      quant_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
       is_istd = (.data$feature_id == .data$norm_istd_feature_id),
       is_quantifier = as.logical(case_match(tolower(.data$quantifier),
                                              "yes" ~ TRUE,
