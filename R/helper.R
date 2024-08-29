@@ -1,3 +1,9 @@
+
+# check if one or more but not all values are NA
+some_na <- function(x){
+  !all(is.na(x)) & any(is.na(x))
+}
+
 min_val <- function(x, na.rm = FALSE){
   if (all(is.na(x) | is.nan(x))) NA_real_ else min(x, na.rm = na.rm)
 }

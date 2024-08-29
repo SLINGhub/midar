@@ -64,8 +64,8 @@ load_metadata_batches <- function(data){
 
 
 # TODO: This below has to be changed, mapping of metadata to data should be a distinct function
-#' @title Import metadata from the MSOrganizer template (.XLM) and associates it with the analysis data
-#' @description Requires version 1.9.1 of the template
+#' @title Import metadata from the midar template (.XLM) and associates it with the analysis data
+#' @description Requires version 1.9.1 of the template. Template is based on the MSorganizer template (see TODO)
 #' @param data MidarExperiment object
 #' @param path file name and path
 #' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
@@ -77,26 +77,95 @@ load_metadata_batches <- function(data){
 metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", excl_unannotated_analyses = FALSE) {
 
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
+  d_annot <- read_metadata_midarxlm(path)
 
-  d_annot <- read_msorganizer_xlm(path)
+  add_metadata(data, d_annot, analysis_sequence, excl_unannotated_analyses)
 
-  data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("analysis_id",  dplyr::any_of("acquisition_time_stamp")) %>%
-    dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_analyses, by = c("analysis_id"), keep = FALSE) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
+}
 
-  if ("acquisition_time_stamp" %in% names(data@annot_analyses) & (analysis_sequence %in% c("timestamp", "default"))) {
-    data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
-  } else {
-    if (analysis_sequence == "resultfile") {
-      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
-    } else if (analysis_sequence == "metadata") {
-      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$annot_analyses$analysis_id))
-    } else if (analysis_sequence == "timestamp") {
-      cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
+
+assert_warnings_metadata <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
+  #browser()
+  res <- as_tibble(do.call(rbind, list_of_errors)) |>
+    select(message, description, num.violations) |>
+    mutate(message = str_replace(message, "analysis_id", "'analysis_id'")) |>
+    mutate(Field = str_extract(message, "(?<=\\').+?(?=\\')")) |>
+    separate(col = description, into = c("Issue", "Table"), sep = ";", remove = TRUE) |>
+    select(Table, Field, Issue, Count = num.violations)
+
+  res$Count <- res$Count |> unlist()
+  res
+}
+
+
+#' @title Add metadata an MidarExperiment object
+#' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
+#' @param data MidarExperiment object
+#' @param path List of tibbles or data.frames containing analysis, feature, istd, response curve tables
+#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
+#' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
+#' @return MidarExperiment object
+#' @export
+#'
+ add_metadata <- function(data, d_annot, analysis_sequence, excl_unannotated_analyses, allow_na = FALSE) {
+  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
+
+
+  t_defects <- tibble()
+  t_warnings <- tibble()
+
+  if (!is.null(d_annot$annot_analyses) && nrow(d_annot$annot_analyses) > 0){
+    d_analyses <- d_annot$annot_analyses
+
+    #browser()
+
+    d_analyses <- d_analyses |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify(assertr::has_all_names("analysis_id"), obligatory=TRUE, description = "Column missing;Analyses/Samples") |>
+      assertr::verify(assertr::has_all_names("qc_type"), obligatory=TRUE, description = "Column missing;Analyses/Samples") |>
+      assertr::chain_end(error_fun = error_append)
+
+    if(rlang::is_true(attributes(d_analyses)$assertr_data_defective))
+      cli::cli_abort(message = c(
+        "x" = "Analyses metadata must contain the columns `analysis_id` and `qc_type`",
+        "Ensure both columns are defined in the Analyses metadata and re-import"))
+
+
+    d_analyses <- d_analyses |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::assert({\(x) all(is_na(x))}, all_of(c("qc_type")), description = "Missing value(s);Analyses/Samples") |>
+      assertr::verify(all(assertr::is_uniq(analysis_id)), description = "Analysis IDs duplicated;Analyses/Samples") |>
+      assertr::verify((analysis_id %in% unique(mexp@dataset_orig$analysis_id)), description = "Analysis not present in analysis data;Analyses/Samples") |>
+      assertr::verify((unique(mexp@dataset_orig$analysis_id) %in% analysis_id), description = "Unannotated analyses found analysis data;Analyses/Samples") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("valid_analysis", "sample_amount", "sample_amount_unit", "istd_volume", "batch_id", "replicate_no")), description = "Missing value;Analyses/Samples") |>
+      assertr::chain_end(error_fun = warning_append)
+
+    if (!is.null(attr(d_analyses, "assertr_errors"))) {
+      cli::cli_alert_danger(text = cli::col_yellow("Analysis metadata contains following issues"))
+      print(assert_warnings_metadata(attr(d_analyses, "assertr_errors")))
+      cli::cli_abort(message = cli::col_red(c("i" = "Please check the analysis metadata or set the parameter `ignore_warnings` to TRUE")))
+    }
+
+    data@annot_analyses <- data@dataset_orig %>%
+      dplyr::select("analysis_id",  dplyr::any_of("acquisition_time_stamp")) %>%
+      dplyr::distinct() %>%
+      dplyr::right_join(d_analyses, by = c("analysis_id"), keep = FALSE) %>%
+      dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
+
+
+
+    if ("acquisition_time_stamp" %in% names(data@annot_analyses) && (analysis_sequence %in% c("timestamp", "default"))) {
+      data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
     } else {
-      cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
+      if (analysis_sequence == "resultfile") {
+        data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
+      } else if (analysis_sequence == "metadata") {
+        data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$annot_analyses$analysis_id))
+      } else if (analysis_sequence == "timestamp") {
+        cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
+      } else {
+        cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
+      }
     }
   }
 
@@ -189,7 +258,7 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
 #' @importFrom dplyr select mutate filter group_by row_number
 #' @importFrom stringr regex
 #' @return A list with tibbles containing different metadata
-read_msorganizer_xlm <- function(path, trim_ws = TRUE) {
+read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   d_annot <- list()
 
