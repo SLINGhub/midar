@@ -36,7 +36,7 @@ mexp <- MidarExperiment()
 
 # Load data and metadata
 mexp <- read_masshunter_csv(data = mexp, path = masshunter_file)
-mexp <- read_msorganizer_xlm(data = mexp, path = metadata_file)
+mexp <- read_metadata_midarxlm(data = mexp, path = metadata_file)
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)
