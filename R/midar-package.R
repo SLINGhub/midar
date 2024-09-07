@@ -16,7 +16,7 @@
 #' @importFrom stats as.formula lm median na.exclude sd quantile na.omit setNames p.adjust t.test IQR dnorm mad reorder
 #' @importFrom ggpmisc stat_poly_line stat_poly_eq
 #' @importFrom cli cli_alert_success cli_alert_warning cli_alert_info cli_alert_danger cli_alert col_green col_red col_yellow
-#' @importFrom assertr chain_start chain_end verify assert has_all_names in_set is_uniq not_na num_row_NA
+#' @importFrom assertr chain_start chain_end verify assert has_all_names in_set is_uniq not_na
 #'
 ## usethis namespace: end
 NULL
