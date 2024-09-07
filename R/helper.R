@@ -12,6 +12,16 @@ max_val <- function(x, na.rm = FALSE) {
   if (all(is.na(x) | is.nan(x))) NA_real_ else max(x, na.rm = na.rm)
 }
 
+
+# Custom assertr function to test if at least one of provided columns exists
+has_any_name = function(...){
+  check_this <- list(...)
+  parent <- parent.frame()
+  given_names <- rlang::env_names(parent$.top_env)
+  given_names <- given_names[given_names != ".data"]
+  any(check_this %in% given_names)
+}
+
 add_missing_column <- function(data, col_name, init_value, make_lowercase) {
   if (!tolower(col_name) %in% tolower(names(data))) {
     data |> tibble::add_column({{ col_name }} := init_value)
