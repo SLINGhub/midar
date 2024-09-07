@@ -84,19 +84,60 @@ metadata_import_midarxlm<- function(data, path, analysis_sequence = "default", e
 }
 
 
-assert_warnings_metadata <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
+get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
   #browser()
   res <- as_tibble(do.call(rbind, list_of_errors)) |>
     select(message, description, num.violations) |>
     mutate(message = str_replace(message, "analysis_id", "'analysis_id'")) |>
     mutate(Field = str_extract(message, "(?<=\\').+?(?=\\')")) |>
     separate(col = description, into = c("Issue", "Table"), sep = ";", remove = TRUE) |>
-    select(Table, Field, Issue, Count = num.violations)
+    select(Issue, Table, Column = Field, Count = num.violations)
 
   res$Count <- res$Count |> unlist()
   res
 }
 
+
+alert_assertions <- function(data, data_label, assert_type = c("defect", "warning"), ignore_warnings) {
+
+  if (assert_type == "defect" &
+      rlang::is_true(attributes(data$annot_analyses)$assertr_data_defective) |
+      rlang::is_true(attributes(data$annot_features)$assertr_data_defective) |
+      rlang::is_true(attributes(data$annot_istd)$assertr_data_defective) |
+      rlang::is_true(attributes(data$annot_responsecurves)$assertr_data_defective)){
+    str_first  = cli::col_red(glue::glue("Metadata has following errors:"))
+    str_last  = cli::col_red(c("i" = "Please check metadata source and try import again."))
+    attr_text = "assertr_errors"
+
+  } else if (assert_type == "warning" & rlang::is_true(attributes(data)$assertr_errors)){
+    str_first  = cli::col_red(glue::glue("{data_label} metadata contains following issues"))
+    str_last  = cli::col_red(c("i" = "Please check the analysis metadata or set the parameter `ignore_warnings` to TRUE"))
+    attr_text = "assertr_errors"
+  } else
+    return(NULL)
+
+  t1 <- get_assert_summary_table(attr(data$annot_analyses, attr_text))
+  t2 <- get_assert_summary_table(attr(data$annot_features, attr_text))
+  t3 <- get_assert_summary_table(attr(data$annot_istd, attr_text))
+  t4 <- get_assert_summary_table(attr(data$annot_responsecurves, attr_text))
+
+  t_all <- bind_rows(t1, t2, t3, t4) |>
+    dplyr::mutate(Table = stringr::str_remove(Table, "metadata"))
+
+
+  #if (!is.null(attr(data, attr_text))) {
+    #cli::cli_alert_danger(text = str_first)
+    #print(as.data.frame(assert_warnings_metadata(attr(data, attr_text))))
+    if (!ignore_warnings) {
+      tbl_sum.default_header_replace <- function(x, ...) {
+        c("Override" = "Replace all headers")}
+      cli::cli_alert_warning(text = str_first)
+      print(as_assertr_tibble(t_all))
+      #print(as_tibble(assert_warnings_metadata(attr(data, attr_text))))
+      cli::cli_abort(message = cli::col_red("Invalid metadata. Please fix and try import again"), trace = NULL, call = caller_env())
+    }
+  #}
+}
 
 #' @title Add metadata an MidarExperiment object
 #' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
@@ -107,55 +148,47 @@ assert_warnings_metadata <- function(list_of_errors, data=NULL, warn = TRUE, ...
 #' @return MidarExperiment object
 #' @export
 #'
- add_metadata <- function(data, d_annot, analysis_sequence, excl_unannotated_analyses, allow_na = FALSE) {
+ add_metadata <- function(data, d_annot, analysis_sequence = c("resultfile", "timestamp", "metadata", "default"), excl_unannotated_analyses = FALSE, ignore_warnings = FALSE) {
+
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
 
+  # ANALYSES METADATA ====================
 
-  t_defects <- tibble()
-  t_warnings <- tibble()
+  #browser()
 
   if (!is.null(d_annot$annot_analyses) && nrow(d_annot$annot_analyses) > 0){
-    d_analyses <- d_annot$annot_analyses
 
-    #browser()
-
-    d_analyses <- d_analyses |>
+    ## Check for data defects ----
+    d_annot$annot_analyses <- d_annot$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::verify(assertr::has_all_names("analysis_id"), obligatory=TRUE, description = "Column missing;Analyses/Samples") |>
-      assertr::verify(assertr::has_all_names("qc_type"), obligatory=TRUE, description = "Column missing;Analyses/Samples") |>
+      assertr::verify(assertr::has_all_names("analysis_id"), obligatory=TRUE, description = "Column missing;Analyses", defect_fun = defect_append) |>
+      assertr::verify(assertr::has_all_names("qc_type"), obligatory=TRUE, description = "Column missing;Analyses", defect_fun = defect_append) |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id")), obligatory=TRUE, description = "Missing value(s);Analyses", defect_fun = defect_append) |>
+      assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=TRUE, description = "Duplicated analysis IDs;Analyses", defect_fun = defect_append) |>
       assertr::chain_end(error_fun = error_append)
 
-    if(rlang::is_true(attributes(d_analyses)$assertr_data_defective))
-      cli::cli_abort(message = c(
-        "x" = "Analyses metadata must contain the columns `analysis_id` and `qc_type`",
-        "Ensure both columns are defined in the Analyses metadata and re-import"))
+    #alert_assertions(d_analyses, "Analysis",assert_type = "defect", ignore_warnings = FALSE)
 
-
-    d_analyses <- d_analyses |>
+    ## Check data integrity ----
+    d_annot$annot_analyses <- d_annot$annot_analyses|>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert({\(x) all(is_na(x))}, all_of(c("qc_type")), description = "Missing value(s);Analyses/Samples") |>
-      assertr::verify(all(assertr::is_uniq(analysis_id)), description = "Analysis IDs duplicated;Analyses/Samples") |>
-      assertr::verify((analysis_id %in% unique(mexp@dataset_orig$analysis_id)), description = "Analysis not present in analysis data;Analyses/Samples") |>
-      assertr::verify((unique(mexp@dataset_orig$analysis_id) %in% analysis_id), description = "Unannotated analyses found analysis data;Analyses/Samples") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("valid_analysis", "sample_amount", "sample_amount_unit", "istd_volume", "batch_id", "replicate_no")), description = "Missing value;Analyses/Samples") |>
-      assertr::chain_end(error_fun = warning_append)
+      assertr::assert({\(x) all(is_na(x))}, all_of(c("qc_type")), description = "Missing value(s);Analyses") |>
+      assertr::verify((analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "Analysis not present in analysis data;Analyses") |>
+      assertr::verify((unique(data@dataset_orig$analysis_id) %in% analysis_id), description = "Unannotated analyses present in analysis data;Analyses") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("valid_analysis", "sample_amount", "sample_amount_unit", "istd_volume", "batch_id", "replicate_no")), description = "Missing value(s);Analyses") |>
+      assertr::chain_end(error_fun = error_append)
 
-    if (!is.null(attr(d_analyses, "assertr_errors"))) {
-      cli::cli_alert_danger(text = cli::col_yellow("Analysis metadata contains following issues"))
-      print(assert_warnings_metadata(attr(d_analyses, "assertr_errors")))
-      cli::cli_abort(message = cli::col_red(c("i" = "Please check the analysis metadata or set the parameter `ignore_warnings` to TRUE")))
-    }
+    #alert_assertions(d_analyses, "Analysis",assert_type = "warning", ignore_warnings = ignore_warnings)
 
-    data@annot_analyses <- data@dataset_orig %>%
-      dplyr::select("analysis_id",  dplyr::any_of("acquisition_time_stamp")) %>%
-      dplyr::distinct() %>%
-      dplyr::right_join(d_analyses, by = c("analysis_id"), keep = FALSE) %>%
+    data@annot_analyses <- d_annot$annot_analyses |>
+      dplyr::semi_join(data@dataset_orig, by = "analysis_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
+    # Define the analysis order
 
-
-    if ("acquisition_time_stamp" %in% names(data@annot_analyses) && (analysis_sequence %in% c("timestamp", "default"))) {
-      data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
+    if ("acquisition_time_stamp" %in% names(data@dataset_orig) && (analysis_sequence %in% c("timestamp", "default"))) {
+      data@dataset_orig <- data@dataset_orig |> arrange(.data$acquisition_time_stamp)
+      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
     } else {
       if (analysis_sequence == "resultfile") {
         data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, d_annot$dataset_orig$analysis_id |> unique()))
@@ -164,47 +197,116 @@ assert_warnings_metadata <- function(list_of_errors, data=NULL, warn = TRUE, ...
       } else if (analysis_sequence == "timestamp") {
         cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
       } else {
-        cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order was therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
+        cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
       }
     }
   }
 
+  # Set order/run id based on previous sorting
+  # TODO: part of metadata or analysis data?
   data@annot_analyses <- data@annot_analyses |>
     mutate(run_id = row_number(), .before = 1)
 
-  data@annot_batches <- data@annot_analyses %>%
-    dplyr::group_by(.data$batch_no) %>%
-    dplyr::summarise(
-      batch_id = .data$batch_id[1],
-      id_batch_start = dplyr::first(.data$run_id),
-      id_batch_end = dplyr::last(.data$run_id)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(.data$id_batch_start) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
 
-  data@annot_features <- data@dataset_orig %>%
-    dplyr::select("feature_id") %>%
-    dplyr::distinct() %>%
-    dplyr::right_join(d_annot$annot_features, by = c("feature_id" = "feature_id"), keep = FALSE) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
-
-  data@annot_istd <- data@annot_features %>%
-    dplyr::select("quant_istd_feature_id") %>%
-    dplyr::distinct() %>%
-    dplyr::left_join(d_annot$annot_istd, by = c("quant_istd_feature_id" = "quant_istd_feature_id"), keep = FALSE) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
+  # FEATURES METADATA ====================
+  if (!is.null(d_annot$annot_features) && nrow(d_annot$annot_features) > 0){
+    #browser()
+    ## Check for data defects ----
+    ## TODO: interference_feature_id
+    d_annot$annot_features <- d_annot$annot_features |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify(assertr::has_all_names("feature_id"), obligatory=TRUE, description = "Column missing;Features") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=TRUE, description = "Missing value(s);Features") |>
+      assertr::verify(has_any_name("feature_class","norm_istd_feature_id","quant_istd_feature_id","feature_response_factor","is_quantifier","valid_integration","interference_feature_id"), obligatory=TRUE, description = "No metadata field(s) provided;Features") |>
+      assertr::assert(assertr::is_uniq, feature_id, obligatory=TRUE, description = "IDs duplicated;Features") |>
+      assertr::verify(unique(norm_istd_feature_id) %in% feature_id, description = "Internal standard feature not defined under 'feature_id';Features") |>
+      assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "Internal standard feature not defined under 'feature_id';Features") |>
+      #assertr::verify(unique(interference_feature_id) %in% feature_id, description = "Interfering feature(s) not defined under 'feature_id';Features") |>
+      assertr::chain_end(error_fun = assertr::error_append)
 
 
-  data@annot_responsecurves <- data@annot_analyses %>%
-    dplyr::filter(.data$qc_type == "RQC") %>%
-    dplyr::select("analysis_id") %>%
-    dplyr::distinct() %>%
-    dplyr::ungroup() %>%
-    dplyr::right_join(d_annot$annot_responsecurves, by = c("analysis_id" = "analysis_id"), keep = FALSE) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
+    #alert_assertions(d_features, "Feature",assert_type = "defect", ignore_warnings = FALSE)
+
+    ## Check data integrity ------
+    d_annot$annot_features <- d_annot$annot_features |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify((feature_id %in% unique(data@dataset_orig$feature_id)), description = "Feature(s) in metadata not present in analysis data;Features") |>
+      assertr::verify((unique(data@dataset_orig$feature_id) %in% feature_id), description = "Unannotated feature(s) present in analysis data;Features") |>
+      assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("feature_response_factor", "interference_proportion")), description = "Values 0 or negative;Features") |>
+      assertr::chain_end(error_fun = warning_append)
+
+    #alert_assertions(d_features, "Feature",assert_type = "warning", ignore_warnings)
+
+    data@annot_features <- d_annot$annot_features |>
+      dplyr::semi_join(data@dataset_orig, by = "feature_id") |>
+      dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
+
+  }
+
+  # ISTD METADATA ====================
+
+  if (!is.null(d_annot$annot_istd) && nrow(d_annot$annot_istd) > 0){
+    ## Check for data defects ----
+    d_annot$annot_istd  <- d_annot$annot_istd |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify(assertr::has_all_names("quant_istd_feature_id", "istd_conc_nmolar"), obligatory=TRUE, description = "Column missing;ISTDs") |>
+      assertr::assert(\(x){not_na(x)}, all_of(c("quant_istd_feature_id", "istd_conc_nmolar")), obligatory=TRUE, description = "Missing value(s);ISTDs") |>
+      assertr::verify(all(assertr::is_uniq(quant_istd_feature_id)), obligatory=TRUE, description = "ISTD feature IDs duplicated;ISTDs") |>
+      assertr::verify(d_annot$annot_features$feature_id %in% quant_istd_feature_id, description = "Internal standard(s) not defined;ISTDs") |>
+      assertr::chain_end(error_fun = assertr::error_append)
+
+    #alert_assertions(d_istd, "ISTD",assert_type = "defect", ignore_warnings = FALSE)
+
+    ## Check data integrity =====
+    d_annot$annot_istd  <- d_annot$annot_istd  |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify(quant_istd_feature_id %in% d_annot$annot_features$feature_id, description = "ISTD(s) not used;ISTDs") |>
+      assertr::assert(\(x){x > 0}, any_of(c("istd_conc_nmolar")), description = "Values 0 or negative;ISTDs") |>
+      assertr::chain_end(error_fun = warning_append)
+
+    #alert_assertions(d_istd, "ISTD",assert_type = "warning", ignore_warnings)
+
+    data@annot_istd <- d_annot$annot_istd  |>
+      dplyr::semi_join(data@annot_features, by = join_by(quant_istd_feature_id == feature_id)) |>
+      dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
+  }
+
+  # RESPONSE CURVE METADATA ====================
+
+  if (!is.null(d_annot$annot_responsecurves) && nrow(d_annot$annot_responsecurves) > 0){
+    ## Check for data defects ----
+    d_annot$annot_responsecurves <- d_annot$annot_responsecurves |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify(assertr::has_all_names("analysis_id", "rqc_series_id", "relative_sample_amount"), obligatory=TRUE, description = "Column missing;Response Curves") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "rqc_series_id")), obligatory=TRUE, description = "Missing value(s);Response Curves") |>
+      assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=TRUE, description = "Duplicated analysis IDs;Response Curves") |>
+      assertr::verify((analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "Analysis not present in analysis data;Response Curves") |>
+      assertr::chain_end(error_fun = assertr::error_append)
+
+    #alert_assertions(d_response, "Response Curves",assert_type = "defect", ignore_warnings = FALSE)
+
+    ## Check data integrity ----
+    ### TODO: check for qc_type RQC
+    d_annot$annot_responsecurves <- d_annot$annot_responsecurves |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "Analyses of QC type 'RQC' not defined;Response Curves") |>
+      assertr::verify((analysis_id %in% unique(data@annot_analyses$analysis_id)), description = "Analysis not present in analysis metadata;Response Curves") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("relative_sample_amount", "injection_volume")), description = "Missing value(s);Response Curves") |>
+      assertr::chain_end(error_fun = warning_append)
+
+    #alert_assertions(d_response, "Response Curves",assert_type = "warning", ignore_warnings)
+
+    data@annot_responsecurves <- d_annot$annot_responsecurves |>
+      dplyr::semi_join(data@dataset_orig, by = "analysis_id") |>
+      dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
+  }
 
 
+
+
+  alert_assertions(d_annot, "Response Curves",assert_type = "defect", ignore_warnings = FALSE)
+
+   # TODO FORMAT DATASET ==============
   data@dataset_orig <- data@dataset_orig %>%
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
 
@@ -220,6 +322,19 @@ assert_warnings_metadata <- function(list_of_errors, data=NULL, warn = TRUE, ...
         dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_integration", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
       by = c("feature_id"), keep = FALSE
     )
+
+  # BATCHES METADATA ------------
+
+  data@annot_batches <- data@annot_analyses %>%
+    dplyr::group_by(.data$batch_no) %>%
+    dplyr::summarise(
+      batch_id = .data$batch_id[1],
+      id_batch_start = dplyr::first(.data$run_id),
+      id_batch_end = dplyr::last(.data$run_id)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::arrange(.data$id_batch_start) %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
 
   data@dataset <-
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_template, d_dataset) |>
