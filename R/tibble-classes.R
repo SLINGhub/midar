@@ -15,7 +15,7 @@ as_assertr_tibble <- function(x, ...) {
 # Define a new print methods for assertr_tibble
 tbl_sum.assertr_tibble <- function(x, ...) {
 #c("Metadata" = "Errors and Warnings")
-  "----------------------------------------------------------------------------"
+  "--------------------------------------------------------------------------------"
 }
 
 tbl_format_header.assertr_tibble <- function(x, setup, ...) {
@@ -24,8 +24,11 @@ tbl_format_header.assertr_tibble <- function(x, setup, ...) {
 
 
 tbl_format_footer.assertr_tibble <- function(x, setup, ...) {
-  cli::style_italic(paste0("-----------------------------------------------------------------------------\nThe table has ", setup$rows_total, " rows in total."))
-}
+  #cli::style_italic(paste0("---------------------------------------------------------------------------------\nThe table has ", setup$rows_total, " rows in total."))
+  cli::style_italic(paste0("---------------------------------------------------------------------------------\nE = Error, W = Warning, N = Note", "\n---------------------------------------------------------------------------------"))
+  #cli::style_italic(paste0("E = Error, W = Warning, N = Note", "\n---------------------------------------------------------------------------------"))
+
+  }
 
 
 ctl_new_pillar.assertr_tibble <- function(controller, x, width, ..., title = NULL) {
