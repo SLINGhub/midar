@@ -15,7 +15,7 @@ lipidomics_get_lipid_class_names(
 
 \item{use_as_feature_class}{Set feature_class to lipid_class}
 
-\item{add_transition_names}{add transition name and transition group, based on information in square brackets in feature_name}
+\item{add_transition_names}{add transition name and transition group, based on information in square brackets in feature_id}
 }
 \value{
 MidarExperiment object

@@ -7,7 +7,7 @@
 rawdata_import_mrmkit(
   file,
   analysis_id_col = NULL,
-  feature_name_col = NULL,
+  feature_id_col = NULL,
   silent = FALSE
 )
 }
@@ -16,7 +16,7 @@ rawdata_import_mrmkit(
 
 \item{analysis_id_col}{Column to be used as analysis_id}
 
-\item{feature_name_col}{Column to be used feature_name}
+\item{feature_id_col}{Column to be used feature_id}
 
 \item{silent}{Suppress messages}
 }

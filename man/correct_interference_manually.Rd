@@ -10,7 +10,7 @@ correct_interference_manually(
   feature,
   interfering_feature,
   relative_contribution,
-  new_feature_name = NULL
+  new_feature_id = NULL
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ correct_interference_manually(
 
 \item{relative_contribution}{Relative portion of the interfering feature to contribute to the feature signal. Must be between 0 and 1.}
 
-\item{new_feature_name}{Optional. New name of corrected feature. If empty then feature name will not change.}
+\item{new_feature_id}{Optional. New name of corrected feature. If empty then feature name will not change.}
 }
 \value{
 MidarExperiment object

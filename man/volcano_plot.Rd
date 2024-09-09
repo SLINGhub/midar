@@ -21,7 +21,7 @@ volcano_plot(
 )
 }
 \arguments{
-\item{d_FC}{data.frame with feature_name, p and log2FC}
+\item{d_FC}{data.frame with feature_id, p and log2FC}
 
 \item{p_adjust}{calculate and use FDR}
 
