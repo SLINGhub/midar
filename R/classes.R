@@ -249,7 +249,9 @@ check_integrity <- function(object, excl_unannotated_analyses) {
 # methods::setValidity("MidarExperiment")
 
 
-get_status_flag <- function(x) if_else(x, cli::col_green$bold("\u2713"), cli::col_red$bold("\u2717"))
+get_status_flag <- function(x) {
+  ifelse(x, {cli::col_green(cli::symbol$tick)}, {cli::col_red(cli::symbol$cross)})
+  }
 
 
 
@@ -280,31 +282,43 @@ setMethod(
 
 
 setMethod("show", "MidarExperiment", function(object) {
-  cat(
-    "\n", is(object)[[1]], "\n",
-    "\n",
-    "  Processing status: ", object@status_processing, "\n",
-    "\n",
-    "  Data: ", "\n",
-    "  \u2022 Samples: ", length(unique(object@dataset$analysis_id)), "\n",
-    "  \u2022 Features:  ", length(unique(object@dataset$feature_id)), "\n",
-    "\n",
-    "  Metadata: ", "\n",
-    "  \u2022 Sample annotation: ", get_status_flag(nrow(object@annot_analyses) > 0), "\n",
-    "  \u2022 Feature annotation: ", get_status_flag(nrow(object@annot_features) > 0), "\n",
-    "  \u2022 Internal standard annotation: ", get_status_flag(nrow(object@annot_istd) > 0), "\n",
-    "  \u2022 Response curves annotation: ", get_status_flag(nrow(object@annot_responsecurves) > 0), "\n",
-    "  \u2022 Study samples annotation: ", get_status_flag(nrow(object@annot_studysamples) > 0), "\n",
-    "\n",
-    "  Processing: ", "\n",
-    "  \u2022 Isotope corrected: ", get_status_flag(object@is_isotope_corr), "\n",
-    "  \u2022 ISTD normalized: ", get_status_flag(object@is_istd_normalized), "\n",
-    "  \u2022 ISTD quantitated: ", get_status_flag(object@is_quantitated), "\n",
-    "  \u2022 Drift corrected: ", get_status_flag(object@is_drift_corrected), "\n",
-    "  \u2022 Batch corrected: ", get_status_flag(object@is_batch_corrected), "\n",
-    "\n",
-    "  Outliers: ", "\n",
-    "  \u2022 Technical Outliers detected ", get_status_flag(object@has_outliers_tech), "\n",
-    "  \u2022 Technical Outliers excluded from filtered data ", get_status_flag(object@excl_outliers_tech), "\n"
-  )
+
+  cli::cli_par()
+  cli::cli_h1(is(object)[[1]])
+  cli::cli_end()
+
+  cli::cli_par()
+  cli::cli_text(cli::col_blue("Processing status: {.strong {object@status_processing}}"))
+  cli::cli_end()
+
+  cli::cli_h2("Data")
+  cli::cli_ul(id = "A")
+  cli::cli_li("Samples: {length(unique(object@dataset$analysis_id))}")
+  cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
+  cli::cli_end(id = "A")
+
+
+  cli::cli_h2("Metadata")
+  cli::cli_ul(id ="B")
+  cli::cli_li("Sample annotation: {.strong {get_status_flag(nrow(object@annot_analyses) > 0)}}")
+  cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
+  cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istd) > 0)}}")
+  cli::cli_li("Response curves annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
+  cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
+  cli::cli_end(id ="B")
+
+  cli::cli_h2("Processing Status")
+  cli::cli_ul(id = "C")
+  cli::cli_li("Isotope corrected: {get_status_flag(object@is_isotope_corr)}")
+  cli::cli_li("ISTD normalized: {get_status_flag(object@is_istd_normalized)}")
+  cli::cli_li("ISTD quantitated: {get_status_flag(object@is_quantitated)}")
+  cli::cli_li("Drift corrected:  {get_status_flag(object@is_drift_corrected)}")
+  cli::cli_li("Batch corrected:  {get_status_flag(object@is_batch_corrected)}")
+  cli::cli_end(id = "C")
+
+  cli::cli_h2("Outliers")
+  cli::cli_ul(id = "D")
+  cli::cli_li("Technical Outliers detected : {get_status_flag(object@has_outliers_tech)}")
+  cli::cli_li("Technical Outliers excluded from filtered data: {get_status_flag(object@excl_outliers_tech)}")
+  cli::cli_end(id = "D")
 })
