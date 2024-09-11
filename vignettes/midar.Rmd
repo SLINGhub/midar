@@ -18,59 +18,43 @@ knitr::opts_chunk$set(
 )
 ```
 
-`MiDAR` is an R package to reproducibly manage, post-process, visualize, apply quality control, and analyze small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
+`MiDAR` is an R package to reproducibly post-process, assess, quality control, and report small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
 
-`MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source tools. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.  
+`MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source software. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.
 
-Datasets and processing steps are tracked, and can be saved as `MiDAR` S4 class object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting of all data, metadata and applied data processing steps.
+Datasets and processing steps are tracked, and can be saved as `MiDAR` object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting of all data, metadata and applied data processing steps.
 
 ## Example Workflow
 
-Below is example of a simple data processing workflow, starting with a MassHunter CSV file, metadata in an Excel template 
+Below is example of a simple data processing workflow, starting with the peak integration results from `MRMkit` ([https://github.com/MRMkit](https://github.com/MRMkit/MRMkit))
 
 ```{r}
 library(midar)
 
 # Get paths of example files included with this package
-masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
-metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar", mustWork = TRUE)
+file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 
 # Create a MidarExperiment object (S4)
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::rawdata_import_agilent(
-  data = mexp,
-  path = masshunter_file,
-  file_format = "csv"
-)
-mexp <- midar::metadata_import_midarxlm(
-  data = mexp,
-  path = metadata_file,
-  analysis_sequence = "timestamp",
-  excl_unannotated_analyses = TRUE
-)
+mexp <- midar::rawdata_import_mrmkit(data = mexp, path = file_path,use_metadata TRUE)
 
 # Normalize and quantitate each feature by internal standards
-mexp <- normalize_by_istd(mexp)
-mexp <- quantitate_by_istd(mexp)
+#mexp <- normalize_by_istd(mexp)
 
 # Get QC metrics for each feature
-mexp <- calculate_qc_metrics(mexp)
+#mexp <- calculate_qc_metrics(mexp)
 
 # Filter features according to QC criteria
-mexp <- apply_qc_filter(
-  data = mexp,
-  intensity_min_bqc = 500,
-  signal_blank_min_pblk = 10,
-  cv_conc_min_bqc = 25,
-  dratio_conc_max_bqc = 0.5,
-  response_rsquare_min = 0.8,
-  response_curve_name = 1,
-  qualifier_exclude = TRUE,
-  istds_exclude = TRUE,
-  response_y0_rel_max = 0.4
-)
+#mexp <- apply_qc_filter(
+#  data = mexp, 
+#  missing.normintensity.spl.prop.max = 0.2,
+#  cv.conc.bqc.max = 30,
+#  signalblank.median.pblk.min = 3,
+#  qualifier.include = TRUE, 
+#  istds.include = FALSE
+#)
 ```
 
 ## Contributor Code of Conduct
