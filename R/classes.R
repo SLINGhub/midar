@@ -6,7 +6,7 @@ pkg.env$dataset_templates <- list(
     "analysis_id" = character(),
     "raw_data_filename" = character(),
     "acquisition_time_stamp" = as.Date(character()),
-    "inj_volume" = numeric(),
+    "feature_id" = character(),
     "feature_intensity" = numeric(),
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
@@ -14,7 +14,6 @@ pkg.env$dataset_templates <- list(
   dataset_template = tibble::tibble(
     "run_id" = integer(),
     "analysis_id" = character(),
-    "raw_data_filename" = character(),
     "acquisition_time_stamp" = as.Date(character()),
     "qc_type" = factor(),
     "replicate_no" = integer(),
@@ -25,7 +24,7 @@ pkg.env$dataset_templates <- list(
     "feature_id" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
-    "valid_integration" = logical(),
+    "valid_feature" = logical(),
     "feature_intensity" = numeric(),
     "feature_norm_intensity" = numeric(),
     "feature_conc" = numeric()
@@ -35,7 +34,6 @@ pkg.env$dataset_templates <- list(
     "sample_id" = character(),
     "qc_type" = factor(),
     "replicate_no" = integer(),
-    "method_id" = character(),
     "batch_id" = character(),
     "specimen" = character(),
     "sample_amount" = numeric(),
@@ -54,7 +52,7 @@ pkg.env$dataset_templates <- list(
     "norm_istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
     "is_quantifier" = logical(),
-    "valid_integration" = logical(),
+    "valid_feature" = logical(),
     "feature_response_factor" = numeric(),
     "remarks" = character()
   ),
@@ -282,7 +280,6 @@ setMethod(
 
 
 setMethod("show", "MidarExperiment", function(object) {
-
   cli::cli_par()
   cli::cli_h1(is(object)[[1]])
   cli::cli_end()
@@ -297,14 +294,13 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
   cli::cli_end(id = "A")
 
-
   cli::cli_h2("Metadata")
   cli::cli_ul(id ="B")
   cli::cli_li("Sample annotation: {.strong {get_status_flag(nrow(object@annot_analyses) > 0)}}")
   cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
   cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istd) > 0)}}")
-  cli::cli_li("Response curves annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
-  cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
+  cli::cli_li("Response curve annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
+  cli::cli_li("Study samplesannotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
   cli::cli_end(id ="B")
 
   cli::cli_h2("Processing Status")
