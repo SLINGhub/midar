@@ -54,10 +54,6 @@ rawdata_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
   data
 }
 
-
-
-
-
 rawdata_import_main <- function(data, path, import_function, file_ext, include_metadata, silent, ...) {
 
   if (!fs::is_dir(path)) {
@@ -101,7 +97,7 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
   data@dataset_orig <- d_temp
 
 
-  data@dataset_orig <- data@dataset_orig |> dplyr::rename(feature_intensity = "feature_area")
+  #data@dataset_orig <- data@dataset_orig |> dplyr::rename(feature_intensity = "feature_area")
   # TODO: excl_unannotated_analyses below
 
   check_integrity(data, excl_unannotated_analyses = FALSE)
@@ -410,7 +406,7 @@ parse_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALS
     "norm_istd_feature_id" = "internal_standard",
     "feature_rt" = "rt_apex",
     "feature_area" = "area",
-    "feature_norm_intensity" = "area_normalized",
+    #"feature_norm_intensity" = "area_normalized",
     "feature_height" = "height",
     "feature_fwhm" = "FWHM",
     "feature_int_start" = "rt_int_start",
