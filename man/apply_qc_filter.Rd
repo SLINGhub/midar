@@ -94,7 +94,7 @@ MidarExperiment object
 }
 \description{
 Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
-Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
+Exclude features and analyses that were annotated as not valid in the metadata (valid_feature, valid_analysis).
 
 Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
 \itemize{
