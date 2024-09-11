@@ -23,7 +23,7 @@ calculate_qc_metrics <- function(data) {
     dplyr::summarise(
       # PrecursorMz = paste0(unique(.data$precursor_mz), collapse = ","),
       # ProductMz = paste0(unique(.data$product_mz), collapse = ","),
-      valid_integration = unique(.data$valid_integration),
+      valid_feature = unique(.data$valid_feature),
       missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
       missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
       missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
@@ -112,7 +112,7 @@ calculate_qc_metrics <- function(data) {
 #' Filter dataset according to QC and other criteria
 #' @description
 #' Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
-#' Exclude features and analyses that were annotated as not valid in the metadata (valid_integration, valid_analysis).
+#' Exclude features and analyses that were annotated as not valid in the metadata (valid_feature, valid_analysis).
 #'
 #' Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
 #' - If a filter is applied (e.g. `intensity.min.bqc.min`) but qc value is NA then this feature will be excluded.
@@ -359,7 +359,7 @@ apply_qc_filter <- function(data,
               (is.na(.data$pass_linearity) | .data$pass_linearity) &
               (is.na(.data$pass_dratio) | .data$pass_dratio) &
               (is.na(.data$pass_missingval) | .data$pass_missingval) &
-              (is.na(.data$valid_integration) | .data$valid_integration)
+              (is.na(.data$valid_feature) | .data$valid_feature)
           ) |
             (
               .data$feature_id %in% features_to_keep

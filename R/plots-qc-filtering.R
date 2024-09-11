@@ -10,7 +10,7 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
-    filter(.data$valid_integration, !.data$is_istd) |>
+    filter(.data$valid_feature, !.data$is_istd) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 
@@ -71,7 +71,7 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>
-    filter(.data$valid_integration, !.data$is_istd) |>
+    filter(.data$valid_feature, !.data$is_istd) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 

@@ -14,9 +14,9 @@
 
 
 plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim = c(0, NA), ylim = c(0, NA), ncol = 5, scale_factor = 1, point_size = 3, with_histogram = FALSE) {
-  d_QC <- data@metrics_qc |> filter(.data$valid_integration)
+  d_QC <- data@metrics_qc |> filter(.data$valid_feature)
 
-  if (only_quantifier) d_QC <- d_QC |> filter(.data$is_quantifier, .data$valid_integration)
+  if (only_quantifier) d_QC <- d_QC |> filter(.data$is_quantifier, .data$valid_feature)
 
   x_sym <- rlang::ensym(x)
   y_sym <- rlang::ensym(y)
