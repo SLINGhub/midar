@@ -11,46 +11,77 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile", qc_type_fi
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile"))
 
   # get analysis metadata
-   data@annot_analyses <- data@dataset_orig %>%
-    dplyr::select("analysis_id", dplyr::any_of(c("acquisition_time_stamp", qc_type_field, "batch_id"))) %>%
+   annot_analyses <- data@dataset_orig %>%
+    dplyr::select("analysis_id", dplyr::any_of(c(qc_type_field, "batch_id"))) %>%
     dplyr::distinct() %>%
     dplyr::rename(any_of(c(qc_type = qc_type_field))) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
-  if ("acquisition_time_stamp" %in% names(data@dataset_orig) & (analysis_sequence %in% c("timestamp", "default"))) {
-    data@annot_analyses <- data@annot_analyses |> arrange(.data$acquisition_time_stamp)
-  } else {
-    if (analysis_sequence == "timestamp") {
-      cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
-    }
-  }
+  # if ("acquisition_time_stamp" %in% names(data@dataset_orig) & (analysis_sequence %in% c("timestamp", "default"))) {
+  #   annot_analyses <- annot_analyses |> arrange(.data$acquisition_time_stamp)
+  # } else {
+  #   if (analysis_sequence == "timestamp") {
+  #     cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
+  #   }
+  # }
 
-  data@annot_analyses <- data@annot_analyses |>
+  annot_analyses <- annot_analyses |>
     mutate(run_id = row_number(), .before = 1)
 
   # retrieve batches
-  if ("batch_id" %in% names(data@dataset_orig))
-    data <- load_metadata_batches(data)
-
-
+  if ("batch_id" %in% names(annot_analyses))
+    annot_batches <- get_metadata_batches(annot_analyses)
 
   # get feature metadata
 
-  data@annot_features <- data@dataset_orig %>%
+  annot_features <- data@dataset_orig %>%
     dplyr::select("feature_id", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "norm_istd_feature"))) %>%
     dplyr::distinct() %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
-  # TODO
-  data@dataset <- data@dataset_orig
+  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features, annot_batches = annot_batches))
+  data <- load_metadata(data = data, metadata = metadata, analysis_sequence = "default", excl_unannotated_analyses = FALSE)
+  data <- populate_dataset_table(data)
 
   data
 }
 
+
+
+populate_dataset_table <- function(data, incl_method_details = FALSE){
+  data@dataset <- data@dataset_orig |>
+    select(
+      "analysis_id",
+      "acquisition_time_stamp",
+      "feature_id",
+      starts_with("method_"),
+      starts_with("feature_")
+    ) |>
+    inner_join(data@annot_analyses, by = "analysis_id") |>
+    inner_join(data@annot_features, by = "feature_id") |>
+    select(
+      "run_id",
+      "analysis_id",
+      "acquisition_time_stamp",
+      "qc_type",
+      "batch_id",
+      "valid_analysis",
+      "feature_id",
+      "valid_feature",
+      starts_with("method_"),
+      starts_with("feature_")
+    )
+
+  if(!incl_method_details) data@dataset <-data@dataset |> select(-starts_with("method_"))
+
+  data
+}
+
+
 # Retreive batch info from analysis metadata
 
-load_metadata_batches <- function(data){
-  data@annot_batches <- data@annot_analyses %>%
+get_metadata_batches <- function(annot_analyses){
+  annot_batches <- annot_analyses %>%
     mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id"), .before = batch_id) |>
     dplyr::group_by(.data$batch_no) %>%
     dplyr::summarise(
@@ -61,7 +92,7 @@ load_metadata_batches <- function(data){
     dplyr::ungroup() %>%
     dplyr::arrange(.data$id_batch_start) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
-  data
+  annot_batches
 }
 
 
@@ -82,7 +113,7 @@ metadata_import_midarxlm<- function(data, path,  ignore_warnings = FALSE, analys
   metadata <- read_metadata_midarxlm(path)
 
   metadata  <- assert_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
-  data  <- include_metadata(data = data, metadata = metadata, analysis_sequence = analysis_sequence,excl_unannotated_analyses = excl_unannotated_analyses)
+  data  <- load_metadata(data = data, metadata = metadata, analysis_sequence = analysis_sequence,excl_unannotated_analyses = excl_unannotated_analyses)
   data
 }
 
@@ -94,7 +125,7 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
     select(message, description, num.violations) |>
     mutate(message = str_replace_all(message, fixed('"'), "'")) |>
     mutate(Field = paste0(str_extract(unlist(message), "(?<=\\').+?(?=\\')")) ) |>
-    separate(col = description, into = c("Type", "Issue", "Table"), sep = ";", remove = TRUE) |>
+    tidyr::separate(col = description, into = c("Type", "Issue", "Table"), sep = ";", remove = TRUE) |>
     filter(Type != "DX") |>
     select(Type, Table, Issue, Column = Field, Count = num.violations) |> ungroup()
 
@@ -103,17 +134,18 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
 }
 
 
-alert_assertions <- function(data, data_label, assert_type = c("defect", "warning"), ignore_warnings) {
+alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "warning"), ignore_warnings) {
 
   t1 <- get_assert_summary_table(attr(data$annot_analyses, "assertr_errors"))
   t2 <- get_assert_summary_table(attr(data$annot_features, "assertr_errors"))
   t3 <- get_assert_summary_table(attr(data$annot_istd, "assertr_errors"))
   t4 <- get_assert_summary_table(attr(data$annot_responsecurves, "assertr_errors"))
 
-  t_all <- bind_rows(t1, t2, t3, t4) |>
-    dplyr::mutate(Table = stringr::str_remove(Table, "metadata")) |>
-    arrange(Type, Table, Count)
-
+  t_all <- bind_rows(t1, t2, t3, t4)
+  if(is.null(t_all) | nrow(t_all) == 0)
+    return(NULL)
+  else
+    t_all <- t_all |> arrange(Type, Table, Count)
 
 
   if(any(t_all$Type == "D")){
@@ -151,27 +183,29 @@ alert_assertions <- function(data, data_label, assert_type = c("defect", "warnin
    #Note: to check for multiple missing columns defects, first each column will be check
    # for presence and error is raised for reporting, then a defect is raised to
    # disable further check, but without reporting it (using flag "DX")
+   # Columns with all values =  NA will be ignored
 
   # ANALYSES METADATA ====================
 
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
 
     ## Check for data defects ----
+    #TODO remove: metadata$annot_analyses$qc_type[3] <- NA
+
     metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::verify(has_any_name("analysis_id"), obligatory=FALSE, description = "D;Column missing;Analyses", defect_fun = defect_append) |>
       assertr::verify(has_any_name("qc_type"), obligatory=FALSE, description = "D;Column missing;Analyses", defect_fun = defect_append) |>
       assertr::verify(has_any_name("analysis_id", "qc_type"), obligatory=TRUE, description = "DX;Column missing;Analyses", defect_fun = assertr::defect_append)
 
     # Check data integrity ----
-    metadata$annot_analyses <- metadata$annot_analyses|>
+    metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses") |>
-      assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses") |>
-      assertr::assert({\(x) all(is_na(x))}, all_of(c("qc_type")), description = "W;Missing value(s);Analyses") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & !dplyr::any_of(c("analysis_id", "qc_type")), description = "W;Missing value(s);Analyses") |>
+      #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses") |>
       assertr::verify((analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "W;Analyses not in analysis data;Analyses") |>
       assertr::verify((unique(data@dataset_orig$analysis_id) %in% analysis_id), description = "W;Analyses without metadata;Analyses") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("valid_analysis", "sample_amount", "sample_amount_unit", "istd_volume", "batch_id", "replicate_no")), description = "W;Missing value(s);Analyses") |>
-      assertr::chain_end(error_fun = error_append)
+      assertr::chain_end(error_fun = assertr::error_append)
   }
 
   # FEATURES METADATA ====================
@@ -186,16 +220,16 @@ alert_assertions <- function(data, data_label, assert_type = c("defect", "warnin
     metadata$annot_features <- metadata$annot_features |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=FALSE, description = "E;Missing value(s);Features") |>
-      assertr::verify(has_any_name("feature_class","norm_istd_feature_id","quant_istd_feature_id","feature_response_factor","is_quantifier","valid_integration","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features") |>
+      assertr::verify(has_any_name("feature_class","norm_istd_feature_id","quant_istd_feature_id","feature_response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features") |>
       assertr::assert(assertr::is_uniq, feature_id, obligatory=FALSE, description = "E;IDs duplicated;Features") |>
-      assertr::verify(unique(norm_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), norm_istd_feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
       #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
-      assertr::assert(\(x) {any(metadata$annot_istd$quant_istd_feature_id %in% (x))},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
+      assertr::assert(\(x) {any(metadata$annot_istd$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istd)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
       #assertr::verify(unique(interference_feature_id) %in% feature_id, description = "Interfering feature(s) not defined under 'feature_id';Features") |>
       assertr::verify((feature_id %in% unique(data@dataset_orig$feature_id)), description = "W;Feature(s) not in analysis data;Features") |>
       assertr::verify((unique(data@dataset_orig$feature_id) %in% feature_id), description = "W;Feature(s) without metadata;Features") |>
       #assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("feature_response_factor", "interference_proportion")), description = "W;Values 0 or negative;Features") |>
-      assertr::chain_end(error_fun = error_append)
+      assertr::chain_end(error_fun = assertr::error_append)
    }
 
   # ISTD METADATA ====================
@@ -238,7 +272,7 @@ alert_assertions <- function(data, data_label, assert_type = c("defect", "warnin
       assertr::chain_end(error_fun = warning_append)
   }
 
-  alert_assertions(metadata, "Response Curves",assert_type = "defect", ignore_warnings)
+  alert_assertion_issues(metadata, "Response Curves",assert_type = "defect", ignore_warnings)
 
   metadata
 }
@@ -257,8 +291,8 @@ alert_assertions <- function(data, data_label, assert_type = c("defect", "warnin
  #'
 
 # Add verified metadata to the MidarExperiment object
-include_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "timestamp", "metadata", "default"), excl_unannotated_analyses = FALSE) {
-
+load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "timestamp", "metadata", "default"), excl_unannotated_analyses = FALSE) {
+  #browser()
   # ANALYSES METADATA ====================
 
 
@@ -299,12 +333,12 @@ include_metadata <- function(data, metadata, analysis_sequence = c("resultfile",
         by = c("analysis_id")) %>%
       dplyr::inner_join(
         metadata$annot_features %>%
-          filter(.data$valid_integration) |>
-          dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_integration", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
+          filter(.data$valid_feature) |>
+          dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
         by = c("feature_id"), keep = FALSE
       )
 
-    cli_alert_success(col_green(glue::glue("Analysis metadata successfully associated with {length(data@dataset$analysis_id %>% unique())} samples.")))
+    cli_alert_success(col_green(glue::glue("Analysis metadata associated with {length(data@annot_analyses$analysis_id %>% unique())} samples.")))
   }
 
   # FEATURE METADATA ====================
@@ -313,10 +347,7 @@ include_metadata <- function(data, metadata, analysis_sequence = c("resultfile",
       dplyr::semi_join(data@dataset_orig, by = "feature_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
-    data@dataset_orig <- data@dataset_orig %>%
-      dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
-
-    cli_alert_success(col_green(glue::glue("Feature metadata successfully associated with {length(data@dataset$feature_id %>% unique())} features.")))
+    cli_alert_success(col_green(glue::glue("Feature metadata associated with {length(data@annot_features$feature_id %>% unique())} features.")))
   }
 
 
@@ -329,7 +360,7 @@ include_metadata <- function(data, metadata, analysis_sequence = c("resultfile",
       dplyr::semi_join(data@annot_features, by = join_by(quant_istd_feature_id == feature_id)) |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
 
-    cli_alert_success(col_green(glue::glue("Internal Standard metadata successfully associated with {length(data@annot_istd$quant_istd_feature_id %>% unique())} ISTDs")))
+    cli_alert_success(col_green(glue::glue("Internal Standard metadata associated with {length(data@annot_istd$quant_istd_feature_id %>% unique())} ISTDs")))
   }
 
 
@@ -339,21 +370,18 @@ include_metadata <- function(data, metadata, analysis_sequence = c("resultfile",
       dplyr::semi_join(data@dataset_orig, by = "analysis_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
-    cli_alert_success(col_green(glue::glue("Response Curve metadata successfully associated with {length(data@annot_responsecurves$analysis_id %>% unique())} analyses")))
+    cli_alert_success(col_green(glue::glue("Response Curve metadata associated with {length(data@annot_responsecurves$analysis_id %>% unique())} analyses")))
   }
 
   # BATCHES METADATA ------------
 
-  data@annot_batches <- data@annot_analyses %>%
-    dplyr::group_by(.data$batch_no) %>%
-    dplyr::summarise(
-      batch_id = .data$batch_id[1],
-      id_batch_start = dplyr::first(.data$run_id),
-      id_batch_end = dplyr::last(.data$run_id)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(.data$id_batch_start) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
+  data@annot_batches <- get_metadata_batches(data@annot_analyses )
+
+  # Create DATASET tables =================
+
+  data@dataset_orig <- data@dataset_orig %>%
+    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
+
 
   data@dataset <-
     dplyr::bind_rows(pkg.env$dataset_templates$dataset_template, d_dataset) |>
@@ -431,7 +459,6 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
                                   "false" ~ FALSE,
                                   .default = NA)),
       qc_type = if_else(.data$qc_type == "Sample" | is.na(.data$qc_type), "SPL", .data$qc_type)) |>
-    #mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id"), .before = batch_id) |>
     mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     ungroup()
 
@@ -451,7 +478,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "quantifier", init_value = TRUE, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_integration", init_value = TRUE, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
@@ -477,7 +504,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
                                              "true" ~ TRUE,
                                              "false" ~ FALSE,
                                              .default = NA)),
-      valid_integration = as.logical(case_match(tolower(.data$valid_integration),
+      valid_feature = as.logical(case_match(tolower(.data$valid_integration),
                                             "yes" ~ TRUE,
                                             "no"~ FALSE,
                                             "true" ~ TRUE,
@@ -494,18 +521,18 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       "quant_istd_feature_id",
       feature_response_factor = "response_factor",
       "is_quantifier",
-      "valid_integration",
+      "valid_feature",
       "interference_feature_id",
       "interference_proportion",
       "remarks"
     )
 
   # Handle the non-mandatory field Valid_Analysis
-  if (all(is.na(metadata$annot_features$valid_integration)))
-    metadata$annot_features$valid_integration <- TRUE
+  if (all(is.na(metadata$annot_features$valid_feature)))
+    metadata$annot_features$valid_feature <- TRUE
   else
-    if (any(is.na(metadata$annot_features$valid_integration)))
-      cli::cli_abort("`Valid_Integration` is not defined for one or more features/analytes. Please check sheet 'Features (Analytes)'")
+    if (any(is.na(metadata$annot_features$valid_feature)))
+      cli::cli_abort("`valid_feature` is not defined for one or more features/analytes. Please check sheet 'Features (Analytes)'")
 
   # Handle the non-mandatory field Valid_Analysis
   if (all(is.na(metadata$annot_features$is_quantifier)))
