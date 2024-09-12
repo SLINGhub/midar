@@ -124,7 +124,7 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
 #' @param silent Suppress messages
 #' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` ransition names of quantifier will be added to qualifier names
 #' @return A tibble with the parse results in the long format
-
+#' @export
 
 parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE) {
   # if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))

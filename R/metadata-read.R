@@ -15,10 +15,6 @@ metadata_from_data<- function(data, qc_type_field = "qc_type") {
     dplyr::rename(any_of(c(qc_type = qc_type_field))) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
-  # # retrieve batches
-  # if ("batch_id" %in% names(annot_analyses))
-  #   annot_batches <- get_metadata_batches(annot_analyses)
-
   # get feature metadata
 
   annot_features <- data@dataset_orig %>%
@@ -26,6 +22,7 @@ metadata_from_data<- function(data, qc_type_field = "qc_type") {
     dplyr::distinct() %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
+  # check and add metadata
   metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
   data <- load_metadata(data = data, metadata = metadata, excl_unannotated_analyses = FALSE)
   data <- link_data_metadata(data)
