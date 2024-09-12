@@ -104,7 +104,7 @@ link_data_metadata <- function(data, minimal_info = TRUE){
   #data@dataset <-data@dataset |> select(all_of("feature_intensity" ))
 
   if(minimal_info)
-    data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int"))
+    data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int_"))
 
 
 
