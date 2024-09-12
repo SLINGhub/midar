@@ -45,6 +45,6 @@ combine_experiments <- function(..., ordered_by_runsequence) {
     dplyr::ungroup() %>%
     dplyr::arrange(.data$id_batch_start) %>%
     dplyr::mutate(batch_no = dplyr::row_number()) %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$annot_batch_info_template)
+    dplyr::bind_rows(pkg.env$table_templates$annot_batch_info_template)
   mexp
 }
