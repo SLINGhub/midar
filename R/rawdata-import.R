@@ -50,7 +50,7 @@ rawdata_import_agilent <- function(data, path, file_format = "csv", expand_quali
 #' @export
 rawdata_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
   data <- rawdata_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
-  if (use_metadata) data <- metadata_from_data(data, analysis_sequence = "resultfile", qc_type_field = "sample_type")
+  if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   data
 }
 
@@ -68,16 +68,16 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
   names(file_paths) <- file_paths
   args <- list(...)
 
-  d_temp <- file_paths |>
+  d_raw <- file_paths |>
     purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source") |>
     relocate(analysis_id, data_source)
 
   # VERIFY DATA, i.e. analysis_ids, feature_ids, and values are replicated =====
   ## which can be result of multiple imports of the same/overlapping data or due to parsing error
 
-  if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_id, .keep_all = FALSE))) {
+  if (nrow(d_raw) > nrow(d_raw |> distinct(.data$analysis_id, .data$feature_id, .keep_all = FALSE))) {
     has_duplicated_id <- TRUE
-    if (nrow(d_temp) > nrow(d_temp |> distinct(.data$analysis_id, .data$feature_id, .keep_all = TRUE))) {
+    if (nrow(d_raw) > nrow(d_raw |> distinct(.data$analysis_id, .data$feature_id, .keep_all = TRUE))) {
       has_duplicated_id_values <- TRUE
     } else {
       has_duplicated_id_values <- FALSE
@@ -94,10 +94,11 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
     }
   }
 
-  data@dataset_orig <- d_temp
+  data@dataset_orig <- d_raw |>
+    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
 
 
-  #data@dataset_orig <- data@dataset_orig |> dplyr::rename(feature_intensity = "feature_area")
+
   # TODO: excl_unannotated_analyses below
 
   check_integrity(data, excl_unannotated_analyses = FALSE)
