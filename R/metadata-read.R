@@ -2,13 +2,11 @@
 #' @title Retrieve available metadata from imported analysis data
 #' @description Available information will depend on the format of imported raw analysis data. See [rawdata_import_agilent()] and [rawdata_import_mrmkit()]
 #' @param data MidarExperiment object
-#' @param analysis_sequence Must by any of: "resultfile" or "timestamp". Defines how the analysis order is according the sequence (default) in the loaded analysis data or the timestamp, if available, in the analysis data.
 #' @return MidarExperiment object
 #' @export
 #'
 
-metadata_from_data<- function(data, analysis_sequence = "resultfile", qc_type_field = "qc_type") {
-  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile"))
+metadata_from_data<- function(data, qc_type_field = "qc_type") {
 
   # get analysis metadata
    annot_analyses <- data@dataset_orig %>%
@@ -17,20 +15,9 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile", qc_type_fi
     dplyr::rename(any_of(c(qc_type = qc_type_field))) %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
 
-  # if ("acquisition_time_stamp" %in% names(data@dataset_orig) & (analysis_sequence %in% c("timestamp", "default"))) {
-  #   annot_analyses <- annot_analyses |> arrange(.data$acquisition_time_stamp)
-  # } else {
-  #   if (analysis_sequence == "timestamp") {
-  #     cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile`.")
-  #   }
-  # }
-
-  annot_analyses <- annot_analyses |>
-    mutate(run_id = row_number(), .before = 1)
-
-  # retrieve batches
-  if ("batch_id" %in% names(annot_analyses))
-    annot_batches <- get_metadata_batches(annot_analyses)
+  # # retrieve batches
+  # if ("batch_id" %in% names(annot_analyses))
+  #   annot_batches <- get_metadata_batches(annot_analyses)
 
   # get feature metadata
 
@@ -39,40 +26,9 @@ metadata_from_data<- function(data, analysis_sequence = "resultfile", qc_type_fi
     dplyr::distinct() %>%
     dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
-  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features, annot_batches = annot_batches))
-  data <- load_metadata(data = data, metadata = metadata, analysis_sequence = "default", excl_unannotated_analyses = FALSE)
-  data <- populate_dataset_table(data)
-
-  data
-}
-
-
-
-populate_dataset_table <- function(data, incl_method_details = FALSE){
-  data@dataset <- data@dataset_orig |>
-    select(
-      "analysis_id",
-      "acquisition_time_stamp",
-      "feature_id",
-      starts_with("method_"),
-      starts_with("feature_")
-    ) |>
-    inner_join(data@annot_analyses, by = "analysis_id") |>
-    inner_join(data@annot_features, by = "feature_id") |>
-    select(
-      "run_id",
-      "analysis_id",
-      "acquisition_time_stamp",
-      "qc_type",
-      "batch_id",
-      "valid_analysis",
-      "feature_id",
-      "valid_feature",
-      starts_with("method_"),
-      starts_with("feature_")
-    )
-
-  if(!incl_method_details) data@dataset <-data@dataset |> select(-starts_with("method_"))
+  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
+  data <- load_metadata(data = data, metadata = metadata, excl_unannotated_analyses = FALSE)
+  data <- link_data_metadata(data)
 
   data
 }
@@ -101,19 +57,17 @@ get_metadata_batches <- function(annot_analyses){
 #' @description Requires version 1.9.1 of the template. Template is based on the MSorganizer template (see TODO)
 #' @param data MidarExperiment object
 #' @param path file name and path
-#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
 #' @return MidarExperiment object
 #' @export
 #'
 
-metadata_import_midarxlm<- function(data, path,  ignore_warnings = FALSE, analysis_sequence = "default") {
+metadata_import_midarxlm<- function(data, path,  ignore_warnings = FALSE) {
 
-  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
   metadata <- read_metadata_midarxlm(path)
 
   metadata  <- assert_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
-  data  <- load_metadata(data = data, metadata = metadata, analysis_sequence = analysis_sequence,excl_unannotated_analyses = excl_unannotated_analyses)
+  data  <- load_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
   data
 }
 
@@ -171,7 +125,6 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 #' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
 #' @param data MidarExperiment object
 #' @param path List of tibbles or data.frames containing analysis, feature, istd, response curve tables
-#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
 #' @return metadata list
 #' @export
@@ -283,7 +236,6 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
  #' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
  #' @param data MidarExperiment object
  #' @param path List of tibbles or data.frames containing analysis, feature, istd, response curve tables
- #' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
  #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
  #' @return metadata list
  #' @export
@@ -291,7 +243,7 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
  #'
 
 # Add verified metadata to the MidarExperiment object
-load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "timestamp", "metadata", "default"), excl_unannotated_analyses = FALSE) {
+load_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
   #browser()
   # ANALYSES METADATA ====================
 
@@ -299,52 +251,13 @@ load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "t
 
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
     data@annot_analyses <- metadata$annot_analyses |>
-      dplyr::semi_join(data@dataset_orig, by = "analysis_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_analyses_template)
-
-    # Define the analysis order
-
-    if ("acquisition_time_stamp" %in% names(data@dataset_orig) && (analysis_sequence %in% c("timestamp", "default"))) {
-      data@dataset_orig <- data@dataset_orig |> arrange(.data$acquisition_time_stamp)
-      data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, metadata$dataset_orig$analysis_id |> unique()))
-    } else {
-      if (analysis_sequence == "resultfile") {
-        data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, metadata$dataset_orig$analysis_id |> unique()))
-      } else if (analysis_sequence == "metadata") {
-        data@annot_analyses <- data@annot_analyses |> dplyr::arrange(match(.data$analysis_id, metadata$annot_analyses$analysis_id))
-      } else if (analysis_sequence == "timestamp") {
-        cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata` to define analysis order.")
-      } else {
-        cli::cli_alert_warning(cli::col_yellow(glue::glue("No acquisition timestamps present in results, order therefore based on analysis results sequence. Set parameter `analysis_sequence` to `metadata` to use this sequence as analysis order.")))
-      }
-    }
-
-
-    # Set order/run id based on previous sorting
-    # TODO: part of metadata or analysis data?
-    data@annot_analyses <- data@annot_analyses |>
-      mutate(run_id = row_number(), .before = 1)
-
-    #TODO
-    d_dataset <- data@dataset_orig %>%
-      dplyr::inner_join(
-        data@annot_analyses %>%
-          dplyr::select("run_id", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
-        by = c("analysis_id")) %>%
-      dplyr::inner_join(
-        metadata$annot_features %>%
-          filter(.data$valid_feature) |>
-          dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
-        by = c("feature_id"), keep = FALSE
-      )
 
     cli_alert_success(col_green(glue::glue("Analysis metadata associated with {length(data@annot_analyses$analysis_id %>% unique())} samples.")))
   }
-
   # FEATURE METADATA ====================
   if (!is.null(metadata$annot_features) && nrow(metadata$annot_features) > 0){
     data@annot_features <- metadata$annot_features |>
-      dplyr::semi_join(data@dataset_orig, by = "feature_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_features_template)
 
     cli_alert_success(col_green(glue::glue("Feature metadata associated with {length(data@annot_features$feature_id %>% unique())} features.")))
@@ -357,7 +270,6 @@ load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "t
 
   if (!is.null(metadata$annot_istd) && nrow(metadata$annot_istd) > 0){
     data@annot_istd <- metadata$annot_istd  |>
-      dplyr::semi_join(data@annot_features, by = join_by(quant_istd_feature_id == feature_id)) |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_istd_template)
 
     cli_alert_success(col_green(glue::glue("Internal Standard metadata associated with {length(data@annot_istd$quant_istd_feature_id %>% unique())} ISTDs")))
@@ -367,7 +279,6 @@ load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "t
   # RQC METADATA ====================
   if (!is.null(metadata$annot_responsecurves) && nrow(metadata$annot_responsecurves) > 0){
     data@annot_responsecurves <- metadata$annot_responsecurves |>
-      dplyr::semi_join(data@dataset_orig, by = "analysis_id") |>
       dplyr::bind_rows(pkg.env$dataset_templates$annot_responsecurves_template)
 
     cli_alert_success(col_green(glue::glue("Response Curve metadata associated with {length(data@annot_responsecurves$analysis_id %>% unique())} analyses")))
@@ -375,34 +286,21 @@ load_metadata <- function(data, metadata, analysis_sequence = c("resultfile", "t
 
   # BATCHES METADATA ------------
 
+  data <- set_analysis_order(data)
+
   data@annot_batches <- get_metadata_batches(data@annot_analyses )
 
-  # Create DATASET tables =================
+  # FINALIZE =================
 
-  data@dataset_orig <- data@dataset_orig %>%
-    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
-
-
-  data@dataset <-
-    dplyr::bind_rows(pkg.env$dataset_templates$dataset_template, d_dataset) |>
-    mutate(
-      corrected_interference = FALSE,
-      outlier_technical = FALSE
-    ) |>
-    dplyr::arrange(match(.data$feature_id, metadata$annot_features$feature_id))
-
-  data@dataset <- data@dataset |> arrange(.data$run_id)
-
-
-
-  # stopifnot(methods::validObject(data, excl_nonannotated_analyses))
-  check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
+  #TODO: adjust to metadata loaded or so
   data@status_processing <- "Annotated Raw Data"
 
   data
 }
 
 
+
+# stopifnot(methods::validObject(data, excl_nonannotated_analyses))
 
 #' @title Reads and parses metadata provided by the MSOrganizer EXCEL  template.
 #' @description Requires version 1.9.1 of the template
