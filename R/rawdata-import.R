@@ -95,7 +95,7 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
   }
 
   data@dataset_orig <- d_raw |>
-    dplyr::bind_rows(pkg.env$dataset_templates$dataset_orig_template)
+    dplyr::bind_rows(pkg.env$table_templates$dataset_orig_template)
 
 
 
@@ -380,12 +380,13 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 #' Parses MRMkit peak integration results into a tibble
 #'
 #' @param path File name of the MRMkit result file (*.tsv or *.csv)
-#' @param use_normalized_data Import raw peak areas or normalized peak areas from the file
+# #' @param use_normalized_data Import raw peak areas or normalized peak areas from the file
 #' @param silent No comments printed
 #' @return A tibble in the long format
 #' @export
 
-parse_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALSE) {
+# TODO: remove support for norm intensity
+parse_mrmkit_result <- function(path, silent = FALSE) {
 
   ext_file <- tolower(fs::path_ext(path))
 
@@ -448,9 +449,10 @@ parse_mrmkit_result <- function(path, use_normalized_data = FALSE, silent = FALS
     select(-"featurename") |>
     relocate(analysis_id, raw_data_filename, acquisition_time_stamp, sample_type, batch_id, feature_id, norm_istd_feature_id, integration_qualifier)
 
-  if (!use_normalized_data) {
-    d_mrmkit_data <- d_mrmkit_data |> mutate(feature_norm_intensity = NA_real_)
-  }
+  # if (!use_normalized_data) {
+  #   #d_mrmkit_data <- d_mrmkit_data |> mutate(feature_norm_intensity = NA_real_)
+  #   d_mrmkit_data <- d_mrmkit_data |> select(-feature_norm_intensity)
+  # }
 
   d_mrmkit_data
 
@@ -558,11 +560,6 @@ rawdata_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = 
 
   d
 }
-
-
-#feature_name	internal_standard	raw_data_filename	time_stamp	batch	sample_type	precursor_mz	product_mz	collision_energy	polarity	rt_apex	area	area_normalized	concentration	height	FWHM	rt_int_start	rt_int_end
-
-
 
 
 #' @title internal method to read excel sheets
