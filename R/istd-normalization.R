@@ -73,7 +73,7 @@ quantitate_by_istd <- function(data) {
     # dplyr::left_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id"), by = c("feature_id")) %>%
     dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_id"))
 
-  d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$feature_response_factor / 1000)
+  d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
   d_temp <- d_temp %>% mutate(feature_conc = .data$pmol_total / .data$sample_amount)
 
   if ("feature_conc" %in% names(data@dataset)) {
