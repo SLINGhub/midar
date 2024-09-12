@@ -75,7 +75,6 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
 
 # Link DATA with METADATA and create DATASET table
 link_data_metadata <- function(data, incl_method_details = FALSE){
-  browser()
   data@dataset <- data@dataset_orig |>
     select(
       "analysis_id",
