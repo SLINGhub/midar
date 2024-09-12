@@ -4,16 +4,10 @@
 \alias{metadata_from_data}
 \title{Retrieve available metadata from imported analysis data}
 \usage{
-metadata_from_data(
-  data,
-  analysis_sequence = "resultfile",
-  qc_type_field = "qc_type"
-)
+metadata_from_data(data, qc_type_field = "qc_type")
 }
 \arguments{
 \item{data}{MidarExperiment object}
-
-\item{analysis_sequence}{Must by any of: "resultfile" or "timestamp". Defines how the analysis order is according the sequence (default) in the loaded analysis data or the timestamp, if available, in the analysis data.}
 }
 \value{
 MidarExperiment object

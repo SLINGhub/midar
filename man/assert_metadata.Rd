@@ -12,8 +12,6 @@ assert_metadata(data, metadata, excl_unannotated_analyses, ignore_warnings)
 \item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 
 \item{path}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
-
-\item{analysis_sequence}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
 }
 \value{
 metadata list

@@ -4,19 +4,12 @@
 \alias{metadata_import_midarxlm}
 \title{Import metadata from the midar template (.XLM) and associates it with the analysis data}
 \usage{
-metadata_import_midarxlm(
-  data,
-  path,
-  ignore_warnings = FALSE,
-  analysis_sequence = "default"
-)
+metadata_import_midarxlm(data, path, ignore_warnings = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
 \item{path}{file name and path}
-
-\item{analysis_sequence}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
 
 \item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 }
