@@ -67,14 +67,16 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
 #   dplyr::inner_join(
 #     metadata$annot_features %>%
 #       filter(.data$valid_feature) |>
-#       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "feature_response_factor", "interference_feature_id", "interference_proportion"))),
+#       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "table_templates", "interference_feature_id", "interference_proportion"))),
 #     by = c("feature_id"), keep = FALSE
 #   )
 
 
 
-# Link DATA with METADATA and create DATASET table
-link_data_metadata <- function(data, incl_method_details = FALSE){
+# Link DATA with METADATA and create DATASET table. =================
+## - Only valid analyses and features will be added
+## - Only key information will be added
+link_data_metadata <- function(data, minimal_info = TRUE){
   data@dataset <- data@dataset_orig |>
     select(
       "analysis_id",
@@ -85,27 +87,35 @@ link_data_metadata <- function(data, incl_method_details = FALSE){
     ) |>
     inner_join(data@annot_analyses, by = "analysis_id") |>
     inner_join(data@annot_features, by = "feature_id") |>
+    filter(valid_analysis, valid_feature) |>
     select(
       "run_id",
       "analysis_id",
       "acquisition_time_stamp",
       "qc_type",
       "batch_id",
-      "valid_analysis",
       "feature_id",
-      "valid_feature",
+      "feature_class",
+      "is_istd",
       starts_with("method_"),
       starts_with("feature_")
     )
+  # NOTE: To adjust
+  #data@dataset <-data@dataset |> select(all_of("feature_intensity" ))
 
-  if(!incl_method_details) data@dataset <-data@dataset |> select(-starts_with("method_"))
+  if(minimal_info)
+    data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int"))
+
+
 
   data@dataset <- data@dataset |>
-    dplyr::bind_rows(pkg.env$dataset_templates$dataset_template) |>
-    mutate(
-      corrected_interference = FALSE,
-      outlier_technical = FALSE
-    )
+    dplyr::bind_rows(pkg.env$table_templates$dataset_template)
+
+  # NOTE: To adjust
+    # mutate(
+    #   corrected_interference = FALSE,
+    #   outlier_technical = FALSE
+    # )
 
   # Arrange run_id and then by feature_id, as they appear in the metadata
   # TODO:  check if as intended
