@@ -224,6 +224,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "sample_name" = "Name\tSample",
     "acquisition_time_stamp" = "AcqDate-Time\tSample",
     "sample_type" = "Type\tSample",
+    "sample_level" = "Level\tSample",
     "vial_position" = "Pos\tSample",
     "inj_volume" = "Vol\tSample",
     "dilution_factor" = "Dil\tSample",
@@ -244,7 +245,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
   # TODO: check if all these are caught
   if ("message_quantitation" %in% names(datWide)) cli::cli_abort("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
   if ("compound_name" %in% names(datWide)) cli::cli_abort("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("Error parsing this Masshunter .csv file. The file may be in an unsupported format or corrupt. Please try re-export from Masshunter.")
+  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("The `Data File` column is missing or the file format is unsupported format. Please try re-export with `Data File` from Masshunter.")
   if (nrow(warnings_datWide) > 0) cli::cli_abort("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
@@ -302,11 +303,14 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "method_precursor_mz" = "Method_Precursor Ion",
     "method_product_mz" = "Method_Product Ion",
     "method_collision_energy" = "Method_Collision Energy",
+    "method_conc_expected" = "Method_Exp Conc",
     "method_fragmentor" = "Method_Fragmentor",
     "method_multiplier" = "Method_Multiplier",
     "method_noise_raw_signal" = "Method_Noise of Raw Signal",
     "inj_volume" = "inj_volume"
   )
+
+
 
   new_int_colnames <- c("method_time_segment" = "Method_TS")
   new_logical_colnames <- c("feature_manual_integration" = "Results_MI")
