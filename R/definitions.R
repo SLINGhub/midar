@@ -1,3 +1,88 @@
+
+# Initializing
+pkg.env <- new.env()
+setOldClass(c("tbl_df", "tbl", "data.frame")) # allow S4 to see the S3 tbl_df
+
+
+# Data structure templates
+pkg.env$dataset_templates <- list(
+  dataset_orig_template = tibble::tibble(
+    "analysis_id" = character(),
+    "raw_data_filename" = character(),
+    "acquisition_time_stamp" = as.Date(character()),
+    "feature_id" = character(),
+    "feature_intensity" = numeric(),
+    "feature_norm_intensity" = numeric(),
+    "feature_conc" = numeric()
+  ),
+  dataset_template = tibble::tibble(
+    "run_id" = integer(),
+    "analysis_id" = character(),
+    "acquisition_time_stamp" = as.Date(character()),
+    "qc_type" = factor(),
+    "replicate_no" = integer(),
+    "batch_id" = character(),
+    "valid_analysis" = logical(),
+    "outlier_technical" = logical(),
+    "outlier_technical_note" = character(),
+    "feature_id" = character(),
+    "feature_class" = character(),
+    "is_istd" = logical(),
+    "valid_feature" = logical(),
+    "feature_intensity" = numeric(),
+    "feature_norm_intensity" = numeric(),
+    "feature_conc" = numeric()
+  ),
+  annot_analyses_template = tibble::tibble(
+    "analysis_id" = character(),
+    "sample_id" = character(),
+    "qc_type" = factor(),
+    "replicate_no" = integer(),
+    "batch_id" = character(),
+    "specimen" = character(),
+    "sample_amount" = numeric(),
+    "sample_amount_unit" = character(),
+    "istd_volume" = numeric(),
+    "valid_analysis" = logical(),
+    "outlier_technical" = logical(),
+    "outlier_technical_note" = character(),
+    "remarks" = character()
+  ),
+  annot_features_template = tibble::tibble(
+    "feature_id" = character(),
+    "feature_name" = character(),
+    "feature_class" = character(),
+    "is_istd" = logical(),
+    "norm_istd_feature_id" = character(),
+    "quant_istd_feature_id" = character(),
+    "is_quantifier" = logical(),
+    "valid_feature" = logical(),
+    "feature_response_factor" = numeric(),
+    "remarks" = character()
+  ),
+  annot_istd_template = tibble::tibble(
+    "norm_istd_feature_id" = character(),
+    "quant_istd_feature_id" = character(),
+    "istd_conc_nmolar" = numeric()
+  ),
+  annot_responsecurves_template = tibble::tibble(
+    "analysis_id" = character(),
+    "rqc_series_id" = character(),
+    "relative_sample_amount" = numeric(),
+    "injection_volume" = numeric()
+  ),
+  annot_batch_info_template = tibble::tibble(
+    "batch_id" = character(),
+    "batch_no" = numeric(),
+    "id_batch_start" = numeric(),
+    "id_batch_end" = numeric()
+  ),
+  parameters_processing_template = tibble::tibble(
+    "parameter_name" = character()
+  )
+)
+
+
 pkg.env$qc_type_annotation <- list(
   qc_type_levels = c(
     "SBLK", "TBLK", "UBLK", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
