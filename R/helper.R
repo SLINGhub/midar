@@ -22,11 +22,12 @@ has_any_name = function(...){
   any(check_this %in% given_names)
 }
 
-add_missing_column <- function(data, col_name, init_value, make_lowercase) {
+add_missing_column <- function(data, col_name, init_value, make_lowercase, all_na_replace = FALSE) {
   if (!tolower(col_name) %in% tolower(names(data))) {
     data |> tibble::add_column({{ col_name }} := init_value)
   } else {
     if (make_lowercase) data <- data |> dplyr::rename_with(tolower, dplyr::matches(c(col_name), ignore.case = TRUE))
+    if (all_na_replace & all(is.na(data |> pull({{col_name}}))))  data <- data |> mutate({{col_name}} := init_value)
     data
   }
 }
