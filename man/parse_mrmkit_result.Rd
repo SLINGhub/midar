@@ -4,12 +4,10 @@
 \alias{parse_mrmkit_result}
 \title{Parses MRMkit peak integration results into a tibble}
 \usage{
-parse_mrmkit_result(path, use_normalized_data = FALSE, silent = FALSE)
+parse_mrmkit_result(path, silent = FALSE)
 }
 \arguments{
 \item{path}{File name of the MRMkit result file (*.tsv or *.csv)}
-
-\item{use_normalized_data}{Import raw peak areas or normalized peak areas from the file}
 
 \item{silent}{No comments printed}
 }
