@@ -15,11 +15,11 @@ Datasets and processing steps are tracked, and can be saved as `MiDAR` S4 class 
 
 ## Installation
 
-MiDAR is currently only available via installation from GitHub:
+`{midar}` is currently only available via GitHub:
 
 ``` r
-if (!require("remotes")) install.packages("remotes")
-remotes::install_github("SLINGhub/midar")
+if (!require("pak")) install.packages("pak")
+pak::pkg_install("SLINGhub/midar")
 ```
 
 ## Example
@@ -27,16 +27,20 @@ remotes::install_github("SLINGhub/midar")
 ``` r
 library(midar)
 
+#' 
+#' mexp <- MidarExperiment()
+#' mexp <- 
+#' mexp
+
 # Get paths of example files included with this package
-masshunter_file <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar", mustWork = TRUE)
-metadata_file <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar", mustWork = TRUE)
+file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar", mustWork = TRUE)
 
 # Create a MidarExperiment object (S4)
 mexp <- MidarExperiment()
 
-# Load data and metadata
-mexp <- read_masshunter_csv(data = mexp, path = masshunter_file)
-mexp <- read_metadata_midarxlm(data = mexp, path = metadata_file)
+# Load data and available metadata from MRMkit output file
+mexp <- rawdata_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
+
 
 # Normalize and quantitate each feature by internal standards
 mexp <- normalize_by_istd(mexp)
