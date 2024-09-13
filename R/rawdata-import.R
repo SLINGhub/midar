@@ -19,9 +19,11 @@
 
 #' @export
 
-rawdata_import_agilent <- function(data, path, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+rawdata_import_agilent <- function(data, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   if (file_format == "csv") {
     rawdata_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
+    data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_", "feature_height")
+    if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   } else {
     cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
   }
