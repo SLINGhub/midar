@@ -97,6 +97,7 @@ link_data_metadata <- function(data, minimal_info = TRUE){
       "feature_id",
       "feature_class",
       "is_istd",
+      "is_quantifier",
       starts_with("method_"),
       starts_with("feature_")
     )
