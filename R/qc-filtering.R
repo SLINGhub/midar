@@ -1,23 +1,15 @@
 #' Calculate QC metrics for each feature
 #'
 #' @param data MidarExperiment object
-#' @importFrom glue glue
-#' @importFrom readr write_csv
-#' @importFrom tidyr pivot_wider nest unnest
-
-#' @importFrom purrr map
-#' @importFrom broom glance
-#' @importFrom dplyr summarise
 #' @return MidarExperiment object
 #' @export
-calculate_qc_metrics <- function(data) {
+qc_calculate_metrics <- function(data) {
   # if(!(c("feature_norm_intensity") %in% names(data@dataset))) warning("No normali is not normalized")
-
 
   # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
 
-  ds1 <- data@dataset %>%
+  data@metrics_qc <- data@dataset %>%
     dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) %>%
     dplyr::group_by(.data$feature_id, .data$feature_class) %>%
     dplyr::summarise(
@@ -49,16 +41,19 @@ calculate_qc_metrics <- function(data) {
       conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
       conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
       conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
+
       SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
       SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
       SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
       SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+
       Int_CV_TQC = sd(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
       Int_CV_BQC = sd(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
       Int_CV_SPL = sd(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
       normInt_CV_TQC = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
       normInt_CV_BQC = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
       normInt_CV_SPL = sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+
       conc_CV_TQC = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
       conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
       conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
@@ -66,45 +61,51 @@ calculate_qc_metrics <- function(data) {
       conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
       conc_dratio_cv_bqc = .data$conc_CV_BQC / .data$conc_CV_SPL,
       conc_dratio_cv_tqc = .data$conc_CV_TQC / .data$conc_CV_SPL
-    )
-
-
-  data@metrics_qc <- ds1
-
+    ) |>  ungroup()
 
   if ("RQC" %in% data@dataset$qc_type) {
-    model <- as.formula("feature_intensity ~ relative_sample_amount")
-    ds2 <- data@dataset %>%
-      dplyr::filter(.data$qc_type %in% c("RQC")) %>%
-      dplyr::full_join(data@annot_responsecurves, by = "analysis_id") %>%
-      dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
-      dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
-      tidyr::nest() %>%
-      mutate(
-        models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
-        # mandel = map(data, \(x) DCVtestkit::calculate_mandel(x, "relative_sample_amount", "feature_intensity")),
-        # ppa = map(data, \(x) DCVtestkit::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
-        stats = purrr::map(.data$models, function(x) broom::glance(x)),
-        model = purrr::map(.data$models, function(x) {
-          broom::tidy(x) |>
-            select(.data$term, .data$estimate) |>
-            pivot_wider(names_from = "term", values_from = "estimate")
-        })
-      ) %>%
-      tidyr::unnest(c("stats", "model")) %>%
-      dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
-      dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
-      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
-      ungroup()
-
-    data@metrics_qc <- data@metrics_qc %>%
-      dplyr::left_join(ds2, by = "feature_id") |>
-      ungroup()
+    d_rqc_stats <- get_response_curve_stats(data,  limit_to_rqc)
+    data@metrics_qc <- data@metrics_qc |>
+      dplyr::left_join(d_rqc_stats, by = "feature_id")
   }
-
   data
 }
 
+
+#' Linear regression statistics of response curves
+
+#' @param data MidarExperiment object
+#' @param with_staturation_stats Include PPA and Mandel stats (from {lancer})
+#' @param limit_to_rqc If TRUE (default) then only includes RQC qc type
+#' @return Tibble with linear regression stats of all curves in a wide format
+#' @export
+
+get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
+  model <- as.formula("feature_intensity ~ relative_sample_amount")
+  d_stats  <- data@dataset %>%
+    dplyr::full_join(data@annot_responsecurves, by = "analysis_id") %>%
+    dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
+    dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
+    tidyr::nest() %>%
+    mutate(
+      models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
+      # mandel = map(data, \(x) DCVtestkit::calculate_mandel(x, "relative_sample_amount", "feature_intensity")),
+      # ppa = map(data, \(x) DCVtestkit::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
+      stats = purrr::map(.data$models, function(x) broom::glance(x)),
+      model = purrr::map(.data$models, function(x) {
+        broom::tidy(x) |>
+          select(.data$term, .data$estimate) |>
+          pivot_wider(names_from = "term", values_from = "estimate")
+      })
+    ) %>%
+    tidyr::unnest(c("stats", "model")) %>%
+    dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
+    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
+    tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
+    ungroup()
+
+  d_stats
+}
 
 
 
