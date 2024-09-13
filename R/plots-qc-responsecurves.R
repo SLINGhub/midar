@@ -12,6 +12,8 @@ plot_responsecurves_page <- function(dataset,
                                      base_size) {
   plot_var <- rlang::sym(response_variable)
 
+  dataset$rqc_series_id <- as.character(dataset$rqc_series_id)
+
   ggplot2::ggplot(
     data = dataset,
     ggplot2::aes(
