@@ -9,7 +9,7 @@ parse_masshunter_csv(path, expand_qualifier_names = TRUE, silent = FALSE)
 \arguments{
 \item{path}{File path of MassHunter Quant CSV file}
 
-\item{expand_qualifier_names}{If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. \code{Qualifier (422.3 -> 113.0)} ransition names of quantifier will be added to qualifier names}
+\item{expand_qualifier_names}{If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. \code{Qualifier (422.3 -> 113.0)} transition names of quantifier will be added to qualifier names}
 
 \item{silent}{Suppress messages}
 }

@@ -4,7 +4,7 @@
 \alias{normalize_by_istd}
 \title{Normalize Intensities with corresponding ISTD Intensities}
 \usage{
-normalize_by_istd(data, interference_correction = TRUE)
+normalize_by_istd(data, interference_correction = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}

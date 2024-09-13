@@ -7,6 +7,7 @@
 rawdata_import_agilent(
   data,
   path,
+  use_metadata,
   file_format = "csv",
   expand_qualifier_names = TRUE,
   silent = FALSE
