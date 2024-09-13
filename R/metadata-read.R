@@ -30,8 +30,7 @@ metadata_from_data<- function(data, qc_type_field = "qc_type") {
   data
 }
 
-
-# Retreive batch info from analysis metadata
+# Retrieve batch info from analysis metadata
 
 get_metadata_batches <- function(annot_analyses){
   annot_batches <- annot_analyses %>%
@@ -134,7 +133,6 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
    # for presence and error is raised for reporting, then a defect is raised to
    # disable further check, but without reporting it (using flag "DX")
    # Columns with all values =  NA will be ignored
-
   # ANALYSES METADATA ====================
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
 
@@ -218,8 +216,7 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
       assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Response Curves") |>
       assertr::verify((analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "E;Analysis not present in analysis data;Response Curves") |>
       #assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "W;Analyses of QC type 'RQC' not defined;Response Curves") |>
-      assertr::verify((analysis_id %in% unique(data@annot_analyses$analysis_id)), description = "W;Analysis not present in analysis metadata;Response Curves") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("relative_sample_amount", "injection_volume")), description = "W;Missing value(s);Response Curves") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("relative_sample_amount")), description = "W;Missing value(s);Response Curves") |>
       assertr::chain_end(error_fun = assertr::error_append)
   }
 
