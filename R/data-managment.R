@@ -100,16 +100,17 @@ link_data_metadata <- function(data, minimal_info = TRUE){
       starts_with("method_"),
       starts_with("feature_")
     )
-  # NOTE: To adjust
-  #data@dataset <-data@dataset |> select(all_of("feature_intensity" ))
+
+
 
   if(minimal_info)
     data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int_"))
 
-
-
   data@dataset <- data@dataset |>
     dplyr::bind_rows(pkg.env$table_templates$dataset_template)
+
+  data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
+
 
   # NOTE: To adjust
     # mutate(
@@ -161,15 +162,14 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
   data@feature_intensity_var <- variable_name
 
   if (check_dataset_present(data)) {
-    data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
     v <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
     if (any(v %in% names(data@dataset))){
       data@dataset <- data@dataset |> select(-any_of(vars))
-      cli_alert_warning(text = "New feature variable set as default raw signal. All calculation were deleted, please re-process data")
+      cli_alert_warning(text = "New feature variable set as default raw signal, please re-process data")
     }
-  }
+    data <- link_data_metadata(data)
+    }
   data
-
 }
 
 
