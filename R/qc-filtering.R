@@ -83,7 +83,7 @@ qc_calculate_metrics <- function(data) {
 get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
   model <- as.formula("feature_intensity ~ relative_sample_amount")
   d_stats  <- data@dataset %>%
-    dplyr::full_join(data@annot_responsecurves, by = "analysis_id") %>%
+    dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") %>%
     dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
     dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
     tidyr::nest() %>%
