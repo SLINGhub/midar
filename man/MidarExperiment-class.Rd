@@ -15,6 +15,8 @@ Provides also functions to validate data integrity, to perfom normalization and 
 \describe{
 \item{\code{analysis_type}}{Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"}
 
+\item{\code{feature_intensity_var}}{Feature variable used as default for calculations}
+
 \item{\code{dataset_orig}}{Original imported analysis data. Required fields:}
 
 \item{\code{dataset}}{Processed analysis data. Required fields:}
