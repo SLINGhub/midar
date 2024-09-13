@@ -128,7 +128,48 @@ link_data_metadata <- function(data, minimal_info = TRUE){
   data
 }
 
+#' @title Set default variable to be used as feature raw signal value
+#' @description
+#' Sets the raw signal variable used for calculations starting from raw signal
+#' values (i.e., normalization)
+#' @param data MidarExperiment object
+#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
+#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
+#' @return MidarExperiment object
+#' @export
 
+set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
+  if (auto_select) {
+    vars <- unlist(rlang::list2(...), use.names = FALSE)
+    idx = match(vars,names(data@dataset_orig))[1]
+    if (!is.na(idx)) {
+      data@feature_intensity_var = vars[1]
+      cli_alert_info(text = cli::col_grey("{.var {vars[1]}} selected as default raw signal intensity. Use {.fn set_intensity_var} to modify."))
+      variable_name <- vars[1]
+      } else {
+      cli_alert_warning(text = cli::col_yellow("No typical raw signal intensity variable found in the data. Use {.fn set_intensity_var to set it.}}"))
+      return(data)
+      }
+  } else {
+    #TODO: Double check behavior if there a feature_intensity in the raw data file
+    if (! variable_name %in% names(data@dataset_orig))
+      cli_abort(c("x" = "{.var variable_name} is not present in the raw data."))
 
+    if (! variable_name %in% c("feature_area", "feature_height", "feature_response", "feature_intensity"))
+      cli_alert_warning(text = "{.var {variable_name}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
+  }
+  data@feature_intensity_var <- variable_name
+
+  if (check_dataset_present(data)) {
+    data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
+    v <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
+    if (any(v %in% names(data@dataset))){
+      data@dataset <- data@dataset |> select(-any_of(vars))
+      cli_alert_warning(text = "New feature variable set as default raw signal. All calculation were deleted, please re-process data")
+    }
+  }
+  data
+
+}
 
 

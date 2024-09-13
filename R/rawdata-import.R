@@ -50,6 +50,8 @@ rawdata_import_agilent <- function(data, path, file_format = "csv", expand_quali
 #' @export
 rawdata_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
   data <- rawdata_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
+  data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_height")
+
   if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   data
 }
@@ -106,9 +108,9 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
 
   if (!silent) {
     if (!any(data@dataset_orig$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features \n"))
+      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features"))
     } else if (any(data@dataset_orig$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features ({length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} quantifiers, {length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} qualifiers) \n"))
+      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features ({length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} quantifiers, {length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} qualifiers)"))
     }
   }
 
@@ -122,7 +124,7 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
 #'
 #' @param path File path of MassHunter Quant CSV file
 #' @param silent Suppress messages
-#' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` ransition names of quantifier will be added to qualifier names
+#' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` transition names of quantifier will be added to qualifier names
 #' @return A tibble with the parse results in the long format
 #' @export
 
@@ -290,7 +292,6 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_response" = "Results_Resp",
     "feature_height" = "Results_Height",
     "feature_area" = "Results_Area",
-    "feature_response" = "Results_Resp",
     "feature_accuracy" = "Results_Accuracy",
     "feature_conc_calc" = "Results_Calc Conc",
     "feature_conc_final" = "Results_Final Conc",

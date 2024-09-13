@@ -9,6 +9,7 @@
 #' @docType class
 #'
 #' @slot analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
+#' @slot feature_intensity_var Feature variable used as default for calculations
 #' @slot dataset_orig Original imported analysis data. Required fields:
 #' @slot dataset Processed analysis data. Required fields:
 #' @slot dataset_filtered Processed analysis data. Required fields:
@@ -33,12 +34,12 @@
 #'
 #' @export
 #'
-#' @importFrom utils tail
-#' @importFrom tibble tibble
+
 
 setClass("MidarExperiment",
   slots = c(
     analysis_type = "character",
+    feature_intensity_var = "character",
     dataset_orig = "tbl_df",
     dataset = "tbl_df",
     dataset_filtered = "tbl_df",
@@ -61,6 +62,7 @@ setClass("MidarExperiment",
   ),
   prototype = list(
     analysis_type = "",
+    feature_intensity_var = "",
     dataset_orig = pkg.env$table_templates$annot_analyses_template,
     dataset = pkg.env$table_templates$annot_analyses_template,
     dataset_filtered = pkg.env$table_templates$annot_analyses_template,
@@ -123,8 +125,6 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
   x@analysis_type <- value
   x
 })
-
-
 
 #TODO: align with metadata assertions
 check_integrity <- function(object, excl_unannotated_analyses) {
