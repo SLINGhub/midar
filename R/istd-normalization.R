@@ -53,7 +53,7 @@ normalize_by_istd <- function(data, interference_correction = FALSE) {
 
   n_features <- length(unique(d_temp$feature_id))
   n_istd <- length(unique(d_temp$norm_istd_feature_id))
-  cli_alert_success(col_green(glue::glue("{n_features} features normalized with {n_istd} ISTDs. \n")))
+  cli_alert_success(col_green(glue::glue("{n_features} features normalized with {n_istd} ISTDs.")))
   data@status_processing <- "ISTD-normalized ata"
   data@is_istd_normalized <- TRUE
   data@is_quantitated <- FALSE
@@ -73,9 +73,9 @@ quantitate_by_istd <- function(data) {
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'normalize_by_istd' first.")
   d_temp <- data@dataset %>%
     select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
-    dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
-    dplyr::left_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) %>%
-    dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_id"))
+    dplyr::inner_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
+    dplyr::inner_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) %>%
+    dplyr::inner_join(data@annot_istd, by = c("quant_istd_feature_id"))
 
   d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
   d_temp <- d_temp %>% mutate(feature_conc = .data$pmol_total / .data$sample_amount)

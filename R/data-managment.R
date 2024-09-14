@@ -41,16 +41,15 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
         mutate(run_id = row_number()) |>
         select(-"acquisition_time_stamp")
 
-
       data@annot_analyses <- data@annot_analyses |>
-        left_join(d_temp,  by = "analysis_id")
+        inner_join(d_temp,  by = "analysis_id")
     } else {
       cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata`.")
     }
   } else if (analysis_sequence == "resultfile") {
     d_temp <- d_temp |> mutate(run_id = row_number())
     data@annot_analyses <- data@annot_analyses |>
-      left_join(d_temp,  by = "analysis_id")
+      inner_join(d_temp,  by = "analysis_id")
   } else if (analysis_sequence == "metadata") {
       data@annot_analyses <- data@annot_analyses |>  mutate(run_id = row_number())
   }
