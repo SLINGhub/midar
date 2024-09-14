@@ -1,9 +1,13 @@
-#' Calculate QC metrics for each feature
+#' Calculate feature quality control (QC) metrics
+#' @description
+#' For each feature, different QC metrics are calculated, either across the
+#' full analysis or as medians of batch-wise calculations
 #'
 #' @param data MidarExperiment object
+#' @param batchwise_median Use median of batch-wise derived QC values.
 #' @return MidarExperiment object
 #' @export
-qc_calculate_metrics <- function(data) {
+qc_calculate_metrics <- function(data, batchwise_median ) {
   # if(!(c("feature_norm_intensity") %in% names(data@dataset))) warning("No normali is not normalized")
 
   # TODO: remove later when fixed
@@ -11,7 +15,7 @@ qc_calculate_metrics <- function(data) {
         # All features defined in the metadata
       d_feature_info <- data@annot_features |>
         #filter(.data$valid_feature) |>
-        select("valid_feature", "feature_id", "is_quantifier", "is_istd", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor") |>
+        select("valid_feature", "feature_id", "feature_class", "is_quantifier", "is_istd", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor") |>
         mutate(is_istd = feature_id == norm_istd_feature_id)
 
       # All features MS method parameters
@@ -34,15 +38,21 @@ qc_calculate_metrics <- function(data) {
         d_method_info <- d_method_template
       }
 
-      d_stats <- data@dataset %>%
+      d_stats_missingval <- data@dataset |>
         dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) %>%
-        dplyr::group_by(.data$feature_id, .data$feature_class) %>%
+        dplyr::group_by(.data$feature_id) %>%
         dplyr::summarise(
           missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
           missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
           missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
-          na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"])),
+          na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"]))
+        )
+      browser()
+      if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
 
+      d_stats_var <- data@dataset |>
+        dplyr::group_by(dplyr::pick(grp)) |>
+        summarise(
           Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
           Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
           Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
@@ -79,7 +89,14 @@ qc_calculate_metrics <- function(data) {
           conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
           conc_dratio_cv_bqc = .data$conc_CV_BQC / .data$conc_CV_SPL,
           conc_dratio_cv_tqc = .data$conc_CV_TQC / .data$conc_CV_SPL
-    ) |>  ungroup()
+    )
+
+   if (batchwise_median){
+     d <- d_stats_var |>
+        group_by(pick("feature_id")) |>
+        summarise(across(is.numeric, median, na.rm = TRUE))
+   }
+
 
   data@metrics_qc <-
     tibble("feature_id" = sort(union(unique(data@dataset_orig$feature_id),

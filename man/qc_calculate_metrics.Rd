@@ -2,16 +2,19 @@
 % Please edit documentation in R/qc-filtering.R
 \name{qc_calculate_metrics}
 \alias{qc_calculate_metrics}
-\title{Calculate QC metrics for each feature}
+\title{Calculate feature quality control (QC) metrics}
 \usage{
-qc_calculate_metrics(data)
+qc_calculate_metrics(data, batchwise_median)
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{batchwise_median}{Use median of batch-wise derived QC values.}
 }
 \value{
 MidarExperiment object
 }
 \description{
-Calculate QC metrics for each feature
+For each feature, different QC metrics are calculated, either across the
+full analysis or as medians of batch-wise calculations
 }
