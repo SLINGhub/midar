@@ -21,6 +21,7 @@
 
 analysis_outlier_detection <- function(data,
                                        variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+                                       qc_types = c("BQC", "TQC", "SPL"),
                                        summarize_fun = c("pca", "rma"),
                                        outlier_detection = c("sd", "mad"),
                                        fence_multiplicator,
@@ -37,7 +38,7 @@ analysis_outlier_detection <- function(data,
   if (summarize_fun == "rma") cli::cli_abort("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
 
   d_wide <- data@dataset_filtered |>
-    filter(.data$qc_type %in% c("BQC", "TQC", "SPL")) |>
+    filter(.data$qc_type %in% qc_types) |>
     filter(!.data$is_istd) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
@@ -69,20 +70,20 @@ analysis_outlier_detection <- function(data,
   if (nrow(d_outlier) > 0) {
     data@dataset <- data@dataset |>
       mutate(
-        outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
+        #outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
         outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
       )
 
-    data@has_outliers_tech <- TRUE
-    data@excl_outliers_tech <- TRUE
-    data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_id < 0) # Todo: check if (still neeeded)
+    # data@has_outliers_tech <- TRUE
+    # data@excl_outliers_tech <- TRUE
+    # data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_id < 0) # Todo: check if (still neeeded)
   }
+  cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
 
   if (print_outliers) {
-    writeLines(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 80, last = ", and "))
+    cli::cli_inform(c("i" = "Samples classified as outlier: ",  cli::col_red(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 80, last = ", and "))))
   }
 
-  cli_alert_success(col_green(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s). Please (re)apply 'apply_qc_filter()' and use 'clear_outlier()' to clear all outlier classifications. \n")))
 
   data
 }
@@ -99,6 +100,6 @@ clear_outlier <- function(data) {
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE
   data@excl_outliers_tech <- FALSE
-  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'apply_qc_filter()'. \n")))
+  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'apply_qc_filter()'.")))
   data
 }
