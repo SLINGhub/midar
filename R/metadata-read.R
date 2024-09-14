@@ -127,6 +127,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 #'
 #'
 # Verify/assert metadata consistency with analysis data
+
+#TODO: align with metadata assertions and when it is check_integrity called
  assert_metadata <- function(data, metadata, excl_unannotated_analyses, ignore_warnings) {
 
    #Note: to check for multiple missing columns defects, first each column will be check
