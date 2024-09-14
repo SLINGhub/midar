@@ -47,7 +47,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
           missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
           na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"]))
         )
-      browser()
+
       if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
 
       d_stats_var <- data@dataset |>
@@ -92,7 +92,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     )
 
    if (batchwise_median){
-     d <- d_stats_var |>
+     d_stats_var <- d_stats_var |>
         group_by(pick("feature_id")) |>
         summarise(across(is.numeric, median, na.rm = TRUE))
    }
@@ -103,7 +103,8 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
                                      unique(data@annot_features$feature_id)))) |>
     left_join(d_feature_info, by = "feature_id") |>
     left_join(d_method_info, by = "feature_id") |>
-    left_join(d_stats, by = "feature_id") |>
+    left_join(d_stats_missingval, by = "feature_id") |>
+    left_join(d_stats_var, by = "feature_id") |>
     relocate(feature_id, feature_class, valid_feature, is_quantifier, precursor_mz, product_mz, collision_energy)
 
   if ("RQC" %in% data@dataset$qc_type) {
