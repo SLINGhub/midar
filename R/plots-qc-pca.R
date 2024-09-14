@@ -12,14 +12,14 @@
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, dim_x, dim_y, log_transform, remove_istds, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
+plot_pca_qc <- function(data, variable, dim_x, dim_y, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform, remove_istds, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
   d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
 
   # TODO: (IS as criteria for ISTD.. dangerous...
   if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_wide <- d_wide |>
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), .data$is_quantifier) |>
+    filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   d_filt <- d_wide %>%
