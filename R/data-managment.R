@@ -125,7 +125,8 @@ link_data_metadata <- function(data, minimal_info = TRUE){
     dplyr::arrange(match(.data$feature_id, data@annot_features$feature_id)) |>
     arrange(.data$run_id)
 
-  check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
+  # TODOTODO: DECIDE WHEN WHERE TO RUN THIS
+  # check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
 
   data
 }
@@ -142,12 +143,12 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 
 set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
   if (auto_select) {
-    vars <- unlist(rlang::list2(...), use.names = FALSE)
-    idx = match(vars,names(data@dataset_orig))[1]
+    var_list <- unlist(rlang::list2(...), use.names = FALSE)
+    idx = match(var_list,names(data@dataset_orig))[1]
     if (!is.na(idx)) {
-      data@feature_intensity_var = vars[1]
-      cli_alert_info(text = cli::col_grey("{.var {vars[1]}} selected as default raw signal intensity. Use {.fn set_intensity_var} to modify."))
-      variable_name <- vars[1]
+      data@feature_intensity_var = var_list[1]
+      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw signal intensity. Use {.fn set_intensity_var} to modify."))
+      variable_name <- var_list[1]
       } else {
       cli_alert_warning(text = cli::col_yellow("No typical raw signal intensity variable found in the data. Use {.fn set_intensity_var to set it.}}"))
       return(data)
@@ -163,9 +164,9 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
   data@feature_intensity_var <- variable_name
 
   if (check_dataset_present(data)) {
-    v <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
-    if (any(v %in% names(data@dataset))){
-      data@dataset <- data@dataset |> select(-any_of(vars))
+    calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
+    if (any(calc_cols %in% names(data@dataset))){
+      data@dataset <- data@dataset |> select(-any_of(calc_cols))
       cli_alert_warning(text = "New feature variable set as default raw signal, please re-process data")
     }
     data <- link_data_metadata(data)
