@@ -141,13 +141,14 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, sp
   } else {
     ds <- data@dataset %>% dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
   }
-  ds$x <- ds$run_id
+
+  # renumber to create a sequence without gaps (i.e. when analysis were excluded)
+  ds <- ds |> mutate(x = dplyr::row_number(), .by = "feature_id")
   ds$y <- ds$conc_raw
 
-
   if (log2_transform) suppressWarnings(ds$y <- log2(ds$y))
-
   if (within_batch) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
+
   suppressWarnings(
     d <- ds %>%
       group_by(group_by(across(all_of(adj_groups)))) %>%
@@ -317,7 +318,7 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
     cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {nrow(data@annot_features)} features.")))
   }
 
-  if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.\n")))
+  if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.")))
   data@status_processing <- "Adjusted Quantitated Data"
   data@is_batch_corrected <- TRUE
   data@dataset$feature_conc <- data@dataset$CONC_ADJ
