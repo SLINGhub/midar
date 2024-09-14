@@ -126,6 +126,7 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
   x
 })
 
+# TODODO: ALIGN WITH ASSERTION and DEFINE WHERE WHEN TO RUN THIS
 check_integrity <- function(object, excl_unannotated_analyses) {
   if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
     d_xy <- length(setdiff(object@dataset_orig$analysis_id %>% unique(), object@annot_analyses$analysis_id))
