@@ -22,10 +22,10 @@
 analysis_outlier_detection <- function(data,
                                        variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
                                        qc_types = c("BQC", "TQC", "SPL"),
+                                       pca_component,
+                                       fence_multiplicator,
                                        summarize_fun = c("pca", "rma"),
                                        outlier_detection = c("sd", "mad"),
-                                       fence_multiplicator,
-                                       pca_component,
                                        log_transform = TRUE,
                                        print_outliers = TRUE) {
   variable <- rlang::arg_match(variable)
@@ -71,7 +71,7 @@ analysis_outlier_detection <- function(data,
     data@dataset <- data@dataset |>
       mutate(
         #outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
-        outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
+        #outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
       )
 
     # data@has_outliers_tech <- TRUE
@@ -81,7 +81,7 @@ analysis_outlier_detection <- function(data,
   cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
 
   if (print_outliers) {
-    cli::cli_inform(c("i" = "Samples classified as outlier: ",  cli::col_red(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 80, last = ", and "))))
+    cli::cli_inform(c("i" = "Samples classified as outlier: ",  cli::col_red(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 380, last = ", and "))))
   }
 
 
