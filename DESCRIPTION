@@ -26,6 +26,7 @@ Imports:
     ggvenn,
     glue,
     KernSmooth,
+    lancer,
     lubridate,
     magrittr,
     MASS,
