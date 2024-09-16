@@ -136,7 +136,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
     mutate(
       models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
       mandel = map(data, \(x) lancer::calculate_mandel(x, "relative_sample_amount", "feature_intensity")),
-      ppa = map(data, \(x) lancer::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
+      pra = map(data, \(x) lancer::calculate_pra_linear(x, "relative_sample_amount", "feature_intensity")),
       stats = purrr::map(.data$models, function(x) broom::glance(x)),
       model = purrr::map(.data$models, function(x) {
         broom::tidy(x) |>
@@ -144,11 +144,11 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
           pivot_wider(names_from = "term", values_from = "estimate")
       })
     ) %>%
-    tidyr::unnest(c("stats", "model", "ppa", "mandel")) %>%
+    tidyr::unnest(c("stats", "model", "pra", "mandel")) %>%
 
     dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
-    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel", "mandel_stats", "mandel_p_val", "ppa") %>%
-    tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel", "mandel_stats", "mandel_p_val", "ppa"), names_prefix = "rqc_") |>
+    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel", "mandel_stats", "mandel_p_val", "pra") %>%
+    tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel", "mandel_stats", "mandel_p_val", "pra"), names_prefix = "rqc_") |>
     ungroup()
 
 
