@@ -61,11 +61,12 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Collate: 
     'EDA.R'
-    'batchcorr.R'
     'definitions.R'
     'classes.R'
     'coefvariation.R'
     'combine-datasets.R'
+    'correct-gauss-kernel_batch-trend-code.R'
+    'correct_drift-batch.R'
     'data-export.R'
     'data-managment.R'
     'helper.R'

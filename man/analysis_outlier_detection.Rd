@@ -7,10 +7,11 @@
 analysis_outlier_detection(
   data,
   variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+  qc_types = c("BQC", "TQC", "SPL"),
+  pca_component,
+  fence_multiplicator,
   summarize_fun = c("pca", "rma"),
   outlier_detection = c("sd", "mad"),
-  fence_multiplicator,
-  pca_component,
   log_transform = TRUE,
   print_outliers = TRUE
 )
@@ -20,13 +21,13 @@ analysis_outlier_detection(
 
 \item{variable}{Feature variable used for outlier detection}
 
-\item{summarize_fun}{Function used to summarize the features, either "pca" based on PCA, or "rma" based on mean relative abundance (RMA) of all features}
-
-\item{outlier_detection}{Outlier detection method, either based on SD ("sd") or MAD ("mad")}
+\item{pca_component}{PCA component to be used}
 
 \item{fence_multiplicator}{Multiplicator for SD or MAD, respectively.}
 
-\item{pca_component}{PCA component to be used}
+\item{summarize_fun}{Function used to summarize the features, either "pca" based on PCA, or "rma" based on mean relative abundance (RMA) of all features}
+
+\item{outlier_detection}{Outlier detection method, either based on SD ("sd") or MAD ("mad")}
 
 \item{log_transform}{Log-transform data for outlier detection}
 

@@ -9,6 +9,7 @@ plot_pca_qc(
   variable,
   dim_x,
   dim_y,
+  qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"),
   log_transform,
   remove_istds,
   point_size = 5,
