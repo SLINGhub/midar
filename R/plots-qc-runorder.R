@@ -30,7 +30,7 @@ plot_runsequence <- function(data,
                              factor_a = NA,
                              factor_b = NA) {
   d_temp <- data$dataset %>%
-    dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type, .data$sample_id) %>%
+    dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type) %>%
     distinct()
 
   d_temp$qc_type <- factor(d_temp$qc_type, c("EQC", "SST", "MBLK", "SBLK", "UBLK", "PBLK", "RQC", "LTR", "NIST", "TQC", "BQC", "SPL"))
@@ -545,7 +545,7 @@ plot_runboxplots <- function(data,
   }
 
   d_temp <- d_temp %>%
-    dplyr::select(.data$analysis_id, .data$run_id, .data$qc_type, .data$batch_id, .data$feature_id, .data$feature_intensity, .data$feature_norm_intensity, .data$feature_conc) %>%
+    dplyr::select(any_of(c("analysis_id", "run_id", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) %>%
     filter(.data$feature_intensity > min_feature_intensity) %>%
     filter(str_detect(.data$qc_type, qc_types)) %>%
     droplevels()
