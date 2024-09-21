@@ -7,11 +7,12 @@
 plot_pca_qc(
   data,
   variable,
+  use_filtered_data,
   dim_x,
   dim_y,
   qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"),
   log_transform,
-  remove_istds,
+  remove_istds = TRUE,
   point_size = 5,
   point_alpha = 0.8,
   ellipse_alpha = 0.8,

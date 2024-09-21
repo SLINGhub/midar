@@ -53,7 +53,7 @@ mexp <- midar::rawdata_import_mrmkit(data = mexp, path = file_path,use_metadata 
 #  cv.conc.bqc.max = 30,
 #  signalblank.median.pblk.min = 3,
 #  qualifier.include = TRUE, 
-#  istds.include = FALSE
+#  istd.include = FALSE
 #)
 ```
 

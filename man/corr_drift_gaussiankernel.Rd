@@ -12,10 +12,10 @@ corr_drift_gaussiankernel(
   outlier_filter = FALSE,
   outlier_ksd = 5,
   location_smooth = TRUE,
-  scale_smooth = TRUE,
+  scale_smooth = FALSE,
   log2_transform = TRUE,
   apply_conditionally = FALSE,
-  apply_conditionally_per_batch = TRUE,
+  apply_conditionally_per_batch = FALSE,
   feature_list = NULL,
   max_cv_ratio_before_after = 1,
   use_uncorrected_if_fail = FALSE

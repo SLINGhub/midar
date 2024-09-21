@@ -8,10 +8,10 @@ corr_drift_loess(
   data,
   qc_types,
   within_batch = TRUE,
+  span = 0.75,
   apply_conditionally = FALSE,
   apply_conditionally_per_batch = TRUE,
   log2_transform = TRUE,
-  span = 0.75,
   feature_list = NULL,
   max_cv_ratio_before_after = 1,
   use_uncorrected_if_fail = TRUE,
@@ -25,13 +25,13 @@ corr_drift_loess(
 
 \item{within_batch}{Apply to each batch separately if \code{TRUE} (the default)}
 
+\item{span}{Loess span width (default is 0.75)}
+
 \item{apply_conditionally}{Apply drift correction to all species if \code{FALSE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
 
 \item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}
 
 \item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
-
-\item{span}{Loess span width (default is 0.75)}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 

@@ -7,7 +7,7 @@
 apply_qc_filter(
   data,
   qualifier.include = FALSE,
-  istds.include = FALSE,
+  istd.include = FALSE,
   missing.intensity.spl.prop.max = NA,
   missing.normintensity.spl.prop.max = NA,
   missing.conc.spl.prop.max = NA,
@@ -39,7 +39,7 @@ apply_qc_filter(
 
 \item{qualifier.include}{Include qualifier features}
 
-\item{istds.include}{Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
+\item{istd.include}{Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
 
 \item{missing.intensity.spl.prop.max}{NA Proportion of missing raw intensities}
 
@@ -102,5 +102,5 @@ Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values p
 \item If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
 }
 
-Note: When \code{istds.include} is TRUE, then \code{signalblank.median.sblk.min} and \code{signalblank.median.sblk.min} are ignored for ISTDs, because these blanks are defined as containing ISTDs.
+Note: When \code{istd.include} is TRUE, then \code{signalblank.median.sblk.min} and \code{signalblank.median.sblk.min} are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 }

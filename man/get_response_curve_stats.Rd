@@ -13,7 +13,7 @@ get_response_curve_stats(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{with_staturation_stats}{Include PPA and Mandel stats (from {lancer})}
+\item{with_staturation_stats}{Include statistics and classification from the {lancer} package.}
 
 \item{limit_to_rqc}{If TRUE (default) then only includes RQC qc type}
 }
@@ -22,4 +22,7 @@ Tibble with linear regression stats of all curves in a wide format
 }
 \description{
 Linear regression statistics of response curves
+}
+\details{
+When using \code{with_staturation_stats} then the {lancer} package needs to be installed
 }

@@ -6,7 +6,8 @@
 \usage{
 plot_runscatter(
   data,
-  plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+  plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc", "conc_raw",
+    "feature_area", "feature_height", "feature_fwhm"),
   use_filt_data = FALSE,
   qc_types = NA,
   feature_incl_filt = "",
