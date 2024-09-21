@@ -9,7 +9,6 @@
 #' @export
 qc_calculate_metrics <- function(data, batchwise_median ) {
   # if(!(c("feature_norm_intensity") %in% names(data@dataset))) warning("No normali is not normalized")
-
   # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
         # All features defined in the metadata
@@ -108,7 +107,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     relocate(feature_id, feature_class, valid_feature, is_quantifier, precursor_mz, product_mz, collision_energy)
 
   if ("RQC" %in% data@dataset$qc_type) {
-    d_rqc_stats <- get_response_curve_stats(data,  limit_to_rqc)
+    d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
     data@metrics_qc <- data@metrics_qc |>
       dplyr::left_join(d_rqc_stats, by = "feature_id")
   }
@@ -118,15 +117,19 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 
 #' Linear regression statistics of response curves
 
+#' @details
+#' When using `with_staturation_stats` then the {lancer} package needs to be installed
+#'
+
 #' @param data MidarExperiment object
-#' @param with_staturation_stats Include PPA and Mandel stats (from {lancer})
+#' @param with_staturation_stats Include statistics and classification from the {lancer} package.
 #' @param limit_to_rqc If TRUE (default) then only includes RQC qc type
 #' @return Tibble with linear regression stats of all curves in a wide format
 #' @export
 
 get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
   model <- as.formula("feature_intensity ~ relative_sample_amount")
-  if(with_staturation_stats) stop("excluding lancer/saturation stats not yet supported")  #TODO
+
   d_stats  <- data@dataset %>%
     dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") %>%
     dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
@@ -134,22 +137,46 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
     tidyr::nest() %>%
     mutate(
       models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
-      lancer_raw = map(data, \(x) lancer::summarise_curve_data(x, "relative_sample_amount", "feature_intensity")),
       stats = purrr::map(.data$models, function(x) broom::glance(x)),
       model = purrr::map(.data$models, function(x) {
         broom::tidy(x) |>
           select(.data$term, .data$estimate) |>
           pivot_wider(names_from = "term", values_from = "estimate")
       }),
-      lancer = map(.data$lancer_raw, \(x) lancer::evaluate_linearity(x)),
-    ) |>
-    select(-lancer_raw, -models) |>
-    tidyr::unnest(c("stats", "model", "lancer")) |>
-     dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
-     dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel", "p_value" = "p.value", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") %>%
-     tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel", "p_value", "class_wf2", "pra_linear", "mandel_p_val", "concavity"), names_prefix = "rqc_") |>
-     ungroup()
+    )  |>
+    select(-models) |>
+    tidyr::unnest(c("stats", "model")) |>
+    dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
+    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
+    tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
+    ungroup()
 
+  if (with_staturation_stats){
+
+    if (!requireNamespace("lancer", quietly = TRUE)) {
+      stop(
+        "Package {lancer} must be installed when `with_staturation_stats = TRUE`. It is available from `https://github.com/SLINGhub/lancer`",
+        call. = FALSE
+      )
+    }
+
+    d_stats_lancer <- data@dataset %>%
+      dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") %>%
+      dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
+      dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
+      tidyr::nest() %>%
+      mutate(
+        lancer_raw = map(data, \(x) lancer::summarise_curve_data(x, "relative_sample_amount", "feature_intensity")),
+        lancer = map(.data$lancer_raw, \(x) lancer::evaluate_linearity(x))
+      ) |>
+      select(-lancer_raw) |>
+      tidyr::unnest(c("lancer")) |>
+      dplyr::select("feature_id", "rqc_series_id", "r_corr", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") %>%
+      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r_corr", "class_wf2", "pra_linear", "mandel_p_val", "concavity"), names_prefix = "rqc_") |>
+      ungroup()
+
+    d_stats <- d_stats |> left_join(d_stats_lancer, by = c("feature_id"))
+  }
   d_stats
 }
 
@@ -165,11 +192,11 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' - If a filter is applied (e.g. `intensity.min.bqc.min`) but qc value is NA then this feature will be excluded.
 #' - If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
 #'
-#' Note: When `istds.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
+#' Note: When `istd.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 #'
 #' @param data MidarExperiment object
 #' @param qualifier.include Include qualifier features
-#' @param istds.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
+#' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
 #' @param missing.intensity.spl.prop.max NA Proportion of missing raw intensities
 #' @param missing.normintensity.spl.prop.max NA Proportion of missing normalized intensities
@@ -202,7 +229,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
 apply_qc_filter <- function(data,
                             qualifier.include = FALSE,
-                            istds.include = FALSE,
+                            istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,
                             missing.normintensity.spl.prop.max  = NA,
                             missing.conc.spl.prop.max  = NA,
@@ -294,7 +321,7 @@ apply_qc_filter <- function(data,
       response.rsquare.min = response.rsquare.min,
       response.yintersect.rel.max = response.yintersect.rel.max,
       qualifier.include = qualifier.include,
-      istds.include = istds.include,
+      istd.include = istd.include,
       features_to_keep = NA
     )
 
@@ -342,8 +369,8 @@ apply_qc_filter <- function(data,
         .operator = "AND"),
 
       pass_sb = comp_lgl_vec(
-        c(comp_val(.data$SB_Ratio_pblk, signalblank.median.pblk.min, ">") | .data$is_istd & !istds.include,
-        comp_val(.data$SB_Ratio_ublk, signalblank.median.ublk.min, ">") | .data$is_istd & !istds.include,
+        c(comp_val(.data$SB_Ratio_pblk, signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
+        comp_val(.data$SB_Ratio_ublk, signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
         comp_val(.data$SB_Ratio_sblk, signalblank.median.sblk.min, ">")),
         .operator = "AND"),
 
@@ -382,14 +409,13 @@ apply_qc_filter <- function(data,
     rqc_y0_col <- paste0("y0_rqc_", response.curve.id)
   }
 
-
   if (rqc_r2_col %in% names(data@metrics_qc)) {
     data@metrics_qc <- data@metrics_qc |>
       mutate(
         pass_linearity = if_else(is.na(!!ensym(rqc_r2_col)), NA, !!ensym(rqc_r2_col) > response.rsquare.min &
           !!ensym(rqc_y0_col) < response.yintersect.rel.max)
       )
-  } else {
+  } else {ro
     data@metrics_qc <- data@metrics_qc |>
       mutate(
         pass_linearity = NA)
@@ -416,7 +442,11 @@ apply_qc_filter <- function(data,
     #TODO: deal with invalid integrations (as defined by user in metadata)
 
 
-    d_filt <- data@metrics_qc |> filter(qc_pass)
+    d_filt <- data@metrics_qc |>
+      filter(qc_pass)
+
+    if(!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
+    if(!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
     n_all_quant <- nrow(data@metrics_qc |> filter(.data$is_quantifier))
     n_all_qual <- nrow(data@metrics_qc |> filter(!.data$is_quantifier))
@@ -426,7 +456,7 @@ apply_qc_filter <- function(data,
     n_istd_quant <- nrow(data@metrics_qc |> filter(is_istd, .data$is_quantifier))
     n_istd_qual <- nrow(data@metrics_qc |> filter(is_istd, !.data$is_quantifier))
 
-    if (!istds.include) {
+    if (!istd.include) {
       n_all_quant <- n_all_quant - n_istd_quant
       n_all_qual <- n_all_qual - n_istd_qual
       n_filt_quant <- nrow(d_filt |>  filter(!.data$is_istd, .data$is_quantifier))
@@ -436,12 +466,12 @@ apply_qc_filter <- function(data,
 
 
   if(qualifier.include)
-    cli::cli_alert_success(cli::col_green(glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+    cli::cli_alert_success(cli::col_green(glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
-    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istds.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
+    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
 
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
-  if (!istds.include) d_filt <- d_filt |> filter(!.data$is_istd)
+  if (!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
   data@dataset_filtered <- data@dataset %>%
     dplyr::right_join(d_filt |> dplyr::select("feature_id"), by = "feature_id") #|>
