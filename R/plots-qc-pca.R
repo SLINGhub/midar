@@ -12,11 +12,14 @@
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, dim_x, dim_y, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform, remove_istds, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
-  d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
+plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform, remove_istds = TRUE, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
+  if(use_filtered_data)
+    d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
+  else
+    d_wide <- data@dataset
 
   # TODO: (IS as criteria for ISTD.. dangerous...
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
+  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_wide <- d_wide |>
     filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
