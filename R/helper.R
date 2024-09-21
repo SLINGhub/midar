@@ -103,3 +103,8 @@ facet_wrap_equal <- function(...) {
     params = facet_super$params
   )
 }
+
+
+cv <- function(x, ...){
+  sd(x, ...)/mean(x, ...)
+}
