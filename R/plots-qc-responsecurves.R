@@ -113,8 +113,6 @@ plot_responsecurves <- function(data,
                                 return_plot_list = FALSE) {
   if (output_pdf & path == "") cli::cli_abort("Please define parameter `path`")
 
-  rows_page <- rows_page
-  columns_page <- columns_page
 
 
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
@@ -168,7 +166,7 @@ plot_responsecurves <- function(data,
   }
 
   if (is.na(page_no)) {
-    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$feature_id) / (columns_page * rows_page))
+    page_range <- 1:ceiling(dplyr::n_distinct(d_rqc$feature_id) / (columns_page * rows_page))
   } else {
     page_range <- page_no
   }
