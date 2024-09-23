@@ -163,7 +163,7 @@ plot_runsequence <- function(data,
 #' @param point_size point size
 #' @param page_no Show page number
 #' @param y_label_text Overwrite y label with this text
-#' @param silent Verbose or silent
+#' @param silent Print page number being plotted
 #' @param point_stroke_width point stroke width
 #' @param base_size base font size of plot
 #' @param return_plot_list return list with plots
@@ -335,7 +335,9 @@ plot_runscatter <- function(data,
     return(p_list)
   }
 }
-#' @importFrom ggplot2 Stat
+
+
+
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
