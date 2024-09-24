@@ -86,9 +86,12 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
           conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
           conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
           conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
-          conc_dratio_cv_bqc = .data$conc_CV_BQC / .data$conc_CV_SPL,
-          conc_dratio_cv_tqc = .data$conc_CV_TQC / .data$conc_CV_SPL
-    )
+          conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+          conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+          conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
+          conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
+
+            )
 
    if (batchwise_median){
      d_stats_var <- d_stats_var |>
@@ -214,8 +217,10 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @param cv.intensity.bqc.min Maximum %CV of BQC
 #' @param cv.intensity.tqc.min Maximum %CV of TQC
 
-#' @param dratio.conc.bqc.max D-ratio defined as CV_BQC/CV_SPL
-#' @param dratio.conc.tqc.max D-ratio defined as CV_TQC/CV_SPL
+#' @param dratio.conc.bqc.sd.max D-ratio defined as CV_BQC/CV_SPL, based on sd
+#' @param dratio.conc.tqc.sd.max D-ratio defined as CV_TQC/CV_SPL, based on sd
+#' @param dratio.conc.bqc.mad.max D-ratio defined as CV_BQC/CV_SPL, based on mad
+#' @param dratio.conc.tqc.mad.max D-ratio defined as CV_TQC/CV_SPL, based on mad
 #' @param signalblank.median.pblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
 #' @param signalblank.median.ublk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)
 #' @param signalblank.median.sblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)
@@ -247,8 +252,10 @@ apply_qc_filter <- function(data,
                             cv.conc.tqc.max = NA,
                             cv.intensity.bqc.min = NA,
                             cv.intensity.tqc.min = NA,
-                            dratio.conc.bqc.max = NA,
-                            dratio.conc.tqc.max = NA,
+                            dratio.conc.bqc.sd.max = NA,
+                            dratio.conc.tqc.sd.max = NA,
+                            dratio.conc.bqc.mad.max = NA,
+                            dratio.conc.tqc.mad.max = NA,
                             response.rsquare.min = NA,
                             response.yintersect.rel.max = NA,
                             response.curve.id = NA,
@@ -312,8 +319,10 @@ apply_qc_filter <- function(data,
       cv.conc.tqc.max = cv.conc.tqc.max,
       cv.intensity.bqc.min = cv.intensity.bqc.min,
       cv.intensity.tqc.min = cv.intensity.tqc.min,
-      dratio.conc.bqc.max = dratio.conc.bqc.max,
-      dratio.conc.tqc.max = dratio.conc.tqc.max,
+      dratio.conc.bqc.sd.max = dratio.conc.bqc.sd.max,
+      dratio.conc.tqc.sd.max = dratio.conc.tqc.sd.max,
+      dratio.conc.bqc.mad.max = dratio.conc.bqc.mad.max,
+      dratio.conc.tqc.mad.max = dratio.conc.tqc.mad.max,
       signalblank.median.pblk.min = signalblank.median.pblk.min,
       signalblank.median.ublk.min = signalblank.median.ublk.min,
       signalblank.median.sblk.min = signalblank.median.sblk.min,
@@ -384,8 +393,10 @@ apply_qc_filter <- function(data,
 
 
       pass_dratio = comp_lgl_vec(
-        c(comp_val(.data$conc_dratio_cv_bqc, dratio.conc.bqc.max, "<"),
-        comp_val( .data$conc_dratio_cv_tqc, dratio.conc.tqc.max, "<")),
+        c(comp_val(.data$conc_dratio_sd_bqc, dratio.conc.bqc.sd.max, "<"),
+          comp_val( .data$conc_dratio_sd_tqc, dratio.conc.tqc.sd.max, "<"),
+          comp_val( .data$conc_dratio_mad_bqc, dratio.conc.bqc.mad.max, "<"),
+          comp_val( .data$conc_dratio_mad_tqc, dratio.conc.tqc.mad.max, "<")),
         .operator = "AND"),
 
       pass_missingval = comp_lgl_vec(
