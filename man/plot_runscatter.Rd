@@ -112,7 +112,7 @@ plot_runscatter(
 
 \item{y_label_text}{Overwrite y label with this text}
 
-\item{silent}{Verbose or silent}
+\item{silent}{Print page number being plotted}
 
 \item{return_plot_list}{return list with plots}
 

@@ -4,7 +4,7 @@
 \alias{correct_interferences}
 \title{Substract interferences contributed by another feature}
 \usage{
-correct_interferences(data, variable = "feature_intensity")
+correct_interferences(data)
 }
 \arguments{
 \item{data}{MidarExperiment object}

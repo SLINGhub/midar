@@ -25,8 +25,10 @@ apply_qc_filter(
   cv.conc.tqc.max = NA,
   cv.intensity.bqc.min = NA,
   cv.intensity.tqc.min = NA,
-  dratio.conc.bqc.max = NA,
-  dratio.conc.tqc.max = NA,
+  dratio.conc.bqc.sd.max = NA,
+  dratio.conc.tqc.sd.max = NA,
+  dratio.conc.bqc.mad.max = NA,
+  dratio.conc.tqc.mad.max = NA,
   response.rsquare.min = NA,
   response.yintersect.rel.max = NA,
   response.curve.id = NA,
@@ -75,9 +77,13 @@ apply_qc_filter(
 
 \item{cv.intensity.tqc.min}{Maximum \%CV of TQC}
 
-\item{dratio.conc.bqc.max}{D-ratio defined as CV_BQC/CV_SPL}
+\item{dratio.conc.bqc.sd.max}{D-ratio defined as CV_BQC/CV_SPL, based on sd}
 
-\item{dratio.conc.tqc.max}{D-ratio defined as CV_TQC/CV_SPL}
+\item{dratio.conc.tqc.sd.max}{D-ratio defined as CV_TQC/CV_SPL, based on sd}
+
+\item{dratio.conc.bqc.mad.max}{D-ratio defined as CV_BQC/CV_SPL, based on mad}
+
+\item{dratio.conc.tqc.mad.max}{D-ratio defined as CV_TQC/CV_SPL, based on mad}
 
 \item{response.rsquare.min}{= Minimum r squared of RQC curve defined under \code{response.curve.id}}
 

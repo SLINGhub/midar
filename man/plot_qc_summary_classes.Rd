@@ -4,10 +4,17 @@
 \alias{plot_qc_summary_classes}
 \title{Plot results of QC filter per analyte class}
 \usage{
-plot_qc_summary_classes(data, user_defined_keeper = FALSE, base_size = 8)
+plot_qc_summary_classes(
+  data,
+  use_batches = c("across", "individual", "summarise"),
+  user_defined_keeper = FALSE,
+  base_size = 8
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{use_batches}{How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)}
 
 \item{user_defined_keeper}{Include user-defined feature inclusion list, even they did not pass QC filtering}
 
