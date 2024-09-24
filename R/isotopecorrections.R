@@ -60,7 +60,7 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 #' @export
 
 correct_interferences <- function(data, variable = "feature_intensity") {
-  if (data@is_isotope_corr) cli_alert_info(cli::col_grey(glue::glue("Note: Data is already corrected for interferences. Correction will be reapplied to raw data.")))
+  if (data@is_isotope_corr) cli_alert_info(cli::col_grey(glue::glue("Note: Data is already corrected for interferences. Correction will be reapplied to raw intensities.")))
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
   # variable_var <- rlang::ensym(variable)
