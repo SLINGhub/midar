@@ -370,7 +370,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_id", init_value = NA_character_, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_name", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
@@ -399,7 +399,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
                                             "true" ~ TRUE,
                                             "false" ~ FALSE,
                                             .default = NA)),
-      interference_feature_id = stringr::str_squish(.data$interference_feature_id),
+      interference_feature_name = stringr::str_squish(.data$interference_feature_name),
       remarks = NA_character_) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     dplyr::select(
@@ -411,7 +411,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       table_templates = "response_factor",
       "is_quantifier",
       "valid_feature",
-      "interference_feature_id",
+      "interference_feature_id" = "interference_feature_name",
       "interference_proportion",
       "remarks"
     )
