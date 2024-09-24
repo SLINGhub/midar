@@ -6,38 +6,41 @@
 \usage{
 plot_responsecurves(
   data,
-  use_filt_data,
-  output_pdf,
   response_variable = "feature_intensity",
+  use_filt_data,
   feature_incl_filt = "",
   feature_excl_filt = "",
-  regr_max_percent = NA,
+  output_pdf = FALSE,
   path = "",
+  regr_max_percent = NA,
   rows_page = 4,
   columns_page = 5,
+  page_no = NA,
   point_size = 2,
   line_width = 1,
   text_scale_factor = 1,
-  return_plot_list = FALSE,
-  base_size = 7
+  paper_orientation = "LANDSCAPE",
+  base_size = 7,
+  silent = TRUE,
+  return_plot_list = FALSE
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{use_filt_data}{Use QC-filtered data}
-
-\item{output_pdf}{Save as PDF}
-
 \item{response_variable}{Variable to plot}
+
+\item{use_filt_data}{Use QC-filtered data}
 
 \item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
 
 \item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
 
-\item{regr_max_percent}{Max relative sample amount to use in regressionb}
+\item{output_pdf}{Save as PDF}
 
 \item{path}{file name of pdf file}
+
+\item{regr_max_percent}{Max relative sample amount to use in regressionb}
 
 \item{rows_page}{rows per page}
 
@@ -49,9 +52,13 @@ plot_responsecurves(
 
 \item{text_scale_factor}{text scale factor}
 
-\item{return_plot_list}{return plot as list}
+\item{paper_orientation}{Landscape/Portrait}
 
 \item{base_size}{base font size}
+
+\item{silent}{Print page number being plotted}
+
+\item{return_plot_list}{return plot as list}
 }
 \value{
 A list of ggplot2 objects
