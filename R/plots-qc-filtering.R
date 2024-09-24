@@ -1,13 +1,18 @@
 #' Plot results of QC filter per analyte class
 #' @param data MidarExperiment object
+#' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
 #' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
 #' @param base_size font size of plots
 #' @return ggplot2 object
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size = 8) {
+plot_qc_summary_classes <- function(data, use_batches = c("across", "individual", "summarise"), user_defined_keeper = FALSE, base_size = 8) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
+
+  rlang::arg_match(use_batches)
+
+  if(use_batches != "summarise") stop("currently only `summarise` supported for parameter `batches`")
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, !.data$is_istd) |>
@@ -18,7 +23,6 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
   # if(!all(is.na(d_qc$feature_class)) & any(is.na(d_qc$lipid_class))) d_qc$feature_class <- d_qc$lipid_class
 
   if (all(is.na(d_qc$feature_class))) cli::cli_abort("This plot requires `feature_class` to be defined. Please define classes in the feature metadata or retrieve via corresponding {midar} functions.")
-
 
   d_qc$feature_class <- forcats::fct(d_qc$feature_class)
 
