@@ -22,29 +22,41 @@ plot_qc_summary_classes <- function(data, user_defined_keeper = FALSE, base_size
 
   d_qc$feature_class <- forcats::fct(d_qc$feature_class)
 
+# Count how many features failed qc criteria, excluding features that failed before tested criteria (lower hiarchy)
 # TODO: can surely be better implemented
   d_qc_sum <- d_qc %>%
     group_by(.data$feature_class) %>%
     summarise(
       has_only_na = sum(.data$na_in_all_spl, na.rm = TRUE),
-      exceed_missingness = sum(!replace_na(.data$na_in_all_spl, TRUE) & !.data$pass_missingval, na.rm = TRUE),
-      below_lod = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
-      below_sb = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !.data$pass_sb, na.rm = TRUE),
-      above_cva = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !.data$pass_cva, na.rm = TRUE),
-      bad_linearity = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !.data$pass_linearity, na.rm = TRUE),
-      above_dratio = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !.data$pass_dratio, na.rm = TRUE),
+      exceed_missingness = sum(!replace_na(.data$na_in_all_spl, TRUE) & !.data$pass_missingval, na.rm = TRUE) | all(is.na(.data$pass_missingval)),
+      below_lod = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE) | all(is.na(.data$pass_lod)),
+      below_sb = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !.data$pass_sb, na.rm = TRUE) | all(is.na(.data$pass_sb)),
+      above_cva = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !.data$pass_cva, na.rm = TRUE) | all(is.na(.data$pass_cva)),
+      bad_linearity = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !.data$pass_linearity, na.rm = TRUE) | all(is.na(.data$pass_linearity)),
+      above_dratio = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !.data$pass_dratio, na.rm = TRUE) | all(is.na(.data$pass_dratio)),
       qc_pass = sum(.data$qc_pass, na.rm = TRUE)
     ) %>%
     tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") %>%
     ungroup()
 
-
   qc_colors <- c(qc_pass = "#4bcc7f", above_dratio = "#ffcf57", above_cva = "#bf0426", bad_linearity = "#1fc1ed", below_sb = "#cccaca", below_lod = "#919191", exceed_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
+
+  # Remove levels/qc criteria for which was not filtered for
+  if(all(is.na(d_qc$na_in_all_spl))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
+  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "exceed_missingness")
+  if(all(is.na(d_qc$pass_lod))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_lod")
+  if(all(is.na(d_qc$pass_sb))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_sb")
+  if(all(is.na(d_qc$pass_cva))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_cva")
+  if(all(is.na(d_qc$pass_linearity))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "bad_linearity")
+  if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
+
+  d_qc_sum <- d_qc_sum |> drop_na(qc_criteria)
+
   ggplot(d_qc_sum, aes(forcats::fct_rev(.data$feature_class), .data$count_pass)) +
     ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat = "identity", na.rm = TRUE) +
-    scale_fill_manual(values = qc_colors,na.value = "pink") +
+    scale_fill_manual(values = qc_colors, na.value = "purple", drop = FALSE) +
     # facet_wrap(~Tissue) +
     # guides(fill = guide_legend(override.aes = list(size = 6))) +
     ggplot2::coord_flip() +
