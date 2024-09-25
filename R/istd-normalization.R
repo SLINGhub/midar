@@ -35,7 +35,7 @@ normalize_by_istd <- function(data, interference_correction = FALSE) {
   if (any(!is.na(data@annot_features$interference_feature_id) & interference_correction)) data <- correct_interferences(data)
 t
   if ("feature_norm_intensity" %in% names(data@dataset)) {
-    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::cli_yellow("Overwriting previously normalized feature intensities."))
+    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::col_yellow("Overwriting previously normalized feature intensities."))
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))  #TODO fields
   }
 
@@ -70,7 +70,7 @@ t
 #' Calculation is based on ISTD-normalized intensities and corresponding
 #' sample and spiked-in ISTD amounts. The determined concentration unit is based
 #' on the `sample_amount_unit` provided in the analysis metadata.
-#'
+#'  If the spiked-in ISTD concentrations are missing, the concentrations of the
 #' @param data MidarExperiment object
 #' @param ignore_missing_info Ignore undefined ISTD concentratios and sample/ISTD amounts.
 #' @return MidarExperiment object
