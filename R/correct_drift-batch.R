@@ -267,7 +267,15 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   # Prepare info/texts for command line output
   features_with_fit_errors <- sum(d_smooth_summary$any_fit_error)
-  features_corrected <- sum(d_smooth_summary$drift_correct) - features_with_fit_errors
+  #features_corrected <- sum(d_smooth_summary$drift_correct) - features_with_fit_errors
+
+  features_corrected <- data@dataset |>
+    filter(!is_istd, drift_correct) |>
+    pull(feature_id) |>
+    unique() |>
+    length()
+
+  # Calculate median CVs for print summary
   cv_median_raw <- round(mean(d_smooth_summary$cv_raw_spl, na.rm = TRUE), 1)
   cv_median_adj <- round(mean(d_smooth_summary$cv_adj_spl, na.rm = TRUE), 1)
   cv_difference_median <- round(median(d_smooth_summary$cv_change, na.rm = TRUE), 1)
@@ -278,11 +286,14 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
     d_smooth_summary$feature_id[d_smooth_summary$any_fit_error], ", ",
     last = " and ", width = 160)
 
+
+  nfeat <- get_feature_count(data, istd = FALSE)
+
   if(apply_conditionally & within_batch)
     count_feature_text <- glue::glue("of at least one batch for {features_corrected}
-                                     of {nrow(d_smooth_summary)} features")
+                                     of {nfeat} features")
   else
-    count_feature_text <- glue::glue("{features_corrected} of {nrow(d_smooth_summary)} features")
+    count_feature_text <- glue::glue("{features_corrected} of {nfeat} features")
 
   mode_text <- ifelse(within_batch, "(batch-wise)", "(across all batches)")
   mode_text2 <- ifelse(within_batch, "in study samples (median of batches)", "in study samples (across batches)")
@@ -504,7 +515,7 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
       cv_diff_text = format(round(cv_diff_median, 1), nsmall = 1)
     )
 
-  nfeat <- get_feature_count(data)
+  nfeat <- get_feature_count(data, istd = FALSE)
 
   if (data@is_drift_corrected) {
     cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concentrations of all {nfeat} features.")))
