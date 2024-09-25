@@ -62,8 +62,8 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 correct_interferences <- function(data, variable = "feature_intensity") {
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
-  if (data@is_isotope_corr | (c("feature_intensity_raw") %in% names(data@dataset))) {
-    cli_alert_info(cli::col_grey(glue::glue("Note: Data is already interference-corrected. Correction will be reapplied to raw intensities.")))
+  if (data@is_isotope_corr & (c("feature_intensity_raw") %in% names(data@dataset))) {
+    cli_alert_info(glue::glue("Data is already interference-corrected. Correction will be reapplied to raw intensities."))
     data@dataset <- data@dataset |>
       mutate(
         feature_intensity = .data$feature_intensity_raw,
@@ -105,7 +105,7 @@ correct_interferences <- function(data, variable = "feature_intensity") {
     filter(.data$valid_feature) |>
     filter(!is.na(.data$interference_feature_id)) |>
     nrow()
-  cli_alert_success(col_green(glue::glue("Interference-correction has been applied to {n_corr} of {length(unique(data@dataset$feature_id))} features.")))
+  cli_alert_success(col_green(glue::glue("Interference-correction has been applied to {n_corr} of the {get_feature_count(data)} features.")))
 
   data
 }
