@@ -80,7 +80,7 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
     select(Type, Table, Issue, Column = Field, Count = num.violations) |> ungroup()
 
   res$Count <- res$Count |> unlist()
-  res
+  as_assertr_tibble(res)
 }
 
 
@@ -111,8 +111,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
     print(as_assertr_tibble(t_all))
     if (!ignore_warnings)
       cli::cli_abort(message = cli::col_red("Please check corresponding metadata. Use `ignore_warnings`= TRUE to ignore these warnings."), trace = NULL, call = caller_env())
-    else
-      cli::cli_alert_warning(text = cli::col_yellow("Ignoring metadata warnings (as 'ignore_warnings' was set to TRUE)"))
+    #else
+      #cli::cli_alert_warning(text = cli::col_yellow("Ignoring metadata warnings (as 'ignore_warnings' was set to TRUE)"))
   }
 }
 
@@ -249,7 +249,16 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
       add_missing_column(col_name = "replicate_no", init_value = 1L, make_lowercase = FALSE, all_na_replace = TRUE)
     data@annot_analyses <- metadata$annot_analyses |>
       dplyr::bind_rows(pkg.env$table_templates$annot_analyses_template)
-    cli_alert_success(col_green(glue::glue("Analysis metadata associated with {length(data@annot_analyses$analysis_id %>% unique())} samples.")))
+
+    n_match <- intersect(data@dataset_orig$analysis_id, data@annot_analyses |> filter(valid_analysis) |> pull(analysis_id)) |> length()
+
+    cli_alert_success(col_green(glue::glue("Analysis metadata associated with {n_match} analyses.")))
+
+    n_invalid <- data@annot_analyses |> filter(!valid_analysis) |> nrow()
+    if (n_invalid > 0){
+      cli_alert_info(col_yellow("{n_invalid} invalid analyses (as defined in the metadata) will be excluded"))
+    }
+
   }
   # FEATURE METADATA ====================
   if (!is.null(metadata$annot_features) && nrow(metadata$annot_features) > 0){
@@ -261,21 +270,33 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
       add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
     data@annot_features <- metadata$annot_features |>
       dplyr::bind_rows(pkg.env$table_templates$annot_features_template)
-    cli_alert_success(col_green(glue::glue("Feature metadata associated with {length(data@annot_features$feature_id %>% unique())} features.")))
+
+    n_match <- intersect(data@dataset_orig$feature_id, data@annot_features |> filter(valid_feature) |> pull(feature_id)) |> length()
+    cli_alert_success(col_green(glue::glue("Feature metadata associated with {n_match} features.")))
+
+    n_invalid <- data@annot_features |> filter(!valid_feature) |> nrow()
+    if (n_invalid > 0){
+      cli_alert_info(col_yellow("{n_invalid} invalid features (as defined in the metadata) will be excluded"))
+    }
+
   }
 
   # ISTD METADATA ====================
   if (!is.null(metadata$annot_istd) && nrow(metadata$annot_istd) > 0){
     data@annot_istd <- metadata$annot_istd  |>
       dplyr::bind_rows(pkg.env$table_templates$annot_istd_template)
-    cli_alert_success(col_green(glue::glue("Internal Standard metadata associated with {length(data@annot_istd$quant_istd_feature_id %>% unique())} ISTDs")))
+
+    n_match <- intersect(data@annot_istd$quant_istd_feature_id, data@annot_features$quant_istd_feature_id) |> length()
+    cli_alert_success(col_green(glue::glue("Internal Standard metadata associated with {n_match} ISTDs.")))
   }
 
   # RQC METADATA ====================
   if (!is.null(metadata$annot_responsecurves) && nrow(metadata$annot_responsecurves) > 0){
     data@annot_responsecurves <- metadata$annot_responsecurves |>
       dplyr::bind_rows(pkg.env$table_templates$annot_responsecurves_template)
-    cli_alert_success(col_green(glue::glue("Response Curve metadata associated with {length(data@annot_responsecurves$analysis_id %>% unique())} analyses")))
+
+    n_match <- intersect(data@dataset_orig$analysis_id, data@annot_responsecurves$analysis_id) |> length()
+    cli_alert_success(col_green(glue::glue("Response Curve metadata associated with {n_match} analyses.")))
   }
 
   # BATCHES METADATA ------------
