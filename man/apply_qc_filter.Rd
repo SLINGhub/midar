@@ -49,19 +49,19 @@ apply_qc_filter(
 
 \item{missing.conc.spl.prop.max}{NA Proportion of missing final concentrations}
 
-\item{intensity.min.bqc.min}{Minimum median signal intensity of BQC}
+\item{intensity.min.bqc.min}{Minimum median feature intensity of BQC}
 
-\item{intensity.min.tqc.min}{Minimum median signal intensity of TQC}
+\item{intensity.min.tqc.min}{Minimum median feature intensity of TQC}
 
-\item{intensity.min.spl.min}{Minimum median signal intensity of study samples (SPL)}
+\item{intensity.min.spl.min}{Minimum median feature intensity of study samples (SPL)}
 
-\item{intensity.median.bqc.min}{Minimum median signal intensity of BQC}
+\item{intensity.median.bqc.min}{Minimum median feature intensity of BQC}
 
-\item{intensity.median.tqc.min}{Minimum median signal intensity of TQC}
+\item{intensity.median.tqc.min}{Minimum median feature intensity of TQC}
 
-\item{intensity.median.spl.min}{Minimum median signal intensity of study samples (SPL)}
+\item{intensity.median.spl.min}{Minimum median feature intensity of study samples (SPL)}
 
-\item{intensity.max.spl.min}{Minimum maximun signal intensity oof study samples (SPL)}
+\item{intensity.max.spl.min}{Minimum maximun feature intensity oof study samples (SPL)}
 
 \item{signalblank.median.pblk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
 

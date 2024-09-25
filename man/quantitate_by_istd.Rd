@@ -18,4 +18,5 @@ MidarExperiment object
 Calculation is based on ISTD-normalized intensities and corresponding
 sample and spiked-in ISTD amounts. The determined concentration unit is based
 on the \code{sample_amount_unit} provided in the analysis metadata.
+If the spiked-in ISTD concentrations are missing, the concentrations of the
 }
