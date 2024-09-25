@@ -31,13 +31,16 @@ get_conc_unit <- function(sample_amount_unit) {
 
 # TODO: interference correction not done here
 normalize_by_istd <- function(data, interference_correction = FALSE) {
-  if (nrow(data@annot_features) < 1) cli::cli_abort("ISTD map is missing...please import transition annotations.")
+  if (nrow(data@annot_features) < 1) cli::cli_abort("No feature metadata available. Please import matching feature metadata.")
   if (any(!is.na(data@annot_features$interference_feature_id) & interference_correction)) data <- correct_interferences(data)
-
+t
   if ("feature_norm_intensity" %in% names(data@dataset)) {
-    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning("Data has already been normalized. Overwriting exiting normalized intensities.")
+    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::cli_yellow("Overwriting previously normalized feature intensities."))
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))  #TODO fields
   }
+
+  feature_no_istd <- setdiff(data@annot_features$norm_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+
 
   d_temp <- data@dataset |>
     dplyr::left_join(data@annot_features, by = c("feature_id" = "feature_id")) |>
@@ -77,20 +80,25 @@ quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'normalize_by_istd' first.")
 
   istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+
   if (length(istd_no_conc) > 0) {
     if(ignore_missing_info)
-      cli::cli_alert_warning(cli::col_yellow("Concentrations of {length(istd_no_conc)} ISTD(s) missing, concentrations of affected features will `NA`."))
+      cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing,
+                                             calculated concentrations of affected features will be `NA`."))
     else
       cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `ignore_missing_conc = TRUE`."))
   }
 
-  no_amounts <- data@annot_analyses |> filter(.data$valid_analysis, is.na(.data$sample_amount), is.na(.data$istd_volume)) |> nrow()
+  samples_no_amounts <- data@annot_analyses |>
+    filter(.data$valid_analysis, is.na(.data$sample_amount), is.na(.data$istd_volume)) |>
+    dplyr::semi_join(data@dataset, by = c("analysis_id"))
 
-  if (no_amounts > 0) {
+  if (nrow(samples_no_amounts) > 0) {
     if(ignore_missing_info)
-      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD amount(s) for {no_amounts} analyses missing, concentrations of all features of the affected analyses will `NA`"))
+      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD solution amount(s) for {length(samples_no_amounts)} analyses missing,
+                                             concentrations of all features of affected analyses will be `NA`"))
     else
-      cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {no_amounts} analyses missing. Please ammend analysis metadata or set `ignore_missing_conc = TRUE`."))
+      cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {nrow(samples_no_amounts)} analyses missing. Please ammend analysis metadata or set `ignore_missing_conc = TRUE`."))
   }
 
 
@@ -105,7 +113,7 @@ quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
 
   if ("feature_conc" %in% names(data@dataset)) {
     data@dataset <- data@dataset %>% select(-dplyr::any_of(c("pmol_total", "feature_conc")))
-    cli::cli_alert_warning("Data has already been quantitated. Overwriting exiting concentrations.")
+    cli::cli_alert_warning(cli::col_yellow("Overwriting previously calculated concentrations."))
   }
 
   data@dataset <- data@dataset %>%
@@ -114,12 +122,15 @@ quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
   data@dataset$conc_raw <- data@dataset$feature_conc
 
   n_features <- length(unique(d_temp$feature_id))
-  n_istd <- length(unique(d_temp$quant_istd_feature_id))
+  n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+
+  n_features_with_conc <- d_temp |> filter(!is_istd, .data$quant_istd_feature_id %in% n_istd_with_conc) |> select(.data$feature_id) |> distinct() |> nrow()
+  n_istd <- length(unique(d_temp$quant_istd_feature_id)) - length(istd_no_conc)
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 
-  cli_alert_success(col_green(glue::glue("{n_features} features quantitated in {nrow(data@annot_analyses)} samples using {n_istd} spiked-in ISTDs and sample amounts.
-                   feature_conc unit: [{conc_unit}].")))
+  cli_alert_success(cli::col_green("Concentrations of {n_features_with_conc} features were calculated using {n_istd} ISTDs and sample amounts in {get_analysis_count(data)} analyses."))
+  cli::cli_alert_info("Concentrations are given in {conc_unit}.")
 
   data@status_processing <- "ISTD-quantitated data"
   data@is_istd_normalized <- TRUE
