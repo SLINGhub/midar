@@ -4,10 +4,12 @@
 \alias{normalize_by_istd}
 \title{Normalize Intensities with corresponding ISTD Intensities}
 \usage{
-normalize_by_istd(data, interference_correction = FALSE)
+normalize_by_istd(data, error_missing_info = TRUE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{error_missing_info}{Raise error when ISTD is not defined for 1 or more features (excluding ISTD themselves) . Default: \code{TRUE}.}
 
 \item{interference_correction}{Apply interference (e.g. isotope) correction as defined in the feature metadata}
 }

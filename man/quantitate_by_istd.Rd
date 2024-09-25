@@ -4,12 +4,14 @@
 \alias{quantitate_by_istd}
 \title{Calculate analyte concentrations}
 \usage{
-quantitate_by_istd(data, ignore_missing_info = FALSE)
+quantitate_by_istd(data, error_missing_info = TRUE, ignore_unused_istds = TRUE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{ignore_missing_info}{Ignore undefined ISTD concentratios and sample/ISTD amounts.}
+\item{error_missing_info}{Raise error when 1 or more ISTD concentratios and sample/ISTD amounts are missing. Default: \code{TRUE}.}
+
+\item{ignore_unused_istds}{Ignore ISTDs with missing concentrations that are not used in any feature quantitation. Default: \code{FALSE}.}
 }
 \value{
 MidarExperiment object
