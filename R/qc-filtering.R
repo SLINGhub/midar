@@ -426,7 +426,7 @@ apply_qc_filter <- function(data,
         pass_linearity = if_else(is.na(!!ensym(rqc_r2_col)), NA, !!ensym(rqc_r2_col) > response.rsquare.min &
           !!ensym(rqc_y0_col) < response.yintersect.rel.max)
       )
-  } else {ro
+  } else {
     data@metrics_qc <- data@metrics_qc |>
       mutate(
         pass_linearity = NA)
