@@ -2,6 +2,19 @@
 check_rawdata_present <- function(data){nrow(data@dataset_orig) > 0}
 check_dataset_present <- function(data){nrow(data@dataset) > 0}
 
+get_analysis_count <- function(data, qc_types = NULL) {
+  if (is.null(qc_types))
+    return(data@dataset|> select("analysis_id") |> distinct() |> nrow())
+  else
+    return(data@dataset|> filter(.data$qc_type %in% qc_types) |>
+             select("analysis_id") |> distinct() |> nrow())
+}
+
+get_feature_count <- function(data) {
+  data@dataset|> select("feature_id") |> distinct() |> nrow()
+}
+
+
 #' @title Set the analysis order
 #' @description
 #' Sets the analysis order (sequence), based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
@@ -141,15 +154,16 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 #' @export
 
 set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
+
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
     idx = match(var_list,names(data@dataset_orig))[1]
     if (!is.na(idx)) {
       data@feature_intensity_var = var_list[1]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw signal intensity. Use {.fn set_intensity_var} to modify."))
+      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw feature intensity. Use {.fn set_intensity_var} to modify."))
       variable_name <- var_list[1]
       } else {
-      cli_alert_warning(text = cli::col_yellow("No typical raw signal intensity variable found in the data. Use {.fn set_intensity_var to set it.}}"))
+      cli_alert_warning(text = cli::col_yellow("No typical raw feature intensity variable found in the data. Use {.fn set_intensity_var to set it.}}"))
       return(data)
       }
   } else {
@@ -166,10 +180,13 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
     calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
     if (any(calc_cols %in% names(data@dataset))){
       data@dataset <- data@dataset |> select(-any_of(calc_cols))
-      cli_alert_warning(text = "New feature variable set as default raw signal, please re-process data")
+      cli_alert_warning(cli::col_green("New variable set as default feature intensity variable, please re-process data"))
+    } else
+    {
+      cli_alert_success(cli::col_green("`{variable_name}` is set as default feature intensity variable for downstream processing."))
     }
     data <- link_data_metadata(data)
-    }
+  }
   data
 }
 
