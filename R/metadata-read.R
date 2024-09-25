@@ -256,7 +256,7 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
 
     n_invalid <- data@annot_analyses |> filter(!valid_analysis) |> nrow()
     if (n_invalid > 0){
-      cli_alert_info(col_yellow("{n_invalid} invalid analyses (as defined in the metadata) will be excluded"))
+      cli_alert_info(col_yellow("{n_invalid} invalid analyses (as defined in the metadata) were excluded"))
     }
 
   }
@@ -276,7 +276,7 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
 
     n_invalid <- data@annot_features |> filter(!valid_feature) |> nrow()
     if (n_invalid > 0){
-      cli_alert_info(col_yellow("{n_invalid} invalid features (as defined in the metadata) will be excluded"))
+      cli_alert_info(col_yellow("{n_invalid} invalid features (as defined in the metadata) were excluded"))
     }
 
   }
