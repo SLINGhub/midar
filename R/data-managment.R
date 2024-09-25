@@ -10,8 +10,12 @@ get_analysis_count <- function(data, qc_types = NULL) {
              select("analysis_id") |> distinct() |> nrow())
 }
 
-get_feature_count <- function(data) {
-  data@dataset|> select("feature_id") |> distinct() |> nrow()
+get_feature_count <- function(data, istd = NULL) {
+  if (is.null(istd))
+    return(data@dataset|> select("feature_id") |> distinct() |> nrow())
+  else
+    return(data@dataset|> filter(.data$is_istd == istd) |>
+             select("feature_id") |> distinct() |> nrow())
 }
 
 
@@ -180,10 +184,10 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
     calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
     if (any(calc_cols %in% names(data@dataset))){
       data@dataset <- data@dataset |> select(-any_of(calc_cols))
-      cli_alert_warning(cli::col_green("New variable set as default feature intensity variable, please re-process data"))
+      cli_alert_info(cli::col_green("New default feature intensity variable defined, please reprocess data"))
     } else
     {
-      cli_alert_success(cli::col_green("`{variable_name}` is set as default feature intensity variable for downstream processing."))
+      cli_alert_success(cli::col_green("`{variable_name}` was set as default feature intensity variable for downstream processing."))
     }
     data <- link_data_metadata(data)
   }
