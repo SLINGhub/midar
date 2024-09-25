@@ -15,6 +15,6 @@ correct_interferences(data, variable = "feature_intensity")
 MidarExperiment object
 }
 \description{
-The interference (e.g. isotope overlap or in-source fragments) is substracted using following formula:
+The interference (e.g. isotope overlap or in-source fragments) is subtracted using following formula:
 \deqn{Value_corrected = Value_Feature - relative_contribution * Value_InterferingFeature}
 }

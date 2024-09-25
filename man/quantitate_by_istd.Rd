@@ -2,16 +2,20 @@
 % Please edit documentation in R/istd-normalization.R
 \name{quantitate_by_istd}
 \alias{quantitate_by_istd}
-\title{Quantitate using sample and spiked ISTD amounts}
+\title{Calculate analyte concentrations}
 \usage{
-quantitate_by_istd(data)
+quantitate_by_istd(data, ignore_missing_info = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{ignore_missing_info}{Ignore undefined ISTD concentratios and sample/ISTD amounts.}
 }
 \value{
 MidarExperiment object
 }
 \description{
-Quantitate using sample and spiked ISTD amounts
+Calculation is based on ISTD-normalized intensities and corresponding
+sample and spiked-in ISTD amounts. The determined concentration unit is based
+on the \code{sample_amount_unit} provided in the analysis metadata.
 }
