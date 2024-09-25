@@ -40,7 +40,7 @@ normalize_by_istd <- function(data, interference_correction = FALSE) {
   }
 
   d_temp <- data@dataset |>
-    dplyr::inner_join(data@annot_features, by = c("feature_id" = "feature_id")) |>
+    dplyr::left_join(data@annot_features, by = c("feature_id" = "feature_id")) |>
     mutate(is_istd = .data$feature_id == .data$norm_istd_feature_id)
 
   d_temp <- d_temp %>%
@@ -62,20 +62,43 @@ normalize_by_istd <- function(data, interference_correction = FALSE) {
   data
 }
 
-#' Quantitate using sample and spiked ISTD amounts
+#' Calculate analyte concentrations
+#'
+#' Calculation is based on ISTD-normalized intensities and corresponding
+#' sample and spiked-in ISTD amounts. The determined concentration unit is based
+#' on the `sample_amount_unit` provided in the analysis metadata.
 #'
 #' @param data MidarExperiment object
+#' @param ignore_missing_info Ignore undefined ISTD concentratios and sample/ISTD amounts.
 #' @return MidarExperiment object
-#' @importFrom glue glue
 #' @export
-quantitate_by_istd <- function(data) {
+quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
   if (nrow(data@annot_istd) < 1) cli::cli_abort("ISTD concentrations are missing...please import ISTD metadata first.")
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'normalize_by_istd' first.")
+
+  istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+  if (length(istd_no_conc) > 0) {
+    if(ignore_missing_info)
+      cli::cli_alert_warning(cli::col_yellow("Concentrations of {length(istd_no_conc)} ISTD(s) missing, concentrations of affected features will `NA`."))
+    else
+      cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `ignore_missing_conc = TRUE`."))
+  }
+
+  no_amounts <- data@annot_analyses |> filter(.data$valid_analysis, is.na(.data$sample_amount), is.na(.data$istd_volume)) |> nrow()
+
+  if (no_amounts > 0) {
+    if(ignore_missing_info)
+      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD amount(s) for {no_amounts} analyses missing, concentrations of all features of the affected analyses will `NA`"))
+    else
+      cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {no_amounts} analyses missing. Please ammend analysis metadata or set `ignore_missing_conc = TRUE`."))
+  }
+
+
   d_temp <- data@dataset %>%
     select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
-    dplyr::inner_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
-    dplyr::inner_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) %>%
-    dplyr::inner_join(data@annot_istd, by = c("quant_istd_feature_id"))
+    dplyr::left_join(data@annot_analyses %>% dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) %>%
+    dplyr::left_join(data@annot_features %>% dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) %>%
+    dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_id"))
 
   d_temp <- d_temp %>% mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
   d_temp <- d_temp %>% mutate(feature_conc = .data$pmol_total / .data$sample_amount)
