@@ -205,13 +205,13 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @param missing.normintensity.spl.prop.max NA Proportion of missing normalized intensities
 #' @param missing.conc.spl.prop.max NA Proportion of missing final concentrations
 #' @param outlier.technical.exlude Remove samples classified as outliers
-#' @param intensity.min.bqc.min Minimum median signal intensity of BQC
-#' @param intensity.min.tqc.min Minimum median signal intensity of TQC
-#' @param intensity.min.spl.min Minimum median signal intensity of study samples (SPL)
-#' @param intensity.median.bqc.min Minimum median signal intensity of BQC
-#' @param intensity.median.tqc.min Minimum median signal intensity of TQC
-#' @param intensity.median.spl.min Minimum median signal intensity of study samples (SPL)
-#' @param intensity.max.spl.min Minimum maximun signal intensity oof study samples (SPL)
+#' @param intensity.min.bqc.min Minimum median feature intensity of BQC
+#' @param intensity.min.tqc.min Minimum median feature intensity of TQC
+#' @param intensity.min.spl.min Minimum median feature intensity of study samples (SPL)
+#' @param intensity.median.bqc.min Minimum median feature intensity of BQC
+#' @param intensity.median.tqc.min Minimum median feature intensity of TQC
+#' @param intensity.median.spl.min Minimum median feature intensity of study samples (SPL)
+#' @param intensity.max.spl.min Minimum maximun feature intensity oof study samples (SPL)
 #' @param cv.conc.bqc.max = Maximum %CV of BQC
 #' @param cv.conc.tqc.max Maximum %CV of TQC
 #' @param cv.intensity.bqc.min Maximum %CV of BQC
