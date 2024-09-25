@@ -179,6 +179,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
   # Subset features
   ds <- data@dataset |> select("analysis_id", "qc_type", "feature_id", "batch_id", y_original = "conc_raw")
 
+
   if (!is.null(feature_list))
     ds <- ds %>% dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
 
@@ -210,7 +211,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   if(is_adjusted){
     d_smooth_res <- d_smooth_res |>
-      inner_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type", "y_original")) |>
+      left_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type", "y_original")) |>
       group_by(across(all_of(adj_groups))) %>%
       mutate(
         y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
@@ -268,7 +269,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
   features_with_fit_errors <- sum(d_smooth_summary$any_fit_error)
   features_corrected <- sum(d_smooth_summary$drift_correct) - features_with_fit_errors
   cv_median_raw <- round(mean(d_smooth_summary$cv_raw_spl, na.rm = TRUE), 1)
-  cv_median_adj <- round(mean(d_smooth_summary$cv_adj_spl, na.rm = TRUE), 3)
+  cv_median_adj <- round(mean(d_smooth_summary$cv_adj_spl, na.rm = TRUE), 1)
   cv_difference_median <- round(median(d_smooth_summary$cv_change, na.rm = TRUE), 1)
   cv_difference_q1 <- format(round(cv_difference_median - IQR(d_smooth_summary$cv_change, na.rm = TRUE), 1), nsmall = 1)
   cv_difference_q3 <- format(round(cv_difference_median + IQR(d_smooth_summary$cv_change, na.rm = TRUE), 1), nsmall = 1)
@@ -284,12 +285,16 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
     count_feature_text <- glue::glue("{features_corrected} of {nrow(d_smooth_summary)} features")
 
   mode_text <- ifelse(within_batch, "(batch-wise)", "(across all batches)")
+  mode_text2 <- ifelse(within_batch, "in study samples (median of batches)", "in study samples (across batches)")
+
+  text_change <- ifelse(cv_difference_median > 0, "increased", "decreased")
 
   cli_alert_success(
     col_green(
-      c("Drift correction {mode_text} of raw concentrations was applied to {count_feature_text}.
-         The median study-sample CV of all features changed by {.strong {cv_difference_median}%} ({cv_difference_q1}% - {cv_difference_q3}%) after correction.
-        Median study sample CV  after correction: {.strong {format(cv_median_adj, nsmall = 3)}%}.")))
+      c("Drift correction {mode_text} was applied to raw concentrations of {count_feature_text}.")))
+
+  cli_alert_info(cli::col_grey(
+           "The median CV of all features {mode_text2} {.strong {text_change}} by {cv_difference_median}% ({cv_difference_q1} to {cv_difference_q3}%) to {format(cv_median_adj, nsmall = 1)}%."))
 
 
 
@@ -316,9 +321,9 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
 
   if (data@is_batch_corrected) cli_alert_info(col_blue(glue::glue("Previous batch correction has been removed.")))
-  if (features_with_fit_errors > 0) cli_alert_warning(col_yellow(glue::glue("No smoothing applied for {features_with_fit_errors} features due failure of the fit (insufficient/invalid data): {features_with_fit_errors_text}")))
+  if (features_with_fit_errors > 0) cli_alert_warning(col_yellow(glue::glue("No smoothing applied for {features_with_fit_errors} feature(s) due failure(s) of the fitting (insufficient/invalid data): {features_with_fit_errors_text}")))
 
-  data@status_processing <- "Drift-corrected quantitative data"
+  data@status_processing <- "Drift-corrected concentrations"
   data@is_drift_corrected <- TRUE
   data
 }
@@ -442,13 +447,13 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 
   data@dataset <- ds
   if (data@is_drift_corrected) {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concs of all {nrow(data@annot_features)} features.")))
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concs of all {get_feature_count(data)} features.")))
   } else {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {nrow(data@annot_features)} features.")))
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {get_feature_count(data)} features.")))
   }
 
   if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.")))
-  data@status_processing <- "Adjusted Quantitated Data"
+  data@status_processing <- "Batch-adjusted concentrations"
   data@is_batch_corrected <- TRUE
   data@dataset$feature_conc <- data@dataset$CONC_ADJ
   data
@@ -494,25 +499,26 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
       cv_before = mean(cv_before, na.rm = TRUE),
       cv_after = mean(cv_after, na.rm = TRUE),
       cv_diff_median = median(cv_diff, na.rm = TRUE),
-      cv_diff_q1 = format(round(cv_diff_median - IQR(cv_diff, na.rm = TRUE), 3), nsmall = 3),
-      cv_diff_q3 = format(round(cv_diff_median + IQR(cv_diff, na.rm = TRUE), 3), nsmall = 3),
+      cv_diff_q1 = format(round(cv_diff_median - IQR(cv_diff, na.rm = TRUE), 1), nsmall = 1),
+      cv_diff_q3 = format(round(cv_diff_median + IQR(cv_diff, na.rm = TRUE), 1), nsmall = 1),
       cv_diff_text = format(round(cv_diff_median, 1), nsmall = 1)
     )
 
+  nfeat <- get_feature_count(data)
+
   if (data@is_drift_corrected) {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concentrations of all {nrow(data@annot_features)} features.")))
-    data@status_processing <- "Batch- and drift-corrected quantitative data"
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concentrations of all {nfeat} features.")))
+    data@status_processing <- "Batch- and drift-corrected concentrations"
     } else {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concentrations of all {nrow(data@annot_features)} features.")))
-    data@status_processing <- "Batch-corrected quantitative data"
+    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concentrations of all {nfeat} features.")))
+    data@status_processing <- "Batch-corrected concentrations"
     }
 
-  cli_alert_success(
-    col_green(
-      c("The median study-sample CV of all features changed by {.strong {d_res_sum$cv_diff_text}%} ({d_res_sum$cv_diff_q1}% - {d_res_sum$cv_diff_q3}%) after correction.
-        Median study sample CV  after correction: {.strong {format(round(d_res_sum$cv_after, 3), nsmall = 3)}%}.")))
 
+  text_change <- ifelse(d_res_sum$cv_diff_median > 0, "increased", "decreased")
 
+  cli_alert_info(cli::col_grey(
+      c("The median CV of all features in study samples across batches {.strong {text_change}} by {d_res_sum$cv_diff_text}% ({d_res_sum$cv_diff_q1} to {d_res_sum$cv_diff_q3}%) to {format(round(d_res_sum$cv_after,1), nsmall = 1)}%.")))
 
   if (data@is_batch_corrected)
     cli_alert_warning(col_yellow(glue::glue("Note: Batch-correction was applied onto already batch-corrected data.")))
