@@ -11,7 +11,7 @@
 #' @param new_feature_id Optional. New name of corrected feature. If empty then feature name will not change.
 #' @param variable Default: `feature_intensity`. Name of Variable to be corrected.
 #' @return MidarExperiment object
-#' @export
+
 
 #  Example:  mexp <- correct_interference_manually(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
@@ -50,10 +50,10 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 #' Substract interferences contributed by another feature
 #'
 #' @description
-#' The interference (e.g. isotope overlap or in-source fragments) is substracted using following formula:
+#' The interference (e.g. isotope overlap or in-source fragments) is subtracted using following formula:
 #' \deqn{Value_corrected = Value_Feature - relative_contribution * Value_InterferingFeature}
 #'
-#  The intefering features an their relative contributions to the interferences are defined in the feature annotation table
+#  The interfering features an their relative contributions to the interference are defined in the feature annotation table
 #' @param data MidarExperiment object
 #' @param variable Name of Variable to be corrected. Default: `feature_intensity`.
 #' @return MidarExperiment object
@@ -62,16 +62,19 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 correct_interferences <- function(data, variable = "feature_intensity") {
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
-  if (data@is_isotope_corr) {
+  if (data@is_isotope_corr | (c("feature_intensity_raw") %in% names(data@dataset))) {
     cli_alert_info(cli::col_grey(glue::glue("Note: Data is already interference-corrected. Correction will be reapplied to raw intensities.")))
-    data@dataset <- data@dataset |> select(-"interference_corrected")
-  }
-
-
-  if (!"feature_intensity_raw" %in% names(data@dataset)) {
     data@dataset <- data@dataset |>
-      mutate(feature_intensity_raw = .data$feature_intensity, .before = "feature_intensity")
+      mutate(
+        feature_intensity = .data$feature_intensity_raw,
+        interference_corrected = FALSE)
+  } else {
+      data@dataset <- data@dataset |>
+        mutate(feature_intensity_raw = .data$feature_intensity,
+               interference_corrected = FALSE,
+               .before = "feature_intensity")
   }
+
 
   # ToDo: check if interering feature is in the feature list
   d_corrected_features <- data@dataset |>
@@ -85,24 +88,24 @@ correct_interferences <- function(data, variable = "feature_intensity") {
     group_by(.data$analysis_id, .data$interference_group) |>
     mutate(
       corr_intensity = if_else(!.data$is_interfering & !is.na(.data$interference_feature_id), .data$feature_intensity_raw - .data$feature_intensity_raw[.data$is_interfering] * .data$interference_proportion, NA_real_),
-      interference_corrected = !is.na(corr_intensity)
+      interference_corrected_temp = TRUE
     ) |>
     filter(!.data$is_interfering) |>
-    select("analysis_id", "feature_id", "interference_feature_id", "interference_group",  "interference_proportion", "corr_intensity", "interference_corrected") |>
-    ungroup()
-
+    ungroup() |>
+    select("analysis_id", "feature_id", "corr_intensity", "interference_corrected_temp")
 
     data@dataset <- data@dataset |>
-    left_join(d_corrected_features |> select(c("analysis_id", "feature_id", "corr_intensity", "interference_corrected")), by = c("analysis_id", "feature_id")) |>
-    #mutate(interference_corrected = dplyr::coalesce(.data$interference_corrected.x, .data$interference_corrected.y)) |>
+    left_join(d_corrected_features, by = c("analysis_id", "feature_id")) |>
+    mutate(interference_corrected = dplyr::coalesce(.data$interference_corrected, .data$interference_corrected_temp)) |>
     mutate(feature_intensity = if_else(.data$interference_corrected, .data$corr_intensity, .data$feature_intensity_raw)) |>
-    select(-"corr_intensity")
+    select(-"corr_intensity", -"interference_corrected_temp")
 
   data@is_isotope_corr <- TRUE
   n_corr <- data@annot_features |>
+    filter(.data$valid_feature) |>
     filter(!is.na(.data$interference_feature_id)) |>
     nrow()
-  cli_alert_success(col_green(glue::glue("Interference (isotope)-correction has been applied to {n_corr} of {nrow(data@annot_features |> filter(.data$valid_feature))} features.")))
+  cli_alert_success(col_green(glue::glue("Interference-correction has been applied to {n_corr} of {length(unique(data@dataset$feature_id))} features.")))
 
   data
 }
