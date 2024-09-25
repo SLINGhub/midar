@@ -407,7 +407,6 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       feature_class = stringr::str_squish(.data$feature_class),
       norm_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
-      is_istd = (.data$feature_id == .data$norm_istd_feature_id),
       is_quantifier = as.logical(case_match(tolower(.data$quantifier),
                                              "yes" ~ TRUE,
                                              "no"~ FALSE,
@@ -436,6 +435,11 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       "interference_proportion",
       "remarks"
     )
+
+  all_istds <- unique(metadata$annot_features$quant_istd_feature_id) |> na.omit()
+  metadata$annot_features <- metadata$annot_features |>
+    mutate(is_istd = .data$feature_id %in% all_istds, .after = "feature_class")
+
 
   # Handle the non-mandatory field Valid_Analysis  TODO: still needed?
   if (all(is.na(metadata$annot_features$valid_feature)))
