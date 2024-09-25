@@ -83,8 +83,7 @@ quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
 
   if (length(istd_no_conc) > 0) {
     if(ignore_missing_info)
-      cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing,
-                                             calculated concentrations of affected features will be `NA`."))
+      cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing, calculated concentrations of affected features will be `NA`."))
     else
       cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `ignore_missing_conc = TRUE`."))
   }
@@ -95,8 +94,7 @@ quantitate_by_istd <- function(data, ignore_missing_info = FALSE) {
 
   if (nrow(samples_no_amounts) > 0) {
     if(ignore_missing_info)
-      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD solution amount(s) for {length(samples_no_amounts)} analyses missing,
-                                             concentrations of all features of affected analyses will be `NA`"))
+      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD solution amount(s) for {length(samples_no_amounts)} analyses missing, concentrations of all features of affected analyses will be `NA`"))
     else
       cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {nrow(samples_no_amounts)} analyses missing. Please ammend analysis metadata or set `ignore_missing_conc = TRUE`."))
   }
