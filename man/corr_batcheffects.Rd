@@ -9,6 +9,8 @@ corr_batcheffects(
   qc_types,
   correct_location = TRUE,
   correct_scale = FALSE,
+  overwrite_batch_corr = TRUE,
+  log_transform = TRUE,
   ...
 )
 }
@@ -17,9 +19,13 @@ corr_batcheffects(
 
 \item{qc_types}{QC types used for batch correction}
 
-\item{use_raw_concs}{Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used}
+\item{correct_location}{Align locations (median) of batches}
 
-\item{center_fun}{Function used to center. Default is "median".}
+\item{correct_scale}{Scale batches to the same level}
+
+\item{overwrite_batch_corr}{Overwrite previous batch correction or apply on top existing batch correction}
+
+\item{log_transform}{Log transform the data internally for correction. Will not transform the final results.}
 }
 \value{
 MidarExperiment object
