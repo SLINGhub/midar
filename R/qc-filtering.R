@@ -133,6 +133,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
   model <- as.formula("feature_intensity ~ relative_sample_amount")
 
   d_stats  <- data@dataset |>
+    select("analysis_id", "feature_id", "feature_intensity") |>
     dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
     dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
     dplyr::filter(!all(is.na(.data$feature_intensity))) |>
@@ -161,8 +162,8 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
         call. = FALSE
       )
     }
-
     d_stats_lancer <- data@dataset |>
+      select("analysis_id", "feature_id", "feature_intensity")
       dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
       dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
       dplyr::filter(!all(is.na(.data$feature_intensity))) |>
@@ -431,27 +432,24 @@ apply_qc_filter <- function(data,
     if(!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
     if(!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
-    n_all_quant <- nrow(data@metrics_qc |> filter(.data$is_quantifier))
-    n_all_qual <- nrow(data@metrics_qc |> filter(!.data$is_quantifier))
+    n_all_quant <- get_feature_count(data, isistd = FALSE, isquantifier = TRUE)
+    n_all_qual <- get_feature_count(data, isistd = FALSE, isquantifier = FALSE)
     n_filt_quant <- nrow(d_filt |>  filter(.data$is_quantifier))
     n_filt_qual <- nrow(d_filt |>  filter(!.data$is_quantifier))
 
-    n_istd_quant <- nrow(data@metrics_qc |> filter(.data$is_istd, .data$is_quantifier))
-    n_istd_qual <- nrow(data@metrics_qc |> filter(.data$is_istd, !.data$is_quantifier))
+    n_istd_quant <- get_feature_count(data, isistd = TRUE, isquantifier = TRUE)
+    n_istd_qual <- get_feature_count(data, isistd = TRUE, isquantifier = FALSE)
 
     if (!istd.include) {
-      n_all_quant <- n_all_quant - n_istd_quant
-      n_all_qual <- n_all_qual - n_istd_qual
       n_filt_quant <- nrow(d_filt |>  filter(!.data$is_istd, .data$is_quantifier))
       n_filt_qual <- nrow(d_filt |>  filter(!.data$is_istd, !.data$is_quantifier))
     }
 
 
-
   if(qualifier.include)
     cli::cli_alert_success(cli::col_green(glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   else
-    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant}  quantifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
+    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
 
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
   if (!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
