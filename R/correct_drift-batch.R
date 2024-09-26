@@ -478,14 +478,31 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #' Additional details...
 #' @param data MidarExperiment object
 #' @param qc_types QC types used for batch correction
-#' @param use_raw_concs Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used
-#' @param center_fun Function used to center. Default is "median".
+#' @param correct_location Align locations (median) of batches
+#' @param correct_scale Scale batches to the same level
+#' @param overwrite_batch_corr Overwrite previous batch correction or apply on top existing batch correction
+#' @param log_transform Log transform the data internally for correction. Will not transform the final results.
+#'
 #' @return MidarExperiment object
-#' @importFrom glue glue
 #' @export
-corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, ...) {
+corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite_batch_corr = TRUE, log_transform = TRUE, ...) {
   ds <- data@dataset |> select(analysis_id, feature_id, qc_type, batch_id, feature_conc)
+  nbatches <- length(unique(ds$batch_id))
 
+  if(nbatches < 2) {
+    cli_abort(col_yellow(glue::glue("Batch correction was not applied as there is only one batch.")))
+    return(data)
+  }
+  if (data@is_batch_corrected){
+      if(overwrite_batch_corr){
+        cli_alert_warning(col_yellow(glue::glue("Previous batch-correction was overwritten.")))
+        data@dataset$feature_conc <- data@dataset$feature_conc_adj_raw
+  } else {
+        cli_alert_warning(col_yellow(glue::glue("Batch correction was applied onto previous batch-correction!")))
+      }
+  } else {
+      data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
+  }
   # TODO var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
   #if (!data@is_drift_corrected)
 
@@ -497,7 +514,6 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
     ) |>
     unnest(cols = c(.data$res)) |>
     select(-"data")
-
 
   d_res_sum <- d_res |>
     group_by(feature_id) |>
@@ -517,28 +533,29 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
 
   nfeat <- get_feature_count(data, istd = FALSE)
 
+  # Print summary
   if (data@is_drift_corrected) {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concentrations of all {nfeat} features.")))
+    cli_alert_success(col_green(glue::glue("Batch correction (median-centering) of {nbatches} batches was applied to drift-corrected concentrations of all {nfeat} features.")))
     data@status_processing <- "Batch- and drift-corrected concentrations"
-    } else {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concentrations of all {nfeat} features.")))
+  } else {
+    cli_alert_success(col_green(glue::glue("Batch correction (median-centering) of {nbatches} batches was applied to raw concentrations of all {nfeat} features.")))
     data@status_processing <- "Batch-corrected concentrations"
-    }
-
-
+  }
+  # Print stats
   text_change <- ifelse(d_res_sum$cv_diff_median > 0, "increased", "decreased")
 
   cli_alert_info(cli::col_grey(
       c("The median CV of all features in study samples across batches {.strong {text_change}} by {d_res_sum$cv_diff_text}% ({d_res_sum$cv_diff_q1} to {d_res_sum$cv_diff_q3}%) to {format(round(d_res_sum$cv_after,1), nsmall = 1)}%.")))
 
-  if (data@is_batch_corrected)
-    cli_alert_warning(col_yellow(glue::glue("Note: Batch-correction was applied onto already batch-corrected data.")))
-  data@is_batch_corrected <- TRUE
   # Return data
+
   data@dataset <- data@dataset |>
     left_join(d_res |> select(-"feature_conc"),
               by = c("analysis_id", "feature_id", "qc_type", "batch_id")) |>
-    mutate(feature_conc = y_adjusted)
+    mutate(feature_conc = y_adjusted) |>
+    select(-"y_adjusted")
+
+  data@is_batch_corrected <- TRUE
   data
 }
 
@@ -547,11 +564,15 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
 batch.correction = function(tab,
                             qc_types,
                             correct_location,
-                            correct_scale) {
+                            correct_scale,
+                            log_transform = TRUE, ...) {
 
   batch <- tab$batch_id
   batch.order <- seq(1, nrow(tab))
-  val <- log2(tab$feature_conc)
+
+
+  val <- tab$feature_conc
+  if(log_transform) val <- log2(val)
   sample.for.loc <- tab$qc_type %in% qc_types # Use sample for location median
 
   ubatch <- unique(batch)
@@ -573,7 +594,10 @@ batch.correction = function(tab,
     for(b in 1:nbatch) {
       id <- which(batch == ubatch[b])
       xloc <- loc.batch[b]
-      val.clean[id] <- (tmp[id] - xloc) + loc.batch.mean
+      if(log_transform)
+        val.clean[id] <- (tmp[id] - xloc) + loc.batch.mean
+      else
+        val.clean[id] <- (tmp[id] / xloc) * loc.batch.mean
     }
   }
 
@@ -593,12 +617,15 @@ batch.correction = function(tab,
     for(b in 1:nbatch) {
       id <- which(batch == ubatch[b])
       xloc <- loc.batch[b]
-      val.clean[id] <- (tmp[id] - xloc) / sca.batch[b] * sca.batch.mean + loc.batch.mean
+      if(log_transform)
+        val.clean[id] <- (tmp[id] - xloc) / sca.batch[b] * sca.batch.mean + loc.batch.mean
+      else
+        stop("Non-log batch scaling not implemented yet")
+        val.clean[id] <- (tmp[id] - xloc) / sca.batch[b] * sca.batch.mean + loc.batch.mean
     }
   }
 
-  val.clean
-  tab$y_adjusted <- 2^val.clean
+    tab$y_adjusted <- if(log_transform) 2^val.clean else val.clean
   tab
 
 }
