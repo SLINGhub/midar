@@ -290,7 +290,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
     last = " and ", width = 160)
 
 
-  nfeat <- get_feature_count(data, istd = FALSE)
+  nfeat <- get_feature_count(data, isistd = FALSE)
 
   if(apply_conditionally & within_batch)
     count_feature_text <- glue::glue("of at least one batch for {features_corrected}
@@ -535,7 +535,7 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
       cv_diff_text = format(round(.data$cv_diff_median, 1), nsmall = 1)
     )
 
-  nfeat <- get_feature_count(data, istd = FALSE)
+  nfeat <- get_feature_count(data, isistd = FALSE)
 
   # Print summary
   if (data@is_drift_corrected) {
