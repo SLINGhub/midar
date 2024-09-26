@@ -221,6 +221,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
           y_adj = .data$y_original / .data$y_predicted * .data$y_predicted_median)
     }
   # Summarize which species to apply drift correction to and assign final concentrations
+
   d_smooth_summary <- d_smooth_res |>
     group_by(across(all_of(adj_groups))) |>
     summarise(
@@ -505,7 +506,7 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
   #if (!data@is_drift_corrected)
 
   d_res <- ds |>
-  group_by(,data$feature_id) |>
+  group_by(.data$feature_id) |>
     nest() |>
     mutate(
       res = purrr::map(data, \(x) do.call("batch.correction", list(x, qc_types, correct_location, correct_scale, ...))),
