@@ -14,6 +14,7 @@ corr_drift_fun(
   apply_conditionally_per_batch = TRUE,
   max_cv_ratio_before_after = 1,
   use_uncorrected_if_fail = TRUE,
+  ignore_istd = TRUE,
   feature_list = NULL,
   ...
 )
@@ -38,6 +39,8 @@ Function needs to return a numerical vector with the length of number of rows in
 A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
 
 \item{use_uncorrected_if_fail}{In case the smoothing function fails for a species, then use original (uncorrected) data when \code{TRUE} (the default) or return \code{NA} for all analyses of the feature where the fit failed.}
+
+\item{ignore_istd}{Do not apply corrections to ISTDs}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
