@@ -167,7 +167,7 @@ quantitate_by_istd <- function(data, error_missing_info = TRUE, ignore_unused_is
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 
-  cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated using {n_istd} ISTDs and sample amounts in {get_analysis_count(data)} analyses."))
+  cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated based on {n_istd} ISTDs and sample amounts of {get_analysis_count(data)} analyses."))
   cli::cli_alert_info("Concentrations are given in {conc_unit}.")
 
   data@status_processing <- "ISTD-quantitated data"
