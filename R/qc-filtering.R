@@ -8,14 +8,13 @@
 #' @return MidarExperiment object
 #' @export
 qc_calculate_metrics <- function(data, batchwise_median ) {
-  # if(!(c("feature_norm_intensity") %in% names(data@dataset))) warning("No normali is not normalized")
-  # TODO: remove later when fixed
+
+   # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
         # All features defined in the metadata
       d_feature_info <- data@annot_features |>
         #filter(.data$valid_feature) |>
-        select("valid_feature", "feature_id", "feature_class", "is_quantifier", "is_istd", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor") |>
-        mutate(is_istd = feature_id == norm_istd_feature_id)
+        select("valid_feature", "feature_id", "feature_class", "is_istd", "is_quantifier", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor")
 
       # All features MS method parameters
       method_var <- c("method_precursor_mz", "method_product_mz", "method_collision_energy")
