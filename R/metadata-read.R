@@ -66,7 +66,7 @@ metadata_import_midarxlm<- function(data, path,  excl_unannotated_analyses = FAL
 
   metadata  <- assert_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
   data  <- add_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
-  data
+  data <- link_data_metadata(data)
 }
 
 
