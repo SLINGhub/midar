@@ -10,12 +10,12 @@ get_analysis_count <- function(data, qc_types = NULL) {
              select("analysis_id") |> distinct() |> nrow())
 }
 
-get_feature_count <- function(data, istd = NULL) {
-  if (is.null(istd))
-    return(data@dataset|> select("feature_id") |> distinct() |> nrow())
-  else
-    return(data@dataset|> filter(.data$is_istd == istd) |>
-             select("feature_id") |> distinct() |> nrow())
+get_feature_count <- function(data, isistd = NULL, isquantifier = NULL) {
+  d <- data@dataset
+  if (!is.null(isistd)) d <- d |> filter(.data$is_istd == isistd)
+  if (!is.null(isquantifier)) d <- d |> filter(.data$is_quantifier == isquantifier)
+
+  d |> select("feature_id") |> distinct() |> nrow()
 }
 
 
