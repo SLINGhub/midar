@@ -160,26 +160,31 @@ fun_loess <- function(tbl, qc_types,...) {
 #' @param apply_conditionally_per_batch When `apply_conditionally = TRUE`, correction is conditionally applied per batch when `TRUE` and across all batches when `FALSE`
 #' @param max_cv_ratio_before_after Only used when `apply_conditionally = TRUE`. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
 #' A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.
+#' @param ignore_istd Do not apply corrections to ISTDs
 #' @param feature_list Subset the features for correction whose names matches the specified text using regular expression. Default is `NULL` which means all features are selected.
 #' @param use_uncorrected_if_fail In case the smoothing function fails for a species, then use original (uncorrected) data when `TRUE` (the default) or return `NA` for all analyses of the feature where the fit failed.
 #' @param ... Parameters specific for the smoothing function
 #' @return MidarExperiment object
 #' @export
 corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
-                           max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, feature_list = NULL, ...) {
+                           max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, ignore_istd = TRUE, feature_list = NULL, ...) {
 
   # Clear all previous calculations
   data@dataset <- data@dataset |> select(-any_of(c("CURVE_y_predicted", "y_predicted_median",
                                                    "CONC_DRIFT_ADJ", "cv_raw_spl", "cv_adj_spl", "drift_correct",
                                                    "fit_error", "feature_conc_adj")))
 
-  # Subset features
-  ds <- data@dataset |> select("analysis_id", "qc_type", "feature_id", "batch_id", y_original = "conc_raw")
+  if(!"conc_raw" %in% names(data@dataset))
+    cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `quantitate_by_istd`")))
+
+    # Subset features
+  ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = "conc_raw")
 
 
   if (!is.null(feature_list))
     ds <- ds |> dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
 
+  if(ignore_istd) ds <- ds |> filter(!.data$is_istd)
   ds <- ds |> mutate(x = dplyr::row_number(), .by = "feature_id")
   ds$y <- ds$y_original
   if (log2_transform) (ds$y <- log2(ds$y))   #TODO: suppressWarnings?
@@ -199,7 +204,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
       ) |>
       unnest(cols = c(data, .data$y_predicted, .data$fit_error,.data$data_adjusted))
 
-  # Get flag if data needs to be backtransformed (from smoothing function)
+  # Get flag if data needs to be back-transformed (from smoothing function)
   is_adjusted <- all(d_smooth_res$data_adjusted) #TODOTODO
 
   # Backtransform data
@@ -534,10 +539,10 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
 
   # Print summary
   if (data@is_drift_corrected) {
-    cli_alert_success(col_green(glue::glue("Batch correction (median-centering) of {nbatches} batches was applied to drift-corrected concentrations of all {nfeat} features.")))
+    cli_alert_success(col_green(glue::glue("Batch median-centering of {nbatches} batches was applied to drift-corrected concentrations of all {nfeat} features.")))
     data@status_processing <- "Batch- and drift-corrected concentrations"
   } else {
-    cli_alert_success(col_green(glue::glue("Batch correction (median-centering) of {nbatches} batches was applied to raw concentrations of all {nfeat} features.")))
+    cli_alert_success(col_green(glue::glue("Batch median-centering of {nbatches} batches was applied to raw concentrations of all {nfeat} features.")))
     data@status_processing <- "Batch-corrected concentrations"
   }
   # Print stats
