@@ -4,6 +4,8 @@
 #' @param log_transform log transform data for plot
 #' @param dim_x PCA dimension on x axis
 #' @param dim_y PCA dimension on y axis
+#' @param qc_types qc types to plot
+#' @param use_filtered_data Use all (default) or filtered data
 #' @param point_size size of points
 #' @param point_alpha transparency of points
 #' @param ellipse_alpha transparency of ellipse fill
@@ -25,7 +27,7 @@ plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_type
     filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
-  d_filt <- d_wide %>%
+  d_filt <- d_wide |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
 
@@ -37,7 +39,7 @@ plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_type
     dplyr::select(where(~ !any(is.na(.) | is.nan(.) | is.infinite(.) | . <= 0)))
 
 
-  d_metadata <- d_wide %>%
+  d_metadata <- d_wide |>
     dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct() |>
     dplyr::right_join(d_clean |> dplyr::select("analysis_id") |> distinct(), by = c("analysis_id"))
@@ -56,7 +58,7 @@ plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_type
     broom::augment(d_metadata)
 
   pca_annot$qc_type <- droplevels(factor(pca_annot$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
-  pca_annot <- pca_annot %>%
+  pca_annot <- pca_annot |>
     dplyr::arrange(.data$qc_type)
 
   pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
@@ -98,15 +100,15 @@ plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_type
 
 plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), log_transform = TRUE, grouping = "qc_type", sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
-  d_wide <- data@dataset %>%
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) %>%
+  d_wide <- data@dataset |>
+    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
-  d_filt <- d_wide %>%
+  d_filt <- d_wide |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
 
-  d_metadata <- d_wide %>%
+  d_metadata <- d_wide |>
     dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct()
   # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) cli::cli_abort("Data and Metadata missmatch")
@@ -176,11 +178,11 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   PCx <- rlang::sym(paste0("PC", dim_x))
   PCy <- rlang::sym(paste0("PC", dim_y))
 
-  d_wide <- data@dataset %>%
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) %>%
+  d_wide <- data@dataset |>
+    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
-  d_filt <- d_wide %>%
+  d_filt <- d_wide |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
   m_raw <- d_filt |>
@@ -191,8 +193,8 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   if (log_transform) m_raw <- log2(m_raw)
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
 
-  d_loading <- pca_res %>%
-    broom::tidy(matrix = "rotation") %>%
+  d_loading <- pca_res |>
+    broom::tidy(matrix = "rotation") |>
     tidyr::pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value")
 
   d_top_loadings <- d_loading |>
@@ -225,7 +227,7 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
 }
 
 plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
-  d_wide <- data@dataset_filtered %>% filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
+  d_wide <- data@dataset_filtered |> filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
   if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
@@ -241,8 +243,8 @@ plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n
   if (log_transform) m_raw <- log2(m_raw)
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
 
-  d_loading <- pca_res %>%
-    broom::tidy(matrix = "rotation") %>%
+  d_loading <- pca_res |>
+    broom::tidy(matrix = "rotation") |>
     tidyr::pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |>
     dplyr::rename(feauture_name = .data$column)
 

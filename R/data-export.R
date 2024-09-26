@@ -18,25 +18,25 @@ writeReportXLS <- function(data, path) {
   if (!("feature_conc" %in% names(data@dataset))) cli::cli_abort("Variable '", "feature_conc", "' does not (yet) exist in dataset")
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
-  d_intensity_wide <- data@dataset %>%
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) %>%
+  d_intensity_wide <- data@dataset |>
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
     tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
 
-  d_conc_wide <- data@dataset %>%
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) %>%
-    dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) %>%
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) %>%
+  d_conc_wide <- data@dataset |>
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
+    dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
     tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
   if ("feature_id" %in% names(data@dataset_filtered)) {
-    d_conc_wide_QC <- data@dataset_filtered %>%
-      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) %>%
-      dplyr::filter(.data$qc_type %in% c("SPL")) %>%
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_quantifier", "is_istd", "acquisition_time_stamp", "feature_id", "feature_conc"))) %>%
-      dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) %>%
-      dplyr::filter(.data$is_quantifier) %>%
-      dplyr::filter(!.data$is_istd) %>%
+    d_conc_wide_QC <- data@dataset_filtered |>
+      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
+      dplyr::filter(.data$qc_type %in% c("SPL")) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_quantifier", "is_istd", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
+      dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
+      dplyr::filter(.data$is_quantifier) |>
+      dplyr::filter(!.data$is_istd) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
     d_conc_wide_QC_SPL <- d_conc_wide_QC |>
@@ -48,10 +48,10 @@ writeReportXLS <- function(data, path) {
 
 
   if ("feature_id" %in% names(data@dataset_filtered)) {
-    d_normint_wide_QC <- data@dataset_filtered %>%
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) %>%
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) %>%
-      dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) %>%
+    d_normint_wide_QC <- data@dataset_filtered |>
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
+      dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
     d_normint_wide_QC <- d_normint_wide_QC |>
@@ -104,7 +104,7 @@ exportWideCSV <- function(data, variable, path) {
   if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does not (yet) exist in dataset.")
 
   ds <- data@dataset |>
-    dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", !!var) %>%
+    dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", !!var) |>
     tidyr::pivot_wider(names_from = .data$feature_id, values_from = !!var)
 
   readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)

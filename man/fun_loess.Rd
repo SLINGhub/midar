@@ -12,8 +12,6 @@ fun_loess(tbl, qc_types, ...)
 \item{qc_types}{QC types used for the smoothing (fit) by loess}
 
 \item{...}{Additional parameters forwarded to Loess}
-
-\item{span_width}{Loess span width}
 }
 \value{
 List with a \code{data.frame} containing original x and the smoothed y values, and a \code{boolean} value indicting whether the fit failed or not not.

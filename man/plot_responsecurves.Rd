@@ -46,6 +46,8 @@ plot_responsecurves(
 
 \item{columns_page}{columns per page}
 
+\item{page_no}{Specific page to plot. Default \code{NA}, meaning all pages are plotted}
+
 \item{point_size}{point size}
 
 \item{line_width}{regression line width}

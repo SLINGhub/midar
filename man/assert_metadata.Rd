@@ -9,9 +9,11 @@ assert_metadata(data, metadata, excl_unannotated_analyses, ignore_warnings)
 \arguments{
 \item{data}{MidarExperiment object}
 
+\item{metadata}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
+
 \item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 
-\item{path}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
+\item{ignore_warnings}{Ignore data validation warnings and proceed with adding metadata}
 }
 \value{
 metadata list

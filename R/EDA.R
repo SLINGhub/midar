@@ -68,7 +68,7 @@ volcano_plot <- function(d_FC, p_adjust, sig_FC_min, sig_p_value_min, symmetric_
     # ggplot2::annotation_logticks(sides = 'tb', outside = TRUE, size = .2) +
     # scale_y_continuous(trans = "log1p", limits=c(0,5), breaks = c(1, 2, 3,4,5),  expand = c(0,0)) +
     ggrepel::geom_text_repel(
-      data = d_FC %>% filter(.data$Significant == "sign"),
+      data = d_FC |> filter(.data$Significant == "sign"),
       aes(label = .data$feature_id),
       size = 3 * scale_factor_species_label,
       box.padding = unit(0.15, "lines"),
@@ -114,22 +114,22 @@ get_CompoundName <- function(transition_name) {
 
 add_lipid_transition_classnames <- function(datLong) {
   # cat("Retrieving lipid class/transition names...", fill = FALSE)
-  datLong_temp <- datLong %>% mutate(lipidClassBase = (str_trim(str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*"))))
-  datLong_temp <- datLong_temp %>% mutate(lipidClass = (str_trim(str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*([A-Z]{1}|[d|t|m])"))))
+  datLong_temp <- datLong |> mutate(lipidClassBase = (str_trim(str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*"))))
+  datLong_temp <- datLong_temp |> mutate(lipidClass = (str_trim(str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*([A-Z]{1}|[d|t|m])"))))
 
   # add a "-", except for between name and sphingoid base
-  datLong_temp <- datLong_temp %>% mutate(lipidClass = str_replace(.data$lipidClass, "([[:blank:]]+)([^d|t|m]{1})", "-\\2"))
-  datLong_temp <- datLong_temp %>% mutate(lipidClassSL = str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*([A-Z]{1}|[d|t|m][0-9\\:]{4})"))
+  datLong_temp <- datLong_temp |> mutate(lipidClass = str_replace(.data$lipidClass, "([[:blank:]]+)([^d|t|m]{1})", "-\\2"))
+  datLong_temp <- datLong_temp |> mutate(lipidClassSL = str_extract(.data$Compound, "[A-z0-9]+[[:blank:]]*([A-Z]{1}|[d|t|m][0-9\\:]{4})"))
   # Add  transition name  (defined by flanking "[]")
-  datLong_temp <- datLong_temp %>% mutate(transitionName = str_extract(.data$Compound, "(?<=\\[).*?(?=\\])"))
-  datLong_temp <- datLong_temp %>% mutate(transitionName = ifelse(is.na(.data$transitionName), "", .data$transitionName))
+  datLong_temp <- datLong_temp |> mutate(transitionName = str_extract(.data$Compound, "(?<=\\[).*?(?=\\])"))
+  datLong_temp <- datLong_temp |> mutate(transitionName = ifelse(is.na(.data$transitionName), "", .data$transitionName))
 
   # Add  transition class (adds measured product class in square brackets after the compound class name). In case of NL indicated with [-...] (e.g.  TG 48:2 [-16:1]), [NL] is indicated (TG [NL]). Maybe useful for normalization
-  datLong_temp <- datLong_temp %>% mutate(transitionClass = ifelse(grepl("\\[\\-|\\[NL", .data$Compound), "M>M-NL", str_replace(paste("", str_trim(str_extract(.data$Compound, "\\[[a-zA-Z0-9\\-\\: ]*\\]"))), " NA", .data$transitionName)))
+  datLong_temp <- datLong_temp |> mutate(transitionClass = ifelse(grepl("\\[\\-|\\[NL", .data$Compound), "M>M-NL", str_replace(paste("", str_trim(str_extract(.data$Compound, "\\[[a-zA-Z0-9\\-\\: ]*\\]"))), " NA", .data$transitionName)))
 
-  datLong_temp <- datLong_temp %>% mutate(CompoundName = get_CompoundName(.data$Compound))
+  datLong_temp <- datLong_temp |> mutate(CompoundName = get_CompoundName(.data$Compound))
 
-  return(datLong_temp %>% ungroup())
+  return(datLong_temp |> ungroup())
 }
 
 
@@ -141,12 +141,12 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
     col = annot_color
   )
 
-  d_wide <- data %>%
+  d_wide <- data |>
     pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
   d_filt <- left_join(d_metadata[, "analysis_id"], d_wide)
 
-  m_raw <- d_filt %>%
+  m_raw <- d_filt |>
     # dplyr::select(where(~!any(is.na(.)))) |>
     column_to_rownames("analysis_id") |>
     as.matrix()
@@ -205,7 +205,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
     "TG-O" = "#f03768"
   )
 
-  df_compounds <- data.frame(Compound = colnames(m_scaled)) %>% add_lipid_transition_classnames(.data$.)
+  df_compounds <- data.frame(Compound = colnames(m_scaled)) |> add_lipid_transition_classnames()
 
   ha2 <- ComplexHeatmap::rowAnnotation(
     df = data.frame(lipidClass = df_compounds$lipidClass),
@@ -239,7 +239,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 
 
 plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1, ellipse = TRUE, mark_ellipse = FALSE, show_labels = FALSE, label_size = 6, max_label_overlaps = Inf) {
-  d_wide <- data %>%
+  d_wide <- data |>
     pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
   d_filt <- left_join(d_metadata[, "analysis_id"], d_wide)
@@ -487,8 +487,8 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
 
   d_lipidnames <- d_long_full |>
     dplyr::select(Compound = .data$feature_id) |>
-    distinct() %>%
-    add_lipid_transition_classnames(.data$.) |>
+    distinct() |>
+    add_lipid_transition_classnames() |>
     dplyr::select(feature_id = "Compound", "lipidClass", "lipidClassSL")
 
   df <- d_long_full |>
@@ -505,16 +505,16 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
 
   if (class_per_page) {
     plt_list <- page_list |>
-      group_by(.data$lipidclass_id, .data$lipid_class_page_no) %>%
-      nest() %>%
+      group_by(.data$lipidclass_id, .data$lipid_class_page_no) |>
+      nest() |>
       mutate(plt = map(data, ~ plot_dotboxplus_onepage(.,
         outer_inner = FALSE, GroupOuter = {{ outer_group }}, GroupInner = {{ inner_group }},
         n_row = rows_page, n_col = columns_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size
       )))
   } else {
     plt_list <- page_list |>
-      group_by(.data$page_no) %>%
-      nest() %>%
+      group_by(.data$page_no) |>
+      nest() |>
       mutate(plt = map(data, ~ plot_dotboxplus_onepage(.,
         outer_inner = FALSE, GroupOuter = {{ outer_group }}, GroupInner = {{ inner_group }},
         n_row = rows_page, n_col = columns_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size

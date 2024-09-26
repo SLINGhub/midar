@@ -53,7 +53,7 @@ get_tails <- function(x) {
 # Flag outliers, based on Tukey’s IQR fences
 flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
   data <- data |>
-    group_by(.data$ceramideName, .data$SampleType) %>%
+    group_by(.data$ceramideName, .data$SampleType) |>
     mutate(
       IQR_sp = IQR(.data$C_SinglePoint_mean, na.rm = TRUE),
       Q1_sp = quantile(.data$C_SinglePoint_mean, 0.25, na.rm = TRUE),

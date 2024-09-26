@@ -78,7 +78,7 @@ correct_interferences <- function(data, variable = "feature_intensity") {
 
   # ToDo: check if interering feature is in the feature list
   d_corrected_features <- data@dataset |>
-    left_join(data@annot_features |> select(feature_id, interference_feature_id, interference_proportion), by = "feature_id") |>
+    left_join(data@annot_features |> select("feature_id", "interference_feature_id", "interference_proportion"), by = "feature_id") |>
     mutate(
       is_interfering = .data$feature_id %in% data@annot_features$interference_feature_id,
       interference_group = if_else(.data$is_interfering, .data$feature_id, .data$interference_feature_id)

@@ -1,24 +1,40 @@
 
 # Response Curves -----
 
+#' metadata_responsecurves method
+#' @description
+#' Get curve IDs and sample amount information for response curves
+#' @param x MidarExperiment object
+#' @return Tibble
+#' @export
 setGeneric("metadata_responsecurves", function(x) standardGeneric("metadata_responsecurves"))
 
 #' Get response curve metadata
 #' @description
 #' Get curve IDs and sample amount information for response curves
+#' @param x MidarExperiment object
 #' @return Tibble
 #' @export
 setMethod("metadata_responsecurves", "MidarExperiment", function(x) x@annot_responsecurves)
 
 
+#' metadata_responsecurves method
+#' @description
+#' Get curve IDs and sample amount information for response curves
+#' @param x MidarExperiment object
+#' @param value Table with response curve metadata
+#' @return Tibble
+#' @export
 setGeneric("metadata_responsecurves<-", function(x, value) standardGeneric("metadata_responsecurves<-"))
 
 #' Set response curve metadata
 #' @description
 #' Set curve IDs and sample amount information for response curves
+#' @param x MidarExperiment object
 #' @param value A data.frame or tibble
 #' @return MidarExperiment object
 #' @export
+# TODO: cleanup/remove/merge validation checks .. use assertion functions defined else in the code
 setMethod("metadata_responsecurves<-", "MidarExperiment", function(x, value) {
   if(!check_rawdata_present(x))
     cli::cli_abort(message = "No analysis data loaded. Please first import raw data.")

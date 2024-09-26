@@ -38,7 +38,7 @@ file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::rawdata_import_mrmkit(data = mexp, path = file_path,use_metadata TRUE)
+mexp <- midar::rawdata_import_mrmkit(data = mexp, path = file_path,use_metadata = TRUE)
 
 # Normalize and quantitate each feature by internal standards
 #mexp <- normalize_by_istd(mexp)

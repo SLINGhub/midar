@@ -28,8 +28,8 @@ plot_qc_summary_classes <- function(data, use_batches = c("across", "individual"
 
 # Count how many features failed qc criteria, excluding features that failed before tested criteria (lower hiarchy)
 # TODO: can surely be better implemented
-  d_qc_sum <- d_qc %>%
-    group_by(.data$feature_class) %>%
+  d_qc_sum <- d_qc |>
+    group_by(.data$feature_class) |>
     summarise(
       has_only_na = sum(.data$na_in_all_spl, na.rm = TRUE),
       exceed_missingness = sum(!replace_na(.data$na_in_all_spl, TRUE) & !.data$pass_missingval, na.rm = TRUE) | all(is.na(.data$pass_missingval)),
@@ -39,8 +39,8 @@ plot_qc_summary_classes <- function(data, use_batches = c("across", "individual"
       bad_linearity = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !.data$pass_linearity, na.rm = TRUE) | all(is.na(.data$pass_linearity)),
       above_dratio = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !.data$pass_dratio, na.rm = TRUE) | all(is.na(.data$pass_dratio)),
       qc_pass = sum(.data$qc_pass, na.rm = TRUE)
-    ) %>%
-    tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") %>%
+    ) |>
+    tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
     ungroup()
 
   qc_colors <- c(qc_pass = "#4bcc7f", above_dratio = "#ffcf57", above_cva = "#bf0426", bad_linearity = "#1fc1ed", below_sb = "#cccaca", below_lod = "#919191", exceed_missingness = "yellow", has_only_na = "#111111")
@@ -56,7 +56,7 @@ plot_qc_summary_classes <- function(data, use_batches = c("across", "individual"
   if(all(is.na(d_qc$pass_linearity))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "bad_linearity")
   if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
-  d_qc_sum <- d_qc_sum |> drop_na(qc_criteria)
+  d_qc_sum <- d_qc_sum |> drop_na(.data$qc_criteria)
 
   ggplot(d_qc_sum, aes(forcats::fct_rev(.data$feature_class), .data$count_pass)) +
     ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat = "identity", na.rm = TRUE) +
@@ -95,7 +95,7 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 
-  d_qc_sum_total <- d_qc %>%
+  d_qc_sum_total <- d_qc |>
     ungroup() |>
     summarise(
       has_only_na = sum(!.data$pass_no_na),
@@ -105,19 +105,19 @@ plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
       bad_linearity = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & !.data$pass_linearity),
       above_dratio = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & .data$pass_linearity & !.data$pass_dratio),
       qc_pass = sum(.data$qc_pass)
-    ) %>%
-    tidyr::pivot_longer(names_to = "qc_criteria", values_to = "count_pass", cols = everything()) %>%
-    ungroup() %>%
+    ) |>
+    tidyr::pivot_longer(names_to = "qc_criteria", values_to = "count_pass", cols = everything()) |>
+    ungroup() |>
     mutate(qc_criteria = factor(.data$qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
 
 
 
-  # d_qc_sum_total <- d_qc_sum %>%
-  #   group_by(qc_criteria) %>%
-  #   summarise(Count = sum(Count,na.rm = TRUE)) %>%
+  # d_qc_sum_total <- d_qc_sum |>
+  #   group_by(qc_criteria) |>
+  #   summarise(Count = sum(Count,na.rm = TRUE)) |>
   #   mutate(totalCount = sum(Count,na.rm = TRUE),
   #          cumCount = cumsum(Count),
-  #          centres = totalCount - (cumCount - Count / 2)) %>% ungroup()
+  #          centres = totalCount - (cumCount - Count / 2)) |> ungroup()
 
   p_bar <- ggplot(d_qc_sum_total, aes(x = reorder(.data$qc_criteria, .data$count_pass), y = .data$count_pass, fill = .data$qc_criteria)) +
     geom_bar(width = 1, stat = "identity") +

@@ -20,6 +20,6 @@ Sets the analysis order (sequence), based on either (i) analysis timestamp, if a
 \examples{
 file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- rawdata_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
-mexp <- set_analysis_order(data, "timestamp")
+mexp <- rawdata_import_mrmkit(mexp, path = file_path, use_metadata = TRUE)
+mexp <- set_analysis_order(mexp, "timestamp")
 }

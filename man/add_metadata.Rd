@@ -9,9 +9,9 @@ add_metadata(data, metadata, excl_unannotated_analyses = FALSE)
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
+\item{metadata}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
 
-\item{path}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
+\item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
 }
 \value{
 metadata list

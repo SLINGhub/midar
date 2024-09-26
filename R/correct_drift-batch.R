@@ -4,7 +4,6 @@
 #' @author Hyung Won Choi
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param qc_types QC types used for the smoothing (fit) by loess
-#' @param kernel_size Bandwidth of the gaussian kernel function
 #' @param ... Additional parameters
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
 
@@ -85,7 +84,6 @@ fun_gauss.kernel.smooth = function(tbl, qc_types, ...) {
 #' Function for Gaussian kernel-based smoothing, for use by `corr_drift_fun`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param qc_types QC types used for the smoothing (fit) by loess
-#' @param span_width Bandwidth of the gaussian kernel function
 #' @param ... Additional parameters forwarded to KernSmooth::locpoly
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
 
@@ -120,7 +118,6 @@ fun_gaussiankernel_old <- function(tbl, qc_types, ...) {
 #' Function for loess-based smoothing, for use by `corr_drift_fun`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param qc_types QC types used for the smoothing (fit) by loess
-#' @param span_width Loess span width
 #' @param ... Additional parameters forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
 fun_loess <- function(tbl, qc_types,...) {
@@ -135,8 +132,8 @@ fun_loess <- function(tbl, qc_types,...) {
       stats::loess(y ~ x,
         span = arg$span_width, family = "symmetric", degree = 2, normalize = FALSE, iterations = 4, surface = surface, ...,
         data = tbl
-      ) %>%
-        stats::predict(tibble::tibble(x = seq(1, nrow(tbl)))) %>%
+      ) |>
+        stats::predict(tibble::tibble(x = seq(1, nrow(tbl)))) |>
         as.numeric()
     },
     error = function(e) {
@@ -181,7 +178,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
 
   if (!is.null(feature_list))
-    ds <- ds %>% dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
+    ds <- ds |> dplyr::filter(stringr::str_detect(.data$feature_id, feature_list))
 
   ds <- ds |> mutate(x = dplyr::row_number(), .by = "feature_id")
   ds$y <- ds$y_original
@@ -189,11 +186,11 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   if (within_batch) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
 
-  d_smooth_res <- ds %>%
+  d_smooth_res <- ds |>
       select("analysis_id", "qc_type", "feature_id", "batch_id", "y_original", "x", "y") |>
       #filter(.data$qc_type %in% c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBPK", "RQC")) |>
-      group_by(across(all_of(adj_groups))) %>%
-      nest() %>%
+      group_by(across(all_of(adj_groups))) |>
+      nest() |>
       mutate(
         res = purrr::map(data, \(x) do.call(smooth_fun, list(x, qc_types, ...))),
         y_predicted = purrr::map(.data$res, \(x) x$res),
@@ -212,34 +209,34 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
   if(is_adjusted){
     d_smooth_res <- d_smooth_res |>
       left_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type", "y_original")) |>
-      group_by(across(all_of(adj_groups))) %>%
+      group_by(across(all_of(adj_groups))) |>
       mutate(
         y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
         y_adj = .data$y_predicted)
     } else {
       d_smooth_res <- d_smooth_res |>
-        group_by(across(all_of(adj_groups))) %>%
+        group_by(across(all_of(adj_groups))) |>
         mutate(
           y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
-          y_adj = .data$y_original / .data$y_predicted * y_predicted_median)
+          y_adj = .data$y_original / .data$y_predicted * .data$y_predicted_median)
     }
   # Summarize which species to apply drift correction to and assign final concentrations
-  d_smooth_summary <- d_smooth_res %>%
-    group_by(across(all_of(adj_groups))) %>%
+  d_smooth_summary <- d_smooth_res |>
+    group_by(across(all_of(adj_groups))) |>
     summarise(
       any_fit_error = any(.data$fit_error, na.rm = TRUE),
       cv_raw_spl = cv(.data$y_original[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
       cv_adj_spl = cv(.data$y_adj[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-      cv_change = cv_adj_spl - cv_raw_spl,
+      cv_change = .data$cv_adj_spl - .data$cv_raw_spl,
       drift_correct =
         !apply_conditionally | (.data$cv_adj_spl / .data$cv_raw_spl) < max_cv_ratio_before_after)|>
-    group_by(feature_id) |>
+    group_by(.data$feature_id) |>
     summarise(
       any_fit_error = any(.data$any_fit_error, na.rm = TRUE),
       drift_correct = any(.data$drift_correct, na.rm = TRUE),
       cv_raw_spl = median(.data$cv_raw_spl, na.rm = TRUE),
       cv_adj_spl = median(.data$cv_adj_spl, na.rm = TRUE),
-      cv_change = median(cv_change, na.rm = TRUE)) |>
+      cv_change = median(.data$cv_change, na.rm = TRUE)) |>
       ungroup()
 
 
@@ -248,7 +245,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
   ## TODO check what is needed in terms of check to assign value
   d_smooth_final <- d_smooth_res |>
     dplyr::left_join(d_smooth_summary, by = c("feature_id"))  |>
-    group_by(feature_id) |>
+    group_by(.data$feature_id) |>
     mutate(
       y_final = case_when(
         is.na(.data$y_adj) ~ NA_real_,
@@ -260,7 +257,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
     select("analysis_id", "feature_id", "fit_error", "drift_correct", feature_conc_adj = "y_final")
 
   # Add drift-corrected data to the datast
-  data@dataset <- data@dataset %>%
+  data@dataset <- data@dataset |>
     left_join(d_smooth_final, by = c("analysis_id", "feature_id")) |>
     mutate(feature_conc = .data$feature_conc_adj)
 
@@ -270,8 +267,8 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
   #features_corrected <- sum(d_smooth_summary$drift_correct) - features_with_fit_errors
 
   features_corrected <- data@dataset |>
-    filter(!is_istd, drift_correct) |>
-    pull(feature_id) |>
+    filter(!.data$is_istd, .data$drift_correct) |>
+    pull(.data$feature_id) |>
     unique() |>
     length()
 
@@ -331,7 +328,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
 
 
-  if (data@is_batch_corrected) cli_alert_info(col_blue(glue::glue("Previous batch correction has been removed.")))
+  if (data@is_batch_corrected) cli_alert_info(col_yellow(glue::glue("Previous batch correction has been removed.")))
   if (features_with_fit_errors > 0) cli_alert_warning(col_yellow(glue::glue("No smoothing applied for {features_with_fit_errors} feature(s) due failure(s) of the fitting (insufficient/invalid data): {features_with_fit_errors_text}")))
 
   data@status_processing <- "Drift-corrected concentrations"
@@ -444,14 +441,14 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
   ds <- data@dataset
   if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
   # Normalize by the median (or user-defined function)
-  ds <- ds %>%
-    dplyr::group_by(.data$feature_id, .data$batch_id) %>%
+  ds <- ds |>
+    dplyr::group_by(.data$feature_id, .data$batch_id) |>
     dplyr::mutate(CONC_ADJ_NEW = {{ var }} / do.call(center_fun, list(({{ var }}[.data$qc_type %in% qc_types]), na.rm = TRUE))) |>
     dplyr::ungroup()
 
   # Re-level data to the median of all batches
-  ds <- ds %>%
-    dplyr::group_by(.data$feature_id) %>%
+  ds <- ds |>
+    dplyr::group_by(.data$feature_id) |>
     dplyr::mutate(CONC_ADJ = .data$CONC_ADJ_NEW * do.call(center_fun, list({{ var }}[.data$qc_type %in% qc_types], na.rm = TRUE))) |>
     dplyr::select(-"CONC_ADJ_NEW") |>
     dplyr::ungroup()
@@ -482,11 +479,12 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #' @param correct_scale Scale batches to the same level
 #' @param overwrite_batch_corr Overwrite previous batch correction or apply on top existing batch correction
 #' @param log_transform Log transform the data internally for correction. Will not transform the final results.
+#' @param ... Other parameters for batch correction function. Currently not in use.
 #'
 #' @return MidarExperiment object
 #' @export
 corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite_batch_corr = TRUE, log_transform = TRUE, ...) {
-  ds <- data@dataset |> select(analysis_id, feature_id, qc_type, batch_id, feature_conc)
+  ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "feature_conc")
   nbatches <- length(unique(ds$batch_id))
 
   if(nbatches < 2) {
@@ -506,9 +504,9 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
   # TODO var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
   #if (!data@is_drift_corrected)
 
-  d_res <- ds %>%
-  group_by(feature_id) %>%
-    nest() %>%
+  d_res <- ds |>
+  group_by(,data$feature_id) |>
+    nest() |>
     mutate(
       res = purrr::map(data, \(x) do.call("batch.correction", list(x, qc_types, correct_location, correct_scale, ...))),
     ) |>
@@ -516,19 +514,19 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
     select(-"data")
 
   d_res_sum <- d_res |>
-    group_by(feature_id) |>
+    group_by(.data$feature_id) |>
     summarise(
-      cv_before = cv(feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-      cv_after = cv(y_adjusted[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-      cv_diff = cv_after - cv_before,
+      cv_before = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+      cv_after = cv(.data$y_adjusted[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+      cv_diff = .data$cv_after - .data$cv_before,
     ) |> ungroup() |>
     summarise(
-      cv_before = mean(cv_before, na.rm = TRUE),
-      cv_after = mean(cv_after, na.rm = TRUE),
-      cv_diff_median = median(cv_diff, na.rm = TRUE),
-      cv_diff_q1 = format(round(cv_diff_median - IQR(cv_diff, na.rm = TRUE), 1), nsmall = 1),
-      cv_diff_q3 = format(round(cv_diff_median + IQR(cv_diff, na.rm = TRUE), 1), nsmall = 1),
-      cv_diff_text = format(round(cv_diff_median, 1), nsmall = 1)
+      cv_before = mean(.data$cv_before, na.rm = TRUE),
+      cv_after = mean(.data$cv_after, na.rm = TRUE),
+      cv_diff_median = median(.data$cv_diff, na.rm = TRUE),
+      cv_diff_q1 = format(round(.data$cv_diff_median - IQR(.data$cv_diff, na.rm = TRUE), 1), nsmall = 1),
+      cv_diff_q3 = format(round(.data$cv_diff_median + IQR(.data$cv_diff, na.rm = TRUE), 1), nsmall = 1),
+      cv_diff_text = format(round(.data$cv_diff_median, 1), nsmall = 1)
     )
 
   nfeat <- get_feature_count(data, istd = FALSE)
@@ -552,7 +550,7 @@ corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_s
   data@dataset <- data@dataset |>
     left_join(d_res |> select(-"feature_conc"),
               by = c("analysis_id", "feature_id", "qc_type", "batch_id")) |>
-    mutate(feature_conc = y_adjusted) |>
+    mutate(feature_conc = .data$y_adjusted) |>
     select(-"y_adjusted")
 
   data@is_batch_corrected <- TRUE

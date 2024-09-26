@@ -24,9 +24,13 @@ plot_pca_qc(
 
 \item{variable}{which variable to use for plot}
 
+\item{use_filtered_data}{Use all (default) or filtered data}
+
 \item{dim_x}{PCA dimension on x axis}
 
 \item{dim_y}{PCA dimension on y axis}
+
+\item{qc_types}{qc types to plot}
 
 \item{log_transform}{log transform data for plot}
 

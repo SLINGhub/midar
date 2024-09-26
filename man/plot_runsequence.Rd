@@ -7,8 +7,8 @@
 plot_runsequence(
   data,
   qc_type_subet,
-  show_qc_dataset_only = FALSE,
   show_batches = TRUE,
+  show_qc_dataset_only = FALSE,
   segment_width = 0.5,
   batches_as_shades = FALSE,
   batch_line_color = "darkred",
@@ -25,9 +25,9 @@ plot_runsequence(
 
 \item{qc_type_subet}{Select QC types to be show, NA will select all available QC/Sample types}
 
-\item{show_qc_dataset_only}{Show only available QC types}
-
 \item{show_batches}{Show batches}
+
+\item{show_qc_dataset_only}{Show only available QC types}
 
 \item{segment_width}{Linewidth of the segments}
 

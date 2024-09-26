@@ -36,7 +36,7 @@ gauss.kernel.smooth = function(xx, yy,
     for(i in 1:n) {
       wt = (xx - xx[i]) / kernel.size
       wt = dnorm(wt, 0, 1)
-      wt[is.na(yy)] = NA
+      wt[is.na(yy.train)] = NA
       yy.est[i] = yy[i] - sum(wt * yy.train, na.rm=TRUE) / sum(wt, na.rm=TRUE)
     }
   }

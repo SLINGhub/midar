@@ -22,7 +22,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
       if(any(c(method_var) %in% names(data@dataset_orig))){
         d_method_info <- data@dataset_orig |>
           select(c("feature_id", any_of(method_var))) |>
-          group_by(feature_id) |>
+          group_by(.data$feature_id) |>
           summarise(
             precursor_mz = stringr::str_c(unique(.data$method_precursor_mz), collapse = "; "),
             product_mz = stringr::str_c(unique(.data$method_product_mz), collapse = "; "),
@@ -37,8 +37,8 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
       }
 
       d_stats_missingval <- data@dataset |>
-        dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) %>%
-        dplyr::group_by(.data$feature_id) %>%
+        dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) |>
+        dplyr::group_by(.data$feature_id) |>
         dplyr::summarise(
           missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
           missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
@@ -94,7 +94,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 
    if (batchwise_median){
      d_stats_var <- d_stats_var |>
-        group_by(pick("feature_id")) |>
+        group_by(dplyr::pick("feature_id")) |>
         summarise(across(is.numeric, median, na.rm = TRUE))
    }
 
@@ -106,7 +106,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     left_join(d_method_info, by = "feature_id") |>
     left_join(d_stats_missingval, by = "feature_id") |>
     left_join(d_stats_var, by = "feature_id") |>
-    relocate(feature_id, feature_class, valid_feature, is_quantifier, precursor_mz, product_mz, collision_energy)
+    relocate("feature_id", "feature_class", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
 
   if ("RQC" %in% data@dataset$qc_type) {
     d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
@@ -120,11 +120,11 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 #' Linear regression statistics of response curves
 
 #' @details
-#' When using `with_staturation_stats` then the {lancer} package needs to be installed
+#' When using `with_staturation_stats` then the `lancer` package needs to be installed
 #'
 
 #' @param data MidarExperiment object
-#' @param with_staturation_stats Include statistics and classification from the {lancer} package.
+#' @param with_staturation_stats Include statistics and classification from the `lancer` package.
 #' @param limit_to_rqc If TRUE (default) then only includes RQC qc type
 #' @return Tibble with linear regression stats of all curves in a wide format
 #' @export
@@ -132,11 +132,11 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
   model <- as.formula("feature_intensity ~ relative_sample_amount")
 
-  d_stats  <- data@dataset %>%
-    dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") %>%
-    dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
-    dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
-    tidyr::nest() %>%
+  d_stats  <- data@dataset |>
+    dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
+    dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
+    dplyr::filter(!all(is.na(.data$feature_intensity))) |>
+    tidyr::nest() |>
     mutate(
       models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
       stats = purrr::map(.data$models, function(x) broom::glance(x)),
@@ -146,10 +146,10 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
           pivot_wider(names_from = "term", values_from = "estimate")
       }),
     )  |>
-    select(-models) |>
+    select(-"models") |>
     tidyr::unnest(c("stats", "model")) |>
     dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
-    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") %>%
+    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") |>
     tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
     ungroup()
 
@@ -157,23 +157,23 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 
     if (!requireNamespace("lancer", quietly = TRUE)) {
       stop(
-        "Package {lancer} must be installed when `with_staturation_stats = TRUE`. It is available from `https://github.com/SLINGhub/lancer`",
+        "Package `lancer` must be installed when `with_staturation_stats = TRUE`. It is available from `https://github.com/SLINGhub/lancer`",
         call. = FALSE
       )
     }
 
-    d_stats_lancer <- data@dataset %>%
-      dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") %>%
-      dplyr::group_by(.data$feature_id, .data$rqc_series_id) %>%
-      dplyr::filter(!all(is.na(.data$feature_intensity))) %>%
-      tidyr::nest() %>%
+    d_stats_lancer <- data@dataset |>
+      dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
+      dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
+      dplyr::filter(!all(is.na(.data$feature_intensity))) |>
+      tidyr::nest() |>
       mutate(
         lancer_raw = map(data, \(x) lancer::summarise_curve_data(x, "relative_sample_amount", "feature_intensity")),
         lancer = map(.data$lancer_raw, \(x) lancer::evaluate_linearity(x))
       ) |>
-      select(-lancer_raw) |>
+      select(-"lancer_raw") |>
       tidyr::unnest(c("lancer")) |>
-      dplyr::select("feature_id", "rqc_series_id", "r_corr", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") %>%
+      dplyr::select("feature_id", "rqc_series_id", "r_corr", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") |>
       tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r_corr", "class_wf2", "pra_linear", "mandel_p_val", "concavity"), names_prefix = "rqc_") |>
       ungroup()
 
@@ -265,41 +265,15 @@ apply_qc_filter <- function(data,
 
 
   if (nrow(data@metrics_qc) == 0) {
-    cli::cli_abort("QC info has not yet been calculated. Please apply 'calculate_qc_metrics' first.")
+    cli::cli_abort("QC info has not yet been calculated. Please run 'calculate_qc_metrics()' first.")
   }
   if (!is.null(features_to_keep)) {
     keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
     if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following defined in features_to_keep are not present in this dataset: {txt}"))
   }
-  if(nrow(data@metrics_qc) == 0)
-    data <- calculate_qc_metrics(data)
 
-  # if (is.na(intensity.min.bqc.min)) intensity.min.bqc.min <- NA
-  # if (is.na(intensity.min.tqc.min)) intensity.min.tqc.min <- NA
-  # if (is.na(intensity.min.spl.min)) intensity.min.spl.min <- NA
-  #
-  # if (is.na(intensity.median.bqc.min)) intensity.median.bqc.min <- NA
-  # if (is.na(intensity.median.tqc.min)) intensity.median.tqc.min <- NA
-  # if (is.na(intensity.median.spl.min)) intensity.median.spl.min <- NA
-  #
-  # if (is.na(intensity.max.spl.min)) intensity.max.spl.min <- NA
-  #
-  # if (is.na(cv.conc.bqc.max)) cv.conc.bqc.max <- NA
-  # if (is.na(cv.conc.tqc.max)) cv.conc.tqc.max <- NA
-  # if (is.na(cv.intensity.bqc.min)) cv.intensity.bqc.min <- NA
-  # if (is.na(cv.intensity.tqc.min)) cv.intensity.tqc.min <- NA
-  # if (is.na(dratio.conc.bqc.max)) dratio.conc.bqc.max <- NA
-  # if (is.na(dratio.conc.tqc.max)) dratio.conc.tqc.max <- NA
-  # if (is.na(signalblank.median.pblk.min)) signalblank.median.pblk.min <- NA
-  # if (is.na(signalblank.median.ublk.min)) signalblank.median.ublk.min <- NA
-  # if (is.na(signalblank.median.sblk.min)) signalblank.median.sblk.min <- NA
-  # if (is.na(response.rsquare.min)) response.rsquare.min <- NA
-  # if (is.na(response.yintersect.rel.max)) response.yintersect.rel.max <- NA
-  # if (is.na(missingval.spl.prop.max)) missingval.spl.prop.max <- NA
-
-
-  # Save QC filters
+  # Save QC filter criteria to MidarExperiment object
   # TODO: fix some of the param below ie. features_to_keep
   data@parameters_processing <- data@parameters_processing |>
     mutate(
@@ -353,14 +327,13 @@ apply_qc_filter <- function(data,
 
   # Get the result of AND/OR of boolean elements of vectors, return NA when all NA
   comp_lgl_vec <- function(lgl_vec, .operator){
-
     v <- lgl_vec[!is.na(lgl_vec)]
     if (length(v) == 0) return(NA)
-    if (.operator == "AND")
+    if (.operator == "AND"){
       all(v)
-    else eif (.operator == "OR")
+    } else if (.operator == "OR"){
       any(v)
-
+    }
   }
 
   data@metrics_qc <- data@metrics_qc |>
@@ -453,7 +426,7 @@ apply_qc_filter <- function(data,
 
 
     d_filt <- data@metrics_qc |>
-      filter(qc_pass)
+      filter(.data$qc_pass)
 
     if(!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
     if(!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
@@ -463,8 +436,8 @@ apply_qc_filter <- function(data,
     n_filt_quant <- nrow(d_filt |>  filter(.data$is_quantifier))
     n_filt_qual <- nrow(d_filt |>  filter(!.data$is_quantifier))
 
-    n_istd_quant <- nrow(data@metrics_qc |> filter(is_istd, .data$is_quantifier))
-    n_istd_qual <- nrow(data@metrics_qc |> filter(is_istd, !.data$is_quantifier))
+    n_istd_quant <- nrow(data@metrics_qc |> filter(.data$is_istd, .data$is_quantifier))
+    n_istd_qual <- nrow(data@metrics_qc |> filter(.data$is_istd, !.data$is_quantifier))
 
     if (!istd.include) {
       n_all_quant <- n_all_quant - n_istd_quant
@@ -483,7 +456,7 @@ apply_qc_filter <- function(data,
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
   if (!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
-  data@dataset_filtered <- data@dataset %>%
+  data@dataset_filtered <- data@dataset |>
     dplyr::right_join(d_filt |> dplyr::select("feature_id"), by = "feature_id") #|>
     #filter( !(.data$outlier_technical & outlier.technical.exlude)) #TODO
   data

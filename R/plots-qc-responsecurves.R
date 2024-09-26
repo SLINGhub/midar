@@ -20,8 +20,8 @@ plot_responsecurves_page <- function(dataset,
   row_end <- n_cmpd * columns_page * rows_page * page_no
 
 
-  dat_subset <- dataset %>%
-    dplyr::arrange(.data$feature_id, .data$rqc_series_id) %>%
+  dat_subset <- dataset |>
+    dplyr::arrange(.data$feature_id, .data$rqc_series_id) |>
     dplyr::slice(row_start:row_end)
 
   p <- ggplot(
@@ -42,7 +42,7 @@ plot_responsecurves_page <- function(dataset,
         se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE
       ) +
       ggpmisc::stat_poly_eq(
-        aes(group = .data$rqc_series_id, label = after_stat(.data$rr.label)),
+        aes(group = .data$rqc_series_id, label = ggplot2::after_stat(.data$rr.label)),
         size = 2 * text_scale_factor, rr.digits = 3, vstep = .1
       ) +
       # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
@@ -82,6 +82,7 @@ plot_responsecurves_page <- function(dataset,
 #' @param path file name of pdf file
 #' @param rows_page rows per page
 #' @param columns_page columns per page
+#' @param page_no Specific page to plot. Default `NA`, meaning all pages are plotted
 #' @param point_size point size
 #' @param line_width regression line width
 #' @param text_scale_factor text scale factor
@@ -118,10 +119,10 @@ plot_responsecurves <- function(data,
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   if (use_filt_data) {
-    dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
+    dat_filt <- data@dataset_filtered |> dplyr::ungroup()
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
-    dat_filt <- data@dataset %>% dplyr::ungroup()
+    dat_filt <- data@dataset |> dplyr::ungroup()
   }
 
   dat_filt <- dat_filt |> dplyr::semi_join(data@annot_responsecurves, by = c("analysis_id"))

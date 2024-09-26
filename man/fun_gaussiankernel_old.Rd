@@ -12,8 +12,6 @@ fun_gaussiankernel_old(tbl, qc_types, ...)
 \item{qc_types}{QC types used for the smoothing (fit) by loess}
 
 \item{...}{Additional parameters forwarded to KernSmooth::locpoly}
-
-\item{span_width}{Bandwidth of the gaussian kernel function}
 }
 \value{
 List with a \code{data.frame} containing original \code{x} and the smoothed \code{y} values, and a \code{boolean} value indicting whether the fit failed or not not.

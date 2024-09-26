@@ -28,8 +28,8 @@ get_feature_count <- function(data, istd = NULL) {
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- rawdata_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
-#' mexp <- set_analysis_order(data, "timestamp")
+#' mexp <- rawdata_import_mrmkit(mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- set_analysis_order(mexp, "timestamp")
 
 #' @export
 
@@ -75,13 +75,13 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
 
 
 # # ##### TODO TODO =====================
-# d_dataset <- data@dataset_orig %>%
+# d_dataset <- data@dataset_orig |>
 #   dplyr::inner_join(
-#     data@annot_analyses %>%
+#     data@annot_analyses |>
 #       dplyr::select("run_id", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
-#     by = c("analysis_id")) %>%
+#     by = c("analysis_id")) |>
 #   dplyr::inner_join(
-#     metadata$annot_features %>%
+#     metadata$annot_features |>
 #       filter(.data$valid_feature) |>
 #       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "table_templates", "interference_feature_id", "interference_proportion"))),
 #     by = c("feature_id"), keep = FALSE
@@ -103,7 +103,7 @@ link_data_metadata <- function(data, minimal_info = TRUE){
     ) |>
     inner_join(data@annot_analyses, by = "analysis_id") |>
     inner_join(data@annot_features, by = "feature_id") |>
-    filter(valid_analysis, valid_feature) |>
+    filter(.data$valid_analysis, .data$valid_feature) |>
     select(
       "run_id",
       "analysis_id",
@@ -152,8 +152,9 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 #' Sets the raw signal variable used for calculations starting from raw signal
 #' values (i.e., normalization)
 #' @param data MidarExperiment object
-#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
-#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
+#' @param variable_name Feature variable to be used as default feature intensity for downstream processing.
+#' @param auto_select If `TRUE` then the first available of these will be used as default: "feature_intensity", "feature_response", "feature_area", "feature_height".
+#' @param ... Feature variables to best search for one-by-one when `auto-detect = TRUE`
 #' @return MidarExperiment object
 #' @export
 
@@ -175,7 +176,7 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
     if (! variable_name %in% names(data@dataset_orig))
       cli_abort(c("x" = "{.var variable_name} is not present in the raw data."))
 
-    if (! variable_name %in% c("feature_area", "feature_height", "feature_response", "feature_intensity"))
+    if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height"))
       cli_alert_warning(text = "{.var {variable_name}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
   }
   data@feature_intensity_var <- variable_name

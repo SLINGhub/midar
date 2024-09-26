@@ -23,9 +23,9 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim = c(0, NA), yli
 
   if (!c("LipidClass") %in% names(d_QC)) cli::cli_abort("This function currently only works with lipidomics data. Please add lipid names/class with the function `lipidomics_get_lipid_class_names` before calling this function.")
   # get max value for the pair for each lipid class (so that 45deg line will be shown in the square plots)
-  d_QC <- d_QC %>%
-    group_by(.data$LipidClass) %>%
-    mutate(xy_max = max(!!sym(x), !!sym(y), na.rm = TRUE)) %>%
+  d_QC <- d_QC |>
+    group_by(.data$LipidClass) |>
+    mutate(xy_max = max(!!sym(x), !!sym(y), na.rm = TRUE)) |>
     ungroup()
 
   point_size <- 0.75 * point_size

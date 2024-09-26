@@ -21,6 +21,8 @@ analysis_outlier_detection(
 
 \item{variable}{Feature variable used for outlier detection}
 
+\item{qc_types}{QC types included in the outlier detection}
+
 \item{pca_component}{PCA component to be used}
 
 \item{fence_multiplicator}{Multiplicator for SD or MAD, respectively.}

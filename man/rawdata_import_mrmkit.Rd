@@ -11,7 +11,9 @@ rawdata_import_mrmkit(data, path, use_metadata, silent = FALSE)
 
 \item{path}{One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.}
 
-\item{include_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
+\item{use_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
+
+\item{silent}{Suppress most notifications}
 }
 \value{
 MidarExperiment object

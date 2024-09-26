@@ -2,8 +2,8 @@
 #'
 #' @param data MidarExperiment object
 #' @param qc_type_subet Select QC types to be show, NA will select all available QC/Sample types
-#' @param show_qc_dataset_only Show only available QC types
 #' @param show_batches Show batches
+#' @param show_qc_dataset_only Show only available QC types
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
@@ -18,8 +18,8 @@
 
 plot_runsequence <- function(data,
                              qc_type_subet,
-                             show_qc_dataset_only = FALSE,
                              show_batches = TRUE,
+                             show_qc_dataset_only = FALSE,
                              segment_width = 0.5,
                              batches_as_shades = FALSE,
                              batch_line_color = "darkred",
@@ -29,8 +29,8 @@ plot_runsequence <- function(data,
                              base_size = 12,
                              factor_a = NA,
                              factor_b = NA) {
-  d_temp <- data$dataset %>%
-    dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type) %>%
+  d_temp <- data$dataset |>
+    dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type) |>
     distinct()
 
   d_temp$qc_type <- factor(d_temp$qc_type, c("EQC", "SST", "MBLK", "SBLK", "UBLK", "PBLK", "RQC", "LTR", "NIST", "TQC", "BQC", "SPL"))
@@ -38,31 +38,13 @@ plot_runsequence <- function(data,
   d_temp$sample_category <- as.character(d_temp$qc_type)
 
 
-
-  # if (factor_a != "" & factor_b !="" & nrow(data@annot_studysamples)> 0){
-  #   fac_a <- sym(factor_a)
-  #   fac_b <- sym(factor_b)
-  #
-  #   data@annot_studysamples <-  data@annot_studysamples %>%
-  #     mutate(factor_a = !!fac_a,
-  #            factor_b = !!fac_b)
-  #
-  #   d_temp <- bind_rows(d_temp, d_temp %>% filter(sample_category == "SPL") %>%
-  #                         mutate(qc_type = ifelse(qc_type == "SPL", "SPL_B", qc_type)))
-  #
-  #
-  #   d_temp <- d_temp %>% left_join(data$annot_studysamples %>% dplyr::select(sample_id, factor_a, factor_b), by=(c("sample_id"="sample_id")))
-  #   d_temp <- d_temp %>% mutate(sample_category = ifelse(qc_type=="SPL", paste0("SPL_", factor_a), sample_category),
-  #                               sample_category = ifelse(qc_type=="SPL_B", paste0("SPL_", factor_b), sample_category))
-  #   d_temp <- d_temp %>% mutate(sample_category = fct_rev(as_factor(sample_category))) %>% droplevels()
-  # }
-
-  # d_temp <- d_temp %>% mutate(sample_category = forcats::fct_rev(forcats::as_factor(sample_category)))
-  d_temp <- d_temp %>%
-    filter(str_detect(as.character(.data$sample_category), qc_type_subet)) %>%
-    {
-      if (show_qc_dataset_only | qc_type_subet != "") droplevels(.) else .
-    }
+  # TODO: fix below pipe usage or skip this option alltogether
+  if(show_qc_dataset_only) stop("`show_qc_dataset_only = TRUE` currently not supported")
+  # d_temp <- d_temp |>
+  #   filter(str_detect(as.character(.data$sample_category), qc_type_subet)) |>
+  #   {
+  #     if (show_qc_dataset_only | qc_type_subet != "") droplevels(.) else .
+  #   }
 
   d_batch_info <- data@annot_batches
 
@@ -71,8 +53,8 @@ plot_runsequence <- function(data,
   p <- ggplot(d_temp, aes(x = .data$run_id, y = rev(.data$qc_type), color = .data$sample_category))
   if (show_batches) {
     if (batches_as_shades) {
-      d_batch_2nd <- d_batch_info %>%
-        dplyr::slice(-1) %>%
+      d_batch_2nd <- d_batch_info |>
+        dplyr::slice(-1) |>
         filter(.data$batch_no %% 2 != 1)
       p <- p + geom_rect(
         data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),
@@ -114,7 +96,7 @@ plot_runsequence <- function(data,
 
   if (show_batches) {
     if (!batches_as_shades) {
-      p <- p + geom_vline(data = d_batch_info %>% dplyr::slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, size = 0.5)
+      p <- p + geom_vline(data = d_batch_info |> dplyr::slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, size = 0.5)
     }
   }
   # if (factor_a != "" & factor_b !=""){
@@ -219,10 +201,10 @@ plot_runscatter <- function(data,
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   if (use_filt_data) {
-    dat_filt <- data@dataset_filtered %>% dplyr::ungroup()
+    dat_filt <- data@dataset_filtered |> dplyr::ungroup()
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
   } else {
-    dat_filt <- data@dataset %>% dplyr::ungroup()
+    dat_filt <- data@dataset |> dplyr::ungroup()
   }
 
   plot_var <- rlang::arg_match(plot_var)
@@ -265,11 +247,11 @@ plot_runscatter <- function(data,
 
   # Cap upper outliers  ----
 
-  dat_filt <- dat_filt %>% dplyr::mutate(value = !!plot_var_s)
+  dat_filt <- dat_filt |> dplyr::mutate(value = !!plot_var_s)
 
 
-  dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$feature_id) %>%
+  dat_filt <- dat_filt |>
+    dplyr::group_by(.data$feature_id) |>
     dplyr::mutate(
       # value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
       # value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
@@ -284,16 +266,16 @@ plot_runscatter <- function(data,
         },
         .data$value
       )
-    ) %>%
+    ) |>
     dplyr::ungroup()
 
-  dat_filt <- dat_filt %>%
-    dplyr::group_by(.data$feature_id) %>%
-    dplyr::arrange(.data$value) %>%
+  dat_filt <- dat_filt |>
+    dplyr::group_by(.data$feature_id) |>
+    dplyr::arrange(.data$value) |>
     mutate(
       value = ifelse(dplyr::row_number() < cap_top_n_values, .data$value[cap_top_n_values], .data$value)
     ) |>
-    dplyr::arrange(.data$feature_id, .data$run_id) %>%
+    dplyr::arrange(.data$feature_id, .data$run_id) |>
     dplyr::ungroup()
 
 
@@ -352,12 +334,12 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   row_end <- n_cmpd * cols_page * rows_page * page_no
 
 
-  dat_subset <- dat_filt %>%
-    dplyr::arrange(.data$feature_id, .data$run_id) %>%
+  dat_subset <- dat_filt |>
+    dplyr::arrange(.data$feature_id, .data$run_id) |>
     dplyr::slice(row_start:row_end)
 
   dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
-  dat_subset <- dat_subset %>%
+  dat_subset <- dat_subset |>
     dplyr::arrange(.data$qc_type)
 
 
@@ -365,8 +347,8 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
   if (nrow(dat_subset) > 0) {
-    dMax <- dat_subset %>%
-      dplyr::group_by(.data$feature_id) %>%
+    dMax <- dat_subset |>
+      dplyr::group_by(.data$feature_id) |>
       dplyr::summarise(
         y_max =
           if (!all(is.na(.data$value_mod))) {
@@ -378,9 +360,9 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   }
 
 
-  d_batch_data <- d_batches %>% dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
+  d_batch_data <- d_batches |> dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
   d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
-  d_batch_data <- d_batch_data %>% dplyr::left_join(dMax, by = c("feature_id"))
+  d_batch_data <- d_batch_data |> dplyr::left_join(dMax, by = c("feature_id"))
   p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x = "run_id"))
 
   # browser()
@@ -389,7 +371,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
       d_batches_temp <- d_batch_data |> filter(.data$id_batch_start != 1)
       p <- p + ggplot2::geom_vline(data = d_batches_temp, ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = .5, na.rm = TRUE)
     } else {
-      d_batches_temp <- d_batch_data %>% dplyr::filter(.data$batch_no %% 2 != 1)
+      d_batches_temp <- d_batch_data |> dplyr::filter(.data$batch_no %% 2 != 1)
       p <- p + ggplot2::geom_rect(
         data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = 0, ymax = .data$y_max, label = .data$batch_id),
         inherit.aes = FALSE, fill = batch_shading_color, color = NA, alpha = 0.5, linetype = "solid", size = 0.3, na.rm = TRUE
@@ -546,25 +528,25 @@ plot_runboxplots <- function(data,
     d_temp <- data@dataset_filtered
   }
 
-  d_temp <- d_temp %>%
-    dplyr::select(any_of(c("analysis_id", "run_id", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) %>%
-    filter(.data$feature_intensity > min_feature_intensity) %>%
-    filter(str_detect(.data$qc_type, qc_types)) %>%
+  d_temp <- d_temp |>
+    dplyr::select(any_of(c("analysis_id", "run_id", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
+    filter(.data$feature_intensity > min_feature_intensity) |>
+    filter(str_detect(.data$qc_type, qc_types)) |>
     droplevels()
 
   if (relative_log_abundances) {
-    d_temp <- d_temp %>%
-      group_by(.data$feature_id) %>%
-      mutate(val = !!plot_var_sym) %>%
+    d_temp <- d_temp |>
+      group_by(.data$feature_id) |>
+      mutate(val = !!plot_var_sym) |>
       mutate(val = .data$val / mean(.data$val[.data$qc_type == "BQC" | .data$qc_type == "TQC" | .data$qc_type == "SPL"], na.rm = TRUE))
   } else {
-    d_temp <- d_temp %>% mutate(val = !!plot_var_sym)
+    d_temp <- d_temp |> mutate(val = !!plot_var_sym)
   }
 
-  breaks <- data$dataset %>%
-    dplyr::select(.data$run_id) %>%
-    distinct() %>%
-    mutate(ticks_to_plot = .data$run_id %% 10 == 0) %>%
+  breaks <- data$dataset |>
+    dplyr::select(.data$run_id) |>
+    distinct() |>
+    mutate(ticks_to_plot = .data$run_id %% 10 == 0) |>
     pull(.data$run_id)
 
 
@@ -574,10 +556,10 @@ plot_runboxplots <- function(data,
 
   if (show_batches) {
     if (!batches_as_shades) {
-      p <- p + geom_vline(data = data@annot_batches %>% slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = 1)
+      p <- p + geom_vline(data = data@annot_batches |> slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", size = 1)
     } else {
-      d_batch_2nd <- data$batch_info %>%
-        slice(-1) %>%
+      d_batch_2nd <- data$batch_info |>
+        slice(-1) |>
         filter(.data$batch_id %% 2 != 1)
       p <- p + geom_rect(
         data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),

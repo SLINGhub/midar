@@ -8,6 +8,8 @@ metadata_from_data(data, qc_type_field = "qc_type")
 }
 \arguments{
 \item{data}{MidarExperiment object}
+
+\item{qc_type_field}{Column name in imported raw data file representing the \code{qc_type}}
 }
 \value{
 MidarExperiment object

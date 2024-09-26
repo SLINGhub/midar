@@ -10,8 +10,6 @@ normalize_by_istd(data, error_missing_info = TRUE)
 \item{data}{MidarExperiment object}
 
 \item{error_missing_info}{Raise error when ISTD is not defined for 1 or more features (excluding ISTD themselves) . Default: \code{TRUE}.}
-
-\item{interference_correction}{Apply interference (e.g. isotope) correction as defined in the feature metadata}
 }
 \value{
 MidarExperiment object

@@ -10,11 +10,15 @@
 #' @param data MidarExperiment object
 #' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
 #' @param file_format File format of the MassHunter export. One of "csv", "xls"
+#' @param use_metadata Extract and add metadata from the analysis result file
+#' @param expand_qualifier_names Add quantifier name in front of qualifier name, as the latter only has the mz transitions values
+#' @param silent Suppress most notifications
+
 #' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- rawdata_import_agilent(data = mexp, path = file_path)
+#' mexp <- rawdata_import_agilent(data = mexp, path = file_path, use_metadata = TRUE)
 #' mexp
 
 #' @export
@@ -41,7 +45,8 @@ rawdata_import_agilent <- function(data, path, use_metadata, file_format = "csv"
 #'
 #' @param data MidarExperiment object
 #' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
-#' @param include_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
+#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
+#' @param silent Suppress most notifications
 #' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
@@ -74,7 +79,7 @@ rawdata_import_main <- function(data, path, import_function, file_ext, include_m
 
   d_raw <- file_paths |>
     purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source") |>
-    relocate(analysis_id, data_source)
+    relocate("analysis_id", "data_source")
 
   # VERIFY DATA, i.e. analysis_ids, feature_ids, and values are replicated =====
   ## which can be result of multiple imports of the same/overlapping data or due to parsing error
@@ -374,7 +379,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
     # Defines the field from the raw data to used as analysis id
   datLong <- datLong |>
-    mutate(analysis_id = raw_data_filename, .before = 1)
+    mutate(analysis_id = .data$raw_data_filename, .before = 1)
 
   datLong
 }
@@ -431,14 +436,14 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     dplyr::select("raw_data_filename", "acquisition_time_stamp", "batch_id") |>
     dplyr::distinct() |>
     dplyr::mutate(analysis_id = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
-    dplyr::mutate(acquisition_time_stamp = lubridate::parse_date_time(acquisition_time_stamp, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)) |>
+    dplyr::mutate(acquisition_time_stamp = lubridate::parse_date_time(.data$acquisition_time_stamp, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   d_feature <- d_mrmkit_data |>
     dplyr::select(c("featurename", "norm_istd_feature_id")) |>
     distinct() |>
-    mutate(feature_id = stringr::str_squish(featurename),
-           norm_istd_feature_id = stringr::str_squish(norm_istd_feature_id))
+    mutate(feature_id = stringr::str_squish(.data$featurename),
+           norm_istd_feature_id = stringr::str_squish(.data$norm_istd_feature_id))
 
   # finalize data
   d_mrmkit_data <- d_mrmkit_data |>
@@ -450,7 +455,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     left_join(d_sample, by = "raw_data_filename") |>
     left_join(d_feature, by = "featurename", keep = FALSE) |>
     select(-"featurename") |>
-    relocate(analysis_id, raw_data_filename, acquisition_time_stamp, sample_type, batch_id, feature_id, norm_istd_feature_id, integration_qualifier)
+    relocate("analysis_id", "raw_data_filename", "acquisition_time_stamp", "sample_type", "batch_id", "feature_id", "norm_istd_feature_id", "integration_qualifier")
 
   # if (!use_normalized_data) {
   #   #d_mrmkit_data <- d_mrmkit_data |> mutate(feature_norm_intensity = NA_real_)

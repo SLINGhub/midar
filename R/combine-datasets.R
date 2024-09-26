@@ -28,23 +28,23 @@ combine_experiments <- function(..., ordered_by_runsequence) {
   # ToDo: Combine batch and curve id to give unique curve id over the combined experiment
   mexp@annot_responsecurves <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_responsecurves) |> dplyr::distinct()
 
-  mexp@dataset <- mexp@dataset %>%
-    dplyr::rename(batch_run_id = .data$run_id) %>%
-    dplyr::group_by(.data$feature_id) %>%
-    dplyr::mutate(run_id = dplyr::row_number(), .before = .data$batch_run_id) %>%
+  mexp@dataset <- mexp@dataset |>
+    dplyr::rename(batch_run_id = .data$run_id) |>
+    dplyr::group_by(.data$feature_id) |>
+    dplyr::mutate(run_id = dplyr::row_number(), .before = .data$batch_run_id) |>
     dplyr::ungroup()
 
-  mexp@annot_batches <- mexp@annot_analyses %>%
-    dplyr::group_by(.data$batch_id) %>%
+  mexp@annot_batches <- mexp@annot_analyses |>
+    dplyr::group_by(.data$batch_id) |>
     dplyr::summarise(
       batch_id = .data$batch_id[1],
       batch_no = .data$batch_no[1],
       id_batch_start = dplyr::first(.data$run_id),
       id_batch_end = dplyr::last(.data$run_id)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::arrange(.data$id_batch_start) %>%
-    dplyr::mutate(batch_no = dplyr::row_number()) %>%
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(.data$id_batch_start) |>
+    dplyr::mutate(batch_no = dplyr::row_number()) |>
     dplyr::bind_rows(pkg.env$table_templates$annot_batch_info_template)
   mexp
 }

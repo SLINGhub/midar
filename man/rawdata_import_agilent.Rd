@@ -18,7 +18,13 @@ rawdata_import_agilent(
 
 \item{path}{One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.}
 
+\item{use_metadata}{Extract and add metadata from the analysis result file}
+
 \item{file_format}{File format of the MassHunter export. One of "csv", "xls"}
+
+\item{expand_qualifier_names}{Add quantifier name in front of qualifier name, as the latter only has the mz transitions values}
+
+\item{silent}{Suppress most notifications}
 }
 \value{
 MidarExperiment object
@@ -34,6 +40,6 @@ Each feature and raw data file pair must only occur once within and across all .
 \examples{
 file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- rawdata_import_agilent(data = mexp, path = file_path)
+mexp <- rawdata_import_agilent(data = mexp, path = file_path, use_metadata = TRUE)
 mexp
 }

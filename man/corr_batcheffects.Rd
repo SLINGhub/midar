@@ -26,6 +26,8 @@ corr_batcheffects(
 \item{overwrite_batch_corr}{Overwrite previous batch correction or apply on top existing batch correction}
 
 \item{log_transform}{Log transform the data internally for correction. Will not transform the final results.}
+
+\item{...}{Other parameters for batch correction function. Currently not in use.}
 }
 \value{
 MidarExperiment object

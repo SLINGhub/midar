@@ -1,5 +1,5 @@
 testthat::test_that("Parses basic Agilent MH-Quant .csv file with only peak areas", {
-  d <- read_masshunter_csv(testthat::test_path("1_Testdata_MHQuant_DefaultSampleInfo_AreaOnly.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("1_Testdata_MHQuant_DefaultSampleInfo_AreaOnly.csv"))
 
   expect_contains(names(d), c("file_run_id", "raw_data_filename", "sample_name", "sample_type", "acquisition_time_stamp", "feature_id", "feature_area"))
   expect_equal(nrow(d), 1040)
@@ -10,7 +10,7 @@ testthat::test_that("Parses basic Agilent MH-Quant .csv file with only peak area
 
 
 testthat::test_that("Parses nested Agilent MH-Quant .csv file with diverse peak variables", {
-  d <- read_masshunter_csv(testthat::test_path("3_Testdata_MHQuant_DefaultSampleInfo_DetailedResults.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("3_Testdata_MHQuant_DefaultSampleInfo_DetailedResults.csv"))
 
   expect_identical(names(d), c(
     "file_run_id", "raw_data_filename", "sample_name", "sample_type", "acquisition_time_stamp", "feature_id", "integration_qualifier", "feature_rt", "feature_area",
@@ -22,7 +22,7 @@ testthat::test_that("Parses nested Agilent MH-Quant .csv file with diverse peak 
 })
 
 testthat::test_that("Parses nested Agilent MH-Quant .csv file with detailed sample info and different peak parameters", {
-  d <- read_masshunter_csv(testthat::test_path("5_Testdata_MHQuant_DetailedSampleInfo-RT-Areas-FWHM.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("5_Testdata_MHQuant_DetailedSampleInfo-RT-Areas-FWHM.csv"))
 
   expect_identical(names(d), c(
     "file_run_id", "raw_data_filename", "sample_name", "sample_group", "sample_type", "acquisition_time_stamp", "inj_volume", "comment", "completed",
@@ -37,7 +37,7 @@ testthat::test_that("Parses nested Agilent MH-Quant .csv file with detailed samp
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with detailed method info and different peak parameters", {
-  d <- read_masshunter_csv(testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv"))
 
   expect_identical(names(d), c(
     "file_run_id", "raw_data_filename", "sample_name", "sample_type", "acquisition_time_stamp", "feature_id", "integration_qualifier", "method_compound_group",
@@ -54,14 +54,14 @@ testthat::test_that("Parses nested MH Quant .csv file with detailed method info 
 })
 
 testthat::test_that(desc = "Console output with correct number of samples and features", code = {
-  expect_output(read_masshunter_csv(testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv")),
+  expect_output(parse_masshunter_csv(testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv")),
     regexp = "Imported 65 samples with 16 features"
   )
 })
 
 
 testthat::test_that("Parses nested MH Quant .csv without the 'outlier' column", {
-  d <- read_masshunter_csv(testthat::test_path("6_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-NoOutlierSum.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("6_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-NoOutlierSum.csv"))
   expect_equal(ncol(d), 10)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "file_run_id")
@@ -70,7 +70,7 @@ testthat::test_that("Parses nested MH Quant .csv without the 'outlier' column", 
 })
 
 testthat::test_that("Parses nested MH Quant .csv without the 'outlier' and 'quant message' column", {
-  d <- read_masshunter_csv(testthat::test_path("7_Testdata_MHQuant_NoOutlierSum-noQuantMsgSum.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("7_Testdata_MHQuant_NoOutlierSum-noQuantMsgSum.csv"))
   expect_equal(ncol(d), 10)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "file_run_id")
@@ -79,7 +79,7 @@ testthat::test_that("Parses nested MH Quant .csv without the 'outlier' and 'quan
 })
 
 testthat::test_that("Returns error parsing corrupted nested MH Quant .csv with 'outlier'/'quant message' columns removed including header 'Samples'", {
-  expect_error(read_masshunter_csv(testthat::test_path("8_Testdata_MHQuant_Corrupt_OutlierQuantMsgSumDeleted.csv")),
+  expect_error(parse_masshunter_csv(testthat::test_path("8_Testdata_MHQuant_Corrupt_OutlierQuantMsgSumDeleted.csv")),
     regexp = "Error parsing this file\\. It may in unsupported format"
   )
 })
@@ -87,7 +87,7 @@ testthat::test_that("Returns error parsing corrupted nested MH Quant .csv with '
 
 testthat::test_that("Parses nested MH Quant .csv file containing QUALIFIER peak info", {
   expect_output(
-    d <- read_masshunter_csv(
+    d <- parse_masshunter_csv(
       testthat::test_path("9_Testdata_MHQuant_withQuantMethods_withQualifierMethResults.csv"),
       expand_qualifier_names = TRUE
     ),
@@ -102,7 +102,7 @@ testthat::test_that("Parses nested MH Quant .csv file containing QUALIFIER peak 
 })
 
 testthat::test_that("Parses nested MH Quant .csv without Quant Message Summary", {
-  d <- read_masshunter_csv(testthat::test_path("10_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-NoQuantMsgSum.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("10_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-NoQuantMsgSum.csv"))
   expect_equal(ncol(d), 10)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "file_run_id")
@@ -111,7 +111,7 @@ testthat::test_that("Parses nested MH Quant .csv without Quant Message Summary",
 })
 
 testthat::test_that("Parses nested MH Quant .csv without acquistion time stamp", {
-  d <- read_masshunter_csv(testthat::test_path("11_Testdata_MHQuant_DefaultSampleInfo-noAcqDataTime_RT-Areas-FWHM.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("11_Testdata_MHQuant_DefaultSampleInfo-noAcqDataTime_RT-Areas-FWHM.csv"))
   expect_false(c("acquisition_time_stamp") %in% names(d))
   expect_equal(ncol(d), 9)
   expect_equal(nrow(d), 1040)
@@ -121,27 +121,27 @@ testthat::test_that("Parses nested MH Quant .csv without acquistion time stamp",
 
 testthat::test_that("Returns a defined error when reading nested MH Quant .csv containg a 'Quantitation Message' is imported", {
   expect_error(
-    read_masshunter_csv(testthat::test_path("12_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-withQuantMsg.csv")),
+    parse_masshunter_csv(testthat::test_path("12_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM-withQuantMsg.csv")),
     regexp = "Field \\'Quantitation Message\\' currently not supported"
   )
 })
 
 testthat::test_that("Returns a defined error when reading MH Quant .csv with analytes/features as rows (Compound Table) is imported", {
   expect_error(
-    read_masshunter_csv(testthat::test_path("13_Testdata_MHQuant_CompoundTable_DefaultSampleInfo_RT-Areas-FWHM.csv")),
+    parse_masshunter_csv(testthat::test_path("13_Testdata_MHQuant_CompoundTable_DefaultSampleInfo_RT-Areas-FWHM.csv")),
     regexp = "unsupported format\\, e\\.g\\. with features\\/analytes in rows"
   )
 })
 
 testthat::test_that("Returns a defined error when reading a corrupted MH Quant .csv", {
   expect_error(
-    read_masshunter_csv(testthat::test_path("14_Testdata_MHQuant_Corrupt_RowAreaDeleted.csv")),
+    parse_masshunter_csv(testthat::test_path("14_Testdata_MHQuant_Corrupt_RowAreaDeleted.csv")),
     regexp = "Error parsing this Masshunter \\.csv file"
   )
 })
 
 testthat::test_that("Parses nested MH Quant .csv file that has am empty first row", {
-  d <- read_masshunter_csv(testthat::test_path("15_Testdata_MHQuant_Corrupt_ExtraTopLine.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("15_Testdata_MHQuant_Corrupt_ExtraTopLine.csv"))
   expect_equal(ncol(d), 16)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "file_run_id")
@@ -151,13 +151,13 @@ testthat::test_that("Parses nested MH Quant .csv file that has am empty first ro
 
 
 testthat::test_that("Parses nested MH Quant .csv file exported from German Windows system with comma as decimal point", {
-  d <- read_masshunter_csv(testthat::test_path("17_Testdata_Lipidomics_GermanSystem.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("17_Testdata_Lipidomics_GermanSystem.csv"))
   expect_equal(d[1, "feature_rt", drop = TRUE], 9.754)
   expect_equal(d[1, "feature_fwhm", drop = TRUE], 0.056)
 })
 
 testthat::test_that("Parses nested MH Quant .csv file in UTF-8 format with different languages/characters", {
-  d <- read_masshunter_csv(testthat::test_path("18_Testdata_Lipidomics_MultiLanguageCharactersSamplenamesFeatures.csv"))
+  d <- parse_masshunter_csv(testthat::test_path("18_Testdata_Lipidomics_MultiLanguageCharactersSamplenamesFeatures.csv"))
   expect_equal(d[1, "feature_rt", drop = TRUE], 9.754)
   expect_equal(d[1, "feature_id", drop = TRUE], "谷氨酰胺")
   expect_equal(d[2, "feature_id", drop = TRUE], "글루타민")
@@ -171,13 +171,13 @@ testthat::test_that("Parses nested MH Quant .csv file in UTF-8 format with diffe
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT and peak RT and multiple Qualifier per analyte", {
-  d <- read_masshunter_csv(testthat::test_path("19_Testdata_MHQuant_MultipleQUAL_with_expectedRT.csv"), expand_qualifier_names = TRUE)
+  d <- parse_masshunter_csv(testthat::test_path("19_Testdata_MHQuant_MultipleQUAL_with_expectedRT.csv"), expand_qualifier_names = TRUE)
   expect_equal(d[1, "feature_rt", drop = TRUE], 6.649)
   expect_equal(d[1, "method_target_rt", drop = TRUE], 7.200)
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with special characters (e.g. !@#$%^) in feature names", {
-  d <- read_masshunter_csv(testthat::test_path("20_Testdata_MHQuant_withSpecialCharsInFeatures.csv"), expand_qualifier_names = TRUE)
+  d <- parse_masshunter_csv(testthat::test_path("20_Testdata_MHQuant_withSpecialCharsInFeatures.csv"), expand_qualifier_names = TRUE)
   expect_equal(d[1, "feature_rt", drop = TRUE], 6.649)
   expect_equal(d[1, "method_target_rt", drop = TRUE], 7.200)
   expect_equal(d[3, "feature_id", drop = TRUE], "Analyte 2* 14:0")
@@ -188,7 +188,7 @@ testthat::test_that("Parses nested MH Quant .csv file with special characters (e
 
 
 testthat::test_that("Parses nested MH Quant .csv with . \ | in feature names", {
-  d <- read_masshunter_csv(testthat::test_path("21_Testdata_MHQuant_with_dots_InFeatures.csv"), expand_qualifier_names = TRUE)
+  d <- parse_masshunter_csv(testthat::test_path("21_Testdata_MHQuant_with_dots_InFeatures.csv"), expand_qualifier_names = TRUE)
   expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
   expect_match(d[3, "feature_id", drop = TRUE], "S1P d17\\.1\\|S1P d17\\.2 \\[M>113\\]")
   expect_match(d[4, "feature_id", drop = TRUE], "S1P d17\\.1\\\\S1P d17:2 \\[M>60\\]")
@@ -196,7 +196,7 @@ testthat::test_that("Parses nested MH Quant .csv with . \ | in feature names", {
 })
 
 # testthat::test_that("Parses nested MH Quant .csv file and matches saved copy", {
-#   d <- read_masshunter_csv(testthat::test_path("1_Testdata_MHQuant_DefaultSampleInfo_AreaOnly.csv"))
+#   d <- parse_masshunter_csv(testthat::test_path("1_Testdata_MHQuant_DefaultSampleInfo_AreaOnly.csv"))
 #   announce_snapshot_file(name = "newtest")
 #   expect_snapshot(d)
 # })

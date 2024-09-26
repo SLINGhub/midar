@@ -9,7 +9,11 @@ set_intensity_var(data, variable_name, auto_select = FALSE, ...)
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{analysis_sequence}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
+\item{variable_name}{Feature variable to be used as default feature intensity for downstream processing.}
+
+\item{auto_select}{If \code{TRUE} then the first available of these will be used as default: "feature_intensity", "feature_response", "feature_area", "feature_height".}
+
+\item{...}{Feature variables to best search for one-by-one when \code{auto-detect = TRUE}}
 }
 \value{
 MidarExperiment object

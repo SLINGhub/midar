@@ -4,7 +4,12 @@
 \alias{metadata_import_midarxlm}
 \title{Import metadata from the midar template (.XLM) and associates it with the analysis data}
 \usage{
-metadata_import_midarxlm(data, path, ignore_warnings = FALSE)
+metadata_import_midarxlm(
+  data,
+  path,
+  excl_unannotated_analyses = FALSE,
+  ignore_warnings = FALSE
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}
@@ -12,6 +17,8 @@ metadata_import_midarxlm(data, path, ignore_warnings = FALSE)
 \item{path}{file name and path}
 
 \item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
+
+\item{ignore_warnings}{Ignore warnings from data validation and proceed with importing metadata}
 }
 \value{
 MidarExperiment object

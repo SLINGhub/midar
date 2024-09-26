@@ -6,6 +6,7 @@
 #'
 #' @param data MidarExperiment object
 #' @param variable Feature variable used for outlier detection
+#' @param qc_types QC types included in the outlier detection
 #' @param summarize_fun Function used to summarize the features, either "pca" based on PCA, or "rma" based on mean relative abundance (RMA) of all features
 #' @param outlier_detection Outlier detection method, either based on SD ("sd") or MAD ("mad")
 #' @param fence_multiplicator Multiplicator for SD or MAD, respectively.
@@ -53,7 +54,7 @@ analysis_outlier_detection <- function(data,
   if (log_transform) m_raw <- log2(m_raw)
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
 
-  d_metadata <- d_wide %>%
+  d_metadata <- d_wide |>
     dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct()
   pca_annot <- pca_res |> broom::augment(d_metadata)

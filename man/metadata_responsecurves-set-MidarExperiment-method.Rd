@@ -7,6 +7,8 @@
 \S4method{metadata_responsecurves}{MidarExperiment}(x) <- value
 }
 \arguments{
+\item{x}{MidarExperiment object}
+
 \item{value}{A data.frame or tibble}
 }
 \value{
