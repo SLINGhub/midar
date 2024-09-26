@@ -425,7 +425,6 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     dplyr::select(
       "feature_id",
       "feature_class",
-      "is_istd",
       "norm_istd_feature_id",
       "quant_istd_feature_id",
       table_templates = "response_factor",
