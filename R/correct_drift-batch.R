@@ -76,7 +76,7 @@ fun_gauss.kernel.smooth = function(tbl, qc_types, ...) {
     }
   )
   ## Report the final values
-  list(res = res, fit_error = all(is.na(res)), data_adjusted = TRUE)
+  list(analysis_id = tbl$analysis_id, feature_id = tbl$feature_id, batch_id = tbl$batch_id, qc_type = tbl$qc_type, y_predicted = res, fit_error = all(is.na(res)), data_adjusted = TRUE)
 }
 
 #' Gaussian Kernel smoothing helper function
@@ -141,7 +141,8 @@ fun_loess <- function(tbl, qc_types,...) {
       return(rep(NA_real_, length(tbl$x)))
     }
   )
-  list(res = res, fit_error = all(is.na(res)), data_adjusted = FALSE)
+  list(analysis_id = tbl$analysis_id, feature_id = tbl$feature_id, batch_id = tbl$batch_id, qc_type = tbl$qc_type, y_predicted = res, fit_error = all(is.na(res)), data_adjusted = TRUE)
+
 }
 
 
@@ -191,18 +192,12 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   if (within_batch) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
 
+  # call smooth function for each feature and each batch
   d_smooth_res <- ds |>
-      select("analysis_id", "qc_type", "feature_id", "batch_id", "y_original", "x", "y") |>
-      #filter(.data$qc_type %in% c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBPK", "RQC")) |>
-      group_by(across(all_of(adj_groups))) |>
-      nest() |>
-      mutate(
-        res = purrr::map(data, \(x) do.call(smooth_fun, list(x, qc_types, ...))),
-        y_predicted = purrr::map(.data$res, \(x) x$res),
-        fit_error = purrr::map(.data$res, \(x) x$fit_error),
-        data_adjusted = purrr::map(.data$res, \(x) x$data_adjusted)
-      ) |>
-      unnest(cols = c(data, .data$y_predicted, .data$fit_error,.data$data_adjusted))
+    select("analysis_id", "qc_type", "feature_id", "batch_id", "y_original", "x", "y") |>
+    group_split(pick(adj_groups)) |>
+    map(\(x) do.call(smooth_fun, list(x, qc_types, ...))) |>
+    bind_rows()
 
   # Get flag if data needs to be back-transformed (from smoothing function)
   is_adjusted <- all(d_smooth_res$data_adjusted) #TODOTODO
@@ -213,22 +208,22 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   if(is_adjusted){
     d_smooth_res <- d_smooth_res |>
-      left_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type", "y_original")) |>
-      group_by(across(all_of(adj_groups))) |>
+      left_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type")) |>
+      group_by(dplyr::pick(adj_groups)) |>
       mutate(
         y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
         y_adj = .data$y_predicted)
     } else {
       d_smooth_res <- d_smooth_res |>
-        group_by(across(all_of(adj_groups))) |>
+        group_by(dplyr::pick(adj_groups)) |>
         mutate(
           y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
           y_adj = .data$y_original / .data$y_predicted * .data$y_predicted_median)
     }
-  # Summarize which species to apply drift correction to and assign final concentrations
 
+  # Summarize which species to apply drift correction to and assign final concentrations
   d_smooth_summary <- d_smooth_res |>
-    group_by(across(all_of(adj_groups))) |>
+      group_by(dplyr::pick(adj_groups)) |>
     summarise(
       any_fit_error = any(.data$fit_error, na.rm = TRUE),
       cv_raw_spl = cv(.data$y_original[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
@@ -355,6 +350,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 #' @param scale_smooth Scale parameter smoothing
 #' @param batch_wise Apply to each batch separately if `TRUE` (the default)
 #' @param log2_transform Log transform the data for correction when `TRUE` (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.
+#' @param ignore_istd Do not apply corrections to ISTDs
 #' @param apply_conditionally Apply drift correction to all species if `TRUE`, or only when sample CV after smoothing changes below a threshold defined via `max_cv_ratio_before_after`
 #' @param apply_conditionally_per_batch When `apply_conditionally = TRUE`, correction is conditionally applied per batch when `TRUE` and across all batches when `FALSE`
 #' @param max_cv_ratio_before_after Only used when `apply_conditionally = TRUE`. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
@@ -366,7 +362,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 #' Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H (2020). MRMkit: Automated Data Processing for Large-Scale Targeted Metabolomics Analysis. *Analytical Chemistry*, 92(20), 13677–13682. \url{https://doi.org/10.1021/acs.analchem.0c03060}
 
 #' @export
-corr_drift_gaussiankernel <- function(data,
+correct_drift_gaussiankernel <- function(data,
                                       qc_types,
                                       batch_wise = TRUE,
                                       kernel_size,
@@ -378,6 +374,7 @@ corr_drift_gaussiankernel <- function(data,
                                       apply_conditionally = FALSE,
                                       apply_conditionally_per_batch = FALSE,
                                       feature_list = NULL,
+                                      ignore_istd = TRUE,
                                       max_cv_ratio_before_after = 1,
                                       use_uncorrected_if_fail = FALSE
 ) {
@@ -393,6 +390,7 @@ corr_drift_gaussiankernel <- function(data,
     max_cv_ratio_before_after = max_cv_ratio_before_after,
     use_uncorrected_if_fail = use_uncorrected_if_fail,
     feature_list = feature_list,
+    ignore_istd = ignore_istd,
     outlier_filter = outlier_filter,
     outlier_ksd = outlier_ksd,
     location_smooth = location_smooth,
@@ -420,15 +418,16 @@ corr_drift_gaussiankernel <- function(data,
 #' @param max_cv_ratio_before_after Only used when `apply_conditionally = TRUE`. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
 #' A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.
 #' @param feature_list Subset the features for correction whose names matches the specified text using regular expression. Default is `NULL` which means all features are selected.
+#' @param ignore_istd Do not apply corrections to ISTDs
 #' @param use_uncorrected_if_fail In case the smoothing function fails for a species, then use original (uncorrected) data when `TRUE` (the default) or return `NA` for all analyses of the feature where the fit failed.
 #' @param extrapolate Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.
 #' @return MidarExperiment object
 #' @export
-corr_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75, apply_conditionally = FALSE, apply_conditionally_per_batch = TRUE,
-                             log2_transform = TRUE,  feature_list = NULL, max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, extrapolate = FALSE) {
+correct_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75, apply_conditionally = FALSE, apply_conditionally_per_batch = TRUE,
+                             log2_transform = TRUE,  feature_list = NULL,ignore_istd = TRUE,  max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, extrapolate = FALSE) {
   corr_drift_fun(
     data = data, smooth_fun = "fun_loess", qc_types = qc_types, within_batch = within_batch, apply_conditionally = apply_conditionally, apply_conditionally_per_batch = apply_conditionally_per_batch,
-    log2_transform = log2_transform, feature_list = feature_list, max_cv_ratio_before_after = max_cv_ratio_before_after, use_uncorrected_if_fail = use_uncorrected_if_fail, extrapolate = extrapolate,  span_width = span
+    log2_transform = log2_transform, feature_list = feature_list, ignore_istd = ignore_istd, max_cv_ratio_before_after = max_cv_ratio_before_after, use_uncorrected_if_fail = use_uncorrected_if_fail, extrapolate = extrapolate,  span_width = span
   )
 }
 
@@ -489,7 +488,7 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #'
 #' @return MidarExperiment object
 #' @export
-corr_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite_batch_corr = TRUE, log_transform = TRUE, ...) {
+correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite_batch_corr = TRUE, log_transform = TRUE, ...) {
   ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "feature_conc")
   nbatches <- length(unique(ds$batch_id))
 
