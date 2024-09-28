@@ -46,56 +46,76 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
           na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"]))
         )
 
-      if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
 
+      if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
       d_stats_var <- data@dataset |>
-        dplyr::group_by(dplyr::pick(grp)) |>
+        select("batch_id", "feature_id", "qc_type","feature_intensity", "feature_conc", "feature_norm_intensity") |>
+        filter(qc_type != "RQC") |>
+        mutate(qc_type = factor(qc_type),
+               batch_id = factor(batch_id))
+
+      d_stats_var <-  d_stats_var |>
+        dplyr::group_by(dplyr::pick(grp), .drop = TRUE) |>
         summarise(
           Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-          Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
-          Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-          Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
-          Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
+           Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+           Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+           Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+           Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
+           Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+           Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+           Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+           Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+           Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
 
-          conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
-          conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
-          conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-          conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
-          conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
+           conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
+           conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
+           conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+           conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
+           conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
 
-          SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+           SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+           SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+           SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
+           SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
 
-          Int_CV_TQC = sd(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-          Int_CV_BQC = sd(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-          Int_CV_SPL = sd(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-          normInt_CV_TQC = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-          normInt_CV_BQC = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-          normInt_CV_SPL = sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+           Int_CV_TQC = sd(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+           Int_CV_BQC = sd(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+           Int_CV_SPL = sd(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+           normInt_CV_TQC = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+           normInt_CV_BQC = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+           normInt_CV_SPL = sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
 
-          conc_CV_TQC = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-          conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-          conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-          conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
-          conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
-          conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-          conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-          conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
-          conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
+           conc_CV_TQC = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+           conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+           conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+           conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
+           conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
+           conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+           conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+           conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
+           conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
+    ) |> ungroup()
+    #  # |> tidyr::pivot_longer(-feature_id:-batch_id, names_to = "param", values_to = "val")
 
-            )
+
+      # if (batchwise_median){
+      #   d_stats_var_dt <- dtplyr::lazy_dt(d_stats_var)
+      #   d_stats_var_dt <- d_stats_var_dt %>%
+      #     group_by(.data$feature_id, .data$param) %>%
+      #     summarise(val = median(val, na.rm = TRUE)) %>%
+      #     ungroup() %>%
+      #     as_tibble()
+      # }
+      # d_stats_var <- d_stats_var  |> tidyr::pivot_wider(names_from = "param", values_from = "val")
 
    if (batchwise_median){
+    browser()
+     d_stats_var <- dtplyr::lazy_dt(d_stats_var)
      d_stats_var <- d_stats_var |>
-        group_by(dplyr::pick("feature_id")) |>
-        summarise(across(is.numeric, median, na.rm = TRUE))
+      dplyr::group_by(.data$feature_id, .drop = TRUE) |>
+      dplyr::summarise_if(is.numeric, median, na.rm = TRUE) |> ungroup() |> as_tibble()
+
    }
 
 
@@ -108,11 +128,13 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     left_join(d_stats_var, by = "feature_id") |>
     relocate("feature_id", "feature_class", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
 
+
   if ("RQC" %in% data@dataset$qc_type) {
     d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
     data@metrics_qc <- data@metrics_qc |>
       dplyr::left_join(d_rqc_stats, by = "feature_id")
   }
+
   data
 }
 
@@ -130,7 +152,11 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 #' @export
 
 get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
-  model <- as.formula("feature_intensity ~ relative_sample_amount")
+
+   get_lm_results <- function(x){
+    res <- lm(feature_intensity ~ relative_sample_amount, data = x, na.action = na.exclude)
+    return(tibble(r.squared = summary(res)$r.squared , relative_sample_amount = res$coefficients[2], intercept = res$coefficients[1]))
+  }
 
   d_stats  <- data@dataset |>
     select("analysis_id", "feature_id", "feature_intensity") |>
@@ -139,17 +165,11 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
     dplyr::filter(!all(is.na(.data$feature_intensity))) |>
     tidyr::nest() |>
     mutate(
-      models = purrr::map(data, function(x) lm(model, data = x, na.action = na.exclude)),
-      stats = purrr::map(.data$models, function(x) broom::glance(x)),
-      model = purrr::map(.data$models, function(x) {
-        broom::tidy(x) |>
-          select(.data$term, .data$estimate) |>
-          pivot_wider(names_from = "term", values_from = "estimate")
-      }),
-    )  |>
-    select(-"models") |>
-    tidyr::unnest(c("stats", "model")) |>
-    dplyr::mutate(y0rel = .data$`(Intercept)` / .data$relative_sample_amount) |>
+      res = purrr::map(data, function(x) get_lm_results(x))
+    ) |>
+    select(-"data") |>
+    tidyr::unnest(c("res")) |>
+    dplyr::mutate(y0rel = .data$intercept / .data$relative_sample_amount) |>
     dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") |>
     tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
     ungroup()
@@ -356,14 +376,12 @@ apply_qc_filter <- function(data,
         comp_val(.data$SB_Ratio_sblk, signalblank.median.sblk.min, ">")),
         .operator = "AND"),
 
-
       pass_cva = comp_lgl_vec(
         c(comp_val(.data$conc_CV_BQC, cv.conc.bqc.max, "<"),
         comp_val(.data$conc_CV_TQC, cv.conc.tqc.max, "<"),
         comp_val(.data$Int_CV_BQC,  cv.intensity.bqc.min, "<"),
         comp_val(.data$Int_CV_TQC, cv.intensity.tqc.min, "<")),
         .operator = "AND"),
-
 
       pass_dratio = comp_lgl_vec(
         c(comp_val(.data$conc_dratio_sd_bqc, dratio.conc.bqc.sd.max, "<"),
@@ -405,7 +423,6 @@ apply_qc_filter <- function(data,
         pass_linearity = NA)
   }
 
-
     data@metrics_qc <- data@metrics_qc |>
       mutate(
         qc_pass =
@@ -424,7 +441,6 @@ apply_qc_filter <- function(data,
       )
 
     #TODO: deal with invalid integrations (as defined by user in metadata)
-
 
     d_filt <- data@metrics_qc |>
       filter(.data$qc_pass)
