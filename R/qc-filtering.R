@@ -20,10 +20,11 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
       method_var <- c("method_precursor_mz", "method_product_mz", "method_collision_energy")
       d_method_template <- tibble("precursor_mz" = NA_character_, "product_mz" = NA_character_, "collision_energy" = NA_character_)
       if(any(c(method_var) %in% names(data@dataset_orig))){
+
         d_method_info <- data@dataset_orig |>
           select(c("feature_id", any_of(method_var))) |>
-          group_by(.data$feature_id) |>
           summarise(
+            .by = "feature_id",
             precursor_mz = stringr::str_c(unique(.data$method_precursor_mz), collapse = "; "),
             product_mz = stringr::str_c(unique(.data$method_product_mz), collapse = "; "),
             collision_energy = stringr::str_c(unique(.data$method_collision_energy), collapse = "; ")
@@ -38,8 +39,8 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
 
       d_stats_missingval <- data@dataset |>
         dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) |>
-        dplyr::group_by(.data$feature_id) |>
         dplyr::summarise(
+          .by = "feature_id",
           missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
           missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
           missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
@@ -54,10 +55,12 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
         mutate(qc_type = factor(qc_type),
                batch_id = factor(batch_id))
 
+     # Using dtplyr to improve speed (2x), group by batch still 5x times slower than no batch grouping
+     d_stats_var <- dtplyr::lazy_dt(d_stats_var)
       d_stats_var <-  d_stats_var |>
-        dplyr::group_by(dplyr::pick(grp), .drop = TRUE) |>
         summarise(
-          Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          .by = grp,
+           Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
            Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
            Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
            Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
@@ -79,47 +82,30 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
            SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
            SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
 
-           Int_CV_TQC = sd(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-           Int_CV_BQC = sd(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-           Int_CV_SPL = sd(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-           normInt_CV_TQC = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-           normInt_CV_BQC = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-           normInt_CV_SPL = sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+           Int_CV_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
+           Int_CV_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+           Int_CV_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+           normInt_CV_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+           normInt_CV_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+           normInt_CV_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
 
-           conc_CV_TQC = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-           conc_CV_BQC = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-           conc_CV_SPL = sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-           conc_CV_NIST = sd(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE) * 100,
-           conc_CV_LTR = sd(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) / mean(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE) * 100,
+           conc_CV_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+           conc_CV_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+           conc_CV_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+           conc_CV_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
+           conc_CV_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
            conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
            conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
            conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
            conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
-    ) |> ungroup()
-    #  # |> tidyr::pivot_longer(-feature_id:-batch_id, names_to = "param", values_to = "val")
+    )
+    if (batchwise_median){
+      d_stats_var <- d_stats_var |>
+       summarise(across(Int_min_SPL:conc_dratio_mad_tqc, ~ median(.x, na.rm = TRUE)), .by= "feature_id")
+    }
 
-
-      # if (batchwise_median){
-      #   d_stats_var_dt <- dtplyr::lazy_dt(d_stats_var)
-      #   d_stats_var_dt <- d_stats_var_dt %>%
-      #     group_by(.data$feature_id, .data$param) %>%
-      #     summarise(val = median(val, na.rm = TRUE)) %>%
-      #     ungroup() %>%
-      #     as_tibble()
-      # }
-      # d_stats_var <- d_stats_var  |> tidyr::pivot_wider(names_from = "param", values_from = "val")
-
-   if (batchwise_median){
-    browser()
-     d_stats_var <- dtplyr::lazy_dt(d_stats_var)
-     d_stats_var <- d_stats_var |>
-      dplyr::group_by(.data$feature_id, .drop = TRUE) |>
-      dplyr::summarise_if(is.numeric, median, na.rm = TRUE) |> ungroup() |> as_tibble()
-
-   }
-
-
-  data@metrics_qc <-
+    d_stats_var <-  as.data.frame(d_stats_var)
+    data@metrics_qc <-
     tibble("feature_id" = sort(union(unique(data@dataset_orig$feature_id),
                                      unique(data@annot_features$feature_id)))) |>
     left_join(d_feature_info, by = "feature_id") |>
@@ -128,11 +114,10 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     left_join(d_stats_var, by = "feature_id") |>
     relocate("feature_id", "feature_class", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
 
-
   if ("RQC" %in% data@dataset$qc_type) {
-    d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
-    data@metrics_qc <- data@metrics_qc |>
-      dplyr::left_join(d_rqc_stats, by = "feature_id")
+  d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
+  data@metrics_qc <- data@metrics_qc |>
+    dplyr::left_join(d_rqc_stats, by = "feature_id")
   }
 
   data
@@ -155,27 +140,26 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 
    get_lm_results <- function(x){
     res <- lm(feature_intensity ~ relative_sample_amount, data = x, na.action = na.exclude)
-    return(tibble(r.squared = summary(res)$r.squared , relative_sample_amount = res$coefficients[2], intercept = res$coefficients[1]))
+    return(list(feature_id = x$feature_id[1], rqc_series_id = x$rqc_series_id[1], r.squared = summary(res)$r.squared , relative_sample_amount = res$coefficients[[2]], intercept = res$coefficients[1]))
   }
+
 
   d_stats  <- data@dataset |>
     select("analysis_id", "feature_id", "feature_intensity") |>
     dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
-    dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
     dplyr::filter(!all(is.na(.data$feature_intensity))) |>
-    tidyr::nest() |>
-    mutate(
-      res = purrr::map(data, function(x) get_lm_results(x))
-    ) |>
-    select(-"data") |>
-    tidyr::unnest(c("res")) |>
-    dplyr::mutate(y0rel = .data$intercept / .data$relative_sample_amount) |>
-    dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") |>
-    tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_") |>
-    ungroup()
+    dplyr::group_split(.data$feature_id, .data$rqc_series_id)
+
+    d_stats <- map(d_stats, function(x) get_lm_results(x))
+
+    d_stats <- d_stats |> bind_rows() |>
+      dplyr::mutate(y0rel = .data$intercept / .data$relative_sample_amount) |>
+      dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") |>
+      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_")
+
 
   if (with_staturation_stats){
-
+    print("with_staturation_stats")
     if (!requireNamespace("lancer", quietly = TRUE)) {
       stop(
         "Package `lancer` must be installed when `with_staturation_stats = TRUE`. It is available from `https://github.com/SLINGhub/lancer`",
