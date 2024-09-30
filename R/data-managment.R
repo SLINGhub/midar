@@ -201,3 +201,78 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
 }
 
 
+#'  @title Exclude analyses from the dataset
+#' @param data MidarExperiment object
+#' @param analyses_exlude Vector of analysis IDs to exclude from the dataset
+#' @param overwrite If `TRUE` then existing valid_analysis flags will be overwritten, otherwise appended
+#' @return `MidarExperiment` object
+#' @export
+
+analyses_exclude <- function(data, analyses_exlude, overwrite ){
+
+  if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
+    if(!overwrite){
+      cli_abort(cli:col_red("No `analysis id`s provided. To include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
+    } else{
+      cli::cli_alert_info(cli:col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
+      return(data)
+      }
+  }
+  if (any(!c(analyses_exlude) %in% data@annot_analyses$analysis_id) > 0) {
+    cli_abort(cli::col_red("One or more provided `analysis id`s to exclude are not present. Please check the analysis metadata."))
+  }
+  if(!overwrite){
+    data@annot_analyses <- data@annot_analyses |>
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude) & .data$valid_analysis)
+    cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were now excluded for downstream processing. Please reprocess data."))
+  }
+  else {
+    data@annot_analyses <- data@annot_analyses |>
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude))
+    cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
+  }
+
+  data <- link_data_metadata(data)
+
+  data
+}
+
+
+#' @title Exclude features from the dataset
+#' @param data MidarExperiment object
+#' @param features_exlude Vector of feature IDs to exclude from the dataset
+#' @param overwrite If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
+#' @return `MidarExperiment` object
+#' @export
+
+features_exclude <- function(data, features_exlude, overwrite ){
+
+  if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
+    if(!overwrite){
+      cli_abort(cli:col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `overwrite = TRUE`."))
+    } else{
+      cli::cli_alert_info(cli:col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
+      return(data)
+    }
+  }
+  if (any(!c(feature_ids_exlude) %in% data@annot_features$feature_id) > 0) {
+    cli_abort(cli::col_red("One or more provided `feature id`s to exclude are not present. Please check the feature metadata."))
+  }
+  if(!overwrite){
+    data@annot_features <- data@annot_features |>
+      mutate(valid_feature = !(.data$feature_id %in% features_exlude) & .data$valid_feature)
+    cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were now excluded for downstream processing. Please reprocess data."))
+  }
+  else {
+    data@annot_features <- data@annot_features |>
+      mutate(valid_feature = !(.data$feature_id %in% features_exlude))
+    cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
+  }
+
+  data <- link_data_metadata(data)
+
+  data
+}
+
+
+
