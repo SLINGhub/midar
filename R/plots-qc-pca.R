@@ -1,22 +1,147 @@
 #' PCA plot for QC
 #' @param data MidarExperiment object
-#' @param variable which variable to use for plot
-#' @param log_transform log transform data for plot
-#' @param dim_x PCA dimension on x axis
-#' @param dim_y PCA dimension on y axis
-#' @param qc_types qc types to plot
-#' @param use_filtered_data Use all (default) or filtered data
-#' @param point_size size of points
+#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".
+#' @param use_filtered_data Use all (default) or qc-filtered data
+#' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is `c(1,2)`
+#' @param qc_types qc types to plot. Default is `c("SPL", "BQC", "TQC", "NIST", "LTR")`
+#' @param label_k_mad Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is `3`. Set to `NULL` to supress labels.
+#' @param log_transform log-transform data before calculating PCA. Default is `TRUE`
+#' @param remove_istds Exlude ISTD features. Default is `TRUE`
+#' @param min_median_signal Minimum median signal across all samples from all selected qc types. `NA` (default) will not filter any features based on signal.
+#' @param point_size size of points. Default is `2`
 #' @param point_alpha transparency of points
 #' @param ellipse_alpha transparency of ellipse fill
 #' @param font_base_size Base font size for plot text elements
-#' @param remove_istds exclude internal standards
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform, remove_istds = TRUE, point_size = 5, point_alpha = 0.8, ellipse_alpha = 0.8, font_base_size = 12) {
+plot_pca_qc <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+                        label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.6,
+                        ellipse_alpha = 0.8, font_base_size = 8) {
+
+  variable <- str_remove(variable, "feature_")
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+
+  variable <- stringr::str_c("feature_", variable)
+
+  variable_sym = rlang::sym(variable)
+
   if(use_filtered_data)
-    d_wide <- data@dataset_filtered #|> filter(qc_types %in% c("BQC", "TQC", "SPL", "NIST"))
+    if(data@is_filtered)
+      d_wide <- data@dataset_filtered
+    else
+      cli_abort(cli::col_red("Data has not yet been qc-filtered. Use `use_filtered_data = FALSE` to use unfiltered data."))
+  else
+    d_wide <- data@dataset
+
+
+  PCx <- rlang::sym(paste0(".fittedPC", pca_dim[1]))
+  PCy <- rlang::sym(paste0(".fittedPC", pca_dim[2]))
+
+  # TODO: (IS as criteria for ISTD.. dangerous...
+  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
+
+  d_wide <- d_wide |>
+    filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
+
+  if(!is.na(min_median_signal)){
+    d_minsignal <- d_wide |>
+      summarise(median_signal = median(!!variable_sym, na.rm = TRUE), .by = "feature_id") |>
+      filter(.data$median_signal >= min_median_signal)
+    d_wide <- d_wide |> semi_join(d_minsignal, by = "feature_id")
+  }
+
+  d_filt <- d_wide |>
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = variable )
+
+
+  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) cli::cli_abort("Data and Metadata missmatch")
+
+  # ToDo: warning when rows/cols with NA
+  d_clean <- d_filt |>
+    filter(if_any(dplyr::where(is.numeric), ~ !is.na(.))) |>
+    dplyr::select(where(~ !any(is.na(.) | is.nan(.) | is.infinite(.) | . <= 0)))
+
+
+  d_metadata <- d_wide |>
+    dplyr::select("analysis_id", "qc_type", "batch_id") |>
+    dplyr::distinct() |>
+    dplyr::right_join(d_clean |> dplyr::select("analysis_id") |> distinct(), by = c("analysis_id"))
+
+
+  m_raw <- d_clean |>
+    tibble::column_to_rownames("analysis_id") |>
+    as.matrix()
+
+
+
+  if (log_transform) m_raw <- log2(m_raw)
+  # get pca result with annotation
+  pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
+  pca_annot <- pca_res |>
+    broom::augment(d_metadata)
+
+  pca_annot$qc_type <- droplevels(factor(pca_annot$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
+  pca_annot <- pca_annot |>
+    dplyr::arrange(.data$qc_type)
+
+  pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
+
+
+
+if (!is.null(label_k_mad) & !is.na(label_k_mad)) {
+ d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + label_k_mad * mad(!!PCx)) |
+                                    abs(!!PCy) > (median(!!PCy) + label_k_mad * mad(!!PCy)))
+}
+
+
+  pca_annot <- pca_annot |> select("analysis_id":".fittedPC10") |> left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
+  #browser()
+  p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", pca_dim[1]),
+    paste0(".fittedPC", pca_dim[2]),
+    color = "qc_type",
+    fill = "qc_type",
+    shape = "qc_type",
+    group = "qc_type",
+    label = "analysis_id_outlier"
+  )) +
+    ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
+    ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
+    suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(.data$qc_type %in% c("BQC", "TQC", "SPL")), geom = "polygon", level = 0.95, alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
+    ggplot2::geom_point(size = point_size, alpha = point_alpha) +
+    #ggplot2::geom_text(hjust=0, vjust=0)
+    ggrepel::geom_text_repel(size = 3)
+  p <- p +
+    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
+    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
+    ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
+
+  p <- p +
+    ggplot2::theme_bw(base_size = font_base_size) +
+    ggplot2::xlab(glue::glue("PC{pca_dim[1]} ({round(pca_contrib[[pca_dim[1],'percent']]*100,1)}%)")) +
+    ggplot2::ylab(glue::glue("PC{pca_dim[2]} ({round(pca_contrib[[pca_dim[2],'percent']]*100,1)}%)")) +
+    ggplot2::theme(
+      panel.grid.major = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.border = ggplot2::element_rect(size = 1, color = "grey40"),
+      axis.text.x = ggplot2::element_text(size = font_base_size, face = NULL),
+      axis.text.y = ggplot2::element_text(size = font_base_size, face = NULL),
+      axis.title.x = ggplot2::element_text(size = font_base_size * 1.2, face = NULL),
+      axis.title.y = ggplot2::element_text(size = font_base_size * 1.2, face = NULL),
+      aspect.ratio = 1
+    )
+
+  p
+}
+
+plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filtered_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
+                           point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
+  if(use_filtered_data)
+    if(data@is_filtered)
+      d_wide <- data@dataset_filtered
+  else
+    cli_abort(cli::col_red("Data has not yet been qc-filtered. Use `use_filtered_data = FALSE` to use unfiltered data."))
   else
     d_wide <- data@dataset
 
@@ -52,73 +177,6 @@ plot_pca_qc <- function(data, variable, use_filtered_data, dim_x, dim_y, qc_type
 
 
   if (log_transform) m_raw <- log2(m_raw)
-  # get pca result with annotation
-  pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
-  pca_annot <- pca_res |>
-    broom::augment(d_metadata)
-
-  pca_annot$qc_type <- droplevels(factor(pca_annot$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
-  pca_annot <- pca_annot |>
-    dplyr::arrange(.data$qc_type)
-
-  pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
-
-  p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", dim_x),
-    paste0(".fittedPC", dim_y),
-    color = "qc_type",
-    fill = "qc_type",
-    shape = "qc_type",
-    group = "qc_type"
-  )) +
-    ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
-    ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
-    suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(.data$qc_type %in% c("BQC", "TQC", "SPL")), geom = "polygon", level = 0.95, alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
-    ggplot2::geom_point(size = point_size, alpha = point_alpha)
-
-  p <- p +
-    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
-    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
-    ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
-
-  p <- p +
-    ggplot2::theme_bw(base_size = font_base_size) +
-    ggplot2::xlab(glue::glue("PC{dim_x} ({round(pca_contrib[[dim_x,'percent']]*100,1)}%)")) +
-    ggplot2::ylab(glue::glue("PC{dim_y} ({round(pca_contrib[[dim_y,'percent']]*100,1)}%)")) +
-    ggplot2::theme(
-      panel.grid.major = ggplot2::element_blank(),
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.border = ggplot2::element_rect(size = 1, color = "grey40"),
-      axis.text.x = ggplot2::element_text(size = font_base_size, face = NULL),
-      axis.text.y = ggplot2::element_text(size = font_base_size, face = NULL),
-      axis.title.x = ggplot2::element_text(size = font_base_size * 1.2, face = NULL),
-      axis.title.y = ggplot2::element_text(size = font_base_size * 1.2, face = NULL),
-      aspect.ratio = 1
-    )
-
-  p
-}
-
-plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), log_transform = TRUE, grouping = "qc_type", sliding = FALSE, ncol = 3,
-                           point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
-  d_wide <- data@dataset |>
-    filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"), !stringr::str_detect(.data$feature_id, "\\(IS")) |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
-
-  d_filt <- d_wide |>
-    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
-
-
-  d_metadata <- d_wide |>
-    dplyr::select("analysis_id", "qc_type", "batch_id") |>
-    dplyr::distinct()
-  # if(!all(d_filt |> pull(analysis_id) == d_metadata |> pull(AnalyticalID))) cli::cli_abort("Data and Metadata missmatch")
-
-  m_raw <- d_filt |>
-    dplyr::select(where(~ !any(is.na(.)))) |>
-    tibble::column_to_rownames("analysis_id") |>
-    as.matrix()
-
-  if (log_transform) m_raw <- log2(m_raw)
 
   # get pca result with annotation
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
@@ -132,7 +190,7 @@ plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), log_transform = 
     dim_range <- dim_range[seq(1, length(dim_range), 2)]
   }
 
-
+browser()
   plot_list <- list()
 
   j <- 1
