@@ -26,6 +26,7 @@
 #' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
 #' @slot is_drift_corrected Flag if data has been drift corrected
 #' @slot is_batch_corrected Flag if data has been batch corrected
+#' @slot is_filtered Flag if data has been filtered based on QC parameters
 #' @slot is_isotope_corr Flag if one or more features have been isotope corrected
 #' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
 #' @slot excl_outliers_tech Flag if outliers were excluded in the QC-filtered dataset
@@ -56,6 +57,7 @@ setClass("MidarExperiment",
     is_quantitated = "logical",
     is_drift_corrected = "logical",
     is_batch_corrected = "logical",
+    is_filtered = "logical",
     has_outliers_tech = "logical",
     is_isotope_corr = "logical",
     excl_outliers_tech = "logical"
@@ -75,12 +77,14 @@ setClass("MidarExperiment",
     metrics_qc = tibble::tibble(),
     parameters_processing = pkg.env$table_templates$parameters_processing_template,
     status_processing = "No Data",
+    is_isotope_corr = FALSE,
     is_istd_normalized = FALSE,
     is_quantitated = FALSE,
     is_drift_corrected = FALSE,
     is_batch_corrected = FALSE,
+    is_filtered = FALSE,
     has_outliers_tech = FALSE,
-    is_isotope_corr = FALSE,
+
     excl_outliers_tech = FALSE
   )
 )
@@ -225,6 +229,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("ISTD quantitated: {get_status_flag(object@is_quantitated)}")
   cli::cli_li("Drift corrected:  {get_status_flag(object@is_drift_corrected)}")
   cli::cli_li("Batch corrected:  {get_status_flag(object@is_batch_corrected)}")
+  cli::cli_li("Feature QC-filtered:  {get_status_flag(object@is_filtered)}")
   cli::cli_end(id = "C")
 
   cli::cli_h2("Outliers")
