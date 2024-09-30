@@ -112,15 +112,14 @@ plot_pca_qc <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_
     color = "qc_type",
     fill = "qc_type",
     shape = "qc_type",
-    group = "qc_type",
-    label = "analysis_id_outlier"
+    group = "qc_type"
   )) +
     ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(.data$qc_type %in% c("BQC", "TQC", "SPL")), geom = "polygon", level = 0.95, alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
     ggplot2::geom_point(size = point_size, alpha = point_alpha) +
     #ggplot2::geom_text(hjust=0, vjust=0)
-    ggrepel::geom_text_repel(size = 3)
+    ggrepel::geom_text_repel(aes(label = .data$analysis_id_outlier), size = 3, na.rm = TRUE)
   p <- p +
     ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
