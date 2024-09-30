@@ -51,9 +51,9 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
       if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
       d_stats_var <- data@dataset |>
         select("batch_id", "feature_id", "qc_type","feature_intensity", "feature_conc", "feature_norm_intensity") |>
-        filter(qc_type != "RQC") |>
-        mutate(qc_type = factor(qc_type),
-               batch_id = factor(batch_id))
+        filter(.data$qc_type != "RQC") |>
+        mutate(qc_type = factor(.data$qc_type),
+               batch_id = factor(.data$batch_id))
 
      # Using dtplyr to improve speed (2x), group by batch still 5x times slower than no batch grouping
      d_stats_var <- dtplyr::lazy_dt(d_stats_var)
@@ -101,7 +101,7 @@ qc_calculate_metrics <- function(data, batchwise_median ) {
     )
     if (batchwise_median){
       d_stats_var <- d_stats_var |>
-       summarise(across(Int_min_SPL:conc_dratio_mad_tqc, ~ median(.x, na.rm = TRUE)), .by= "feature_id")
+       summarise(across("Int_min_SPL":"conc_dratio_mad_tqc", ~ median(.x, na.rm = TRUE)), .by= "feature_id")
     }
 
     d_stats_var <-  as.data.frame(d_stats_var)
@@ -454,8 +454,11 @@ apply_qc_filter <- function(data,
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
   if (!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
+  data@is_filtered <- TRUE
+
   data@dataset_filtered <- data@dataset |>
     dplyr::right_join(d_filt |> dplyr::select("feature_id"), by = "feature_id") #|>
     #filter( !(.data$outlier_technical & outlier.technical.exlude)) #TODO
+
   data
 }
