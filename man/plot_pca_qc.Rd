@@ -15,9 +15,10 @@ plot_pca_qc(
   remove_istds = TRUE,
   min_median_signal = NA,
   point_size = 2,
-  point_alpha = 0.6,
+  point_alpha = 0.7,
   ellipse_alpha = 0.8,
-  font_base_size = 8
+  font_base_size = 8,
+  hide_label_text = NA
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ plot_pca_qc(
 \item{ellipse_alpha}{transparency of ellipse fill}
 
 \item{font_base_size}{Base font size for plot text elements}
+
+\item{hide_label_text}{Hide shared text (case-senstive) in labels. If it results in non-unique analysis_id's then an error will be raised.}
 }
 \value{
 ggplot2 object
