@@ -203,7 +203,7 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
 
 #'  @title Exclude analyses from the dataset
 #' @param data MidarExperiment object
-#' @param analyses_exlude Vector of analysis IDs to exclude from the dataset
+#' @param analyses_exlude Vector of analysis IDs (case-sensitive) to exclude from the dataset.
 #' @param overwrite If `TRUE` then existing valid_analysis flags will be overwritten, otherwise appended
 #' @return `MidarExperiment` object
 #' @export
@@ -212,9 +212,9 @@ analyses_exclude <- function(data, analyses_exlude, overwrite ){
 
   if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
     if(!overwrite){
-      cli_abort(cli:col_red("No `analysis id`s provided. To include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
+      cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
     } else{
-      cli::cli_alert_info(cli:col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
+      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all analyses were (re)included. Please reprocess data."))
       return(data)
       }
   }
@@ -240,7 +240,7 @@ analyses_exclude <- function(data, analyses_exlude, overwrite ){
 
 #' @title Exclude features from the dataset
 #' @param data MidarExperiment object
-#' @param features_exlude Vector of feature IDs to exclude from the dataset
+#' @param features_exlude Vector of feature IDs (case-sensitive) to exclude from the dataset
 #' @param overwrite If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
 #' @return `MidarExperiment` object
 #' @export
