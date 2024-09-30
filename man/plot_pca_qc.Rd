@@ -8,35 +8,38 @@ plot_pca_qc(
   data,
   variable,
   use_filtered_data,
-  dim_x,
-  dim_y,
-  qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"),
-  log_transform,
+  pca_dim = c(1, 2),
+  qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+  label_k_mad = 3,
+  log_transform = TRUE,
   remove_istds = TRUE,
-  point_size = 5,
-  point_alpha = 0.8,
+  min_median_signal = NA,
+  point_size = 2,
+  point_alpha = 0.6,
   ellipse_alpha = 0.8,
-  font_base_size = 12
+  font_base_size = 8
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{variable}{which variable to use for plot}
+\item{variable}{Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".}
 
-\item{use_filtered_data}{Use all (default) or filtered data}
+\item{use_filtered_data}{Use all (default) or qc-filtered data}
 
-\item{dim_x}{PCA dimension on x axis}
+\item{pca_dim}{PCA dimensions to plot as a vector of length 2. Default is \code{c(1,2)}}
 
-\item{dim_y}{PCA dimension on y axis}
+\item{qc_types}{qc types to plot. Default is \code{c("SPL", "BQC", "TQC", "NIST", "LTR")}}
 
-\item{qc_types}{qc types to plot}
+\item{label_k_mad}{Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is \code{3}. Set to \code{NULL} to supress labels.}
 
-\item{log_transform}{log transform data for plot}
+\item{log_transform}{log-transform data before calculating PCA. Default is \code{TRUE}}
 
-\item{remove_istds}{exclude internal standards}
+\item{remove_istds}{Exlude ISTD features. Default is \code{TRUE}}
 
-\item{point_size}{size of points}
+\item{min_median_signal}{Minimum median signal across all samples from all selected qc types. \code{NA} (default) will not filter any features based on signal.}
+
+\item{point_size}{size of points. Default is \code{2}}
 
 \item{point_alpha}{transparency of points}
 

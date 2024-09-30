@@ -49,6 +49,8 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{is_batch_corrected}}{Flag if data has been batch corrected}
 
+\item{\code{is_filtered}}{Flag if data has been filtered based on QC parameters}
+
 \item{\code{is_isotope_corr}}{Flag if one or more features have been isotope corrected}
 
 \item{\code{has_outliers_tech}}{Flag if data has technical analysis/sample outliers}
