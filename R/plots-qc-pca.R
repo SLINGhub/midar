@@ -12,12 +12,13 @@
 #' @param point_alpha transparency of points
 #' @param ellipse_alpha transparency of ellipse fill
 #' @param font_base_size Base font size for plot text elements
+#' @param hide_label_text Hide shared text (case-senstive) in labels. If it results in non-unique analysis_id's then an error will be raised.
 #'
 #' @return ggplot2 object
 #' @export
 plot_pca_qc <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
-                        label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.6,
-                        ellipse_alpha = 0.8, font_base_size = 8) {
+                        label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
+                        ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
@@ -90,14 +91,22 @@ plot_pca_qc <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_
 
 
 
-if (!is.null(label_k_mad) & !is.na(label_k_mad)) {
- d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + label_k_mad * mad(!!PCx)) |
-                                    abs(!!PCy) > (median(!!PCy) + label_k_mad * mad(!!PCy)))
-}
+  if (!is.null(label_k_mad) & !is.na(label_k_mad)) {
+   d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + label_k_mad * mad(!!PCx)) |
+                                      abs(!!PCy) > (median(!!PCy) + label_k_mad * mad(!!PCy)))
+   }
 
 
-  pca_annot <- pca_annot |> select("analysis_id":".fittedPC10") |> left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
-  #browser()
+  pca_annot <- pca_annot |>
+    select("analysis_id":stringr::str_c(".fittedPC", max(pca_dim))) |>
+    left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
+
+  if (!is.na(hide_label_text)) {
+    pca_annot <- pca_annot |> mutate(analysis_id_outlier = str_remove(.data$analysis_id_outlier, hide_label_text))
+    if(any(duplicated(pca_annot$analysis_id_outlier, incomparables=NA)))
+      cli_abort(cli::col_red("Hiding text defined with `hide_label_text` would result in non-unique labels. Please modify or set to `NA` to show labels."))
+  }
+
   p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", pca_dim[1]),
     paste0(".fittedPC", pca_dim[2]),
     color = "qc_type",
