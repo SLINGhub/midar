@@ -47,7 +47,7 @@ mexp <- calc_normalize_by_istd(mexp)
 mexp <- calc_quant_by_istd(mexp)
 
 # Get QC metrics for each feature
-mexp <- calculate_qc_metrics(mexp)
+mexp <- qc_calc_metrics(mexp)
 
 # Filter features according to QC criteria
 mexp <- qc_apply_filter(data = mexp,

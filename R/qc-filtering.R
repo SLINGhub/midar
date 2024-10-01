@@ -270,7 +270,7 @@ qc_apply_filter <- function(data,
 
 
   if (nrow(data@metrics_qc) == 0) {
-    cli::cli_abort("QC info has not yet been calculated. Please run 'calculate_qc_metrics()' first.")
+    cli::cli_abort("QC info has not yet been calculated. Please run 'qc_calc_metrics()' first.")
   }
   if (!is.null(features_to_keep)) {
     keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))

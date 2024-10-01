@@ -31,7 +31,8 @@
 #' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
 #' @slot excl_outliers_tech Flag if outliers were excluded in the QC-filtered dataset
 #'
-#' @include definitions.R
+#' @include midar-global-definitions.R
+
 #'
 #' @export
 #'
