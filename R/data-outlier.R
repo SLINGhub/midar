@@ -18,7 +18,6 @@
 #' @export
 #'
 #' @return ggplot2 object
-#' @export
 
 analysis_outlier_detection <- function(data,
                                        variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),

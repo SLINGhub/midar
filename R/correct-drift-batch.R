@@ -632,3 +632,22 @@ batch.correction = function(tab,
   tab
 
 }
+
+
+# fun_gaussiankernel <- function(tbl, qc_types, span_width, ...) {
+#   arguments <- list(...)
+#   # browser()
+#   d_subset <- tbl[tbl$qc_type %in% qc_types, ] |> tidyr::drop_na(.data$y)
+#   res <- tryCatch(
+#     {
+#       fit <- KernSmooth::locpoly(d_subset$x, d_subset$y, bandwidth = span_width, gridsize = nrow(tbl), range.x = c(min(tbl$x), max(tbl$x)))
+#       fit$y
+#     },
+#     error = function(e) {
+#       print(e$message)
+#       return(rep(NA_real_, length(tbl$x)))
+#     }
+#   )
+#   list(res = res, fit_error = all(is.na(res)))
+# }
+

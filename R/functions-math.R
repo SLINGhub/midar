@@ -10,9 +10,9 @@
 #'
 #' @examples
 #' library(midar)
-#' cvlog(c(5, 6, 3, 4, 5, NA), na.rm = TRUE)
+#' cv_log(c(5, 6, 3, 4, 5, NA), na.rm = TRUE)
 #'
-cvlog <- function(x, na.rm) {
+cv_log <- function(x, na.rm) {
   # sqrt(exp(1)^(sd(log(x, ...))^2)-1) *100
   sqrt(10^(log(10) * stats::sd(log(x, 10), na.rm)^2) - 1) * 100
 }
