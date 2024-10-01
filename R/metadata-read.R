@@ -1,6 +1,6 @@
 
 #' @title Retrieve available metadata from imported analysis data
-#' @description Available information will depend on the format of imported raw analysis data. See [rawdata_import_agilent()] and [rawdata_import_mrmkit()]
+#' @description Available information will depend on the format of imported raw analysis data. See [data_import_agilent()] and [data_import_mrmkit()]
 #' @param data MidarExperiment object
 #' @param qc_type_field Column name in imported raw data file representing the `qc_type`
 #' @return MidarExperiment object

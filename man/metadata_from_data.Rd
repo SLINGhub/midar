@@ -15,5 +15,5 @@ metadata_from_data(data, qc_type_field = "qc_type")
 MidarExperiment object
 }
 \description{
-Available information will depend on the format of imported raw analysis data. See \code{\link[=rawdata_import_agilent]{rawdata_import_agilent()}} and \code{\link[=rawdata_import_mrmkit]{rawdata_import_mrmkit()}}
+Available information will depend on the format of imported raw analysis data. See \code{\link[=data_import_agilent]{data_import_agilent()}} and \code{\link[=data_import_mrmkit]{data_import_mrmkit()}}
 }

@@ -7,13 +7,13 @@
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-plot_qc_summary_classes <- function(data, use_batches = c("across", "individual", "summarise"), user_defined_keeper = FALSE, base_size = 8) {
+qc_plot_summary_classes <- function(data, use_batches = c("across", "individual", "summarise"), user_defined_keeper = FALSE, base_size = 8) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   rlang::arg_match(use_batches)
 
   if(!"pass_missingval" %in% names(data@metrics_qc))
-    cli_abort(col_red("QC filter has not yet been applied. Please use `apply_qc_filter()` to filter the data."))
+    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_apply_filter()` to filter the data."))
 
 
   if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
@@ -91,7 +91,7 @@ plot_qc_summary_classes <- function(data, use_batches = c("across", "individual"
 #' @export
 
 
-plot_qc_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
+qc_plot_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   d_qc <- data@metrics_qc |>

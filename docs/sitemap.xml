@@ -52,7 +52,7 @@
     <loc>https://slinghub.github.io/midar/reference/SLINGtools-package.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/apply_qc_filter.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/qc_apply_filter.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/batch_corr_center.html</loc>
@@ -85,10 +85,10 @@
     <loc>https://slinghub.github.io/midar/reference/import_MSOrganizerXLM.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/rawdata_import_agilent_csv.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/data_import_agilent_csv.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/rawdata_import_agilent_csv_wide.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/data_import_agilent_csv_wide.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/import_msorganizer_xlm.html</loc>
@@ -109,7 +109,7 @@
     <loc>https://slinghub.github.io/midar/reference/normalizeByISTD.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/normalize_by_istd.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/calc_normalize_by_istd.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/pipe.html</loc>
@@ -118,16 +118,16 @@
     <loc>https://slinghub.github.io/midar/reference/plot_pca_qc.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/plot_responsecurves.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/qc_plot_responsecurves.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/plot_runscatter.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/qc_plot_runscatter.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/quantitateByISTD.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/quantitate_by_istd.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/calc_quant_by_istd.html</loc>
   </url>
   <url>
     <loc>https://slinghub.github.io/midar/reference/read_MRMkit_raw_area_CSV.html</loc>
@@ -160,6 +160,6 @@
     <loc>https://slinghub.github.io/midar/reference/volcano_plot.html</loc>
   </url>
   <url>
-    <loc>https://slinghub.github.io/midar/reference/writeReportXLS.html</loc>
+    <loc>https://slinghub.github.io/midar/reference/report_save_full_xls.html</loc>
   </url>
 </urlset>

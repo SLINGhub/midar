@@ -14,7 +14,7 @@
 
 
 # TODO: filtering of names containing "(IS"
-writeReportXLS <- function(data, path) {
+report_save_full_xls <- function(data, path) {
   if (!("feature_conc" %in% names(data@dataset))) cli::cli_abort("Variable '", "feature_conc", "' does not (yet) exist in dataset")
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 

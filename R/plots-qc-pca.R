@@ -16,7 +16,7 @@
 #'
 #' @return ggplot2 object
 #' @export
-plot_pca_qc <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+qc_plot_pca <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
                         label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
                         ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 

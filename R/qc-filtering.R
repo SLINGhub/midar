@@ -7,7 +7,7 @@
 #' @param batchwise_median Use median of batch-wise derived QC values.
 #' @return MidarExperiment object
 #' @export
-qc_calculate_metrics <- function(data, batchwise_median ) {
+qc_calc_metrics <- function(data, batchwise_median ) {
 
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
@@ -236,7 +236,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @export
 
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
-apply_qc_filter <- function(data,
+qc_apply_filter <- function(data,
                             qualifier.include = FALSE,
                             istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,

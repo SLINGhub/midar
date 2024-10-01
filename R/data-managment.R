@@ -1,5 +1,5 @@
 
-check_rawdata_present <- function(data){nrow(data@dataset_orig) > 0}
+check_data_present <- function(data){nrow(data@dataset_orig) > 0}
 check_dataset_present <- function(data){nrow(data@dataset) > 0}
 
 get_analysis_count <- function(data, qc_types = NULL) {
@@ -28,7 +28,7 @@ get_feature_count <- function(data, isistd = NULL, isquantifier = NULL) {
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- rawdata_import_mrmkit(mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- data_import_mrmkit(mexp, path = file_path, use_metadata = TRUE)
 #' mexp <- set_analysis_order(mexp, "timestamp")
 
 #' @export
@@ -163,17 +163,17 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 #' @return MidarExperiment object
 #' @export
 
-set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
+data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
 
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
     idx = match(var_list,names(data@dataset_orig))[1]
     if (!is.na(idx)) {
       data@feature_intensity_var = var_list[1]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw feature intensity. Use {.fn set_intensity_var} to modify."))
+      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw feature intensity. Use {.fn data_set_intensity_var} to modify."))
       variable_name <- var_list[1]
       } else {
-      cli_alert_warning(text = cli::col_yellow("No typical raw feature intensity variable found in the data. Use {.fn set_intensity_var to set it.}}"))
+      cli_alert_warning(text = cli::col_yellow("No typical raw feature intensity variable found in the data. Use {.fn data_set_intensity_var to set it.}}"))
       return(data)
       }
   } else {
@@ -208,7 +208,7 @@ set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
 #' @return `MidarExperiment` object
 #' @export
 
-analyses_exclude <- function(data, analyses_exlude, overwrite ){
+data_exclude_analyses <- function(data, analyses_exlude, overwrite ){
 
   if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
     if(!overwrite){
@@ -245,7 +245,7 @@ analyses_exclude <- function(data, analyses_exlude, overwrite ){
 #' @return `MidarExperiment` object
 #' @export
 
-features_exclude <- function(data, features_exlude, overwrite ){
+data_exclude_features <- function(data, features_exlude, overwrite ){
 
   if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
     if(!overwrite){

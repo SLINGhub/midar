@@ -39,18 +39,18 @@ file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar", mu
 mexp <- MidarExperiment()
 
 # Load data and available metadata from MRMkit output file
-mexp <- rawdata_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
+mexp <- data_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
 
 
 # Normalize and quantitate each feature by internal standards
-mexp <- normalize_by_istd(mexp)
-mexp <- quantitate_by_istd(mexp)
+mexp <- calc_normalize_by_istd(mexp)
+mexp <- calc_quant_by_istd(mexp)
 
 # Get QC metrics for each feature
 mexp <- calculate_qc_metrics(mexp)
 
 # Filter features according to QC criteria
-mexp <- apply_qc_filter(data = mexp,
+mexp <- qc_apply_filter(data = mexp,
                         min_cv_conc_bqc = 30,
                         min_intensity_bqc = 100,
                         min_signal_blank_ratio = 5,

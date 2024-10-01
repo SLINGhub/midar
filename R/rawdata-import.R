@@ -18,15 +18,15 @@
 #' @examples
 #' file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- rawdata_import_agilent(data = mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- data_import_agilent(data = mexp, path = file_path, use_metadata = TRUE)
 #' mexp
 
 #' @export
 
-rawdata_import_agilent <- function(data, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+data_import_agilent <- function(data, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   if (file_format == "csv") {
-    data <- rawdata_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
-    data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_", "feature_height")
+    data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
+    data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_", "feature_height")
     if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   } else {
     cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
@@ -51,19 +51,19 @@ rawdata_import_agilent <- function(data, path, use_metadata, file_format = "csv"
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- rawdata_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- data_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
 #' mexp
 
 #' @export
-rawdata_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
-  data <- rawdata_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
-  data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_height")
+data_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
+  data <- data_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
+  data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_height")
 
   if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   data
 }
 
-rawdata_import_main <- function(data, path, import_function, file_ext, include_metadata, silent, ...) {
+data_import_main <- function(data, path, import_function, file_ext, include_metadata, silent, ...) {
 
   if (!fs::is_dir(path)) {
     file_paths <- fs::path_tidy(path)
@@ -535,7 +535,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
 #'
 #' @return A tibble in the long format
 #' @export
-rawdata_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NULL, silent = FALSE) {
+data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NULL, silent = FALSE) {
   analysis_inf_cols <- c(
     "analysis_id",
     "raw_data_filename",

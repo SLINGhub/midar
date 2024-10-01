@@ -176,7 +176,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
                                                    "fit_error", "feature_conc_adj")))
 
   if(!"conc_raw" %in% names(data@dataset))
-    cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `quantitate_by_istd`")))
+    cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `calc_quant_by_istd`")))
 
     # Subset features
   ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = "conc_raw")

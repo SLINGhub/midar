@@ -36,7 +36,7 @@ setGeneric("metadata_responsecurves<-", function(x, value) standardGeneric("meta
 #' @export
 # TODO: cleanup/remove/merge validation checks .. use assertion functions defined else in the code
 setMethod("metadata_responsecurves<-", "MidarExperiment", function(x, value) {
-  if(!check_rawdata_present(x))
+  if(!check_data_present(x))
     cli::cli_abort(message = "No analysis data loaded. Please first import raw data.")
   if(!(is.data.frame(value)))
     cli::cli_abort(message = "`metadata` must be a data.frame or tibble.")

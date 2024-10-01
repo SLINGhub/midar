@@ -16,7 +16,7 @@
 #' @return ggplot object
 #' @export
 
-plot_runsequence <- function(data,
+data_plot_runsequence <- function(data,
                              qc_type_subet,
                              show_batches = TRUE,
                              show_qc_dataset_only = FALSE,
@@ -161,7 +161,7 @@ plot_runsequence <- function(data,
 #' @importFrom utils head
 #' @export
 
-plot_runscatter <- function(data,
+qc_plot_runscatter <- function(data,
                             plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc", "conc_raw", "feature_area", "feature_height", "feature_fwhm"),
                             use_filt_data = FALSE,
                             qc_types = NA,
@@ -202,7 +202,7 @@ plot_runscatter <- function(data,
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_apply_filter` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
@@ -503,7 +503,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 #' @export
 #'
 
-plot_runboxplots <- function(data,
+qc_plot_runboxplot <- function(data,
                              relative_log_abundances,
                              plot_var,
                              use_qc_filtered_data,

@@ -1,5 +1,5 @@
 # Define function to plot 1 page
-plot_responsecurves_page <- function(dataset,
+qc_plot_responsecurves_page <- function(dataset,
                                      output_pdf,
                                      response_variable,
                                      regr_max_percent,
@@ -94,7 +94,7 @@ plot_responsecurves_page <- function(dataset,
 #' @importFrom stats na.omit setNames
 #' @importFrom utils tail
 #' @export
-plot_responsecurves <- function(data,
+qc_plot_responsecurves <- function(data,
                                 response_variable = "feature_intensity",
                                 use_filt_data,
                                 feature_incl_filt = "",
@@ -120,7 +120,7 @@ plot_responsecurves <- function(data,
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `apply_qc_filter` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_apply_filter` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
@@ -177,7 +177,7 @@ plot_responsecurves <- function(data,
   for (i in page_range) {
     if (!silent) print(paste0("page ", i))
 
-    p <-  plot_responsecurves_page(
+    p <-  qc_plot_responsecurves_page(
         dataset = d_rqc,
         output_pdf = output_pdf,
         response_variable = response_variable,
