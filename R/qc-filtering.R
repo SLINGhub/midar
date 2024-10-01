@@ -202,6 +202,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' Note: When `istd.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 #'
 #' @param data MidarExperiment object
+#' @param override Override all previously defined qc filters
 #' @param qualifier.include Include qualifier features
 #' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
@@ -236,7 +237,8 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @export
 
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
-qc_apply_filter <- function(data,
+qc_filter_features <- function(data,
+                            override = FALSE,
                             qualifier.include = FALSE,
                             istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,
@@ -265,13 +267,17 @@ qc_apply_filter <- function(data,
                             response.curve.id = NA,
                             outlier.technical.exlude = FALSE,
                             features_to_keep = NULL) {
+
+  # Check if RQC curve ID is defined when r2 is set
   if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) cli::cli_abort("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
   if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) cli::cli_abort("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
 
-
+  # Check if QC metrics have been calculated
   if (nrow(data@metrics_qc) == 0) {
     cli::cli_abort("QC info has not yet been calculated. Please run 'qc_calc_metrics()' first.")
   }
+
+  # Check if feature_ids defind with features_to_keep are present in the dataset
   if (!is.null(features_to_keep)) {
     keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
@@ -280,6 +286,8 @@ qc_apply_filter <- function(data,
 
   # Save QC filter criteria to MidarExperiment object
   # TODO: fix some of the param below ie. features_to_keep
+
+  # Store the QC filter criteria in MidarExperiment object
   data@parameters_processing <- data@parameters_processing |>
     mutate(
       outlier.technical.exlude = outlier.technical.exlude,
@@ -312,34 +320,6 @@ qc_apply_filter <- function(data,
       features_to_keep = NA
     )
 
-
-  # Function to used to compare qc values with criteria and deal with NA
-  # Behaviour:
-  # value is NA , threshold NA -> NA
-  # value is num , threshold NA -> NA
-  # value is NA , threshold is Num -> FALSE
-  # value is num , threshold is num -> TRUE/FALSE
-
-  # TODO: Add to function description,
-  # TODO: make this function public for user to build own?
-
-  comp_val <- function(val, threshold, operator) {
-    if (is.na(val))
-      if (is.na(threshold)) NA else FALSE
-    else
-      if (is.na(threshold)) NA else get(operator)(val, threshold)
-  }
-
-  # Get the result of AND/OR of boolean elements of vectors, return NA when all NA
-  comp_lgl_vec <- function(lgl_vec, .operator){
-    v <- lgl_vec[!is.na(lgl_vec)]
-    if (length(v) == 0) return(NA)
-    if (.operator == "AND"){
-      all(v)
-    } else if (.operator == "OR"){
-      any(v)
-    }
-  }
 
   data@metrics_qc <- data@metrics_qc |>
     rowwise() |>
@@ -378,9 +358,8 @@ qc_apply_filter <- function(data,
         c(comp_val(.data$missing_intensity_prop_spl, missing.intensity.spl.prop.max, "<="),
         comp_val(.data$missing_normintensity_prop_spl, missing.normintensity.spl.prop.max, "<="),
         comp_val(.data$missing_conc_prop_spl, missing.conc.spl.prop.max, "<=")),
-        .operator = "AND"),
+        .operator = "AND")
 
-      #pass_no_na = !(.data$na_in_all_spl)
     )
 
   if (is.numeric(response.curve.id)) {

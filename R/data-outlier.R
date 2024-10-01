@@ -100,6 +100,6 @@ clear_outlier <- function(data) {
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE
   data@excl_outliers_tech <- FALSE
-  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'qc_apply_filter()'.")))
+  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'qc_filter_features()'.")))
   data
 }

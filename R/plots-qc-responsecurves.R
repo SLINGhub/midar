@@ -120,7 +120,7 @@ qc_plot_responsecurves <- function(data,
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_apply_filter` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_filter_features` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }

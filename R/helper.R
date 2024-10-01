@@ -12,6 +12,36 @@ max_val <- function(x, na.rm = FALSE) {
   if (all(is.na(x) | is.nan(x))) NA_real_ else max(x, na.rm = na.rm)
 }
 
+# Used for qc filtering ####
+# Function to used to compare qc values with criteria and deal with NA
+# Behaviour:
+# value is NA , threshold NA -> NA
+# value is num , threshold NA -> NA
+# value is NA , threshold is Num -> FALSE
+# value is num , threshold is num -> TRUE/FALSE
+
+# TODO: Add to function description,
+# TODO: make this function public for user to build own?
+
+comp_val <- function(val, threshold, operator) {
+  if (is.na(val))
+    if (is.na(threshold)) NA else FALSE
+  else
+    if (is.na(threshold)) NA else get(operator)(val, threshold)
+}
+
+# Get the result of AND/OR of boolean elements of vectors, return NA when all NA
+comp_lgl_vec <- function(lgl_vec, .operator){
+  v <- lgl_vec[!is.na(lgl_vec)]
+  if (length(v) == 0) return(NA)
+  if (.operator == "AND"){
+    all(v)
+  } else if (.operator == "OR"){
+    any(v)
+  }
+}
+
+# ####
 
 # Custom assertr function to test if at least one of provided columns exists
 has_any_name = function(...){

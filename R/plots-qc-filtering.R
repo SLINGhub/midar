@@ -13,7 +13,7 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
   rlang::arg_match(use_batches)
 
   if(!"pass_missingval" %in% names(data@metrics_qc))
-    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_apply_filter()` to filter the data."))
+    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_filter_features()` to filter the data."))
 
 
   if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
