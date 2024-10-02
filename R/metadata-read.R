@@ -308,7 +308,7 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
   # FINALIZE =================
   #TODO: adjust to metadata loaded or so
 
-  data@status_processing <- "Annotated Raw Data"
+  data@status_processing <- "Raw and metadata loaded"
   data
 }
 
