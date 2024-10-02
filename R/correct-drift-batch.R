@@ -337,6 +337,8 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
 
   data@status_processing <- "Drift-corrected concentrations"
   data@is_drift_corrected <- TRUE
+  data@is_filtered <- FALSE
+  data@metrics_qc <- data@metrics_qc[FALSE,]
   data
 }
 
@@ -562,6 +564,8 @@ correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correc
     select(-"y_adjusted")
 
   data@is_batch_corrected <- TRUE
+  data@is_filtered <- FALSE
+  data@metrics_qc <- data@metrics_qc[FALSE,]
   data
 }
 
