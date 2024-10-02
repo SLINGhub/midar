@@ -139,6 +139,9 @@ link_data_metadata <- function(data, minimal_info = TRUE){
   data@is_drift_corrected <- FALSE
   data@is_batch_corrected <- FALSE
   data@is_filtered <- FALSE
+  data@status_processing <- "Annotated raw"
+
+  data@metrics_qc <- data@metrics_qc[FALSE,]
 
   # Arrange run_id and then by feature_id, as they appear in the metadata
   # TODO:  check if as intended
