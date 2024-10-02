@@ -17,7 +17,6 @@ fun_gauss.kernel.smooth = function(tbl, qc_types, ...) {
 
   n = length(yy) ## number of data points
 
-
   res <- tryCatch(
     {
       ## If outlier filter is turned on, mark an outlier as NA
@@ -33,6 +32,10 @@ fun_gauss.kernel.smooth = function(tbl, qc_types, ...) {
       }
 
       yy.train[!s.train] <- NA
+
+      # TODO: Also check HW. When to remove NA or warn there are too many NAs?
+      yy.train[is.infinite(yy.train)] <- NA
+      yy.train[is.nan(yy.train)] <- NA
 
       yy.est = yy
       ## Location parameter smoothing
@@ -583,6 +586,8 @@ batch.correction = function(tab,
 
   val.clean <- val ## placeholder
 
+
+
   ### Cross-batch scale normalization
   if(correct_location) {
     tmp <- val.clean
@@ -593,7 +598,7 @@ batch.correction = function(tab,
       id <- which(batch == ubatch[b])
       loc.batch[b] <- median(tmp_for_loc[id], na.rm=TRUE)
     }
-    loc.batch.mean = mean(loc.batch)
+    loc.batch.mean = mean(loc.batch, na.rm=TRUE)
     for(b in 1:nbatch) {
       id <- which(batch == ubatch[b])
       xloc <- loc.batch[b]
@@ -608,6 +613,12 @@ batch.correction = function(tab,
     tmp <- val.clean
     tmp_for_loc <- val.clean
     tmp_for_loc[!sample.for.loc] <- NA_real_
+
+    # TODO: confirm if this is ok to do and its consequences. Once batch is NA, then shoud we report all?
+    tmp_for_loc[is.infinite(tmp_for_loc)] <- NA_real_
+    tmp_for_loc[is.nan(tmp_for_loc)] <- NA_real_
+
+
     loc.batch <- rep(NA, nbatch)
     sca.batch <- rep(NA, nbatch)
     for(b in 1:nbatch) {
@@ -615,8 +626,8 @@ batch.correction = function(tab,
       loc.batch[b] <- median(tmp_for_loc[id], na.rm=TRUE)
       sca.batch[b] <- mad(tmp_for_loc[id], na.rm=TRUE)
     }
-    loc.batch.mean <- mean(loc.batch)
-    sca.batch.mean <- mean(sca.batch)
+    loc.batch.mean <- mean(loc.batch, na.rm=TRUE)
+    sca.batch.mean <- mean(sca.batch, na.rm=TRUE)
     for(b in 1:nbatch) {
       id <- which(batch == ubatch[b])
       xloc <- loc.batch[b]
