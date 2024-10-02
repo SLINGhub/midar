@@ -4,12 +4,24 @@
 \alias{qc_calc_metrics}
 \title{Calculate feature quality control (QC) metrics}
 \usage{
-qc_calc_metrics(data, batchwise_median)
+qc_calc_metrics(
+  data,
+  batchwise_median,
+  with_normintensity = TRUE,
+  with_conc = TRUE,
+  with_linearity = TRUE
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{batchwise_median}{Use median of batch-wise derived QC values.}
+\item{batchwise_median}{Use median of batch-wise derived QC values. Default is FALSE.}
+
+\item{with_normintensity}{Include normalized intensity statistics of features. Default is TRUE.}
+
+\item{with_conc}{Include concentration statistics of features. Default is TRUE.}
+
+\item{with_linearity}{Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.}
 }
 \value{
 MidarExperiment object

@@ -4,16 +4,18 @@
 #' full analysis or as medians of batch-wise calculations
 #'
 #' @param data MidarExperiment object
-#' @param batchwise_median Use median of batch-wise derived QC values.
+#' @param batchwise_median Use median of batch-wise derived QC values. Default is FALSE.
+#' @param with_normintensity Include normalized intensity statistics of features. Default is TRUE.
+#' @param with_conc Include concentration statistics of features. Default is TRUE.
+#' @param with_linearity Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.
 #' @return MidarExperiment object
 #' @export
-qc_calc_metrics <- function(data, batchwise_median ) {
+qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
 
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
         # All features defined in the metadata
       d_feature_info <- data@annot_features |>
-        #filter(.data$valid_feature) |>
         select("valid_feature", "feature_id", "feature_class", "is_istd", "is_quantifier", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor")
 
       # All features MS method parameters
@@ -57,67 +59,96 @@ qc_calc_metrics <- function(data, batchwise_median ) {
 
      # Using dtplyr to improve speed (2x), group by batch still 5x times slower than no batch grouping
      d_stats_var <- dtplyr::lazy_dt(d_stats_var)
-      d_stats_var <-  d_stats_var |>
+
+     d_stats_var_int <-  d_stats_var |>
         summarise(
           .by = grp,
-           Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-           Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-           Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
-           Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-           Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-           Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
-           Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
+          Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+          Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+          Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
+          Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+          Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+          Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+          Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
 
-           conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
-           conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
-           conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
-           conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
+          Int_CV_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
+          Int_CV_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+          Int_CV_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
 
-           SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-           SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-           SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
-           SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+          SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+          SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+          SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
+          SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+        )
 
-           Int_CV_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
-           Int_CV_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
-           Int_CV_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
-           normInt_CV_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-           normInt_CV_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-           normInt_CV_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+     d_stats_var_final <- d_stats_var_int
 
-           conc_CV_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-           conc_CV_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
-           conc_CV_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
-           conc_CV_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
-           conc_CV_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
-           conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-           conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-           conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
-           conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
-    )
+     if(data@is_istd_normalized){
+       d_stats_var_normint <-  d_stats_var |>
+         summarise(
+           .by = grp,
+            normInt_CV_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+            normInt_CV_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+            normInt_CV_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100
+          )
+       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_normint, by = grp)
+
+     }
+
+     if(data@is_quantitated){
+        d_stats_var_conc <-  d_stats_var |>
+          summarise(
+            .by = grp,
+             conc_median_TQC = median(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
+             conc_median_BQC = median(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
+             conc_median_SPL = median(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+             conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
+             conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
+
+             conc_CV_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+             conc_CV_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+             conc_CV_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+             conc_CV_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
+             conc_CV_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
+             conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
+      )
+        d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_conc, by = grp)
+     }
+
+
     if (batchwise_median){
-      d_stats_var <- d_stats_var |>
-       summarise(across("Int_min_SPL":"conc_dratio_mad_tqc", ~ median(.x, na.rm = TRUE)), .by= "feature_id")
+      d_stats_var_final <- d_stats_var_final |>
+        summarise(across(-ends_with("_id"), ~ median(.x, na.rm = TRUE)), .by= "feature_id")
     }
 
-    d_stats_var <-  as.data.frame(d_stats_var)
-    data@metrics_qc <-
-    tibble("feature_id" = sort(union(unique(data@dataset_orig$feature_id),
-                                     unique(data@annot_features$feature_id)))) |>
-    left_join(d_feature_info, by = "feature_id") |>
-    left_join(d_method_info, by = "feature_id") |>
-    left_join(d_stats_missingval, by = "feature_id") |>
-    left_join(d_stats_var, by = "feature_id") |>
-    relocate("feature_id", "feature_class", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
+    # Convert to lazy_dt to data.frame
+     d_stats_var_final <-  as.data.frame(d_stats_var_final)
 
-  if ("RQC" %in% data@dataset$qc_type) {
-  d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
-  data@metrics_qc <- data@metrics_qc |>
-    dplyr::left_join(d_rqc_stats, by = "feature_id")
+    features_in_dataset <- unique(data@dataset$feature_id)
+
+    # Combine details of features and metrics into one tibble
+    ## `in_data` is a logical flag indicating if the feature is present in the dataset (= data and metadata)
+
+    data@metrics_qc <-
+      tibble("feature_id" = sort(union(unique(data@dataset_orig$feature_id),
+                                     unique(data@annot_features$feature_id)))) |>
+      mutate(in_data = .data$feature_id %in% features_in_dataset) |>
+      left_join(d_feature_info, by = "feature_id") |>
+      left_join(d_method_info, by = "feature_id") |>
+      left_join(d_stats_missingval, by = "feature_id") |>
+      left_join(d_stats_var_final, by = "feature_id") |>
+      relocate("feature_id", "feature_class", "in_data", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
+
+  if (with_linearity & "RQC" %in% data@dataset$qc_type) {
+    d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
+    data@metrics_qc <- data@metrics_qc |>
+      dplyr::left_join(d_rqc_stats, by = "feature_id")
   }
 
   data
@@ -202,7 +233,8 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' Note: When `istd.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 #'
 #' @param data MidarExperiment object
-#' @param override Override all previously defined qc filters
+#' @param ammend Add/change previously defined qc filters or define a new set of filters. Default is `FALSE`.
+#' @param batchwise_median Use median of batch-wise derived QC values. Default is FALSE.
 #' @param qualifier.include Include qualifier features
 #' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
@@ -237,8 +269,10 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @export
 
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
-qc_filter_features <- function(data,
-                            override = FALSE,
+## TODO:  Handle feature with all being NA in SPL or QC or all.
+qc_set_feature_filters <- function(data,
+                            ammend,
+                            batchwise_median,
                             qualifier.include = FALSE,
                             istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,
@@ -272,10 +306,28 @@ qc_filter_features <- function(data,
   if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) cli::cli_abort("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
   if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) cli::cli_abort("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
 
-  # Check if QC metrics have been calculated
-  if (nrow(data@metrics_qc) == 0) {
-    cli::cli_abort("QC info has not yet been calculated. Please run 'qc_calc_metrics()' first.")
-  }
+  # # Check if QC metrics have been calculated
+  # if (nrow(data@metrics_qc) == 0) {
+  #   cli::cli_abort("QC info has not yet been calculated. Please run 'qc_calc_metrics()' first.")
+  # }
+
+
+
+  # Check which criteria categories were defined
+  arg_names <- names(as.list(match.call()))
+  intensity_criteria_defined <- any(str_detect(arg_names, "[^\\.]intensity|signalblank"))
+  normintensity_criteria_defined <- any(str_detect(arg_names, "normintensity"))
+  conc_criteria_defined <- any(str_detect(arg_names, "conc"))
+  resp_criteria_defined <- any(str_detect(arg_names, "response"))
+
+
+
+  data_local = qc_calc_metrics(data,
+                         batchwise_median = batchwise_median,
+                         with_normintensity = data@is_istd_normalized,
+                         with_conc = data@is_quantitated,
+                         with_linearity = resp_criteria_defined)
+
 
   # Check if feature_ids defind with features_to_keep are present in the dataset
   if (!is.null(features_to_keep)) {
@@ -320,8 +372,9 @@ qc_filter_features <- function(data,
       features_to_keep = NA
     )
 
+  metrics_qc_local <- data_local@metrics_qc
 
-  data@metrics_qc <- data@metrics_qc |>
+  metrics_qc_local <- metrics_qc_local |>
     rowwise() |>
     mutate(
       pass_lod = comp_lgl_vec(
@@ -359,34 +412,79 @@ qc_filter_features <- function(data,
         comp_val(.data$missing_normintensity_prop_spl, missing.normintensity.spl.prop.max, "<="),
         comp_val(.data$missing_conc_prop_spl, missing.conc.spl.prop.max, "<=")),
         .operator = "AND")
-
     )
 
-  if (is.numeric(response.curve.id)) {
-    rqc_r2_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "r2_rqc"))]
-    rqc_r2_col <- rqc_r2_col_names[response.curve.id]
-    rqc_y0_col_names <- names(data@metrics_qc)[which(stringr::str_detect(names(data@metrics_qc), "y0rel_rqc"))]
-    rqc_y0_col <- rqc_y0_col_names[response.curve.id]
+  # Check if linearity criteria are defined
+  metrics_qc_local<- metrics_qc_local |> mutate(pass_linearity = NA)
+  if (resp_criteria_defined){
+    if (is.numeric(response.curve.id)) {
+      rqc_r2_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "r2_rqc"))]
+      rqc_r2_col <- rqc_r2_col_names[response.curve.id]
+      rqc_y0_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "y0rel_rqc"))]
+      rqc_y0_col <- rqc_y0_col_names[response.curve.id]
 
-    if (is.na(rqc_r2_col)) cli::cli_abort(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `response.curve.id` value."))
-  } else {
-    rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
-    rqc_y0_col <- paste0("y0_rqc_", response.curve.id)
+      if (is.na(rqc_r2_col)) cli::cli_abort(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `response.curve.id` value."))
+
+    } else if(is.character(response.curve.id)){
+      rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
+      rqc_y0_col <- paste0("y0rel_rqc_", response.curve.id)
+    } else {
+      cli::cli_abort("`response.curve.id` must be either a numeric index or a text identifier (id) of the RQC curve.")
+    }
+
+    if (rqc_r2_col %in% names(metrics_qc_local)) {
+      metrics_qc_local <- metrics_qc_local |>
+        mutate(
+          pass_linearity = if_else(is.na(!!ensym(rqc_r2_col)), NA, !!ensym(rqc_r2_col) > response.rsquare.min &
+            !!ensym(rqc_y0_col) < response.yintersect.rel.max)
+        )
+      }
   }
 
-  if (rqc_r2_col %in% names(data@metrics_qc)) {
-    data@metrics_qc <- data@metrics_qc |>
-      mutate(
-        pass_linearity = if_else(is.na(!!ensym(rqc_r2_col)), NA, !!ensym(rqc_r2_col) > response.rsquare.min &
-          !!ensym(rqc_y0_col) < response.yintersect.rel.max)
+  # Check if filter has been previously set and if it should be overwritten
+  #browser()
+  if(ammend & nrow(data@metrics_qc) > 0){
+    metrics_old <- data@metrics_qc |>
+      select(
+        any_of(c(
+          "feature_id",
+          "batch_id",
+          qc_pass_before = "qc_pass",
+          pass_lod_before = "pass_lod",
+          pass_sb_before = "pass_sb",
+          pass_cva_before = "pass_cva",
+          pass_linearity_before = "pass_linearity",
+          pass_dratio_before =  "pass_dratio",
+          pass_missingval_before = "pass_missingval"
+        ))
       )
-  } else {
-    data@metrics_qc <- data@metrics_qc |>
+
+    metrics_qc_local <- metrics_qc_local |> full_join(metrics_old, by = "feature_id")
+
+    prev_filters <- list()
+    if(!all(is.na(metrics_qc_local$pass_missingval)) & !all(is.na(metrics_qc_local$pass_missingval_before))) prev_filters <- append(prev_filters, "D-ratio")
+    if(!all(is.na(metrics_qc_local$pass_lod)) & !all(is.na(metrics_qc_local$pass_lod_before))) prev_filters <- append(prev_filters, "Min-Intensity")
+    if(!all(is.na(metrics_qc_local$pass_sb)) & !all(is.na(metrics_qc_local$pass_sb_before))) prev_filters <- append(prev_filters, "Signal-to-Blank")
+    if(!all(is.na(metrics_qc_local$pass_linearity)) & !all(is.na(metrics_qc_local$pass_linearity_before))) prev_filters <- append(prev_filters, "Linearity")
+    if(!all(is.na(metrics_qc_local$pass_cva)) & !all(is.na(metrics_qc_local$pass_cva_before))) prev_filters <- append(prev_filters, "%CV")
+    if(!all(is.na(metrics_qc_local$pass_dratio)) & !all(is.na(metrics_qc_local$pass_dratio_before))) prev_filters <- append(prev_filters, "D-ratio")
+    if(length(prev_filters) > 0){
+      cli::cli_alert_warning(cli::col_yellow(glue::glue("Following previously set QC filters were replaced : {glue::glue_collapse(prev_filters, sep = ', ', last = ', and ')}")))
+    }
+     # Determine QC flags for each feature based on given criteria, excluding RQC
+
+    metrics_qc_local <- metrics_qc_local |>
       mutate(
-        pass_linearity = NA)
+        pass_lod = if_else(is.na(.data$pass_lod), .data$pass_lod_before, .data$pass_lod),
+        pass_sb = if_else(is.na(.data$pass_sb), .data$pass_sb_before, .data$pass_sb),
+        pass_cva = if_else(is.na(.data$pass_cva), .data$pass_cva_before, .data$pass_cva),
+        pass_linearity = if_else(is.na(.data$pass_linearity), .data$pass_linearity_before, .data$pass_linearity),
+        pass_dratio = if_else(is.na(.data$pass_dratio), .data$pass_dratio_before, .data$pass_dratio),
+        pass_missingval = if_else(is.na(.data$pass_missingval), .data$pass_missingval_before, .data$pass_missingval)
+    )
   }
 
-    data@metrics_qc <- data@metrics_qc |>
+  metrics_qc_local <- metrics_qc_local |>
       mutate(
         qc_pass =
           (
@@ -398,45 +496,67 @@ qc_filter_features <- function(data,
               (is.na(.data$pass_missingval) | .data$pass_missingval) &
               (is.na(.data$valid_feature) | .data$valid_feature)
           ) |
-            (
-              .data$feature_id %in% features_to_keep
-            )
+          (
+            .data$feature_id %in% features_to_keep
+          )
       )
 
     #TODO: deal with invalid integrations (as defined by user in metadata)
-
-    d_filt <- data@metrics_qc |>
+    d_filt <- metrics_qc_local |>
       filter(.data$qc_pass)
 
-    if(!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
-    if(!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
+    if(!qualifier.include) d_metrics_temp <- metrics_qc_local |> filter(.data$is_quantifier)
+    if(!istd.include) d_metrics_temp <- metrics_qc_local |> filter(!.data$is_istd)
 
     n_all_quant <- get_feature_count(data, isistd = FALSE, isquantifier = TRUE)
     n_all_qual <- get_feature_count(data, isistd = FALSE, isquantifier = FALSE)
-    n_filt_quant <- nrow(d_filt |>  filter(.data$is_quantifier))
-    n_filt_qual <- nrow(d_filt |>  filter(!.data$is_quantifier))
+
+    n_filt_quant <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass))
+    n_filt_qual <- nrow(d_metrics_temp |>  filter(.data$in_data, !.data$is_quantifier, .data$qc_pass))
+
+    if(ammend & nrow(data@metrics_qc) > 0){
+      n_filt_quant_before <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass_before))
+      n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_quantifier, .data$qc_pass_before))
+      qc_pass_prev <- sum(d_metrics_temp$qc_pass_before, na.rm = TRUE)
+    }
 
     n_istd_quant <- get_feature_count(data, isistd = TRUE, isquantifier = TRUE)
     n_istd_qual <- get_feature_count(data, isistd = TRUE, isquantifier = FALSE)
 
     if (!istd.include) {
-      n_filt_quant <- nrow(d_filt |>  filter(!.data$is_istd, .data$is_quantifier))
-      n_filt_qual <- nrow(d_filt |>  filter(!.data$is_istd, !.data$is_quantifier))
+      n_filt_quant <- nrow(d_filt |>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier))
+      n_filt_qual <- nrow(d_filt |>  filter(.data$in_data, !.data$is_istd, !.data$is_quantifier))
+
+      if(ammend & nrow(data@metrics_qc) > 0){
+        n_filt_quant_before <- nrow(d_metrics_temp|>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier, .data$qc_pass_before))
+        n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_istd, !.data$is_quantifier, .data$qc_pass_before))
+      }
     }
 
+    qc_pass_now <- sum(metrics_qc_local$qc_pass, na.rm = TRUE)
 
-  if(qualifier.include)
-    cli::cli_alert_success(cli::col_green(glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
-  else
-    cli::cli_alert_success(cli::col_green((glue::glue("QC filtering applied: {n_filt_quant} of {n_all_quant} quantifier features passed QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
+  if(qualifier.include){
+    if(ammend & nrow(data@metrics_qc) > 0){
 
+      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+    } else
+      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+  } else {
+    if(ammend & nrow(data@metrics_qc) > 0){
+      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)")))
+    } else {
+      cli::cli_alert_success(cli::col_green((glue::glue("New QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
+    }
+  }
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
   if (!istd.include) d_filt <- d_filt |> filter(!.data$is_istd)
 
   data@is_filtered <- TRUE
+  data@metrics_qc <- metrics_qc_local |> select(-dplyr::ends_with("before"))
+
 
   data@dataset_filtered <- data@dataset |>
-    dplyr::right_join(d_filt |> dplyr::select("feature_id"), by = "feature_id") #|>
+    dplyr::right_join(metrics_qc_local |> filter(.data$qc_pass) |> dplyr::select("feature_id"), by = "feature_id") #|>
     #filter( !(.data$outlier_technical & outlier.technical.exlude)) #TODO
 
   data
