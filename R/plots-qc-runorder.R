@@ -202,7 +202,7 @@ qc_plot_runscatter <- function(data,
 
   if (use_filt_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_filter_features` first.")
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }

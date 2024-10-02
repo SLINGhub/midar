@@ -50,7 +50,7 @@ mexp <- calc_quant_by_istd(mexp)
 mexp <- qc_calc_metrics(mexp)
 
 # Filter features according to QC criteria
-mexp <- qc_filter_features(data = mexp,
+mexp <- qc_set_feature_filters(data = mexp,
                         min_cv_conc_bqc = 30,
                         min_intensity_bqc = 100,
                         min_signal_blank_ratio = 5,
