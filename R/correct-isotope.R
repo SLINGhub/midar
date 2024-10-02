@@ -101,6 +101,14 @@ correct_interferences <- function(data, variable = "feature_intensity") {
     select(-"corr_intensity", -"interference_corrected_temp")
 
   data@is_isotope_corr <- TRUE
+  data@status_processing <- "Isotope-corrected raw data"
+  data@is_istd_normalized <- FALSE
+  data@is_quantitated <- FALSE
+  data@is_drift_corrected <- FALSE
+  data@is_batch_corrected <- FALSE
+  data@is_filtered <- FALSE
+  data@metrics_qc <- data@metrics_qc[FALSE,]
+
   n_corr <- data@annot_features |>
     filter(.data$valid_feature) |>
     filter(!is.na(.data$interference_feature_id)) |>
