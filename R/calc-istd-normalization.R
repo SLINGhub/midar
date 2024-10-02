@@ -93,6 +93,8 @@ calc_normalize_by_istd <- function(data, error_missing_info = TRUE) {
   data@is_quantitated <- FALSE
   data@is_drift_corrected <- FALSE
   data@is_batch_corrected <- FALSE
+  data@is_filtered <- FALSE
+  data@metrics_qc <- data@metrics_qc[FALSE,]
   data
 }
 
@@ -175,6 +177,8 @@ calc_quant_by_istd <- function(data, error_missing_info = TRUE, ignore_unused_is
   data@is_quantitated <- TRUE
   data@is_drift_corrected <- FALSE
   data@is_batch_corrected <- FALSE
+  data@is_filtered <- FALSE
+  data@metrics_qc <- data@metrics_qc[FALSE,]
 
   data
 }
