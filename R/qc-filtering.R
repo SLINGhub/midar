@@ -43,16 +43,15 @@ qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, w
         dplyr::filter(.data$qc_type %in% c("SPL", "NIST", "LTR", "BQC", "TQC", "PBLK", "SBLK", "UBLK", "IBLK", "CAL", "STD", "LQC", "MQC", "UQC")) |>
         dplyr::summarise(
           .by = "feature_id",
-          missing_intensity_prop_spl = sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]),
-          missing_normintensity_prop_spl = sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
-          missing_conc_prop_spl = sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]),
-          na_in_all_spl = all(is.na(.data$feature_conc[.data$qc_type == "SPL"]))
+          missing_intensity_prop_spl = if ("feature_intensity" %in% names(data@dataset )) sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]) else NA_real_,
+          missing_normintensity_prop_spl = if ("feature_norm_intensity" %in% names(data@dataset )) sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]) else NA_real_,
+          missing_conc_prop_spl = if ("feature_conc" %in% names(data@dataset )) sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]) else NA_real_,
+          na_in_all = if ("feature_intensity" %in% names(data@dataset )) all(is.na(.data$feature_intensity)) else NA_real_
         )
-
 
       if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
       d_stats_var <- data@dataset |>
-        select("batch_id", "feature_id", "qc_type","feature_intensity", "feature_conc", "feature_norm_intensity") |>
+        select(any_of(c("batch_id", "feature_id", "qc_type","feature_intensity", "feature_conc", "feature_norm_intensity"))) |>
         filter(.data$qc_type != "RQC") |>
         mutate(qc_type = factor(.data$qc_type),
                batch_id = factor(.data$batch_id))
@@ -373,47 +372,47 @@ qc_set_feature_filters <- function(data,
     )
 
   metrics_qc_local <- data_local@metrics_qc
-
+  ##tictoc::tic()
   metrics_qc_local <- metrics_qc_local |>
-    rowwise() |>
+    #rowwise() |>  #TODO make it vevtorized
     mutate(
       pass_lod = comp_lgl_vec(
-        c(comp_val(.data$Int_min_BQC, intensity.min.bqc.min, ">"),
-        comp_val(.data$Int_min_TQC, intensity.min.tqc.min, ">"),
-        comp_val(.data$Int_min_SPL, intensity.min.spl.min, ">"),
-        comp_val(.data$Int_median_BQC, intensity.median.bqc.min, ">"),
-        comp_val(.data$Int_median_TQC, intensity.median.tqc.min, ">"),
-        comp_val(.data$Int_median_SPL, intensity.median.spl.min, ">"),
-        comp_val(.data$Int_max_SPL, intensity.max.spl.min, ">")),
+        list(comp_val(dplyr::cur_data(), "Int_min_BQC", intensity.min.bqc.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_min_TQC", intensity.min.tqc.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_min_SPL", intensity.min.spl.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_median_BQC", intensity.median.bqc.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_median_TQC", intensity.median.tqc.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_median_SPL", intensity.median.spl.min, ">"),
+        comp_val(dplyr::cur_data(), "Int_max_SPL", intensity.max.spl.min, ">")),
         .operator = "AND"),
 
       pass_sb = comp_lgl_vec(
-        c(comp_val(.data$SB_Ratio_pblk, signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(.data$SB_Ratio_ublk, signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(.data$SB_Ratio_sblk, signalblank.median.sblk.min, ">")),
+        list(comp_val(dplyr::cur_data(), "SB_Ratio_pblk", signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "SB_Ratio_ublk", signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "SB_Ratio_sblk", signalblank.median.sblk.min, ">")),
         .operator = "AND"),
 
       pass_cva = comp_lgl_vec(
-        c(comp_val(.data$conc_CV_BQC, cv.conc.bqc.max, "<"),
-        comp_val(.data$conc_CV_TQC, cv.conc.tqc.max, "<"),
-        comp_val(.data$Int_CV_BQC,  cv.intensity.bqc.min, "<"),
-        comp_val(.data$Int_CV_TQC, cv.intensity.tqc.min, "<")),
+        list(comp_val(dplyr::cur_data(), "conc_CV_BQC", cv.conc.bqc.max, "<"),
+        comp_val(dplyr::cur_data(), "conc_CV_TQC", cv.conc.tqc.max, "<"),
+        comp_val(dplyr::cur_data(), "Int_CV_BQC",  cv.intensity.bqc.min, "<"),
+        comp_val(dplyr::cur_data(), "Int_CV_TQC", cv.intensity.tqc.min, "<")),
         .operator = "AND"),
 
       pass_dratio = comp_lgl_vec(
-        c(comp_val(.data$conc_dratio_sd_bqc, dratio.conc.bqc.sd.max, "<"),
-          comp_val( .data$conc_dratio_sd_tqc, dratio.conc.tqc.sd.max, "<"),
-          comp_val( .data$conc_dratio_mad_bqc, dratio.conc.bqc.mad.max, "<"),
-          comp_val( .data$conc_dratio_mad_tqc, dratio.conc.tqc.mad.max, "<")),
+        list(comp_val(dplyr::cur_data(), "conc_dratio_sd_bqc", dratio.conc.bqc.sd.max, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_sd_tqc", dratio.conc.tqc.sd.max, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_bqc", dratio.conc.bqc.mad.max, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_tqc", dratio.conc.tqc.mad.max, "<")),
         .operator = "AND"),
 
       pass_missingval = comp_lgl_vec(
-        c(comp_val(.data$missing_intensity_prop_spl, missing.intensity.spl.prop.max, "<="),
-        comp_val(.data$missing_normintensity_prop_spl, missing.normintensity.spl.prop.max, "<="),
-        comp_val(.data$missing_conc_prop_spl, missing.conc.spl.prop.max, "<=")),
+        list(comp_val(dplyr::cur_data(), "missing_intensity_prop_spl", missing.intensity.spl.prop.max, "<="),
+        comp_val(dplyr::cur_data(), "missing_normintensity_prop_spl", missing.normintensity.spl.prop.max, "<="),
+        comp_val(dplyr::cur_data(), "missing_conc_prop_spl", missing.conc.spl.prop.max, "<=")),
         .operator = "AND")
     )
-
+  ##tictoc::toc()
   # Check if linearity criteria are defined
   metrics_qc_local<- metrics_qc_local |> mutate(pass_linearity = NA)
   if (resp_criteria_defined){
