@@ -23,22 +23,53 @@ max_val <- function(x, na.rm = FALSE) {
 # TODO: Add to function description,
 # TODO: make this function public for user to build own?
 
-comp_val <- function(val, threshold, operator) {
-  if (is.na(val))
-    if (is.na(threshold)) NA else FALSE
-  else
-    if (is.na(threshold)) NA else get(operator)(val, threshold)
+comp_val <- function(tbl, val, threshold, operator) {
+  # if (!val %in% names(tbl)) return(NA)
+  # v_val <- tbl[[val]]
+  # if (is.na(v_val))
+  #   if (is.na(threshold)) NA else FALSE
+  # else
+  #   if (is.na(threshold)) {
+  #     NA
+  #   } else {
+  #     res = get(operator)(v_val, threshold)
+  #   }
+  #
+  if (!val %in% names(tbl)) return(NA)
+  v_val <- tbl[[val]]
+  result <- get(operator)(v_val, threshold)
+
+#
+#   if (is.na(v_val))
+#     if (is.na(threshold)) NA else FALSE
+#   else
+#     if (is.na(threshold)) {
+#       NA
+#     } else {
+#       get(operator)(v_val, threshold)
+#     }
+
 }
 
+
 # Get the result of AND/OR of boolean elements of vectors, return NA when all NA
-comp_lgl_vec <- function(lgl_vec, .operator){
-  v <- lgl_vec[!is.na(lgl_vec)]
-  if (length(v) == 0) return(NA)
+comp_lgl_vec <- function(lgl_list, .operator){
+
+  tbl <- as_tibble(do.call(cbind, lgl_list), .name_repair = "unique_quiet")
+
   if (.operator == "AND"){
-    all(v)
+    tbl |> mutate(all_true = rowSums(across(everything()), na.rm =TRUE) == rowSums(!is.na(across(everything())))) |> pull(all_true)
   } else if (.operator == "OR"){
-    any(v)
+    tbl |> mutate(any_true = rowSums(across(everything()), na.rm = TRUE) > 0) |> pull(any_true)
   }
+  # v <- lgl_vec[!is.na(lgl_vec)]
+  # browser()
+  # if (length(v) == 0) return(NA)
+  # if (.operator == "AND"){
+  #   all(v)
+  # } else if (.operator == "OR"){
+  #   any(v)
+  # }
 }
 
 # ####
