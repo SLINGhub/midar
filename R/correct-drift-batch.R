@@ -178,11 +178,11 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, log2_transform = TRUE, wi
                                                    "CONC_DRIFT_ADJ", "cv_raw_spl", "cv_adj_spl", "drift_correct",
                                                    "fit_error", "feature_conc_adj")))
 
-  if(!"conc_raw" %in% names(data@dataset))
+  if(!"feature_conc_raw" %in% names(data@dataset))
     cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `calc_quant_by_istd`")))
 
     # Subset features
-  ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = "conc_raw")
+  ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = "feature_conc_raw")
 
 
   if (!is.null(feature_list))
@@ -449,7 +449,7 @@ correct_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75
 #' @importFrom glue glue
 corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_fun = "median") {
   ds <- data@dataset
-  if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
+  if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
   # Normalize by the median (or user-defined function)
   ds <- ds |>
     dplyr::group_by(.data$feature_id, .data$batch_id) |>
@@ -511,7 +511,7 @@ correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correc
   } else {
       data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
   }
-  # TODO var <- rlang::sym("conc_raw") else var <- rlang::sym("CONC_ADJ")
+  # TODO var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
   #if (!data@is_drift_corrected)
 
   d_res <- ds |>

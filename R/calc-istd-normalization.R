@@ -159,7 +159,7 @@ calc_quant_by_istd <- function(data, error_missing_info = TRUE, ignore_unused_is
     dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
 
   # Copy of the raw concentrations (after normalization and quantitation)
-  data@dataset$conc_raw <- data@dataset$feature_conc
+  data@dataset$feature_conc_raw <- data@dataset$feature_conc
 
   n_features <- length(unique(d_temp$feature_id))
   n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)

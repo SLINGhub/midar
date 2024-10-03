@@ -24,7 +24,7 @@ qc_plot_pca(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{variable}{Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".}
+\item{variable}{Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm".}
 
 \item{use_filtered_data}{Use all (default) or qc-filtered data}
 

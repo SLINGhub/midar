@@ -1,6 +1,6 @@
 #' PCA plot for QC
 #' @param data MidarExperiment object
-#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".
+#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm".
 #' @param use_filtered_data Use all (default) or qc-filtered data
 #' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is `c(1,2)`
 #' @param qc_types qc types to plot. Default is `c("SPL", "BQC", "TQC", "NIST", "LTR")`
@@ -21,7 +21,7 @@ qc_plot_pca <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_
                         ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm"))
 
   variable <- stringr::str_c("feature_", variable)
 
