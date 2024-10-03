@@ -220,7 +220,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
   cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istd) > 0)}}")
   cli::cli_li("Response curve annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
-  cli::cli_li("Study samplesannotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
+  cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
   cli::cli_end(id ="B")
 
   cli::cli_h2("Processing Status")
