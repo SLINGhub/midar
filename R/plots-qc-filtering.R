@@ -35,13 +35,13 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
   d_qc_sum <- d_qc |> ungroup() |>
     group_by(.data$feature_class) |>
     summarise(
-      has_only_na = sum(.data$na_in_all_spl, na.rm = TRUE),
-      exceed_missingness = sum((!replace_na(.data$na_in_all_spl, TRUE) & !.data$pass_missingval) | all(is.na(.data$pass_missingval)), na.rm = TRUE),
-      below_lod = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE) | all(is.na(.data$pass_lod)), na.rm = TRUE),
-      below_sb = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & !.data$pass_sb) | all(is.na(.data$pass_sb)), na.rm = TRUE),
-      above_cva = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & !.data$pass_cva) | all(is.na(.data$pass_cva)), na.rm = TRUE),
-      bad_linearity = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & !.data$pass_linearity) | all(is.na(.data$pass_linearity)), na.rm = TRUE),
-      above_dratio = sum((!.data$na_in_all_spl & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE) & !.data$pass_dratio) | all(is.na(.data$pass_dratio)), na.rm = TRUE),
+      has_only_na = sum(.data$na_in_all, na.rm = TRUE),
+      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !.data$pass_missingval) | all(is.na(.data$pass_missingval)), na.rm = TRUE),
+      below_lod = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE) | all(is.na(.data$pass_lod)), na.rm = TRUE),
+      below_sb = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & !.data$pass_sb) | all(is.na(.data$pass_sb)), na.rm = TRUE),
+      above_cva = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & !.data$pass_cva) | all(is.na(.data$pass_cva)), na.rm = TRUE),
+      bad_linearity = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & !.data$pass_linearity) | all(is.na(.data$pass_linearity)), na.rm = TRUE),
+      above_dratio = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE) & !.data$pass_dratio) | all(is.na(.data$pass_dratio)), na.rm = TRUE),
       qc_pass = sum(.data$qc_pass, na.rm = TRUE)
     ) |>
     tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
@@ -52,7 +52,7 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
 
 
   # Remove levels/qc criteria for which was not filtered for
-  if(all(is.na(d_qc$na_in_all_spl))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
+  if(all(is.na(d_qc$na_in_all))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
   if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "exceed_missingness")
   if(all(is.na(d_qc$pass_lod))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_lod")
   if(all(is.na(d_qc$pass_sb))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_sb")
