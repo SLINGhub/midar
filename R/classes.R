@@ -8,6 +8,7 @@
 #'
 #' @docType class
 #'
+#' @slot title Title of the experiment
 #' @slot analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @slot feature_intensity_var Feature variable used as default for calculations
 #' @slot dataset_orig Original imported analysis data. Required fields:
@@ -40,6 +41,7 @@
 
 setClass("MidarExperiment",
   slots = c(
+    title = "character",
     analysis_type = "character",
     feature_intensity_var = "character",
     dataset_orig = "tbl_df",
@@ -64,6 +66,7 @@ setClass("MidarExperiment",
     excl_outliers_tech = "logical"
   ),
   prototype = list(
+    title = "",
     analysis_type = "",
     feature_intensity_var = "",
     dataset_orig = pkg.env$table_templates$annot_analyses_template,
@@ -85,7 +88,6 @@ setClass("MidarExperiment",
     is_batch_corrected = FALSE,
     is_filtered = FALSE,
     has_outliers_tech = FALSE,
-
     excl_outliers_tech = FALSE
   )
 )
@@ -97,8 +99,11 @@ setClass("MidarExperiment",
 #' @param analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @return `MidarExperiment` object
 #' @export
-MidarExperiment <- function(analysis_type = "") {
-  methods::new("MidarExperiment", analysis_type = analysis_type)
+MidarExperiment <- function(title = "", analysis_type = "") {
+  methods::new("MidarExperiment",
+               title = title,
+               analysis_type = analysis_type)
+
 }
 
 #' Set analysis type
@@ -202,6 +207,7 @@ setMethod(
 setMethod("show", "MidarExperiment", function(object) {
   cli::cli_par()
   cli::cli_h1(is(object)[[1]])
+  cli::cli_text(cli::col_blue("Title: {.strong {object@title}}"))
   cli::cli_end()
 
   cli::cli_par()
