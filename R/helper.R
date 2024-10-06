@@ -24,55 +24,20 @@ max_val <- function(x, na.rm = FALSE) {
 # TODO: make this function public for user to build own?
 
 comp_val <- function(tbl, val, threshold, operator) {
-  # if (!val %in% names(tbl)) return(NA)
-  # v_val <- tbl[[val]]
-  # if (is.na(v_val))
-  #   if (is.na(threshold)) NA else FALSE
-  # else
-  #   if (is.na(threshold)) {
-  #     NA
-  #   } else {
-  #     res = get(operator)(v_val, threshold)
-  #   }
-  #
   if (!val %in% names(tbl)) return(NA)
   v_val <- tbl[[val]]
   result <- get(operator)(v_val, threshold)
-
-#
-#   if (is.na(v_val))
-#     if (is.na(threshold)) NA else FALSE
-#   else
-#     if (is.na(threshold)) {
-#       NA
-#     } else {
-#       get(operator)(v_val, threshold)
-#     }
-
 }
 
 
 # Get the result of AND/OR of boolean elements of vectors, return NA when all NA
 comp_lgl_vec <- function(lgl_list, .operator){
-
-  tbl <- as_tibble(do.call(cbind, lgl_list), .name_repair = "unique_quiet")
-
   if (.operator == "AND"){
-    tbl |> mutate(all_true = rowSums(across(everything()), na.rm =TRUE) == rowSums(!is.na(across(everything())))) |> pull(all_true)
+    Reduce("&", lgl_list)
   } else if (.operator == "OR"){
-    tbl |> mutate(any_true = rowSums(across(everything()), na.rm = TRUE) > 0) |> pull(any_true)
+    Reduce("|", lgl_list, )
   }
-  # v <- lgl_vec[!is.na(lgl_vec)]
-  # browser()
-  # if (length(v) == 0) return(NA)
-  # if (.operator == "AND"){
-  #   all(v)
-  # } else if (.operator == "OR"){
-  #   any(v)
-  # }
 }
-
-# ####
 
 # Custom assertr function to test if at least one of provided columns exists
 has_any_name = function(...){
