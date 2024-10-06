@@ -17,7 +17,7 @@ qc_plot_runboxplot(
   batches_as_shades = FALSE,
   batch_line_color = "red",
   batch_shading_color = "grey70",
-  base_size = 8
+  base_font_size = 8
 )
 }
 \arguments{
@@ -45,7 +45,7 @@ qc_plot_runboxplot(
 
 \item{batch_shading_color}{batch shade color}
 
-\item{base_size}{base font size for plots (default is 8)}
+\item{base_font_size}{base font size for plots (default is 8)}
 }
 \value{
 ggplot object

@@ -41,7 +41,7 @@ qc_plot_runscatter(
   y_label_text = NA,
   silent = TRUE,
   return_plot_list = FALSE,
-  base_size = 12,
+  base_font_size = 12,
   show_gridlines = FALSE
 )
 }
@@ -116,7 +116,7 @@ qc_plot_runscatter(
 
 \item{return_plot_list}{return list with plots}
 
-\item{base_size}{base font size of plot}
+\item{base_font_size}{base font size of plot}
 
 \item{show_gridlines}{show x and y major gridlines}
 }

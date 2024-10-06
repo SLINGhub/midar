@@ -13,6 +13,8 @@ Provides also functions to validate data integrity, to perfom normalization and 
 \section{Slots}{
 
 \describe{
+\item{\code{title}}{Title of the experiment}
+
 \item{\code{analysis_type}}{Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"}
 
 \item{\code{feature_intensity_var}}{Feature variable used as default for calculations}

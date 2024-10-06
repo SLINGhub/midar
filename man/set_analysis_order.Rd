@@ -2,7 +2,7 @@
 % Please edit documentation in R/data-managment.R
 \name{set_analysis_order}
 \alias{set_analysis_order}
-\title{Set the analysis order}
+\title{Set the analAnalysusysis order}
 \usage{
 set_analysis_order(data, analysis_sequence = "default")
 }

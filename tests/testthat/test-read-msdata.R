@@ -55,7 +55,7 @@ testthat::test_that("Parses nested MH Quant .csv file with detailed method info 
 
 testthat::test_that(desc = "Console output with correct number of samples and features", code = {
   expect_output(parse_masshunter_csv(testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv")),
-    regexp = "Imported 65 samples with 16 features"
+    regexp = "Imported 65 analyses with 16 features"
   )
 })
 
@@ -91,7 +91,7 @@ testthat::test_that("Parses nested MH Quant .csv file containing QUALIFIER peak 
       testthat::test_path("9_Testdata_MHQuant_withQuantMethods_withQualifierMethResults.csv"),
       expand_qualifier_names = TRUE
     ),
-    "Imported 65 samples with 16 features \\(8 quantifiers\\, 8 qualifiers\\)"
+    "Imported 65 analyses with 16 features \\(8 quantifiers\\, 8 qualifiers\\)"
   )
   expect_equal(ncol(d), 16)
   expect_equal(nrow(d), 1040)
