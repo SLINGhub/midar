@@ -1,112 +1,163 @@
 #' RunSequence plot
 #'
 #' @param data MidarExperiment object
-#' @param qc_type_subet Select QC types to be show, NA will select all available QC/Sample types
+#' @param qc_types QC types to be shown, `NA` displays all available QC/Sample types. Can be a vector with QC types or a string with regex pattern.
 #' @param show_batches Show batches
-#' @param show_qc_dataset_only Show only available QC types
+#' @param use_datetime Use acquisition time stamp as x-axis
+#' @param add_info_title Add title with experiment title and analysis date and times
+#' @param single_row Show all qc types in a single row
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
 #' @param scale_factor Overall plot scale factor
 #' @param show_outlier Should samples defined as outlier as separate row
-#' @param segment_width Linewidth of the segments
-#' @param base_size base font size
-#' @param factor_a First factor referring to a field in the study sample metadata used to show randomization
-#' @param factor_b First factor referring to a field in the study sample metadata used to show randomization
+#' @param segment_thickness Linewidth of the segments
+#' @param base_font_size base font size
 #' @return ggplot object
 #' @export
 
-data_plot_runsequence <- function(data,
-                             qc_type_subet,
+qc_plot_runsequence <- function(data,
+                             qc_types = NA,
                              show_batches = TRUE,
-                             show_qc_dataset_only = FALSE,
-                             segment_width = 0.5,
+                             use_datetime = FALSE,
+                             add_info_title = TRUE,
+                             single_row = FALSE,
+                             segment_thickness = 0.5,
                              batches_as_shades = FALSE,
-                             batch_line_color = "darkred",
-                             batch_shading_color = "grey60",
+                             batch_line_color = "#34f7b6",
+                             batch_shading_color = "grey85",
                              scale_factor = 1,
                              show_outlier = TRUE,
-                             base_size = 12,
-                             factor_a = NA,
-                             factor_b = NA) {
+                             base_font_size = 8) {
+
+  # Extract columns needed for plotting
   d_temp <- data$dataset |>
-    dplyr::select(.data$run_id, .data$batch_id, .data$analysis_id, .data$qc_type) |>
+    select("run_id", "acquisition_time_stamp", "batch_id", "analysis_id", "qc_type") |>
     distinct()
 
-  d_temp$qc_type <- factor(d_temp$qc_type, c("EQC", "SST", "MBLK", "SBLK", "UBLK", "PBLK", "RQC", "LTR", "NIST", "TQC", "BQC", "SPL"))
+  # Filter qc_types if provided
+  if (!is.na(qc_types)) {
+    d_temp <- d_temp |>
+      filter(if (is.vector(qc_types) && length(qc_types) > 1) {
+        .data$qc_type %in% qc_types
+      } else {
+        str_detect(.data$qc_type, qc_types)
+      })
+  }
 
+  # Convert acquisition_time_stamp to POSIXct if using datetime
+  if (use_datetime) {
+    d_temp$acquisition_time_stamp <- as.POSIXct(d_temp$acquisition_time_stamp)
+  }
+
+  # Convert qc_type to factor and create sample_category
+  d_temp$qc_type <- factor(d_temp$qc_type, levels = pkg.env$qc_type_annotation$qc_type_levels) |> forcats::fct_drop()
   d_temp$sample_category <- as.character(d_temp$qc_type)
 
+  # Retrieve batch info
+  d_batch_info <- data@annot_batches |>
+    left_join(data$dataset |>
+                select("run_id", "acquisition_time_stamp", "batch_id") |>
+                distinct(), by = c("id_batch_start" = "run_id"), suffix = c("", "_start"), keep = FALSE) |>
+    left_join(data$dataset |>
+                select("run_id", "acquisition_time_stamp", "batch_id") |>
+                distinct(), by = c("id_batch_end" = "run_id"), suffix = c("", "_end"), keep = FALSE)
 
-  # TODO: fix below pipe usage or skip this option alltogether
-  if(show_qc_dataset_only) stop("`show_qc_dataset_only = TRUE` currently not supported")
-  # d_temp <- d_temp |>
-  #   filter(str_detect(as.character(.data$sample_category), qc_type_subet)) |>
-  #   {
-  #     if (show_qc_dataset_only | qc_type_subet != "") droplevels(.) else .
-  #   }
+  # Count samples per run_id
+  sample_counts <- d_temp |>
+    group_by(.data$qc_type) |>
+    summarise(sample_count = stringr::str_c("", dplyr::n()), .groups = 'drop')
 
-  d_batch_info <- data@annot_batches
 
-  # round to next 10 and divide by number of breaks will be showb
+  # Calculate scale for x-axis
   scale_dataset_size <- 10^ceiling(log10(max(d_temp$run_id))) / 10
-  p <- ggplot(d_temp, aes(x = .data$run_id, y = rev(.data$qc_type), color = .data$sample_category))
-  if (show_batches) {
-    if (batches_as_shades) {
-      d_batch_2nd <- d_batch_info |>
-        dplyr::slice(-1) |>
-        filter(.data$batch_no %% 2 != 1)
-      p <- p + geom_rect(
-        data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),
-        inherit.aes = FALSE, fill = batch_shading_color, alpha = 0.1, color = NA, linetype = "solid", size = 0.5
-      )
-    }
-  }
-  p <- p + geom_segment(
-    aes(
-      x = .data$run_id,
-      xend = .data$run_id,
-      y = as.integer(.data$qc_type) - 0.4,
-      yend = as.integer(.data$qc_type) + 0.4
-    ),
-    size = segment_width
-  ) +
-    labs(
-      x = "Analysis order",
-      y = "Sample Type"
-    ) +
-    scale_x_continuous(breaks = seq(0, max(d_temp$run_id), scale_dataset_size)) +
-    scale_y_discrete(
-      limits = c(levels(d_temp$qc_type)),
-      expand = expansion(0.05, 0.05)
-    ) +
-    # scale_color_manual(values =  data$sample_category) +
-    theme_light(base_size = base_size) +
+
+  qc_colors <- replace(pkg.env$qc_type_annotation$qc_type_col, "SPL", "grey35")
+
+  # Initialize ggplot
+  p <- ggplot(d_temp, aes(x = if (use_datetime) .data$acquisition_time_stamp else .data$run_id,
+                          y = rev(.data$qc_type),
+                          color = .data$sample_category)) +
+    labs(x = if (use_datetime) "Acquisition Time" else "Analysis Order", y = "Sample Type") +
+    theme_bw(base_size = base_font_size) +
     theme(
       panel.grid.major.y = element_blank(),
-      panel.grid.major.x = element_line(colour = "grey80", linetype = "solid", size = .5),
+      panel.grid.major.x = element_line(colour = "grey80", linetype = "dotted", size = 0.25),
       panel.grid.minor.x = element_line(colour = "grey90", linetype = "dotted", size = 0.25),
-      panel.border = element_rect(size = 2),
-      axis.title = element_text(face = "bold", size = base_size),
-      axis.text.x = element_text(face = "plain", size = base_size),
-      axis.text.y = element_text(face = "bold", size = base_size),
-      legend.position = "none"
+      panel.border = element_rect(size = 1),
+      axis.title = element_text(face = "bold", size = base_font_size),
+      axis.text.x = element_text(face = "plain", size = base_font_size),
+      axis.text.y = element_text(face = "bold", size = base_font_size),
+      axis.text.y.right = element_text(face = "plain", size = base_font_size),
+      axis.ticks.y.right = element_blank(),
+      axis.title.y.right = element_text(angle = 0, vjust = 0.5, size = 6 * scale_factor),
+      axis.ticks.x = element_line(colour = "grey80", linetype = "dotted", size = 0.25),
+      plot.margin = unit(c(1, 5, 1, 1), "lines"),
+      legend.position = if (single_row) "right" else "none"  # Show legend if single_row
     )
 
-
+  # Add batch shading if defined
   if (show_batches) {
-    if (!batches_as_shades) {
-      p <- p + geom_vline(data = d_batch_info |> dplyr::slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, size = 0.5)
+    if (batches_as_shades) {
+      d_batch_shading <- d_batch_info %>%
+        slice(-1) %>%
+        filter(batch_no %% 2 != 1)
+      p <- p + geom_rect(data = d_batch_shading,inherit.aes = FALSE,
+                         aes(xmin = if(use_datetime) .data$acquisition_time_stamp else .data$id_batch_start + 0.5,
+                             xmax = if(use_datetime) .data$acquisition_time_stamp_end else .data$id_batch_end - 0.5,
+                             ymin = -Inf, ymax = Inf),
+                         fill = batch_shading_color, alpha = 1, color = NA)
+    } else {
+      p <- p + geom_vline(data = d_batch_info %>% slice(-1),
+                          aes(xintercept = if(use_datetime) .data$acquisition_time_stamp else .data$run_id - 0.5),
+                          colour = batch_line_color, size = 0.5)
     }
   }
-  # if (factor_a != "" & factor_b !=""){
 
-  #  p <- p + scale_color_brewer(palette="Dark2")
-  # } else {
-  p <- p + scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col)
-  # }
-  return(p)
+  # Add segments for qc_type
+  if (single_row) {
+    p <- p + geom_segment(aes(
+      x = if (use_datetime) .data$acquisition_time_stamp else .data$run_id,
+      xend = if (use_datetime) .data$acquisition_time_stamp else .data$run_id,
+      y = -1, yend = 1
+    ), size = segment_thickness) +
+      scale_y_continuous(breaks = NULL)  # Hide y-axis breaks
+  } else {
+    p <- p + geom_segment(aes(
+      x = if (use_datetime) .data$acquisition_time_stamp else .data$run_id,
+      xend = if (use_datetime) .data$acquisition_time_stamp else .data$run_id,
+      y = as.integer(.data$qc_type) - 0.4,
+      yend = as.integer(.data$qc_type) + 0.4
+    ), size = segment_thickness)
+
+    # Position sample counts outside the y-axis
+    p <- p +
+      scale_y_continuous(breaks = seq(1, nlevels(d_temp$qc_type), by = 1),
+                         labels = sample_counts$qc_type,
+                         expand = expansion(0.02, 0.02),
+                         sec.axis = sec_axis(~ ., name = "n",
+                                             breaks = seq(1, nlevels(d_temp$qc_type), by = 1),
+                                             labels = sample_counts$sample_count))
+    }
+
+
+  # Format x-axis as date-time if using acquisition_time_stamp
+  if (use_datetime) {
+    p <- p + scale_x_datetime(date_labels = "%Y-%m-%d", expand = expansion(0.02, 0.02), date_breaks = "day", date_minor_breaks = "hour")
+  } else {
+    p <- p + scale_x_continuous(expand = expansion(0.02, 0.02), breaks = seq(0, max(d_temp$run_id), 10^ceiling(log10(max(d_temp$run_id))) / 10))
+  }
+
+ if(add_info_title) {
+    p <- p + labs(title = glue::glue("{data@title} \u2014 analysis time: {get_analysis_duration(data)|> stringr::str_sub(end = -5)}  ({get_analyis_start(data)|> stringr::str_sub(end = -4)} - {get_analyis_end(data)|> stringr::str_sub(end = -4)}) \u2014 median run time: {get_run_time(data)@minute}:{get_run_time(data)@.Data} min \u2014 interruptions > 1 hour: {get_analysis_interruptions(mexp, 3600)}"))
+  }
+
+  # Color mapping
+  p <- p + scale_color_manual(values = qc_colors, name = "QC type")
+
+  p
 }
+
 
 
 
@@ -147,7 +198,7 @@ data_plot_runsequence <- function(data,
 #' @param y_label_text Overwrite y label with this text
 #' @param silent Print page number being plotted
 #' @param point_stroke_width point stroke width
-#' @param base_size base font size of plot
+#' @param base_font_size base font size of plot
 #' @param return_plot_list return list with plots
 #' @param show_gridlines show x and y major gridlines
 #' @return A list of ggplot2 plots or NULL
@@ -196,7 +247,7 @@ qc_plot_runscatter <- function(data,
                             y_label_text = NA,
                             silent = TRUE,
                             return_plot_list = FALSE,
-                            base_size = 12,
+                            base_font_size = 12,
                             show_gridlines = FALSE) {
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
@@ -305,7 +356,7 @@ qc_plot_runscatter <- function(data,
       show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
-      batch_shading_color = batch_shading_color, y_label = y_label, base_size = base_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines, log_scale = log_scale
+      batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines, log_scale = log_scale
     )
     plot(p)
     p_list[[i]] <- p
@@ -323,7 +374,7 @@ qc_plot_runscatter <- function(data,
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, after_correction = FALSE, qc_type_fit, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_size, point_stroke_width, show_grid, log_scale) {
+                                save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width, show_grid, log_scale) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(save_pdf, .3, .2 * (1 + annot_scale / 5))
 
@@ -452,7 +503,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     ggplot2::ylab(label = y_label) +
     ggplot2::scale_y_continuous(limits = c(0, NA), expand = ggplot2::expansion(mult = c(0.02, 0.03))) +
     # expand_limits(y = 0) +
-    ggplot2::theme_bw(base_size = base_size) +
+    ggplot2::theme_bw(base_size = base_font_size) +
 
     ggplot2::theme(
       plot.title = ggplot2::element_text(size = 1, face = "bold"),
@@ -497,7 +548,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
-#' @param base_size base font size for plots (default is 8)
+#' @param base_font_size base font size for plots (default is 8)
 #' @return ggplot object
 #'
 #' @export
@@ -515,7 +566,7 @@ qc_plot_runboxplot <- function(data,
                              batches_as_shades = FALSE,
                              batch_line_color = "red",
                              batch_shading_color = "grey70",
-                             base_size = 8) {
+                             base_font_size = 8) {
   plot_var_sym <- sym(plot_var)
 
 
@@ -580,7 +631,7 @@ qc_plot_runboxplot <- function(data,
     # scale_y_continuous(limits = c(0, 1e6)) +
     # scale_x_continuous(breaks = seq(0, max(data$dataset$run_id)+1, scale_dataset_size)) +
     #  scale_x_discrete(breaks = breaks) +
-    theme_bw(base_size = base_size) +
+    theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(plot_var)))) +
     xlab("Analysis order") +
     theme(
@@ -588,9 +639,9 @@ qc_plot_runboxplot <- function(data,
       panel.grid.minor.y = element_blank(),
       panel.grid.major.x = element_line(colour = "#bdbdbd", linetype = "dotted", size = .5),
       panel.grid.minor.x = element_line(colour = "#bdbdbd", linetype = "dotted", size = .25),
-      axis.text.y = element_text(size = base_size),
-      axis.text.x = element_text(size = base_size),
-      axis.title = element_text(size = base_size * 1, face = "bold"),
+      axis.text.y = element_text(size = base_font_size),
+      axis.text.x = element_text(size = base_font_size),
+      axis.title = element_text(size = base_font_size * 1, face = "bold"),
       panel.border = element_rect(linewidth = 1, color = "grey20")
     )
 
