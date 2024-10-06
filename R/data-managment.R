@@ -1,4 +1,6 @@
 
+
+# TODO: export functions
 check_data_present <- function(data){nrow(data@dataset_orig) > 0}
 check_dataset_present <- function(data){nrow(data@dataset) > 0}
 
@@ -19,7 +21,43 @@ get_feature_count <- function(data, isistd = NULL, isquantifier = NULL) {
 }
 
 
-#' @title Set the analysis order
+get_analyis_start <- function(data){
+  if (check_data_present(data))
+    return(min(data@dataset$acquisition_time_stamp))
+  else
+    return(NA)
+}
+
+get_analyis_end <- function(data){
+  if (check_data_present(data))
+    return(max(data@dataset$acquisition_time_stamp))
+  else
+    return(NA)
+}
+
+get_run_time <- function(data){
+  if (check_data_present(data))
+    median(diff(unique(data@dataset$acquisition_time_stamp), units = "secs")) |>  lubridate::seconds_to_period()
+  else
+    return(NA)
+}
+
+get_analysis_duration <- function(data){
+  if (check_data_present(data))
+    difftime(max(unique(data@dataset$acquisition_time_stamp)), min(unique(data@dataset$acquisition_time_stamp)), units = "secs") |> lubridate::seconds_to_period()
+  else
+    return(NA)
+}
+
+
+get_analysis_interruptions <- function(data, break_mins){
+  if (check_data_present(data))
+    sum(diff(unique(data@dataset$acquisition_time_stamp), units = "secs") > break_mins)
+  else
+    return(NA)
+}
+
+#' @title Set the analAnalysusysis order
 #' @description
 #' Sets the analysis order (sequence), based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
 #' @param data MidarExperiment object
