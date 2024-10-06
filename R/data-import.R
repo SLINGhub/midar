@@ -115,9 +115,9 @@ data_import_main <- function(data, path, import_function, file_ext, include_meta
 
   if (!silent) {
     if (!any(data@dataset_orig$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features"))
+      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} analyses with {length(unique(data@dataset_orig$feature_id))} features"))
     } else if (any(data@dataset_orig$integration_qualifier)) {
-      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} samples with {length(unique(data@dataset_orig$feature_id))} features ({length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} quantifiers, {length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} qualifiers)"))
+      cli_alert_success(cli::col_green("Imported {length(unique(data@dataset_orig$analysis_id))} analyses with {length(unique(data@dataset_orig$feature_id))} features ({length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} quantifiers, {length(unique(data@dataset_orig$feature_id[!data@dataset_orig$integration_qualifier]))} qualifiers)"))
     }
   }
 
@@ -667,7 +667,7 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 #   # }
 #
 #   if (!silent) {
-#     cli_alert_success(cli::col_green("Imported {length(unique(d_mrmkit_data$raw_data_filename))} samples with {length(unique(d_mrmkit_data$feature_id))} features \n"))
+#     cli_alert_success(cli::col_green("Imported {length(unique(d_mrmkit_data$raw_data_filename))} analyses with {length(unique(d_mrmkit_data$feature_id))} features \n"))
 #   }
 #
 #   d_mrmkit_data
