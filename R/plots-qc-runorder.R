@@ -149,7 +149,7 @@ qc_plot_runsequence <- function(data,
   }
 
  if(add_info_title) {
-    p <- p + labs(title = glue::glue("{data@title} \u2014 analysis time: {get_analysis_duration(data)|> stringr::str_sub(end = -5)}  ({get_analyis_start(data)|> stringr::str_sub(end = -4)} - {get_analyis_end(data)|> stringr::str_sub(end = -4)}) \u2014 median run time: {get_run_time(data)@minute}:{get_run_time(data)@.Data} min \u2014 interruptions > 1 hour: {get_analysis_interruptions(mexp, 3600)}"))
+    p <- p + labs(title = glue::glue("{data@title} \u2014 analysis time: {get_analysis_duration(data)|> stringr::str_sub(end = -5)}  ({get_analyis_start(data)|> stringr::str_sub(end = -4)} - {get_analyis_end(data)|> stringr::str_sub(end = -4)}) \u2014 median run time: {get_run_time(data)@minute}:{get_run_time(data)@.Data} min \u2014 interruptions > 1 hour: {get_analysis_interruptions(data, 3600)}"))
   }
 
   # Color mapping
@@ -183,7 +183,9 @@ qc_plot_runsequence <- function(data,
 #' @param path file name of PDF
 #' @param cols_page columns per page
 #' @param rows_page rows per page
+#' @param base_font_size base font size of plot
 #' @param annot_scale scale factor of text elements
+#' @param show_progress show progress bar
 #' @param paper_orientation Landscape/Portrait
 #' @param show_driftcorrection Show drift correction. TODO: Add more details
 #' @param qc_type_fit QC type used for smoothing fit. TODO: Add more detail
@@ -196,12 +198,9 @@ qc_plot_runsequence <- function(data,
 #' @param point_size point size
 #' @param page_no Show/save specific page number. Default is `NA`, which plots all pages.
 #' @param y_label_text Overwrite y label with this text
-#' @param silent Print page number being plotted
 #' @param point_stroke_width point stroke width
-#' @param base_font_size base font size of plot
 #' @param return_plot_list return list with plots
 #' @param show_gridlines show x and y major gridlines
-#' @param show_progress show progress bar
 #' @return A list of ggplot2 plots or NULL
 
 #' @export
@@ -225,7 +224,9 @@ qc_plot_runscatter <- function(data,
                             path = "",
                             cols_page = 3,
                             rows_page = 3,
+                            base_font_size = 12,
                             annot_scale = 1.0,
+                            show_progress = FALSE,
                             show_driftcorrection = FALSE,
                             qc_type_fit = "BQC",
                             show_trend_samples = FALSE,
@@ -239,11 +240,8 @@ qc_plot_runscatter <- function(data,
                             point_stroke_width = 1,
                             page_no = NA,
                             y_label_text = NA,
-                            silent = TRUE,
                             return_plot_list = FALSE,
-                            base_font_size = 12,
-                            show_gridlines = FALSE,
-                            show_progress = FALSE) {
+                            show_gridlines = FALSE) {
 
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
@@ -361,17 +359,15 @@ qc_plot_runscatter <- function(data,
     page_range <- page_no
   }
 
-  # TODO if(!silent) print(paste0("Plotting ", max(page_range), " pages..."))
+  if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
+  #if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
 
-  # p_list <- vector("list", length(page_range))
-  p_list <- list()
+  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} pages){ifelse(show_progress, ':', '...')}")))
+  if(show_progress) pb <- txtProgressBar( min = 1, max = max(page_range), width = 50, style = 3)
 
-  if(save_pdf) action_text = "Saving plots" else action_text = "Generating plots"
-
-  if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
-  cli::cli_inform("Generating plots...this may take a while...")
+   p_list <- list()  # p_list <- vector("list", length(page_range))
   for (i in page_range) {
-    if (!silent) print(paste0("page ", i))
+
     p <- runscatter_one_page(
       dat_filt = dat_filt, data = data, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
       show_trend_samples, trend_samples_fun, trend_samples_col, show_before_after_smooth = show_before_after_smooth, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
@@ -379,15 +375,21 @@ qc_plot_runscatter <- function(data,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
       batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines, log_scale = log_scale
     )
-    if(show_progress) cli::cli_progress_update(force = TRUE)
-    plot(p)
-    p_list[[i]] <- p
-  }
 
-  on.exit(if (save_pdf) {
-    dev.off()
-    cli::cli_alert_success(cli::col_green("Plots were saved as pdf."))
-  })
+    plot(p)
+    dev.flush()
+    flush.console()
+    if(show_progress) setTxtProgressBar(pb, i)
+    p_list[[i]] <- p
+
+  }
+  if (save_pdf) dev.off()
+  cat(cli::col_green(" - done!"))
+  if(show_progress) close(pb)
+
+  flush.console()
+  # on.exit(
+  #   dev.off())
 
   if (return_plot_list) {
     return(p_list)

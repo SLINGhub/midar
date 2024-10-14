@@ -1,6 +1,6 @@
 # Define function to plot 1 page
 qc_plot_responsecurves_page <- function(dataset,
-                                     output_pdf,
+                                     save_pdf,
                                      response_variable,
                                      regr_max_percent,
                                      path,
@@ -74,7 +74,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' Response curves plot
 #' @param data MidarExperiment object
 #' @param use_filt_data Use QC-filtered data
-#' @param output_pdf Save as PDF
+#' @param save_pdf Save as PDF
 #' @param response_variable Variable to plot
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
 #' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
@@ -89,17 +89,15 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param paper_orientation Landscape/Portrait
 #' @param return_plot_list return plot as list
 #' @param base_size base font size
-#' @param silent Print page number being plotted
+#' @param show_progress show progress bar
 #' @return A list of ggplot2 objects
-#' @importFrom stats na.omit setNames
-#' @importFrom utils tail
 #' @export
 qc_plot_responsecurves <- function(data,
                                 response_variable = "feature_intensity",
                                 use_filt_data,
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
-                                output_pdf = FALSE,
+                                save_pdf = FALSE,
                                 path = "",
                                 regr_max_percent = NA,
                                 rows_page = 4,
@@ -110,9 +108,9 @@ qc_plot_responsecurves <- function(data,
                                 text_scale_factor = 1,
                                 paper_orientation = "LANDSCAPE",
                                 base_size = 7,
-                                silent = TRUE,
+                                show_progress = TRUE,
                                 return_plot_list = FALSE) {
-  if (output_pdf & path == "") cli::cli_abort("Please define parameter `path`")
+  if (save_pdf & path == "") cli::cli_abort("Please define parameter `path`")
 
 
 
@@ -157,7 +155,7 @@ qc_plot_responsecurves <- function(data,
       regr_max_percent
     )
 
-  if (output_pdf & !is.na(path)) {
+  if (save_pdf & !is.na(path)) {
     path <- ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
     if (paper_orientation == "LANDSCAPE") {
       pdf(file = path, onefile = T, paper = "A4r", useDingbats = FALSE, width = 28 / 2.54, height = 20 / 2.54)
@@ -172,14 +170,17 @@ qc_plot_responsecurves <- function(data,
     page_range <- page_no
   }
 
-  # p_list <- vector("list", length(page_range))
-  p_list <- list()
+  if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
+  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} pages){ifelse(show_progress, ':', '...')}")))
+  if(show_progress) pb <- txtProgressBar( min = 1, max = max(page_range), width = 50, style = 3)
+
+  p_list <- list()  # p_list <- vector("list", length(page_range))
   for (i in page_range) {
-    if (!silent) print(paste0("page ", i))
+
 
     p <-  qc_plot_responsecurves_page(
         dataset = d_rqc,
-        output_pdf = output_pdf,
+        save_pdf = save_pdf,
         response_variable = response_variable,
         regr_max_percent = regr_max_percent,
         path = path,
@@ -192,11 +193,19 @@ qc_plot_responsecurves <- function(data,
         base_size = base_size
     )
     plot(p)
+    dev.flush()
+    flush.console()
+    if(show_progress) setTxtProgressBar(pb, i)
     p_list[[i]] <- p
   }
-  on.exit(if (output_pdf) {
-    dev.off()
-  })
+  if (save_pdf) dev.off()
+  cat(cli::col_green(" - done!"))
+  if(show_progress) close(pb)
+
+  flush.console()
+  # on.exit(
+  #   dev.off())
+
   if (return_plot_list) {
     return(p_list)
   }
