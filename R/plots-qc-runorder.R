@@ -383,10 +383,12 @@ qc_plot_runscatter <- function(data,
     plot(p)
     p_list[[i]] <- p
   }
+
   on.exit(if (save_pdf) {
     dev.off()
+    cli::cli_alert_success(cli::col_green("Plots were saved as pdf."))
   })
-  if(save_pdf) cli::cli_alert_success(cli::col_green("Plots were saved as pdf."))
+
   if (return_plot_list) {
     return(p_list)
   }
