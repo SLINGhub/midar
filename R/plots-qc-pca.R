@@ -1,7 +1,7 @@
 #' PCA plot for QC
 #' @param data MidarExperiment object
-#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm".
-#' @param use_filtered_data Use all (default) or qc-filtered data
+#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".
+#' @param filtered_data Use all (default) or qc-filtered data
 #' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is `c(1,2)`
 #' @param qc_types qc types to plot. Default is `c("SPL", "BQC", "TQC", "NIST", "LTR")`
 #' @param label_k_mad Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is `3`. Set to `NULL` to supress labels.
@@ -16,18 +16,18 @@
 #'
 #' @return ggplot2 object
 #' @export
-qc_plot_pca <- function(data, variable, use_filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+qc_plot_pca <- function(data, variable, filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
                         label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
                         ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
 
   variable <- stringr::str_c("feature_", variable)
 
   variable_sym = rlang::sym(variable)
 
-  if(use_filtered_data)
+  if(filtered_data)
     if(data@is_filtered)
       d_wide <- data@dataset_filtered
     else
