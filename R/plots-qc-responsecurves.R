@@ -171,7 +171,7 @@ qc_plot_responsecurves <- function(data,
   }
 
   if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
-  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} pages){ifelse(show_progress, ':', '...')}")))
+  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
   if(show_progress) pb <- txtProgressBar( min = 1, max = max(page_range), width = 50, style = 3)
 
   p_list <- list()  # p_list <- vector("list", length(page_range))

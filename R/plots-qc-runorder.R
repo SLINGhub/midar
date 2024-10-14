@@ -261,9 +261,12 @@ qc_plot_runscatter <- function(data,
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
 
+  dat_filt <- dat_filt |>
+    mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
+
   # Define y axis label based on if cap_outlier was selected
   y_label <- dplyr::if_else(cap_outliers,
-                            paste0(ifelse(is.na(y_label_text), variable, y_label_text), " (capped at", cap_spl_k_mad, "x MAD [SPL]) and ", cap_qc_k_mad, "x MAD [QC]"),
+                            paste0(ifelse(is.na(y_label_text), variable, y_label_text), " (capped at ", cap_spl_k_mad, "x and ", cap_qc_k_mad, "x MAD of SPL and QC, respectively)"),
                             stringr::str_remove(variable, "feature\\_"))
 
   # Subset data based on incl and excl argument values ----
@@ -302,7 +305,8 @@ qc_plot_runscatter <- function(data,
 
   # Cap upper outliers  ----
 
-  dat_filt <- dat_filt |> dplyr::mutate(value = !!variable_sym)
+  dat_filt <- dat_filt |>
+    dplyr::mutate(value = !!variable_sym)
 
   if (cap_outliers) {
 
@@ -317,7 +321,6 @@ qc_plot_runscatter <- function(data,
         dplyr::ungroup()
     }
 
-
     dat_filt <- dat_filt |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::mutate(
@@ -325,10 +328,11 @@ qc_plot_runscatter <- function(data,
         value_max_tqc = median(.data$value[.data$qc_type=="TQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="TQC"], na.rm=T),
         value_max_bqc = median(.data$value[.data$qc_type=="BQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="BQC"], na.rm=T),
         value_max = pmax(.data$value_max_spl, .data$value_max_tqc, .data$value_max_bqc, na.rm = TRUE),
+        value_max = ifelse(is.infinite(.data$value_max), NA, .data$value_max),
         value_mod = dplyr::if_else(
          .data$value > .data$value_max,
           if (!all(is.na(.data$value))) {
-            max(.data$value[.data$value < .data$value_max], na.rm = TRUE)
+            max(.data$value[.data$value <= .data$value_max], na.rm = TRUE)
           } else {
             NA_real_
           },
@@ -362,8 +366,8 @@ qc_plot_runscatter <- function(data,
   if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
   #if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
 
-  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} pages){ifelse(show_progress, ':', '...')}")))
-  if(show_progress) pb <- txtProgressBar( min = 1, max = max(page_range), width = 50, style = 3)
+  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
+  if(show_progress) pb <- txtProgressBar( min = 0, max = max(page_range), width = 50, style = 3)
 
    p_list <- list()  # p_list <- vector("list", length(page_range))
   for (i in page_range) {
