@@ -7,7 +7,7 @@
 qc_plot_pca(
   data,
   variable,
-  use_filtered_data,
+  filtered_data,
   pca_dim = c(1, 2),
   qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
   label_k_mad = 3,
@@ -26,7 +26,7 @@ qc_plot_pca(
 
 \item{variable}{Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "feature_conc_raw", "rt", "fwhm".}
 
-\item{use_filtered_data}{Use all (default) or qc-filtered data}
+\item{filtered_data}{Use all (default) or qc-filtered data}
 
 \item{pca_dim}{PCA dimensions to plot as a vector of length 2. Default is \code{c(1,2)}}
 

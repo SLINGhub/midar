@@ -6,24 +6,17 @@
 \usage{
 qc_plot_runscatter(
   data,
-  plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc",
-    "feature_conc_raw", "feature_area", "feature_height", "feature_fwhm"),
-  use_filt_data = FALSE,
+  variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
+    "fwhm"),
+  filtered_data = FALSE,
   qc_types = NA,
-  feature_incl_filt = "",
-  feature_excl_filt = "",
+  filter_features = NA,
+  exclude_features = NA,
   log_scale = FALSE,
   cap_outliers = FALSE,
-  cap_qc_iqr_factor = 3,
-  cap_spl_iqr_factor = 3,
+  cap_qc_k_mad = 4,
+  cap_spl_k_mad = 4,
   cap_top_n_values = NA,
-  show_driftcorrection = FALSE,
-  qc_type_fit = "BQC",
-  show_trend_samples = FALSE,
-  trend_samples_fun = "loess",
-  trend_samples_col = "",
-  after_correction = FALSE,
-  plot_other_qc = TRUE,
   show_batches = TRUE,
   batches_as_shades = FALSE,
   batch_line_color = "#9dbecf",
@@ -33,6 +26,13 @@ qc_plot_runscatter(
   cols_page = 3,
   rows_page = 3,
   annot_scale = 1,
+  show_driftcorrection = FALSE,
+  qc_type_fit = "BQC",
+  show_trend_samples = FALSE,
+  trend_samples_function = "loess",
+  trend_samples_col = "darkred",
+  show_before_after_smooth = FALSE,
+  plot_other_qc = TRUE,
   paper_orientation = "LANDSCAPE",
   point_transparency = 1,
   point_size = 2,
@@ -42,45 +42,30 @@ qc_plot_runscatter(
   silent = TRUE,
   return_plot_list = FALSE,
   base_font_size = 12,
-  show_gridlines = FALSE
+  show_gridlines = FALSE,
+  show_progress = FALSE
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{plot_var}{Variable to plot}
+\item{variable}{Variable to plot}
 
-\item{use_filt_data}{Use QC-filtered data}
+\item{filtered_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
 
-\item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
-
-\item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
+\item{filter_features}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
 \item{log_scale}{Use log10 scale for the y axis}
 
-\item{cap_outliers}{Cap outliers to a specific range in the plot}
+\item{cap_outliers}{Cap upper outliers, based on MAD fences of SPL and QC samples, see \code{cap_spl_k_mad} and \code{cap_qc_k_mad}. Useful to cap extreme values distorting the plot.}
 
-\item{cap_qc_iqr_factor}{Multiplicator for the upper Tukey's IQR fence use for outlier capping of QCs}
+\item{cap_qc_k_mad}{k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.}
 
-\item{cap_spl_iqr_factor}{Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples}
+\item{cap_spl_k_mad}{k * MAD (median absolute deviation) for outlier capping of SPL samples. Default is 4.}
 
-\item{cap_top_n_values}{Cap top n values}
-
-\item{show_driftcorrection}{Show drift correction}
-
-\item{qc_type_fit}{QC TYPE used for loess fit}
-
-\item{show_trend_samples}{Fit trend line for study samples, if show_driftcorrection is TRUE}
-
-\item{trend_samples_fun}{Function used for drift correction. Default 'loess'}
-
-\item{trend_samples_col}{Color of drift line}
-
-\item{after_correction}{Show before/after correction}
-
-\item{plot_other_qc}{Plot all QCS}
+\item{cap_top_n_values}{Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (\code{NA}) or \code{0} ignores the filter.}
 
 \item{show_batches}{Show batches}
 
@@ -100,6 +85,18 @@ qc_plot_runscatter(
 
 \item{annot_scale}{scale factor of text elements}
 
+\item{show_driftcorrection}{Show drift correction. TODO: Add more details}
+
+\item{qc_type_fit}{QC type used for smoothing fit. TODO: Add more detail}
+
+\item{show_trend_samples}{Fit trend line for study samples, if \code{show_driftcorrection} is TRUE. Default is FALSE.}
+
+\item{trend_samples_function}{Function used for drift correction. Default 'loess'. TODO: Add more detail}
+
+\item{show_before_after_smooth}{Show before/after correction}
+
+\item{plot_other_qc}{Plot all QCs in addition to \code{qc_type_fit}}
+
 \item{paper_orientation}{Landscape/Portrait}
 
 \item{point_transparency}{Alpha of points}
@@ -108,7 +105,7 @@ qc_plot_runscatter(
 
 \item{point_stroke_width}{point stroke width}
 
-\item{page_no}{Show page number}
+\item{page_no}{Show/save specific page number. Default is \code{NA}, which plots all pages.}
 
 \item{y_label_text}{Overwrite y label with this text}
 
@@ -119,6 +116,12 @@ qc_plot_runscatter(
 \item{base_font_size}{base font size of plot}
 
 \item{show_gridlines}{show x and y major gridlines}
+
+\item{show_progress}{show progress bar}
+
+\item{feature_excl_filt}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+
+\item{trend_samples_color}{Color of drift line}
 }
 \value{
 A list of ggplot2 plots or NULL
