@@ -10,7 +10,7 @@ qc_plot_responsecurves(
   use_filt_data,
   feature_incl_filt = "",
   feature_excl_filt = "",
-  output_pdf = FALSE,
+  save_pdf = FALSE,
   path = "",
   regr_max_percent = NA,
   rows_page = 4,
@@ -21,7 +21,7 @@ qc_plot_responsecurves(
   text_scale_factor = 1,
   paper_orientation = "LANDSCAPE",
   base_size = 7,
-  silent = TRUE,
+  show_progress = TRUE,
   return_plot_list = FALSE
 )
 }
@@ -36,7 +36,7 @@ qc_plot_responsecurves(
 
 \item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
 
-\item{output_pdf}{Save as PDF}
+\item{save_pdf}{Save as PDF}
 
 \item{path}{file name of pdf file}
 
@@ -58,7 +58,7 @@ qc_plot_responsecurves(
 
 \item{base_size}{base font size}
 
-\item{silent}{Print page number being plotted}
+\item{show_progress}{show progress bar}
 
 \item{return_plot_list}{return plot as list}
 }

@@ -25,7 +25,9 @@ qc_plot_runscatter(
   path = "",
   cols_page = 3,
   rows_page = 3,
+  base_font_size = 12,
   annot_scale = 1,
+  show_progress = FALSE,
   show_driftcorrection = FALSE,
   qc_type_fit = "BQC",
   show_trend_samples = FALSE,
@@ -39,11 +41,8 @@ qc_plot_runscatter(
   point_stroke_width = 1,
   page_no = NA,
   y_label_text = NA,
-  silent = TRUE,
   return_plot_list = FALSE,
-  base_font_size = 12,
-  show_gridlines = FALSE,
-  show_progress = FALSE
+  show_gridlines = FALSE
 )
 }
 \arguments{
@@ -83,7 +82,11 @@ qc_plot_runscatter(
 
 \item{rows_page}{rows per page}
 
+\item{base_font_size}{base font size of plot}
+
 \item{annot_scale}{scale factor of text elements}
+
+\item{show_progress}{show progress bar}
 
 \item{show_driftcorrection}{Show drift correction. TODO: Add more details}
 
@@ -109,15 +112,9 @@ qc_plot_runscatter(
 
 \item{y_label_text}{Overwrite y label with this text}
 
-\item{silent}{Print page number being plotted}
-
 \item{return_plot_list}{return list with plots}
 
-\item{base_font_size}{base font size of plot}
-
 \item{show_gridlines}{show x and y major gridlines}
-
-\item{show_progress}{show progress bar}
 
 \item{feature_excl_filt}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
