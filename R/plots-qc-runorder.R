@@ -165,23 +165,16 @@ qc_plot_runsequence <- function(data,
 #' RunScatter plot
 #'
 #' @param data MidarExperiment object
-#' @param use_filt_data Use QC-filtered data
-#' @param plot_var Variable to plot
+#' @param variable Variable to plot
+#' @param filtered_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
-#' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
-#' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
+#' @param filter_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
+#' @param feature_excl_filt Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
 #' @param log_scale Use log10 scale for the y axis
-#' @param cap_outliers Cap outliers to a specific range in the plot
-#' @param cap_spl_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of samples
-#' @param cap_qc_iqr_factor Multiplicator for the upper Tukey's IQR fence use for outlier capping of QCs
-#' @param cap_top_n_values Cap top n values
-#' @param qc_type_fit QC TYPE used for loess fit
-#' @param show_driftcorrection Show drift correction
-#' @param show_trend_samples Fit trend line for study samples, if show_driftcorrection is TRUE
-#' @param trend_samples_fun Function used for drift correction. Default 'loess'
-#' @param trend_samples_col Color of drift line
-#' @param after_correction Show before/after correction
-#' @param plot_other_qc Plot all QCS
+#' @param cap_outliers Cap upper outliers, based on MAD fences of SPL and QC samples, see `cap_spl_k_mad` and `cap_qc_k_mad`. Useful to cap extreme values distorting the plot.
+#' @param cap_spl_k_mad k * MAD (median absolute deviation) for outlier capping of SPL samples. Default is 4.
+#' @param cap_qc_k_mad k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.
+#' @param cap_top_n_values Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (`NA`) or `0` ignores the filter.
 #' @param show_batches Show batches
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
@@ -192,44 +185,38 @@ qc_plot_runsequence <- function(data,
 #' @param rows_page rows per page
 #' @param annot_scale scale factor of text elements
 #' @param paper_orientation Landscape/Portrait
+#' @param show_driftcorrection Show drift correction. TODO: Add more details
+#' @param qc_type_fit QC type used for smoothing fit. TODO: Add more detail
+#' @param show_trend_samples Fit trend line for study samples, if `show_driftcorrection` is TRUE. Default is FALSE.
+#' @param trend_samples_function Function used for drift correction. Default 'loess'. TODO: Add more detail
+#' @param trend_samples_color Color of drift line
+#' @param show_before_after_smooth Show before/after correction
+#' @param plot_other_qc Plot all QCs in addition to `qc_type_fit`
 #' @param point_transparency Alpha of points
 #' @param point_size point size
-#' @param page_no Show page number
+#' @param page_no Show/save specific page number. Default is `NA`, which plots all pages.
 #' @param y_label_text Overwrite y label with this text
 #' @param silent Print page number being plotted
 #' @param point_stroke_width point stroke width
 #' @param base_font_size base font size of plot
 #' @param return_plot_list return list with plots
 #' @param show_gridlines show x and y major gridlines
+#' @param show_progress show progress bar
 #' @return A list of ggplot2 plots or NULL
-#' @importFrom stats na.omit setNames
-#' @importFrom utils tail
-#' @importFrom MASS rlm
-#' @importFrom scales percent_format
-#' @importFrom ggpmisc stat_poly_line stat_poly_eq
-#' @importFrom grDevices dev.off pdf
-#' @importFrom stats prcomp
-#' @importFrom utils head
+
 #' @export
 
 qc_plot_runscatter <- function(data,
-                            plot_var = c("feature_intensity", "feature_norm_intensity", "feature_conc", "feature_conc_raw", "feature_area", "feature_height", "feature_fwhm"),
-                            use_filt_data = FALSE,
+                            variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
+                            filtered_data = FALSE,
                             qc_types = NA,
-                            feature_incl_filt = "",
-                            feature_excl_filt = "",
+                            filter_features = NA,
+                            exclude_features = NA,
                             log_scale = FALSE,
                             cap_outliers = FALSE,
-                            cap_qc_iqr_factor = 3,
-                            cap_spl_iqr_factor = 3,
+                            cap_qc_k_mad = 4,
+                            cap_spl_k_mad = 4,
                             cap_top_n_values = NA,
-                            show_driftcorrection = FALSE,
-                            qc_type_fit = "BQC",
-                            show_trend_samples = FALSE,
-                            trend_samples_fun = "loess",
-                            trend_samples_col = "",
-                            after_correction = FALSE,
-                            plot_other_qc = TRUE,
                             show_batches = TRUE,
                             batches_as_shades = FALSE,
                             batch_line_color = "#9dbecf",
@@ -239,6 +226,13 @@ qc_plot_runscatter <- function(data,
                             cols_page = 3,
                             rows_page = 3,
                             annot_scale = 1.0,
+                            show_driftcorrection = FALSE,
+                            qc_type_fit = "BQC",
+                            show_trend_samples = FALSE,
+                            trend_samples_function = "loess",
+                            trend_samples_col = "darkred",
+                            show_before_after_smooth = FALSE,
+                            plot_other_qc = TRUE,
                             paper_orientation = "LANDSCAPE",
                             point_transparency = 1,
                             point_size = 2,
@@ -248,41 +242,51 @@ qc_plot_runscatter <- function(data,
                             silent = TRUE,
                             return_plot_list = FALSE,
                             base_font_size = 12,
-                            show_gridlines = FALSE) {
+                            show_gridlines = FALSE,
+                            show_progress = FALSE) {
+
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
-  if (use_filt_data) {
+  # Check if selected variable is valid
+  variable <- str_remove(variable, "feature_")
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+
+  variable <- stringr::str_c("feature_", variable)
+
+  variable_sym = rlang::sym(variable)
+
+  # Filter data if filtered_data is TRUE
+  if (filtered_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
 
-  plot_var <- rlang::arg_match(plot_var)
-  plot_var_s <- rlang::sym(plot_var)
-  y_label <- dplyr::if_else(cap_outliers, paste0(ifelse(is.na(y_label_text), plot_var, y_label_text), " (capped min(", cap_spl_iqr_factor, "x IQR+Q3[SPL]) ,", cap_qc_iqr_factor, "x IQR+Q3[QC]"), stringr::str_remove(plot_var, "feature\\_"))
+  # Define y axis label based on if cap_outlier was selected
+  y_label <- dplyr::if_else(cap_outliers,
+                            paste0(ifelse(is.na(y_label_text), variable, y_label_text), " (capped at", cap_spl_k_mad, "x MAD [SPL]) and ", cap_qc_k_mad, "x MAD [QC]"),
+                            stringr::str_remove(variable, "feature\\_"))
 
+  # Subset data based on incl and excl argument values ----
 
-
-
-  # Subset data ----
-
-  if (all(!is.na(feature_incl_filt)) & all(feature_incl_filt != "")) {
-    if (length(feature_incl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, feature_incl_filt))
+  if (all(!is.na(filter_features)) & all(filter_features != "")) {
+    if (length(filter_features) == 1) {
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, filter_features))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$feature_id %in% feature_incl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(.data$feature_id %in% filter_features)
     }
   }
 
-  if (all(!is.na(feature_excl_filt)) & all(feature_excl_filt != "")) {
-    if (length(feature_excl_filt) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, feature_excl_filt))
+  if (all(!is.na(exclude_features)) & all(exclude_features != "")) {
+    if (length(exclude_features) == 1) {
+      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, exclude_features))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_id %in% feature_excl_filt)
+      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_id %in% exclude_features)
     }
   }
 
+  # Subset data based on qc_types argument ----
   if (all(!is.na(qc_types)) & all(qc_types != "")) {
     if (length(qc_types) == 1) {
       dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
@@ -291,44 +295,56 @@ qc_plot_runscatter <- function(data,
     }
   }
 
-  if (nrow(dat_filt) < 1) cli::cli_abort("None of the feature names meet the filter criteria. Please check feature_filter_include and feature_filter_exclude parameters.")
+  # Error in case the set filters excluded all features
+
+  if (nrow(dat_filt) < 1) cli::cli_abort("None of the feature id's meet the filter criteria. Please check `filter_features` and `exclude_features` parameters.")
 
   # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
   dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
   # Cap upper outliers  ----
 
-  dat_filt <- dat_filt |> dplyr::mutate(value = !!plot_var_s)
+  dat_filt <- dat_filt |> dplyr::mutate(value = !!variable_sym)
+
+  if (cap_outliers) {
+
+    if (!is.na(cap_top_n_values) & cap_top_n_values > 0) {
+      dat_filt <- dat_filt |>
+        dplyr::group_by(.data$feature_id) |>
+        dplyr::arrange(.data$value) |>
+        mutate(
+          value = ifelse(dplyr::row_number() < cap_top_n_values, .data$value[cap_top_n_values], .data$value)
+        ) |>
+        dplyr::arrange(.data$feature_id, .data$run_id) |>
+        dplyr::ungroup()
+    }
 
 
-  dat_filt <- dat_filt |>
-    dplyr::group_by(.data$feature_id) |>
-    dplyr::mutate(
-      # value_max_spl = mean(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_SPL_SD * sd(.data$value[.data$qc_type=="SPL"], na.rm=T),
-      # value_max_qc = mean(.data$value[.data$qc_type==qc_type_fit], na.rm=T) + cap_QC_SD * sd(.data$value[.data$qc_type==qc_type_fit]), na.rm=T,
-      value_max_spl = quantile(.data$value[.data$qc_type == "SPL"], 0.75, names = FALSE, na.rm = TRUE) + cap_spl_iqr_factor * IQR(.data$value[.data$qc_type == "SPL"], na.rm = TRUE),
-      value_max_qc = quantile(.data$value[.data$qc_type == qc_type_fit], 0.75, names = FALSE, na.rm = TRUE) + cap_qc_iqr_factor * IQR(.data$value[.data$qc_type == qc_type_fit], na.rm = TRUE),
-      value_max = pmax(.data$value_max_spl, .data$value_max_qc, na.rm = TRUE),
-      value_mod = dplyr::if_else(cap_outliers & .data$value > .data$value_max,
-        if (!all(is.na(.data$value))) {
-          max(.data$value[.data$value < .data$value_max], na.rm = TRUE)
-        } else {
-          NA_real_
-        },
-        .data$value
-      )
-    ) |>
-    dplyr::ungroup()
+    dat_filt <- dat_filt |>
+      dplyr::group_by(.data$feature_id) |>
+      dplyr::mutate(
+        value_max_spl = median(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_spl_k_mad * mad(.data$value[.data$qc_type=="SPL"], na.rm=T),
+        value_max_tqc = median(.data$value[.data$qc_type=="TQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="TQC"], na.rm=T),
+        value_max_bqc = median(.data$value[.data$qc_type=="BQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="BQC"], na.rm=T),
+        value_max = pmax(.data$value_max_spl, .data$value_max_tqc, .data$value_max_bqc, na.rm = TRUE),
+        value_mod = dplyr::if_else(
+         .data$value > .data$value_max,
+          if (!all(is.na(.data$value))) {
+            max(.data$value[.data$value < .data$value_max], na.rm = TRUE)
+          } else {
+            NA_real_
+          },
+          .data$value
+        )
+      ) |>
+      dplyr::ungroup()
+  } else {
+    dat_filt <- dat_filt |>
+      dplyr::mutate(value_mod = .data$value)
+  }
 
-  dat_filt <- dat_filt |>
-    dplyr::group_by(.data$feature_id) |>
-    dplyr::arrange(.data$value) |>
-    mutate(
-      value = ifelse(dplyr::row_number() < cap_top_n_values, .data$value[cap_top_n_values], .data$value)
-    ) |>
-    dplyr::arrange(.data$feature_id, .data$run_id) |>
-    dplyr::ungroup()
 
+  if (save_pdf & (is.na(path) | path == "")) cli:cli_abort("Save to PDF selected, but no valid path defined. Please set path via `path`.")
 
   if (save_pdf & !is.na(path)) {
     path <- ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
@@ -349,21 +365,28 @@ qc_plot_runscatter <- function(data,
 
   # p_list <- vector("list", length(page_range))
   p_list <- list()
+
+  if(save_pdf) action_text = "Saving plots" else action_text = "Generating plots"
+
+  if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
+  cli::cli_inform("Generating plots...this may take a while...")
   for (i in page_range) {
     if (!silent) print(paste0("page ", i))
     p <- runscatter_one_page(
       dat_filt = dat_filt, data = data, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
-      show_trend_samples, trend_samples_fun, trend_samples_col, after_correction = after_correction, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
+      show_trend_samples, trend_samples_fun, trend_samples_col, show_before_after_smooth = show_before_after_smooth, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
       batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines, log_scale = log_scale
     )
+    if(show_progress) cli::cli_progress_update(force = TRUE)
     plot(p)
     p_list[[i]] <- p
   }
   on.exit(if (save_pdf) {
     dev.off()
   })
+  if(save_pdf) cli::cli_alert_success(cli::col_green("Plots were saved as pdf."))
   if (return_plot_list) {
     return(p_list)
   }
@@ -372,7 +395,7 @@ qc_plot_runscatter <- function(data,
 
 
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
-                                show_driftcorrection, after_correction = FALSE, qc_type_fit, cap_outliers,
+                                show_driftcorrection, show_before_after_smooth = FALSE, qc_type_fit, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
                                 save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width, show_grid, log_scale) {
   point_size <- ifelse(missing(point_size), 2, point_size)
@@ -389,7 +412,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     dplyr::arrange(.data$feature_id, .data$run_id) |>
     dplyr::slice(row_start:row_end)
 
-  dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK"))
+  dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
   dat_subset <- dat_subset |>
     dplyr::arrange(.data$qc_type)
 
@@ -439,7 +462,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
 
-  if (after_correction & show_driftcorrection) {
+  if (show_before_after_smooth & show_driftcorrection) {
     p <- p +
       ggplot2::geom_line(aes_string(x = "run_id", y = "CURVE_Y_PREDICTED", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5, na.rm = TRUE)
   }
@@ -454,7 +477,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
   if (show_driftcorrection) {
-    if (after_correction) {
+    if (show_before_after_smooth) {
       p <- p +
         ggplot2::geom_smooth(
           data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), se = TRUE, na.rm = TRUE,
@@ -521,12 +544,14 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
   if (show_grid) {
     p <- p + ggplot2::theme(panel.grid.major = ggplot2::element_line(size = 0.3, colour = "grey88", linetype = "dashed"))
+  } else {
+    p <- p + ggplot2::theme(panel.grid.major = ggplot2::element_blank())
   }
+
 
   if (log_scale) {
     p <- p + scale_y_log10()
   }
-
 
   return(p)
 }
@@ -538,7 +563,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 #'
 #' @param data MidarExperiment object
 #' @param relative_log_abundances Plot as RLA (Relative Log Abundnance Plot)
-#' @param plot_var Variable to plot
+#' @param variable Variable to plot
 #' @param use_qc_filtered_data Use QC-filtered data
 #' @param min_feature_intensity Exclude features with median signal below this value
 #' @param qc_types QC types to be plotted
@@ -556,7 +581,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 qc_plot_runboxplot <- function(data,
                              relative_log_abundances,
-                             plot_var,
+                             variable,
                              use_qc_filtered_data,
                              min_feature_intensity,
                              qc_types = c("BQC|TQC|SPL|NIST|LTR"),
@@ -567,7 +592,7 @@ qc_plot_runboxplot <- function(data,
                              batch_line_color = "red",
                              batch_shading_color = "grey70",
                              base_font_size = 8) {
-  plot_var_sym <- sym(plot_var)
+  variable_sym <- sym(variable)
 
 
 
@@ -588,10 +613,10 @@ qc_plot_runboxplot <- function(data,
   if (relative_log_abundances) {
     d_temp <- d_temp |>
       group_by(.data$feature_id) |>
-      mutate(val = !!plot_var_sym) |>
+      mutate(val = !!variable_sym) |>
       mutate(val = .data$val / mean(.data$val[.data$qc_type == "BQC" | .data$qc_type == "TQC" | .data$qc_type == "SPL"], na.rm = TRUE))
   } else {
-    d_temp <- d_temp |> mutate(val = !!plot_var_sym)
+    d_temp <- d_temp |> mutate(val = !!variable_sym)
   }
 
   breaks <- data$dataset |>
@@ -632,7 +657,7 @@ qc_plot_runboxplot <- function(data,
     # scale_x_continuous(breaks = seq(0, max(data$dataset$run_id)+1, scale_dataset_size)) +
     #  scale_x_discrete(breaks = breaks) +
     theme_bw(base_size = base_font_size) +
-    ylab(bquote(bold(log[2] ~ .(plot_var)))) +
+    ylab(bquote(bold(log[2] ~ .(variable)))) +
     xlab("Analysis order") +
     theme(
       panel.grid.major.y = element_blank(),
@@ -652,7 +677,7 @@ qc_plot_runboxplot <- function(data,
 
   if (relative_log_abundances) {
     p <- p + geom_hline(yintercept = 0, colour = "#666666", linetype = "dashed", size = 0.8) +
-      ylab(bquote(bold("Rel. " ~ log[2] ~ .(plot_var))))
+      ylab(bquote(bold("Rel. " ~ log[2] ~ .(variable))))
   }
 
 
