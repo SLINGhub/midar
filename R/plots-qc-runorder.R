@@ -24,7 +24,7 @@ qc_plot_runsequence <- function(data,
                              single_row = FALSE,
                              segment_thickness = 0.5,
                              batches_as_shades = FALSE,
-                             batch_line_color = "#79ed8a",
+                             batch_line_color = "#b6f0c5",
                              batch_shading_color = "grey85",
                              scale_factor = 1,
                              show_outlier = TRUE,
@@ -177,6 +177,11 @@ qc_plot_runsequence <- function(data,
 #' @param cap_qc_k_mad k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.
 #' @param cap_top_n_values Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (`NA`) or `0` ignores the filter.
 #' @param show_batches Show batches
+#' @param show_mean Show mean line of the given QC types. NA (default) ignores the median line.
+#' @param show_n_sd Show  /- n x SD lines of the QC types defined via `show_median`. `NA` (default) ignores the SD lines.
+#' @param lines_per_batch Calculate mean and SD line per batch. Default is `FALSE`.
+#' @param mean_lines_color Color of mean and SD lines
+#' @param mean_lines_width Width of mean and SD lines
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
@@ -219,8 +224,13 @@ qc_plot_runscatter <- function(data,
                             cap_spl_k_mad = 4,
                             cap_top_n_values = NA,
                             show_batches = TRUE,
+                            show_mean = NA,
+                            show_n_sd = NA,
+                            lines_per_batch = FALSE,
+                            mean_lines_color = "#38dff5",
+                            mean_lines_width = 0.75,
                             batches_as_shades = FALSE,
-                            batch_line_color = "#79ed8a",
+                            batch_line_color = "#b6f0c5",
                             batch_shading_color = "grey93",
                             save_pdf = FALSE,
                             path = "",
@@ -386,7 +396,8 @@ qc_plot_runscatter <- function(data,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
       batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines,
-      log_scale = log_scale, analysis_no_range = analysis_no_range
+      log_scale = log_scale, analysis_no_range = analysis_no_range, show_mean = show_mean, show_n_sd = show_n_sd, lines_per_batch = lines_per_batch, mean_lines_color = mean_lines_color,
+      mean_lines_width = mean_lines_width
     )
 
     plot(p)
@@ -414,7 +425,8 @@ qc_plot_runscatter <- function(data,
 runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
                                 show_driftcorrection, show_before_after_smooth = FALSE, qc_type_fit, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
-                                save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width, show_grid, log_scale, analysis_no_range) {
+                                save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width,
+                                show_grid, log_scale, analysis_no_range, show_mean, show_n_sd, lines_per_batch, mean_lines_color, mean_lines_width) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(save_pdf, .3, .2 * (1 + annot_scale / 5))
 
@@ -454,6 +466,7 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
   d_batch_data <- d_batches |> dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
   d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
   d_batch_data <- d_batch_data |> dplyr::left_join(dMax, by = c("feature_id"))
+
   p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x = "run_id"))
 
   # browser()
@@ -535,6 +548,31 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
           )
       }
     }
+  }
+
+  if(!all(is.na(show_mean))) {
+    if(lines_per_batch) grp = c("feature_id", "batch_id") else grp = c("feature_id")
+    dat_subset_stats <- dat_subset |>
+      left_join(d_batches, by = c("batch_id")) |>
+      filter(.data$qc_type %in% show_mean) |>
+       group_by(dplyr::pick(grp)) |>
+       summarise(mean = mean(.data$value_mod, na.rm = TRUE),
+                 sd = show_n_sd * sd(.data$value_mod, na.rm = TRUE),
+                 batch_start = min(.data$id_batch_start),
+                 batch_end = max(.data$id_batch_end),
+                 .groups = 'drop')
+    if(lines_per_batch){
+      p <- p +
+        ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = mean_lines_color, size = mean_lines_width, linetype = "solid", alpha = 1) +
+        ggplot2::geom_rect(data = dat_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$mean - .data$sd , ymax = .data$mean + .data$sd, group = .data$batch_id), fill = mean_lines_color, size = mean_lines_width, alpha = .25)
+        #ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean - .data$sd , yend = .data$mean - .data$sd, group = .data$batch_id), color = mean_lines_color, linetype = "solid", size = mean_lines_width, alpha = 1)
+    } else{
+      p <- p +
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "longdash") +
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean + .data$sd ), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "dashed") +
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean - .data$sd), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "dashed")
+    }
+
   }
 
   p <- p +
@@ -640,7 +678,7 @@ qc_plot_rla_boxplot <- function(
                                 ignore_outliers = FALSE,
                                 show_batches = TRUE,
                                 batches_as_shades = FALSE,
-                                batch_line_color = "#79ed8a",
+                                batch_line_color = "#b6f0c5",
                                 batch_shading_color = "grey93",
                                 minor_gridlines = FALSE,
                                 linewidth = 0.2,
