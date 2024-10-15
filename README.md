@@ -6,6 +6,9 @@
 
 <!-- badges: end -->
 
+> IMPORTANT NOTE:
+> This version in the main branch is **outdated**.  Please wait until the considerably revised new version will be made available, by **End October 2024**. Please contact me in case of any questions.
+
 `MiDAR` is an R package to reproducibly manage, post-process, visualize, apply quality control, and analyze small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
 
 `MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source tools. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.  
