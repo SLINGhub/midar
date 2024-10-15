@@ -60,12 +60,11 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase, all_n
 
 
 # https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
-get_tails <- function(x) {
-  q1 <- quantile(x, na.rm = TRUE)[2]
-  q3 <- quantile(x, na.rm = TRUE)[4]
-  iqr <- q3 - q1
-  upper <- q3 + 1.5 * iqr
-  lower <- q1 - 1.5 * iqr
+get_mad_tails <- function(x, k) {
+  med <- median(x, na.rm = TRUE)
+  MAD <- mad(x, na.rm = TRUE)
+  upper <- med + k * MAD
+  lower <- med - k * MAD
   if (length(x) == 1) {
     return(x)
   } # will deal with abnormal marks at the periphery of the plot if there is one value only
