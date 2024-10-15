@@ -8,10 +8,11 @@ qc_plot_runscatter(
   data,
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm"),
-  filtered_data = FALSE,
+  qc_filter_data = FALSE,
   qc_types = NA,
-  filter_features = NA,
-  exclude_features = NA,
+  filt_include_features = NA,
+  filt_exclude_features = NA,
+  analysis_no_range = NA,
   log_scale = FALSE,
   cap_outliers = FALSE,
   cap_qc_k_mad = 4,
@@ -19,8 +20,8 @@ qc_plot_runscatter(
   cap_top_n_values = NA,
   show_batches = TRUE,
   batches_as_shades = FALSE,
-  batch_line_color = "#9dbecf",
-  batch_shading_color = "grey90",
+  batch_line_color = "#79ed8a",
+  batch_shading_color = "grey93",
   save_pdf = FALSE,
   path = "",
   cols_page = 3,
@@ -50,11 +51,15 @@ qc_plot_runscatter(
 
 \item{variable}{Variable to plot}
 
-\item{filtered_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
+\item{qc_filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
 
-\item{filter_features}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+\item{filt_include_features}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+
+\item{filt_exclude_features}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+
+\item{analysis_no_range}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
 
 \item{log_scale}{Use log10 scale for the y axis}
 
@@ -115,8 +120,6 @@ qc_plot_runscatter(
 \item{return_plot_list}{return list with plots}
 
 \item{show_gridlines}{show x and y major gridlines}
-
-\item{feature_excl_filt}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
 \item{trend_samples_color}{Color of drift line}
 }
