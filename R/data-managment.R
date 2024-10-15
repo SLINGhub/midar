@@ -57,7 +57,55 @@ get_analysis_interruptions <- function(data, break_mins){
     return(NA)
 }
 
-#' @title Set the analAnalysusysis order
+#' @title Get the start and end analysis numbers of specified batches
+#' @description
+#' Sets the analysis order (sequence) based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata.
+#' @param data MidarExperiment object
+#' @param batch_ids A vector with one or two elements: the first and/or last batch ID. If NULL or invalid, the function will abort.
+#' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).
+#' @export
+get_batch_boundaries <- function(data, batch_ids = NULL) {
+  if (nrow(data@annot_batches) == 0) {
+    cli::cli_abort("No batches defined in the dataset.")
+  }
+
+  if (is.null(batch_ids) || length(batch_ids) == 0) {
+    cli::cli_abort("No batch IDs provided.")
+  }
+
+  # Ensure batch_ids has at least one value
+  if (length(batch_ids) == 1) {
+    first_batch_id <- last_batch_id <- batch_ids[1]
+  } else if (length(batch_ids) == 2) {
+    first_batch_id <- batch_ids[1]
+    last_batch_id <- batch_ids[2]
+  } else {
+    cli::cli_abort("Please provide a vector with one or two batch IDs.")
+  }
+
+  # Check if the specified batch IDs exist in the dataset
+  existing_batches <- data@annot_batches$batch_id
+  if (!all(c(first_batch_id, last_batch_id) %in% existing_batches)) {
+    cli::cli_abort("One or more of the specified batch IDs do not exist in the dataset.")
+  }
+
+  # Filter the dataset for the given range of batch IDs
+  d <- data@annot_batches |>
+    filter(.data$batch_id >= first_batch_id & .data$batch_id <= last_batch_id)
+
+  if (nrow(d) == 0) {
+    cli::cli_abort("No batches found for the provided range of batch IDs.")
+  }
+
+  # Extract lower and upper analysis numbers
+  lower_bound <- min(d$id_batch_start)
+  upper_bound <- max(d$id_batch_end)
+
+  return(c(lower_bound, upper_bound))
+}
+
+
+#' @title Set the analysis order
 #' @description
 #' Sets the analysis order (sequence), based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
 #' @param data MidarExperiment object
