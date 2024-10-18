@@ -13,29 +13,29 @@ qc_plot_runscatter(
   filt_include_features = NA,
   filt_exclude_features = NA,
   analysis_no_range = NA,
+  save_pdf = FALSE,
+  path = "",
   log_scale = FALSE,
   cap_outliers = FALSE,
   cap_qc_k_mad = 4,
   cap_spl_k_mad = 4,
   cap_top_n_values = NA,
   show_batches = TRUE,
+  show_control_limits = NA,
+  set_limits_n_sd = NA,
+  limits_batchwise = FALSE,
+  limits_linecolor = "#38dff5",
+  limits_linewidth = 0.75,
   batches_as_shades = FALSE,
-  batch_line_color = "#79ed8a",
+  batch_line_color = "#b6f0c5",
   batch_shading_color = "grey93",
-  save_pdf = FALSE,
-  path = "",
   cols_page = 3,
   rows_page = 3,
-  base_font_size = 12,
+  base_font_size = 11,
   annot_scale = 1,
-  show_progress = FALSE,
-  show_driftcorrection = FALSE,
-  qc_type_fit = "BQC",
-  show_trend_samples = FALSE,
-  trend_samples_function = "loess",
-  trend_samples_col = "darkred",
-  show_before_after_smooth = FALSE,
-  plot_other_qc = TRUE,
+  show_trend = FALSE,
+  trend_linecolor = "#22e06b",
+  fit_qc_type = "BQC",
   paper_orientation = "LANDSCAPE",
   point_transparency = 1,
   point_size = 2,
@@ -43,7 +43,8 @@ qc_plot_runscatter(
   page_no = NA,
   y_label_text = NA,
   return_plot_list = FALSE,
-  show_gridlines = FALSE
+  show_gridlines = FALSE,
+  show_progress = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,10 @@ qc_plot_runscatter(
 
 \item{analysis_no_range}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
 
+\item{save_pdf}{save as PDF}
+
+\item{path}{file name of PDF}
+
 \item{log_scale}{Use log10 scale for the y axis}
 
 \item{cap_outliers}{Cap upper outliers, based on MAD fences of SPL and QC samples, see \code{cap_spl_k_mad} and \code{cap_qc_k_mad}. Useful to cap extreme values distorting the plot.}
@@ -73,15 +78,21 @@ qc_plot_runscatter(
 
 \item{show_batches}{Show batches}
 
+\item{show_control_limits}{Show mean line of the given QC types. NA (default) ignores the median line.}
+
+\item{set_limits_n_sd}{Show  /- n x SD lines of the QC types defined via \code{show_median}. \code{NA} (default) ignores the SD lines.}
+
+\item{limits_batchwise}{Calculate mean and SD line per batch. Default is \code{FALSE}.}
+
+\item{limits_linecolor}{Color of mean and SD lines}
+
+\item{limits_linewidth}{Width of mean and SD lines}
+
 \item{batches_as_shades}{Show batches as shades}
 
 \item{batch_line_color}{batch separator color}
 
 \item{batch_shading_color}{batch shade color}
-
-\item{save_pdf}{save as PDF}
-
-\item{path}{file name of PDF}
 
 \item{cols_page}{columns per page}
 
@@ -91,19 +102,11 @@ qc_plot_runscatter(
 
 \item{annot_scale}{scale factor of text elements}
 
-\item{show_progress}{show progress bar}
+\item{show_trend}{Show drift correction. TODO: Add more details}
 
-\item{show_driftcorrection}{Show drift correction. TODO: Add more details}
+\item{trend_linecolor}{Color of tend line}
 
-\item{qc_type_fit}{QC type used for smoothing fit. TODO: Add more detail}
-
-\item{show_trend_samples}{Fit trend line for study samples, if \code{show_driftcorrection} is TRUE. Default is FALSE.}
-
-\item{trend_samples_function}{Function used for drift correction. Default 'loess'. TODO: Add more detail}
-
-\item{show_before_after_smooth}{Show before/after correction}
-
-\item{plot_other_qc}{Plot all QCs in addition to \code{qc_type_fit}}
+\item{fit_qc_type}{QC type used for smoothing  TODO: Add more detail}
 
 \item{paper_orientation}{Landscape/Portrait}
 
@@ -121,7 +124,7 @@ qc_plot_runscatter(
 
 \item{show_gridlines}{show x and y major gridlines}
 
-\item{trend_samples_color}{Color of drift line}
+\item{show_progress}{show progress bar}
 }
 \value{
 A list of ggplot2 plots or NULL

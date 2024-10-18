@@ -11,7 +11,7 @@ correct_drift_loess(
   span = 0.75,
   apply_conditionally = FALSE,
   apply_conditionally_per_batch = TRUE,
-  log2_transform = TRUE,
+  calc_log_transform = TRUE,
   feature_list = NULL,
   ignore_istd = TRUE,
   max_cv_ratio_before_after = 1,
@@ -32,7 +32,7 @@ correct_drift_loess(
 
 \item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}
 
-\item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
+\item{calc_log_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 

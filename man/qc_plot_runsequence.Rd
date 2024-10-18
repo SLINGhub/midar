@@ -13,7 +13,7 @@ qc_plot_runsequence(
   single_row = FALSE,
   segment_thickness = 0.5,
   batches_as_shades = FALSE,
-  batch_line_color = "#79ed8a",
+  batch_line_color = "#b6f0c5",
   batch_shading_color = "grey85",
   scale_factor = 1,
   show_outlier = TRUE,

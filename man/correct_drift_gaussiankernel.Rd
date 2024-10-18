@@ -13,7 +13,8 @@ correct_drift_gaussiankernel(
   outlier_ksd = 5,
   location_smooth = TRUE,
   scale_smooth = FALSE,
-  log2_transform = TRUE,
+  calc_log_transform = TRUE,
+  recalc_trend_after = TRUE,
   apply_conditionally = FALSE,
   apply_conditionally_per_batch = FALSE,
   feature_list = NULL,
@@ -39,7 +40,7 @@ correct_drift_gaussiankernel(
 
 \item{scale_smooth}{Scale parameter smoothing}
 
-\item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
+\item{calc_log_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
 \item{apply_conditionally}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
 

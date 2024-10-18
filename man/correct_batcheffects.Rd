@@ -10,7 +10,7 @@ correct_batcheffects(
   correct_location = TRUE,
   correct_scale = FALSE,
   overwrite_batch_corr = TRUE,
-  log_transform = TRUE,
+  calc_log_transform = TRUE,
   ...
 )
 }
@@ -25,7 +25,7 @@ correct_batcheffects(
 
 \item{overwrite_batch_corr}{Overwrite previous batch correction or apply on top existing batch correction}
 
-\item{log_transform}{Log transform the data internally for correction. Will not transform the final results.}
+\item{calc_log_transform}{Log transform the data internally for correction. Note: this will not transform the final results.}
 
 \item{...}{Other parameters for batch correction function. Currently not in use.}
 }

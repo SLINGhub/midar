@@ -8,7 +8,7 @@ corr_drift_fun(
   data,
   smooth_fun,
   qc_types,
-  log2_transform = TRUE,
+  calc_log_transform = TRUE,
   within_batch,
   apply_conditionally,
   apply_conditionally_per_batch = TRUE,
@@ -16,6 +16,8 @@ corr_drift_fun(
   use_uncorrected_if_fail = TRUE,
   ignore_istd = TRUE,
   feature_list = NULL,
+  recalc_trend_after = FALSE,
+  show_progress = TRUE,
   ...
 )
 }
@@ -27,7 +29,7 @@ Function needs to return a numerical vector with the length of number of rows in
 
 \item{qc_types}{QC types used for drift correction}
 
-\item{log2_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
+\item{calc_log_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
 \item{within_batch}{Apply to each batch separately if \code{TRUE} (the default)}
 
@@ -43,6 +45,10 @@ A value of 1 (the default) indicates the CV needs to improve or remain unchanged
 \item{ignore_istd}{Do not apply corrections to ISTDs}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
+
+\item{recalc_trend_after}{Recalculate trend after drift correction, to be used in \code{plot_qc_runscatter()}. This will double the calculation time.}
+
+\item{show_progress}{Show progress bar. Default = `TRUE.}
 
 \item{...}{Parameters specific for the smoothing function}
 }
