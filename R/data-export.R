@@ -48,15 +48,15 @@ report_save_full_xls <- function(data, path) {
 
 
   if ("feature_id" %in% names(data@dataset_filtered)) {
-    d_normint_wide_QC <- data@dataset_filtered |>
+    d_conc_wide_QC_all <- data@dataset_filtered |>
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
-    d_normint_wide_QC <- d_normint_wide_QC |>
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
-      dplyr::select(!"qc_type":"acquisition_time_stamp")
+    d_conc_wide_QC_all <- d_conc_wide_QC_all |>
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
+      #dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
     d_normint_wide_QC <- data@dataset_filtered
   }
@@ -74,8 +74,8 @@ report_save_full_xls <- function(data, path) {
   table_list <- list(
     "Intensities_All" = d_intensity_wide,
     "Conc_All" = d_conc_wide,
-    "Conc_QCfilt" = d_conc_wide_QC,
-    "normIntensity_QCfilt" = d_normint_wide_QC,
+    "Conc_QCfilt_StudySamples" = d_conc_wide_QC,
+    "Conc_QCfilt_AllSamples" = d_conc_wide_QC_all,
     "QC" = data@metrics_qc,
     "Info" = d_info,
     "SampleMetadata" = data@annot_analyses,
