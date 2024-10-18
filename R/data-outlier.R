@@ -76,7 +76,7 @@ analysis_outlier_detection <- function(data,
 
     # data@has_outliers_tech <- TRUE
     # data@excl_outliers_tech <- TRUE
-    # data@dataset_filtered <- data@dataset_filtered |> filter(.data$analysis_seq_num < 0) # Todo: check if (still neeeded)
+    # data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_seq_num < 0) # Todo: check if (still neeeded)
   }
   cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
 

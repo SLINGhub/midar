@@ -141,7 +141,7 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
     if("acquisition_time_stamp" %in% names(d_temp)){
       d_temp <- d_temp |>
         arrange(.data$acquisition_time_stamp) |>
-        mutate(analysis_seq_num = row_number()) |>
+        mutate(run_seq_num = row_number()) |>
         select(-"acquisition_time_stamp")
 
       data@annot_analyses <- data@annot_analyses |>
@@ -150,11 +150,11 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
       cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata`.")
     }
   } else if (analysis_sequence == "resultfile") {
-    d_temp <- d_temp |> mutate(analysis_seq_num = row_number())
+    d_temp <- d_temp |> mutate(run_seq_num = row_number())
     data@annot_analyses <- data@annot_analyses |>
       inner_join(d_temp,  by = "analysis_id")
   } else if (analysis_sequence == "metadata") {
-      data@annot_analyses <- data@annot_analyses |>  mutate(analysis_seq_num = row_number())
+      data@annot_analyses <- data@annot_analyses |>  mutate(run_seq_num = row_number())
   }
   data
 }
@@ -164,7 +164,7 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
 # d_dataset <- data@dataset_orig |>
 #   dplyr::inner_join(
 #     data@annot_analyses |>
-#       dplyr::select("analysis_seq_num", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
+#       dplyr::select("run_seq_num", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
 #     by = c("analysis_id")) |>
 #   dplyr::inner_join(
 #     metadata$annot_features |>
@@ -191,7 +191,7 @@ link_data_metadata <- function(data, minimal_info = TRUE){
     inner_join(data@annot_features, by = "feature_id") |>
     filter(.data$valid_analysis, .data$valid_feature) |>
     select(
-      "analysis_seq_num",
+      "run_seq_num",
       "analysis_id",
       "acquisition_time_stamp",
       "qc_type",
@@ -229,11 +229,11 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
-  # Arrange analysis_seq_num and then by feature_id, as they appear in the metadata
+  # Arrange run_seq_num and then by feature_id, as they appear in the metadata
   # TODO:  check if as intended
   data@dataset <- data@dataset |>
     dplyr::arrange(match(.data$feature_id, data@annot_features$feature_id)) |>
-    arrange(.data$analysis_seq_num)
+    arrange(.data$run_seq_num)
 
   # TODOTODO: DECIDE WHEN WHERE TO RUN THIS
   # check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
