@@ -72,7 +72,6 @@ get_batch_boundaries <- function(data, batch_ids = NULL) {
   if (is.null(batch_ids) || length(batch_ids) == 0) {
     cli::cli_abort("No batch IDs provided.")
   }
-
   # Ensure batch_ids has at least one value
   if (length(batch_ids) == 1) {
     first_batch_id <- last_batch_id <- batch_ids[1]

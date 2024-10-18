@@ -69,9 +69,6 @@ qc_plot_runsequence <- function(data,
     summarise(sample_count = stringr::str_c("", dplyr::n()), .groups = 'drop')
 
 
-  # Calculate scale for x-axis
-  scale_dataset_size <- 10^ceiling(log10(max(d_temp$run_seq_num))) / 10
-
   qc_colors <- replace(pkg.env$qc_type_annotation$qc_type_col, "SPL", "grey35")
 
   # Initialize ggplot
@@ -649,7 +646,7 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
-#' @param minor_gridlines Show minor x gridlines
+#' @param x_gridlines Show major x gridlines
 #' @param linewidth Line width used for whiskers of boxplot
 #' @param base_font_size base font size for plots (default is 8)
 #' @param relative_log_abundances Use relative log abundances (RLA). If `FALSE` just use log-transformed values (then the result is not an RLA plot)
@@ -692,21 +689,23 @@ qc_plot_rla_boxplot <- function(
                                 batches_as_shades = FALSE,
                                 batch_line_color = "#b6f0c5",
                                 batch_shading_color = "grey93",
-                                x_axis_variable = c("run_no", "analysis_id", "timestamp"),
-                                minor_gridlines = FALSE,
+                                x_axis_variable = c("run_seq_num"),
+                                x_gridlines = FALSE,
                                 linewidth = 0.2,
                                 base_font_size = 8,
                                 relative_log_abundances = TRUE) {
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   # Check if selected variable is valid
-  variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- str_remove(variable, "feature_")
   variable <- stringr::str_c("feature_", variable)
   variable_sym = rlang::sym(variable)
-
+  rlang::arg_match(x_axis_variable, c("run_seq_num", "run_no", "analysis_id", "timestamp"))
+  if(x_axis_variable == "run_no") x_axis_variable <- "run_seq_num"
+  if(x_axis_variable == "timestamp") x_axis_variable <- "acquisition_time_stamp"
+  x_axis_variable_sym <- rlang::sym(x_axis_variable)
   rlang::arg_match(rla_type_batch, c("within", "across"))
-
 
   if (!qc_filter_data) {
     d_temp <- data@dataset
@@ -731,9 +730,12 @@ qc_plot_rla_boxplot <- function(
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   d_temp <- d_temp |>
-    dplyr::select(any_of(c("analysis_id", "run_seq_num", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
-    filter(.data$feature_intensity > min_feature_intensity) |>
-    droplevels()
+    dplyr::select(any_of(c("analysis_id", "run_seq_num", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
+    group_by(.data$feature_id) |>
+    filter(median(.data$feature_intensity) >= min_feature_intensity) |>
+    droplevels() |>
+    dplyr::arrange(.data$run_seq_num)
+
 
   if (relative_log_abundances) {
 
@@ -754,16 +756,18 @@ qc_plot_rla_boxplot <- function(
     d_temp <- d_temp |> mutate(val_res = log2(!!variable_sym))
   }
 
-  breaks <- data$dataset |>
-    dplyr::select(.data$run_seq_num) |>
-    distinct() |>
-    mutate(ticks_to_plot = .data$run_seq_num %% 10 == 0) |>
-    pull(.data$run_seq_num)
 
-
+  # Get labels corresponding to the breaks. TODO: write it more elegant and clear
+  if(x_axis_variable != "run_seq_num"){
+    labels <- unique(d_temp[[x_axis_variable]])[seq(1, length(unique(d_temp[[x_axis_variable]])), length.out = 20)]
+    breaks <- d_temp |> filter(!!x_axis_variable_sym %in% labels) |> pull(run_seq_num) |> unique()
+  } else {
+    breaks <- scales::breaks_pretty(n = 20)(range(d_temp$run_seq_num))
+    labels = breaks
+  }
   p <- ggplot(d_temp, aes(x = .data$run_seq_num, y = .data$val_res, group = .data$run_seq_num))
 
-  if (minor_gridlines) p <- p + scale_x_continuous(minor_breaks = scales::minor_breaks_n(10))
+  p <- p + scale_x_continuous(breaks = breaks, labels = labels)
 
   if (show_batches) {
     if (!batches_as_shades) {
@@ -779,7 +783,9 @@ qc_plot_rla_boxplot <- function(
     }
   }
 
-  scale_dataset_size <- 2^ceiling(log2(max(data$dataset$run_seq_num))) / 100
+
+  x_text_angle <- ifelse(x_axis_variable != "run_seq_num", 90, 0)
+  x_text_just <- ifelse(x_axis_variable != "run_seq_num", 1, 0.5)
 
   p <- p +
     geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +
@@ -791,18 +797,21 @@ qc_plot_rla_boxplot <- function(
     theme(
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
-      panel.grid.major.x = element_line(colour = "#bdbdbd", linetype = "dotted", size = .5),
-      panel.grid.minor.x = element_line(colour = "grey88", linetype = "dotted", size = .5),
+      panel.grid.major.x = element_blank(), #element_line(colour = "#bdbdbd", linetype = "dotted", size = .5),
+      panel.grid.minor.x = element_blank(), #element_line(colour = "grey88", linetype = "dotted", size = .5),
       axis.text.y = element_text(size = base_font_size),
-      axis.text.x = element_text(size = base_font_size),
+      axis.text.x = element_text(size = base_font_size, angle = x_text_angle, vjust = 0.5, hjust = x_text_just),
       axis.title = element_text(size = base_font_size * 1, face = "bold"),
       panel.border = element_rect(linewidth = 1, color = "grey20")
     )
 
-
+  if(x_gridlines)
+    p <- p + theme(panel.grid.major.x = element_line(colour = "#bdbdbd", linetype = "dotted", size = .3))
+  else
+    p <- p + theme(panel.grid.major.x = element_blank())
 
   if (relative_log_abundances) {
-    p <- p + geom_hline(yintercept = 0, colour = "#666666", linetype = "dashed", size = 0.8) +
+    p <- p + geom_hline(yintercept = 0, colour = "#5fe3f5", linetype = "longdash", size = 0.5) +
       ylab(bquote(bold("Rel. " ~ log[2] ~ .(variable))))
   }
   ylim = c(NA, NA)
