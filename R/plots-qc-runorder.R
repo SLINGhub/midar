@@ -171,35 +171,35 @@ qc_plot_runsequence <- function(data,
 #' @param filt_include_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
 #' @param filt_exclude_features Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
 #' @param analysis_no_range Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
+#' @param save_pdf save as PDF
+#' @param path file name of PDF
 #' @param log_scale Use log10 scale for the y axis
 #' @param cap_outliers Cap upper outliers, based on MAD fences of SPL and QC samples, see `cap_spl_k_mad` and `cap_qc_k_mad`. Useful to cap extreme values distorting the plot.
 #' @param cap_spl_k_mad k * MAD (median absolute deviation) for outlier capping of SPL samples. Default is 4.
 #' @param cap_qc_k_mad k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.
 #' @param cap_top_n_values Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (`NA`) or `0` ignores the filter.
 #' @param show_batches Show batches
-#' @param show_mean Show mean line of the given QC types. NA (default) ignores the median line.
-#' @param show_n_sd Show  /- n x SD lines of the QC types defined via `show_median`. `NA` (default) ignores the SD lines.
-#' @param lines_per_batch Calculate mean and SD line per batch. Default is `FALSE`.
-#' @param mean_lines_color Color of mean and SD lines
-#' @param mean_lines_width Width of mean and SD lines
+#' @param show_control_limits Show mean line of the given QC types. NA (default) ignores the median line.
+#' @param set_limits_n_sd Show  /- n x SD lines of the QC types defined via `show_median`. `NA` (default) ignores the SD lines.
+#' @param limits_batchwise Calculate mean and SD line per batch. Default is `FALSE`.
+#' @param limits_linecolor Color of mean and SD lines
+#' @param limits_linewidth Width of mean and SD lines
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
 #' @param batch_shading_color batch shade color
-#' @param save_pdf save as PDF
-#' @param path file name of PDF
+#' @param show_trend Show drift correction. TODO: Add more details
+#' @param trend_linecolor Color of tend line
+#' @param fit_qc_type QC type used for smoothing  TODO: Add more detail
 #' @param cols_page columns per page
 #' @param rows_page rows per page
 #' @param base_font_size base font size of plot
 #' @param annot_scale scale factor of text elements
-#' @param show_progress show progress bar
 #' @param paper_orientation Landscape/Portrait
-#' @param show_driftcorrection Show drift correction. TODO: Add more details
-#' @param qc_type_fit QC type used for smoothing fit. TODO: Add more detail
-#' @param show_trend_samples Fit trend line for study samples, if `show_driftcorrection` is TRUE. Default is FALSE.
-#' @param trend_samples_function Function used for drift correction. Default 'loess'. TODO: Add more detail
-#' @param trend_samples_color Color of drift line
-#' @param show_before_after_smooth Show before/after correction
-#' @param plot_other_qc Plot all QCs in addition to `qc_type_fit`
+# #' @param show_trend_samples Fit trend line for study samples, if `show_trend` is TRUE. Default is FALSE.
+# #' @param trend_samples_function Function used for drift correction. Default 'loess'. TODO: Add more detail
+# #' @param trend_samples_color Color of drift line
+# #' @param show_before_after_smooth Show before/after correction
+# #' @param plot_other_qc Plot all QCs in addition to `fit_qc_type`
 #' @param point_transparency Alpha of points
 #' @param point_size point size
 #' @param page_no Show/save specific page number. Default is `NA`, which plots all pages.
@@ -207,6 +207,7 @@ qc_plot_runsequence <- function(data,
 #' @param point_stroke_width point stroke width
 #' @param return_plot_list return list with plots
 #' @param show_gridlines show x and y major gridlines
+#' @param show_progress show progress bar
 #' @return A list of ggplot2 plots or NULL
 
 #' @export
@@ -218,34 +219,34 @@ qc_plot_runscatter <- function(data,
                             filt_include_features = NA,
                             filt_exclude_features = NA,
                             analysis_no_range = NA,
+                            save_pdf = FALSE,
+                            path = "",
                             log_scale = FALSE,
                             cap_outliers = FALSE,
                             cap_qc_k_mad = 4,
                             cap_spl_k_mad = 4,
                             cap_top_n_values = NA,
                             show_batches = TRUE,
-                            show_mean = NA,
-                            show_n_sd = NA,
-                            lines_per_batch = FALSE,
-                            mean_lines_color = "#38dff5",
-                            mean_lines_width = 0.75,
+                            show_control_limits = NA,
+                            set_limits_n_sd = NA,
+                            limits_batchwise = FALSE,
+                            limits_linecolor = "#38dff5",
+                            limits_linewidth = 0.75,
                             batches_as_shades = FALSE,
                             batch_line_color = "#b6f0c5",
                             batch_shading_color = "grey93",
-                            save_pdf = FALSE,
-                            path = "",
                             cols_page = 3,
                             rows_page = 3,
-                            base_font_size = 12,
+                            base_font_size = 11,
                             annot_scale = 1.0,
-                            show_progress = FALSE,
-                            show_driftcorrection = FALSE,
-                            qc_type_fit = "BQC",
-                            show_trend_samples = FALSE,
-                            trend_samples_function = "loess",
-                            trend_samples_col = "darkred",
-                            show_before_after_smooth = FALSE,
-                            plot_other_qc = TRUE,
+                            show_trend = FALSE,
+                            trend_linecolor = "#22e06b",
+                            fit_qc_type = "BQC",
+                            #show_trend_samples = FALSE,
+                            #trend_samples_function = "loess",
+                            #trend_samples_col = "darkred",
+                            #show_before_after_smooth = FALSE,
+                            #plot_other_qc = FALSE,
                             paper_orientation = "LANDSCAPE",
                             point_transparency = 1,
                             point_size = 2,
@@ -253,9 +254,17 @@ qc_plot_runscatter <- function(data,
                             page_no = NA,
                             y_label_text = NA,
                             return_plot_list = FALSE,
-                            show_gridlines = FALSE) {
+                            show_gridlines = FALSE,
+                            show_progress = FALSE) {
 
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
+
+  if (show_trend) {
+    if(!data@is_drift_corrected)
+      cli::cli_abort("This option is only available for drift corrected datasets. Please apply `correct_drift_...()` first.")
+    if(!str_detect(variable, "conc"))
+      cli::cli_abort("This option is currently only available for concentrations. Please set `variable` to `conc` or `conc_raw`")
+  }
 
   # Check if selected variable is valid
   variable <- str_remove(variable, "feature_")
@@ -391,13 +400,13 @@ qc_plot_runscatter <- function(data,
   for (i in page_range) {
 
     p <- runscatter_one_page(
-      dat_filt = dat_filt, data = data, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_driftcorrection = show_driftcorrection,
-      show_trend_samples, trend_samples_fun, trend_samples_col, show_before_after_smooth = show_before_after_smooth, qc_type_fit = qc_type_fit, save_pdf = save_pdf, page_no = i,
+      dat_filt = dat_filt, data = data, y_var = variable, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
+      show_trend_samples = show_trend_samples, trend_samples_function = trend_samples_function, trend_samples_col = trend_samples_col, show_before_after_smooth = show_before_after_smooth, fit_qc_type = fit_qc_type, save_pdf = save_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
       batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines,
-      log_scale = log_scale, analysis_no_range = analysis_no_range, show_mean = show_mean, show_n_sd = show_n_sd, lines_per_batch = lines_per_batch, mean_lines_color = mean_lines_color,
-      mean_lines_width = mean_lines_width
+      log_scale = log_scale, analysis_no_range = analysis_no_range, show_control_limits = show_control_limits, set_limits_n_sd = set_limits_n_sd, limits_batchwise = limits_batchwise, limits_linecolor = limits_linecolor,
+      limits_linewidth = limits_linewidth, trend_linecolor = trend_linecolor
     )
 
     plot(p)
@@ -422,11 +431,12 @@ qc_plot_runscatter <- function(data,
 
 
 
-runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page, page_no,
-                                show_driftcorrection, show_before_after_smooth = FALSE, qc_type_fit, cap_outliers,
-                                show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_fun, trend_samples_col, plot_other_qc,
+runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
+                                show_trend, show_before_after_smooth = FALSE, fit_qc_type, cap_outliers,
+                                show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_function, trend_samples_col, plot_other_qc,
                                 save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width,
-                                show_grid, log_scale, analysis_no_range, show_mean, show_n_sd, lines_per_batch, mean_lines_color, mean_lines_width) {
+                                show_grid, log_scale, analysis_no_range, show_control_limits, set_limits_n_sd, limits_batchwise, limits_linecolor,
+                                limits_linewidth, trend_linecolor) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_stroke_width <- dplyr::if_else(save_pdf, .3, .2 * (1 + annot_scale / 5))
 
@@ -491,10 +501,12 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
     ggplot2::geom_point(aes_string(x = "run_id", y = "value_mod", color = "qc_type", fill = "qc_type", shape = "qc_type", group = "batch_id"), size = point_size, alpha = point_transparency, stroke = point_stroke_width, na.rm = TRUE)
 
 
-
-  if (show_before_after_smooth & show_driftcorrection) {
+  if (show_trend) {
+    #browser()
+    y_var_trend <- if_else(y_var == "feature_conc_raw", "y_fit", "y_fit_after")
     p <- p +
-      ggplot2::geom_line(aes_string(x = "run_id", y = "CURVE_Y_PREDICTED", group = "batch_id"), color = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], size = .5, na.rm = TRUE)
+      ggplot2::geom_line(aes_string(x = "run_id", y = y_var_trend, group = "batch_id"), color = trend_linecolor, size = 1, na.rm = TRUE)
+      # pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type]
   }
 
   p <- p +
@@ -506,71 +518,71 @@ runscatter_one_page <- function(dat_filt, data, d_batches, cols_page, rows_page,
 
 
 
-  if (show_driftcorrection) {
-    if (show_before_after_smooth) {
-      p <- p +
-        ggplot2::geom_smooth(
-          data = filter(dat_subset, .data$qc_type == qc_type_fit), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), se = TRUE, na.rm = TRUE,
-          colour = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit], fill = pkg.env$qc_type_annotation$qc_type_fillcol[qc_type_fit],
-          method = MASS::rlm, alpha = 0.35, size = 0.8
-        )
+  # if (show_trend) {
+  #   if (show_before_after_smooth) {
+  #     p <- p +
+  #       ggplot2::geom_smooth(
+  #         data = filter(dat_subset, .data$qc_type == fit_qc_type), ggplot2::aes_string(x = "run_id", y = "y_fit", group = "batch_id"), se = TRUE, na.rm = TRUE,
+  #         colour = pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type], fill = pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type],
+  #         method = "loess", alpha = 0.35, size = 0.8 # TODO before used MASS::rlm
+  #       )
+  #
+  #     if (show_trend_samples) {
+  #       p <- p + ggplot2::geom_smooth(
+  #         data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col, linetype = "dashed",
+  #         method = trend_samples_function, se = FALSE, alpha = 0.2, size = .8, na.rm = TRUE
+  #       )
+  #     }
+  #
+  #     if (plot_other_qc) {
+  #       other_qc <- dplyr::if_else(fit_qc_type == "BQC", "TQC", "BQC")
+  #       other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
+  #       p <- p +
+  #         ggplot2::geom_smooth(
+  #           data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
+  #           method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
+  #         )
+  #     }
+  #   } else {
+  #     p <- p +
+  #       geom_smooth(
+  #         data = dplyr::filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y = "y_fit", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col,
+  #         method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
+  #       )
+  #
+  #     if (plot_other_qc) {
+  #       other_qc <- dplyr::if_else(.data$fit_qc_type == "BQC", "TQC", "BQC")
+  #       other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
+  #       p <- p +
+  #         ggplot2::geom_smooth(
+  #           data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
+  #           method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
+  #         )
+  #     }
+  #   }
+  # }
 
-      if (show_trend_samples) {
-        p <- p + ggplot2::geom_smooth(
-          data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col, linetype = "dashed",
-          method = trend_samples_fun, se = FALSE, alpha = 0.2, size = .8, na.rm = TRUE
-        )
-      }
-
-      if (plot_other_qc) {
-        other_qc <- dplyr::if_else(qc_type_fit == "BQC", "TQC", "BQC")
-        other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
-        p <- p +
-          ggplot2::geom_smooth(
-            data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
-            method = trend_samples_fun, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
-          )
-      }
-    } else {
-      p <- p +
-        geom_smooth(
-          data = dplyr::filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col,
-          method = trend_samples_fun, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
-        )
-
-      if (plot_other_qc) {
-        other_qc <- dplyr::if_else(.data$qc_type_fit == "BQC", "TQC", "BQC")
-        other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
-        p <- p +
-          ggplot2::geom_smooth(
-            data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_id", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
-            method = trend_samples_fun, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
-          )
-      }
-    }
-  }
-
-  if(!all(is.na(show_mean))) {
-    if(lines_per_batch) grp = c("feature_id", "batch_id") else grp = c("feature_id")
+  if(!all(is.na(show_control_limits))) {
+    if(limits_batchwise) grp = c("feature_id", "batch_id") else grp = c("feature_id")
     dat_subset_stats <- dat_subset |>
       left_join(d_batches, by = c("batch_id")) |>
-      filter(.data$qc_type %in% show_mean) |>
+      filter(.data$qc_type %in% show_control_limits) |>
        group_by(dplyr::pick(grp)) |>
        summarise(mean = mean(.data$value_mod, na.rm = TRUE),
-                 sd = show_n_sd * sd(.data$value_mod, na.rm = TRUE),
+                 sd = set_limits_n_sd * sd(.data$value_mod, na.rm = TRUE),
                  batch_start = min(.data$id_batch_start),
                  batch_end = max(.data$id_batch_end),
                  .groups = 'drop')
-    if(lines_per_batch){
+    if(limits_batchwise){
       p <- p +
-        ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = mean_lines_color, size = mean_lines_width, linetype = "solid", alpha = 1) +
-        ggplot2::geom_rect(data = dat_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$mean - .data$sd , ymax = .data$mean + .data$sd, group = .data$batch_id), fill = mean_lines_color, size = mean_lines_width, alpha = .25)
-        #ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean - .data$sd , yend = .data$mean - .data$sd, group = .data$batch_id), color = mean_lines_color, linetype = "solid", size = mean_lines_width, alpha = 1)
+        ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = limits_linecolor, size = limits_linewidth, linetype = "solid", alpha = 1) +
+        ggplot2::geom_rect(data = dat_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$mean - .data$sd , ymax = .data$mean + .data$sd, group = .data$batch_id), fill = limits_linecolor, size = limits_linewidth, alpha = .25)
+        #ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean - .data$sd , yend = .data$mean - .data$sd, group = .data$batch_id), color = limits_linecolor, linetype = "solid", size = limits_linewidth, alpha = 1)
     } else{
       p <- p +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "longdash") +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean + .data$sd ), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "dashed") +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean - .data$sd), color = mean_lines_color, size = mean_lines_width, alpha = 1, linetype = "dashed")
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "longdash") +
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean + .data$sd ), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed") +
+        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean - .data$sd), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed")
     }
 
   }
