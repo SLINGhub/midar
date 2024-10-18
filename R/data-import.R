@@ -287,7 +287,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide |>
-    dplyr::mutate(file_run_id = dplyr::row_number(), .before = 1) |>
+    dplyr::mutate(file_analysis_seq_num = dplyr::row_number(), .before = 1) |>
     tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_id")) |>
     tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
@@ -517,7 +517,7 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
   }
 
   d |>
-    dplyr::mutate(run_id = dplyr::row_number(), .before = 1) |>
+    dplyr::mutate(analysis_seq_num = dplyr::row_number(), .before = 1) |>
     tidyr::pivot_longer(cols = -1:-2, names_to = "feature_id", values_to = value_type) |>
     dplyr::rename(analysis_id = 2) |>
     mutate({{ value_type }} := as.numeric(!!var_value_type))
@@ -546,7 +546,7 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
     "vial_position",
     "inj_volume",
     "sample_type",
-    "run_id"
+    "analysis_seq_num"
   )
 
   quant_cols <- c(
@@ -628,8 +628,8 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 #
 #   d_mrmkit_data <- d_mrmkit_raw |>
 #     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
-#     dplyr::mutate(file_run_id = dplyr::row_number(), .before = "name") |>
-#     tidyr::pivot_longer(-.data$file_run_id:-.data$name, names_to = "feature_id", values_to = "value") |>
+#     dplyr::mutate(file_analysis_seq_num = dplyr::row_number(), .before = "name") |>
+#     tidyr::pivot_longer(-.data$file_analysis_seq_num:-.data$name, names_to = "feature_id", values_to = "value") |>
 #     dplyr::rename(raw_data_filename = .data$name) |>
 #     dplyr::mutate(raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
 #     dplyr::mutate(raw_data_filename = stringr::str_squish(.data$raw_data_filename)) |>
@@ -658,7 +658,7 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 #   #     dplyr::filter(!is.na(.data$type))|>
 #   #     dplyr::mutate(path = stringr::str_squish(str_remove(.data$path, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)))) |>
 #   #     dplyr::rename(raw_data_filename = .data$path) |>
-#   #     #dplyr::mutate(run_id = row_number(), .before = ANALYSIS_ID) |>
+#   #     #dplyr::mutate(analysis_seq_num = row_number(), .before = ANALYSIS_ID) |>
 #   #     dplyr::select(-tidyselect::any_of(c("batch", "type"))) |>
 #   #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_id", values_to = "feature_norm_intensity")
 #   #

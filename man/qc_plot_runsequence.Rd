@@ -8,7 +8,7 @@ qc_plot_runsequence(
   data,
   qc_types = NA,
   show_batches = TRUE,
-  use_datetime = FALSE,
+  show_timestamp = FALSE,
   add_info_title = TRUE,
   single_row = FALSE,
   segment_thickness = 0.5,
@@ -27,7 +27,7 @@ qc_plot_runsequence(
 
 \item{show_batches}{Show batches}
 
-\item{use_datetime}{Use acquisition time stamp as x-axis}
+\item{show_timestamp}{Use acquisition time stamp as x-axis}
 
 \item{add_info_title}{Add title with experiment title and analysis date and times}
 

@@ -13,7 +13,7 @@ pkg.env$table_templates <- list(
     "feature_id" = character(),
   ),
   dataset_template = tibble::tibble(
-    "run_id" = integer(),
+    "analysis_seq_num" = integer(),
     "analysis_id" = character(),
     "acquisition_time_stamp" = as.Date(character()),
     "qc_type" = factor(),

@@ -39,8 +39,8 @@ get_metadata_batches <- function(annot_analyses){
     dplyr::group_by(.data$batch_no) |>
     dplyr::summarise(
       batch_id = .data$batch_id[1],
-      id_batch_start = dplyr::first(.data$run_id),
-      id_batch_end = dplyr::last(.data$run_id)
+      id_batch_start = dplyr::first(.data$analysis_seq_num),
+      id_batch_end = dplyr::last(.data$analysis_seq_num)
     ) |>
     dplyr::ungroup() |>
     dplyr::arrange(.data$id_batch_start) |>
