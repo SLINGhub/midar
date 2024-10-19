@@ -21,7 +21,8 @@ qc_plot_rla_boxplot(
   batches_as_shades = FALSE,
   batch_line_color = "#b6f0c5",
   batch_shading_color = "grey93",
-  minor_gridlines = FALSE,
+  x_axis_variable = c("run_seq_num"),
+  x_gridlines = FALSE,
   linewidth = 0.2,
   base_font_size = 8,
   relative_log_abundances = TRUE
@@ -58,7 +59,7 @@ qc_plot_rla_boxplot(
 
 \item{batch_shading_color}{batch shade color}
 
-\item{minor_gridlines}{Show minor x gridlines}
+\item{x_gridlines}{Show major x gridlines}
 
 \item{linewidth}{Line width used for whiskers of boxplot}
 
