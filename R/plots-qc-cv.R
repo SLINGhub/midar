@@ -58,9 +58,9 @@ plot_x_vs_y <- function(data, x, y, only_quantifier = TRUE, xlim = c(0, NA), yli
     geom_hline(yintercept = 20, linetype = "dashed", color = "#ed5578") +
     geom_vline(xintercept = 20, linetype = "dashed", color = "#ed5578")
 
-  if (with_histogram) {
-    g <- g + theme(legend.position = c(0.9, 0.3))
-    g <- ggExtra::ggMarginal(g, type = "histogram", margins = "y")
-  }
+  # if (with_histogram) {
+  #   g <- g + theme(legend.position = c(0.9, 0.3))
+  #   g <- ggExtra::ggMarginal(g, type = "histogram", margins = "y")
+  # }
   return(g)
 }
