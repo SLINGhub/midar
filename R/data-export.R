@@ -14,7 +14,7 @@
 
 
 # TODO: filtering of names containing "(IS"
-report_save_full_xls <- function(data, path) {
+report_write_xlsx <- function(data, path) {
   if (!("feature_conc" %in% names(data@dataset))) cli::cli_abort("Variable '", "feature_conc", "' does not (yet) exist in dataset")
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
@@ -43,7 +43,7 @@ report_save_full_xls <- function(data, path) {
       dplyr::filter(.data$qc_type == "SPL") |>
       dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
-    d_conc_wide_QC <- data@dataset_filtered
+    d_conc_wide_QC <- NULL
   }
 
 
@@ -58,33 +58,45 @@ report_save_full_xls <- function(data, path) {
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
       #dplyr::select(!"qc_type":"acquisition_time_stamp")
   } else {
-    d_normint_wide_QC <- data@dataset_filtered
+    d_conc_wide_QC_all <- NULL
   }
 
   d_info <- tibble::tribble(
     ~Info, ~Value,
-    "Date Report", lubridate::now(),
+    "Date Report", as.character(lubridate::now()),
     "Author", Sys.info()[["user"]],
-    "MiDAR Version", packageVersion("midar"),
+    "MiDAR Version", as.character(packageVersion("midar")[[1]]),
     "", "",
     "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit)
   )
 
 
   table_list <- list(
-    "Intensities_All" = d_intensity_wide,
-    "Conc_All" = d_conc_wide,
+    "Info" = d_info,
+    "Feature_QC_metrics" = data@metrics_qc,
     "Conc_QCfilt_StudySamples" = d_conc_wide_QC,
     "Conc_QCfilt_AllSamples" = d_conc_wide_QC_all,
-    "QC" = data@metrics_qc,
-    "Info" = d_info,
+    "Conc_FullDataset" = d_conc_wide,
+    "RawIntensiy_FullDataset" = d_intensity_wide,
     "SampleMetadata" = data@annot_analyses,
     "FeatureMetadata" = data@annot_features,
     "InternalStandards" = data@annot_istd,
     "BatchInfo" = data@annot_batches
   )
 
-  openxlsx::write.xlsx(x = table_list, file = path, overwrite = TRUE)
+  openxlsx2::write_xlsx(x = table_list,
+                        file = path,
+                        na.strings = "",
+                        as_table = TRUE,
+                        overwrite = TRUE,
+                        col_names = TRUE,
+                        grid_lines = FALSE,
+                        col_widths = "auto",
+                        first_col = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        first_row = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
+                        tab_color = c("#d7fc5d", "#34fac5", "#0383ad", "#0383ad", "#9e0233", "#ff170f", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+  )
 }
 
 
