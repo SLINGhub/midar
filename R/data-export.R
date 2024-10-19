@@ -95,7 +95,7 @@ report_write_xlsx <- function(data, path) {
                         first_col = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
                         first_row = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
                         with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
-                        tab_color = c("#d7fc5d", "#34fac5", "#0383ad", "#0383ad", "#9e0233", "#ff170f", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+                        tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
 }
 
