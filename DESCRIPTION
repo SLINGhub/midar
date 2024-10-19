@@ -21,7 +21,6 @@ Imports:
     dtplyr,
     forcats,
     fs,
-    ggExtra,
     ggh4x,
     ggpmisc,
     ggrepel,
@@ -36,7 +35,6 @@ Imports:
     pillar,
     purrr,
     readr,
-    readxl,
     rlang,
     scales,
     stats,
@@ -52,6 +50,7 @@ Suggests:
     ggsignif,
     knitr,
     ComplexHeatmap,
+    ggExtra,
     KernSmooth,
     rmarkdown,
     testthat (>= 3.0.0)
