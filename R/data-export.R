@@ -4,8 +4,6 @@
 #' @param path File name and path of the Excel file
 #' @export
 #'
-#' @importFrom glue glue
-#' @importFrom openxlsx write.xlsx
 #' @importFrom lubridate now
 #' @importFrom tibble tribble
 #' @importFrom utils packageVersion
