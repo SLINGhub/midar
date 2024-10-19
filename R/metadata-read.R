@@ -335,7 +335,16 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   metadata <- list()
 
   # ANALYSIS/SAMPLE annotation --------
-  d_temp_analyses<- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
+  #d_temp_analyses<- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
+  d_temp_analyses <- openxlsx2::read_xlsx(file = path,
+                              sheet = "Analyses (Samples)",
+                              skip_empty_rows = TRUE,
+                              skip_empty_cols = TRUE,
+                              convert = TRUE,
+                              col_names = TRUE) |>
+    mutate(across(where(is.character), str_trim)) |>
+    as_tibble()
+
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "valid_analysis", init_value = TRUE, make_lowercase = FALSE)
@@ -362,6 +371,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     mutate(analysis_no = dplyr::row_number(), .before = 1) |>
     mutate(
       batch_id = as.character(.data$batch_id),
+      remarks = as.character(.data$remarks),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
       analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       valid_analysis = as.logical(case_match(tolower(.data$valid_analysis),
@@ -385,7 +395,16 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   # FEATURE annotation  -------------------------
 
   # ToDo: Make note if feature names are not original
-  d_temp_features <- readxl::read_excel(path, sheet = "Features (Analytes)", trim_ws = TRUE)
+  #d_temp_features <- readxl::read_excel(path, sheet = "Features (Analytes)", trim_ws = TRUE)
+  d_temp_features <- openxlsx2::read_xlsx(file = path,
+                                         sheet = "Features (Analytes)",
+                                         skip_empty_rows = TRUE,
+                                         skip_empty_cols = TRUE,
+                                         convert = TRUE,
+                                         col_names = TRUE) |>
+    mutate(across(where(is.character), str_trim)) |>
+    as_tibble()
+
   names(d_temp_features) <- tolower(names(d_temp_features))
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
@@ -422,7 +441,8 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
                                             "false" ~ FALSE,
                                             .default = NA)),
       interference_feature_name = stringr::str_squish(.data$interference_feature_name),
-      remarks = NA_character_) |>
+      remarks = as.character(.data$remarks)
+    ) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
     dplyr::select(
       "feature_id",
@@ -460,11 +480,23 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   # ISTD annotation -------------------------
 
-  annot_istd <- readxl::read_excel(path,
-    sheet = "Internal Standards",
-    trim_ws = TRUE,
-    .name_repair = ~ if_else(nzchar(.x), .x, LETTERS[seq_along(.x)])
-  )
+  # annot_istd <- readxl::read_excel(path,
+  #   sheet = "Internal Standards",
+  #   trim_ws = TRUE,
+  #   .name_repair = ~ if_else(nzchar(.x), .x, LETTERS[seq_along(.x)])
+  # )
+  #
+  annot_istd <- openxlsx2::read_xlsx(file = path,
+                                         sheet = "Internal Standards",
+                                         cols = c(1,2),
+                                         skip_empty_rows = TRUE,
+                                         skip_empty_cols = TRUE,
+                                         col_names = TRUE) |>
+    mutate(across(where(is.character), str_trim)) |>
+    as_tibble()
+
+  # Repair column names
+  #names(annot_istd) <- ifelse(nzchar(names(annot_istd)), names(annot_istd), LETTERS[seq_along(names(annot_istd))])
 
   names(annot_istd) <- tolower(names(annot_istd))
   names(annot_istd)[1] <- "istd_feature_id"
@@ -481,7 +513,15 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   # RESPONSE CURVE annotation -------------------------
 
-  metadata_responsecurves <- readxl::read_excel(path, sheet = "Response Curves")
+  #metadata_responsecurves <- readxl::read_excel(path, sheet = "Response Curves")
+    metadata_responsecurves <- openxlsx2::read_xlsx(file = path,
+                                         sheet = "Response Curves",
+                                         skip_empty_rows = TRUE,
+                                         skip_empty_cols = TRUE,
+                                         col_names = TRUE) |>
+    mutate(across(where(is.character), str_trim)) |>
+    as_tibble()
+
   names(metadata_responsecurves) <- tolower(names(metadata_responsecurves))
 
   metadata$annot_responsecurves <- metadata_responsecurves |>

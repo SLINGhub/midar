@@ -575,12 +575,34 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 #' @return tibble table
 #' @noRd
 .read_generic_excel <- function(path, sheetname) {
-  nms <- names(readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
+  #nms <- names(readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
+  data <- openxlsx2::read_xlsx(file = path,
+                              sheet = sheetname,
+                              col_names = TRUE,
+                              skip_empty_rows = TRUE,
+                              skip_empty_cols = TRUE,
+                              detect_dates = TRUE,
+                              na.strings = c("n/a", "N/A", "NA"),
+                              rows = 1)|>
+    mutate(across(where(is.character), str_trim))
+
+  nms <- names(data)
+
   n_col <- length(nms) - 1
   c_numeric <- rep("numeric", n_col)
   ct <- c("text", c_numeric)
   cat("c_numeric contains:", ct, "\n")
-  readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
+  #readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
+  data <- openxlsx2::read_xlsx(file = path,
+                              sheet = sheetname,
+                              col_names = TRUE,
+                              detect_dates = TRUE,
+                              skip_empty_rows = TRUE,
+                              skip_empty_cols = TRUE,
+                              na.strings = c("n/a", "N/A", "NA"),
+                              types = ct) |>
+    mutate(across(where(is.character), str_trim))
+  data
 }
 
 
