@@ -11,7 +11,7 @@ License: MIT + file LICENSE
 URL: https://github.com/SLINGhub/midar, https://slinghub.github.io/midar/
 BugReports: https://github.com/SLINGhub/midar/issues
 Depends:
-    ggplot2 (>= 3.4.0),
+    ggplot2 (>= 3.5.0),
     R (>= 4.1.0)
 Imports: 
     assertr,
@@ -27,10 +27,8 @@ Imports:
     ggvenn,
     glue,
     lubridate,
-    magrittr,
-    MASS,
     methods,
-    openxlsx,
+    openxlsx2,
     patchwork,
     pillar,
     purrr,
@@ -51,6 +49,7 @@ Suggests:
     knitr,
     ComplexHeatmap,
     ggExtra,
+    MASS,
     KernSmooth,
     rmarkdown,
     testthat (>= 3.0.0)
