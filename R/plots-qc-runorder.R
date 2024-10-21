@@ -105,7 +105,7 @@ qc_plot_runsequence <- function(data,
                              ymin = -Inf, ymax = Inf),
                          fill = batch_shading_color, alpha = 1, color = NA)
     } else {
-      browser()
+
       p <- p + geom_vline(data = d_batch_info |>  slice(-1),
                           aes(xintercept = if(show_timestamp) .data$acquisition_time_stamp else (.data$id_batch_end - .data$id_batch_start)/2),
                           colour = batch_line_color, size = 0.5)
