@@ -5,12 +5,12 @@
 #'
 #' @param data MidarExperiment object
 #' @param batchwise_median Use median of batch-wise derived QC values. Default is FALSE.
-#' @param with_normintensity Include normalized intensity statistics of features. Default is TRUE.
+#' @param with_norm_intensity Include normalized intensity statistics of features. Default is TRUE.
 #' @param with_conc Include concentration statistics of features. Default is TRUE.
 #' @param with_linearity Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.
 #' @return MidarExperiment object
 #' @export
-qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
+qc_calc_metrics <- function(data, batchwise_median, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
 
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
@@ -44,7 +44,7 @@ qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, w
         dplyr::summarise(
           .by = "feature_id",
           missing_intensity_prop_spl = if ("feature_intensity" %in% names(data@dataset )) sum(is.na(.data$feature_intensity[.data$qc_type == "SPL"]))/length(.data$feature_intensity[.data$qc_type == "SPL"]) else NA_real_,
-          missing_normintensity_prop_spl = if ("feature_norm_intensity" %in% names(data@dataset )) sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]) else NA_real_,
+          missing_norm_intensity_prop_spl = if ("feature_norm_intensity" %in% names(data@dataset )) sum(is.na(.data$feature_norm_intensity[.data$qc_type == "SPL"]))/length(.data$feature_norm_intensity[.data$qc_type == "SPL"]) else NA_real_,
           missing_conc_prop_spl = if ("feature_conc" %in% names(data@dataset )) sum(is.na(.data$feature_conc[.data$qc_type == "SPL"]))/length(.data$feature_conc[.data$qc_type == "SPL"]) else NA_real_,
           na_in_all = if ("feature_intensity" %in% names(data@dataset )) all(is.na(.data$feature_intensity)) else NA_real_
         )
@@ -57,43 +57,44 @@ qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, w
                batch_id = factor(.data$batch_id))
 
      # Using dtplyr to improve speed (2x), group by batch still 5x times slower than no batch grouping
-     d_stats_var <- dtplyr::lazy_dt(d_stats_var)
-
+     d_stats_var <- suppressMessages(dtplyr::lazy_dt(d_stats_var))
      d_stats_var_int <-  d_stats_var |>
         summarise(
           .by = grp,
-          Int_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          Int_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-          Int_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
-          Int_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          Int_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          Int_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-          Int_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
-          Int_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
+          intensity_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          intensity_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          intensity_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+          intensity_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+          intensity_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
+          intensity_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          intensity_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+          intensity_median_TQC = median(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+          intensity_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+          intensity_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
 
-          Int_CV_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
-          Int_CV_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
-          Int_CV_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+          intensity_cv_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
+          intensity_cv_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+          intensity_cv_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+          intensity_cv_LTR = cv(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
+          intensity_cv_NIST = cv(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
 
-          SB_Ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
-          SB_Ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
+          sb_ratio_q10_pbk = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+          sb_ratio_pblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE, names = FALSE),
+          sb_ratio_ublk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "UBLK"], na.rm = TRUE, names = FALSE),
+          sb_ratio_sblk = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, names = FALSE) / median(.data$feature_intensity[.data$qc_type == "SBLK"], na.rm = TRUE, names = FALSE),
         )
 
      d_stats_var_final <- d_stats_var_int
 
      if(data@is_istd_normalized){
-       d_stats_var_normint <-  d_stats_var |>
+       d_stats_var_norm_int <-  d_stats_var |>
          summarise(
            .by = grp,
-            normInt_CV_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-            normInt_CV_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-            normInt_CV_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100
+            norm_intensity_cv_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+            norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
+            norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100
           )
-       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_normint, by = grp)
+       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_norm_int, by = grp)
 
      }
 
@@ -107,11 +108,11 @@ qc_calc_metrics <- function(data, batchwise_median, with_normintensity = TRUE, w
              conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
              conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
 
-             conc_CV_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
-             conc_CV_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
-             conc_CV_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
-             conc_CV_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
-             conc_CV_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
+             conc_cv_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
+             conc_cv_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
+             conc_cv_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
+             conc_cv_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
+             conc_cv_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
              conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
              conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
              conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
@@ -238,7 +239,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
 #' @param missing.intensity.spl.prop.max NA Proportion of missing raw intensities
-#' @param missing.normintensity.spl.prop.max NA Proportion of missing normalized intensities
+#' @param missing.norm_intensity.spl.prop.max NA Proportion of missing normalized intensities
 #' @param missing.conc.spl.prop.max NA Proportion of missing final concentrations
 #' @param outlier.technical.exlude Remove samples classified as outliers
 #' @param intensity.min.bqc.min Minimum median feature intensity of BQC
@@ -275,7 +276,7 @@ qc_set_feature_filters <- function(data,
                             qualifier.include = FALSE,
                             istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,
-                            missing.normintensity.spl.prop.max  = NA,
+                            missing.norm_intensity.spl.prop.max  = NA,
                             missing.conc.spl.prop.max  = NA,
                             intensity.min.bqc.min = NA,
                             intensity.min.tqc.min = NA,
@@ -315,7 +316,7 @@ qc_set_feature_filters <- function(data,
   # Check which criteria categories were defined
   arg_names <- names(as.list(match.call()))
   intensity_criteria_defined <- any(str_detect(arg_names, "[^\\.]intensity|signalblank"))
-  normintensity_criteria_defined <- any(str_detect(arg_names, "normintensity"))
+  norm_intensity_criteria_defined <- any(str_detect(arg_names, "norm_intensity"))
   conc_criteria_defined <- any(str_detect(arg_names, "conc"))
   resp_criteria_defined <- any(str_detect(arg_names, "response"))
 
@@ -323,7 +324,7 @@ qc_set_feature_filters <- function(data,
 
   data_local = qc_calc_metrics(data,
                          batchwise_median = batchwise_median,
-                         with_normintensity = data@is_istd_normalized,
+                         with_norm_intensity = data@is_istd_normalized,
                          with_conc = data@is_quantitated,
                          with_linearity = resp_criteria_defined)
 
@@ -343,7 +344,7 @@ qc_set_feature_filters <- function(data,
     mutate(
       outlier.technical.exlude = outlier.technical.exlude,
       missing.intensity.spl.prop.max  = missing.intensity.spl.prop.max,
-      missing.normintensity.spl.prop.max  = missing.normintensity.spl.prop.max,
+      missing.norm_intensity.spl.prop.max  = missing.norm_intensity.spl.prop.max,
       missing.conc.spl.prop.max  = missing.conc.spl.prop.max,
       intensity.min.bqc.min = intensity.min.bqc.min,
       intensity.min.tqc.min = intensity.min.tqc.min,
@@ -377,26 +378,26 @@ qc_set_feature_filters <- function(data,
     #rowwise() |>  #TODO make it vevtorized
     mutate(
       pass_lod = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "Int_min_BQC", intensity.min.bqc.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_min_TQC", intensity.min.tqc.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_min_SPL", intensity.min.spl.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_median_BQC", intensity.median.bqc.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_median_TQC", intensity.median.tqc.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_median_SPL", intensity.median.spl.min, ">"),
-        comp_val(dplyr::cur_data(), "Int_max_SPL", intensity.max.spl.min, ">")),
+        list(comp_val(dplyr::cur_data(), "intensity_min_BQC", intensity.min.bqc.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_min_TQC", intensity.min.tqc.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_min_SPL", intensity.min.spl.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_BQC", intensity.median.bqc.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_TQC", intensity.median.tqc.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_SPL", intensity.median.spl.min, ">"),
+        comp_val(dplyr::cur_data(), "intensity_max_SPL", intensity.max.spl.min, ">")),
         .operator = "AND"),
 
       pass_sb = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "SB_Ratio_pblk", signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(dplyr::cur_data(), "SB_Ratio_ublk", signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(dplyr::cur_data(), "SB_Ratio_sblk", signalblank.median.sblk.min, ">")),
+        list(comp_val(dplyr::cur_data(), "sb_ratio_pblk", signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "sb_ratio_ublk", signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "sb_ratio_sblk", signalblank.median.sblk.min, ">")),
         .operator = "AND"),
 
       pass_cva = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "conc_CV_BQC", cv.conc.bqc.max, "<"),
-        comp_val(dplyr::cur_data(), "conc_CV_TQC", cv.conc.tqc.max, "<"),
-        comp_val(dplyr::cur_data(), "Int_CV_BQC",  cv.intensity.bqc.min, "<"),
-        comp_val(dplyr::cur_data(), "Int_CV_TQC", cv.intensity.tqc.min, "<")),
+        list(comp_val(dplyr::cur_data(), "conc_cv_BQC", cv.conc.bqc.max, "<"),
+        comp_val(dplyr::cur_data(), "conc_cv_TQC", cv.conc.tqc.max, "<"),
+        comp_val(dplyr::cur_data(), "intensity_cv_BQC",  cv.intensity.bqc.min, "<"),
+        comp_val(dplyr::cur_data(), "intensity_cv_TQC", cv.intensity.tqc.min, "<")),
         .operator = "AND"),
 
       pass_dratio = comp_lgl_vec(
@@ -408,7 +409,7 @@ qc_set_feature_filters <- function(data,
 
       pass_missingval = comp_lgl_vec(
         list(comp_val(dplyr::cur_data(), "missing_intensity_prop_spl", missing.intensity.spl.prop.max, "<="),
-        comp_val(dplyr::cur_data(), "missing_normintensity_prop_spl", missing.normintensity.spl.prop.max, "<="),
+        comp_val(dplyr::cur_data(), "missing_norm_intensity_prop_spl", missing.norm_intensity.spl.prop.max, "<="),
         comp_val(dplyr::cur_data(), "missing_conc_prop_spl", missing.conc.spl.prop.max, "<=")),
         .operator = "AND")
     )
