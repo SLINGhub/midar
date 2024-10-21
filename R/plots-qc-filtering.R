@@ -12,6 +12,8 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
 
   rlang::arg_match(use_batches)
 
+
+
   if(!"pass_missingval" %in% names(data@metrics_qc))
     cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
 
@@ -36,18 +38,20 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
     group_by(.data$feature_class) |>
     summarise(
       has_only_na = sum(.data$na_in_all, na.rm = TRUE),
-      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !.data$pass_missingval) | all(is.na(.data$pass_missingval)), na.rm = TRUE),
-      below_lod = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE) | all(is.na(.data$pass_lod)), na.rm = TRUE),
-      below_sb = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & !.data$pass_sb) | all(is.na(.data$pass_sb)), na.rm = TRUE),
-      above_cva = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & !.data$pass_cva) | all(is.na(.data$pass_cva)), na.rm = TRUE),
-      bad_linearity = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & !.data$pass_linearity) | all(is.na(.data$pass_linearity)), na.rm = TRUE),
-      above_dratio = sum((!.data$na_in_all & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE) & !.data$pass_dratio) | all(is.na(.data$pass_dratio)), na.rm = TRUE),
+      exceed_missingness = sum((!replace_na(.data$na_in_all, FALSE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
+      below_lod = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
+      below_sb = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
+      above_cva = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
+      bad_linearity = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
+      above_dratio = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
       qc_pass = sum(.data$qc_pass, na.rm = TRUE)
     ) |>
     tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
-    ungroup()
+    ungroup() |>
+    group_by(.data$feature_class) |>
+    mutate(percent_pass = count_pass / sum(count_pass, na.rm = TRUE) * 100)
 
-  qc_colors <- c(qc_pass = "#4bcc7f", above_dratio = "#ffcf57", above_cva = "#bf0426", bad_linearity = "#1fc1ed", below_sb = "#cccaca", below_lod = "#919191", exceed_missingness = "yellow", has_only_na = "#111111")
+  qc_colors <- c(qc_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
@@ -61,8 +65,7 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
   if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
   d_qc_sum <- d_qc_sum |> drop_na(.data$qc_criteria)
-
-  ggplot(d_qc_sum, aes(forcats::fct_rev(.data$feature_class), .data$count_pass)) +
+  ggplot(d_qc_sum, aes(x = as.numeric(rev(.data$feature_class)), y = .data$count_pass)) +
     ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat = "identity", na.rm = TRUE) +
     scale_fill_manual(values = qc_colors, na.value = "purple", drop = FALSE) +
     # facet_wrap(~Tissue) +
@@ -70,13 +73,20 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
     ggplot2::coord_flip() +
     labs(y = "Number of features", x = "Feature class") +
     #facet_wrap(~batch_id, scales = "free") +
-    ggplot2::scale_x_discrete(limits = rev(levels(d_qc_sum$feature_class))) +
+    ggplot2::scale_y_continuous(expand = expansion(0.02, 0.03)) +
+    ggplot2::scale_x_continuous(breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
+                                labels = rev(levels(d_qc_sum$feature_class)),
+                                expand = expansion(0.02, 0.02),
+                              sec.axis = sec_axis(~ ., name = "Features passed QC",
+                                                  breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
+                                                  labels = rev(d_qc_sum |> filter(qc_criteria == "qc_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(txt)))) +
     theme_bw(base_size = base_size) +
     theme(
       legend.position = c(0.8, 0.8),
       panel.grid.major.x = element_line(color = "grey80", linewidth = .1),
       panel.grid.major.y = element_line(color = "grey90", linewidth = .1),
       panel.grid.minor = element_blank(),
+      axis.title.y.right = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
       legend.text = element_text(size = base_size - 1), # Legend text size
       legend.title = element_text(size = base_size), # Legend title size
       legend.key.size = unit(2, "mm")
@@ -126,7 +136,7 @@ qc_plot_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
   p_bar <- ggplot(d_qc_sum_total, aes(x = reorder(.data$qc_criteria, .data$count_pass), y = .data$count_pass, fill = .data$qc_criteria)) +
     geom_bar(width = 1, stat = "identity") +
     coord_flip() +
-    scale_fill_manual(values = c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#009ec9", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
+    scale_fill_manual(values = c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#abdeed", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
     # geom_text(aes(label = Count), size=4 ) +
     geom_text(
       aes(
