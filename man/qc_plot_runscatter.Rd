@@ -10,6 +10,7 @@ qc_plot_runscatter(
     "fwhm"),
   qc_filter_data = FALSE,
   qc_types = NA,
+  include_qualifier = TRUE,
   filt_include_features = NA,
   filt_exclude_features = NA,
   analysis_no_range = NA,
@@ -55,6 +56,8 @@ qc_plot_runscatter(
 \item{qc_filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
+
+\item{include_qualifier}{Include qualifier features. Default is \code{TRUE}.}
 
 \item{filt_include_features}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
