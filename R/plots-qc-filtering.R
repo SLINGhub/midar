@@ -1,18 +1,16 @@
-#' Plot results of QC filter per analyte class
+#' Plot summary of feature QC filtering per class
 #' @param data MidarExperiment object
 #' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
 #' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
-#' @param base_size font size of plots
+#' @param font_base_size font size of plots
 #' @return ggplot2 object
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-qc_plot_summary_classes <- function(data, use_batches = c("across", "individual", "summarise"), user_defined_keeper = FALSE, base_size = 8) {
+qc_plot_summary_classes <- function(data, use_batches = "summarise", user_defined_keeper = FALSE, font_base_size = 8) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
-  rlang::arg_match(use_batches)
-
-
+  rlang::arg_match(use_batches, c("across", "individual", "summarise"))
 
   if(!"pass_missingval" %in% names(data@metrics_qc))
     cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
@@ -38,12 +36,12 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
     group_by(.data$feature_class) |>
     summarise(
       has_only_na = sum(.data$na_in_all, na.rm = TRUE),
-      exceed_missingness = sum((!replace_na(.data$na_in_all, FALSE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
-      below_lod = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
-      below_sb = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
-      above_cva = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
-      bad_linearity = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
-      above_dratio = sum((!replace_na(.data$na_in_all, FALSE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
+      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
+      below_lod = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
+      below_sb = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
+      above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
+      bad_linearity = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
+      above_dratio = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
       qc_pass = sum(.data$qc_pass, na.rm = TRUE)
     ) |>
     tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
@@ -80,111 +78,136 @@ qc_plot_summary_classes <- function(data, use_batches = c("across", "individual"
                               sec.axis = sec_axis(~ ., name = "Features passed QC",
                                                   breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
                                                   labels = rev(d_qc_sum |> filter(qc_criteria == "qc_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(txt)))) +
-    theme_bw(base_size = base_size) +
+    theme_bw(base_size = font_base_size) +
     theme(
       legend.position = c(0.8, 0.8),
       panel.grid.major.x = element_line(color = "grey80", linewidth = .1),
       panel.grid.major.y = element_line(color = "grey90", linewidth = .1),
       panel.grid.minor = element_blank(),
       axis.title.y.right = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-      legend.text = element_text(size = base_size - 1), # Legend text size
-      legend.title = element_text(size = base_size), # Legend title size
+      legend.text = element_text(size = font_base_size - 1), # Legend text size
+      legend.title = element_text(size = font_base_size), # Legend title size
       legend.key.size = unit(2, "mm")
     ) # Legend key size
 }
 
-#' Plot summary of QC filtering
+#' Plot summary of feature QC filtering
 #' @param data MidarExperiment object
+#' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
+#' @param with_venn_diag Include Venn diagram of features failing S/B, CVa, and linearity
 #' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
-#' @param base_size font size of plots
+#' @param font_base_size font size of plots
 #' @return ggplot2 object
 #' @export
 
 
-qc_plot_summary_venn <- function(data, user_defined_keeper, base_size = 12) {
+
+qc_plot_summary <- function(data, use_batches = "summarise", with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
+
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
+  rlang::arg_match(use_batches, c("across", "individual", "summarise"))
+  if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
+
+  if(!"pass_missingval" %in% names(data@metrics_qc))
+    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, !.data$is_istd) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
 
-  d_qc_sum_total <- d_qc |>
+  d_qc_sum <- d_qc |>
     ungroup() |>
     summarise(
-      has_only_na = sum(!.data$pass_no_na),
-      below_lod = sum(.data$pass_no_na & !.data$pass_lod),
-      below_sb = sum(.data$pass_lod & .data$pass_no_na & !.data$pass_sb),
-      above_cva = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & !.data$pass_cva),
-      bad_linearity = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & !.data$pass_linearity),
-      above_dratio = sum(.data$pass_lod & .data$pass_no_na & .data$pass_sb & .data$pass_cva & .data$pass_linearity & !.data$pass_dratio),
-      qc_pass = sum(.data$qc_pass)
+      has_only_na = sum(.data$na_in_all, na.rm = TRUE),
+      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
+      below_lod = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
+      below_sb = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
+      above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
+      bad_linearity = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
+      above_dratio = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
+      qc_pass = sum(.data$qc_pass, na.rm = TRUE)
     ) |>
     tidyr::pivot_longer(names_to = "qc_criteria", values_to = "count_pass", cols = everything()) |>
     ungroup() |>
-    mutate(qc_criteria = factor(.data$qc_criteria, c("below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
+    mutate(percent_pass = count_pass / sum(count_pass, na.rm = TRUE) * 100) |>
+    ungroup() |>
+    mutate(qc_criteria = factor(.data$qc_criteria, c("exceed_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
+
+  qc_colors <- c(qc_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
+  d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
+  # Remove levels/qc criteria for which was not filtered for
+  if(all(is.na(d_qc$na_in_all)) | d_qc_sum$count_pass[d_qc_sum$qc_criteria == "has_only_na"] == 0) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
+  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "exceed_missingness")
+  if(all(is.na(d_qc$pass_lod))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_lod")
+  if(all(is.na(d_qc$pass_sb))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_sb")
+  if(all(is.na(d_qc$pass_cva))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_cva")
+  if(all(is.na(d_qc$pass_linearity))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "bad_linearity")
+  if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
-  # d_qc_sum_total <- d_qc_sum |>
-  #   group_by(qc_criteria) |>
-  #   summarise(Count = sum(Count,na.rm = TRUE)) |>
-  #   mutate(totalCount = sum(Count,na.rm = TRUE),
-  #          cumCount = cumsum(Count),
-  #          centres = totalCount - (cumCount - Count / 2)) |> ungroup()
-
-  p_bar <- ggplot(d_qc_sum_total, aes(x = reorder(.data$qc_criteria, .data$count_pass), y = .data$count_pass, fill = .data$qc_criteria)) +
+  p_bar <- ggplot(d_qc_sum |> drop_na(.data$qc_criteria), aes(x = .data$qc_criteria, y = .data$count_pass, fill = .data$qc_criteria)) +
     geom_bar(width = 1, stat = "identity") +
     coord_flip() +
-    scale_fill_manual(values = c(below_lod = "#c7c7c7", has_only_na = "#5e555e", below_sb = "#8f8f8f", above_cva = "#870331", bad_linearity = "#abdeed", above_dratio = "#ffabab", qc_pass = "#02bd62")) +
+    scale_fill_manual(values = qc_colors) +
+    ggplot2::scale_y_continuous(expand = expansion(mult = c(0.02, 0.1))) +
+    ggplot2::scale_x_discrete(expand = expansion(0.12, 0.12)) +
     # geom_text(aes(label = Count), size=4 ) +
     geom_text(
       aes(
         label = .data$count_pass,
-        hjust = ifelse(.data$count_pass < max(.data$count_pass) / 1.5, -2, 2) # <- Here lies the magic
-      )
+        hjust = ifelse(.data$count_pass < max(.data$count_pass) / 1.5, -2, 2), # <- Here lies the magic
+      ),
+      size = 2
     ) +
-    labs(x = "", "Number of analytes")
+    labs(x = "", y= "Number of analytes") +
   # facet_wrap(~Tissue) +
-  theme_bw(base_size = base_size) +
+  theme_bw(base_size = font_base_size) +
     theme(
       legend.position = "none",
-      axis.text.x = element_blank(),
-      legend.text = element_text(size = base_size - 2), # Legend text size
-      legend.title = element_text(size = base_size - 4), # Legend title size
-      legend.key.size = unit(3, "mm")
+      #axis.text.x = element_blank(),
+      panel.grid.major.y = element_blank(), #element_line(color = "grey80", linewidth = .1),
+      panel.grid.major.x = element_line(color = "grey80", linewidth = .2, linetype = "dotted"),
+      panel.grid.minor = element_blank()
     ) # Legend key size
 
   # prevent creating log file
+  if(with_venn_diag) {
+    d_qc_venn <- d_qc
 
-  d_qc_venn <- d_qc
+    sb_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_sb, TRUE)]
+    cva_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_cva, TRUE)]
+    # sb_failed = d_qc_venn$feature_id[!d_qc_venn$pass_sb  & d_qc_venn$na_in_all]
+    lin_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_linearity, TRUE)]
 
-  cva_failed <- d_qc_venn$feature_id[!d_qc_venn$pass_cva & d_qc_venn$pass_no_na]
-  lod_sb_failed <- d_qc_venn$feature_id[(!d_qc_venn$pass_lod | !d_qc_venn$pass_sb) & d_qc_venn$pass_no_na]
-  # sb_failed = d_qc_venn$feature_id[!d_qc_venn$pass_sb  & d_qc_venn$pass_no_na]
-  lin_failed <- d_qc_venn$feature_id[!d_qc_venn$pass_linearity & d_qc_venn$pass_no_na]
+    sb_label <- "below S/B" # paste0('LoD < ', parameter_processing$)
+    # sb_label <- "below S/B or LOD" #paste0('S/B < ', parameter_processing$)
+    cva_label <- "above CV(A)" # paste0('CV > ', percent(MAX_CV_NORM/100))
+    lin_label <- "below R^2" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
 
-  lod_sb_label <- "below S/B or LoD" # paste0('LoD < ', parameter_processing$)
-  # sb_label <- "below S/B or LOD" #paste0('S/B < ', parameter_processing$)
-  cva_label <- "above CVa" # paste0('CV > ', percent(MAX_CV_NORM/100))
-  lin_label <- "below R^2" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
+    x2 <- list(sb_failed, cva_failed, lin_failed)
+    names(x2) <- c(sb_label, cva_label, lin_label)
 
-  x2 <- list(lod_sb_failed, cva_failed, lin_failed)
-  names(x2) <- c(lod_sb_label, cva_label, lin_label)
-
-  p_venn <- ggvenn::ggvenn(x2, c(lod_sb_label, cva_label, lin_label),
-    show_percentage = FALSE,
-    fill_color = c("#c7c7c7", "#ff8080", "#009ec9"),
-    fill_alpha = 0.5,
-    stroke_size = 0.0,
-    text_size = 5,
-    set_name_size = 6
-  ) # + ggplot2::coord_cartesian(clip="off")
+    p_venn <- ggvenn::ggvenn(x2, c(sb_label, cva_label, lin_label),
+      show_percentage = FALSE,
+      fill_color = c("#d9d5b6", "#F44336", "#abdeed"),
+      fill_alpha = 0.5,
+      stroke_size = 0.0,
+      text_size = 2,
+      set_name_size = 2
+    ) # + ggplot2::coord_cartesian(clip="off")
 
 
 
-  # plt <- arrangeGrob(p_bar, gTree(NULL),gTree(children=p_venn), ncol=3, widths=c(1.6, 0, 1.3), padding = 0)
-  plt <- p_bar + p_venn + patchwork::plot_layout(ncol = 2, widths = c(1, 1)) + patchwork::plot_annotation(tag_levels = c("A", "B"))
+    # plt <- arrangeGrob(p_bar, gTree(NULL),gTree(children=p_venn), ncol=3, widths=c(1.6, 0, 1.3), padding = 0)
+    plt <- p_bar + p_venn +
+      patchwork::plot_layout(ncol = 2, widths = c(1.3, 1)) +
+      patchwork::plot_annotation(tag_levels = c("A", "B")) &
+      theme(plot.tag = element_text(face = 'bold', size = font_base_size, color = 'black', hjust = 0, vjust = 0, margin = margin(10, 20, 10, 10)))
+  } else {
+    plt <- p_bar
+  }
 
   return(plt)
 }
