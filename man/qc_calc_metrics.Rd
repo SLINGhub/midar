@@ -7,7 +7,7 @@
 qc_calc_metrics(
   data,
   batchwise_median,
-  with_normintensity = TRUE,
+  with_norm_intensity = TRUE,
   with_conc = TRUE,
   with_linearity = TRUE
 )
@@ -17,7 +17,7 @@ qc_calc_metrics(
 
 \item{batchwise_median}{Use median of batch-wise derived QC values. Default is FALSE.}
 
-\item{with_normintensity}{Include normalized intensity statistics of features. Default is TRUE.}
+\item{with_norm_intensity}{Include normalized intensity statistics of features. Default is TRUE.}
 
 \item{with_conc}{Include concentration statistics of features. Default is TRUE.}
 

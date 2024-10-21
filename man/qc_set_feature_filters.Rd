@@ -11,7 +11,7 @@ qc_set_feature_filters(
   qualifier.include = FALSE,
   istd.include = FALSE,
   missing.intensity.spl.prop.max = NA,
-  missing.normintensity.spl.prop.max = NA,
+  missing.norm_intensity.spl.prop.max = NA,
   missing.conc.spl.prop.max = NA,
   intensity.min.bqc.min = NA,
   intensity.min.tqc.min = NA,
@@ -51,7 +51,7 @@ qc_set_feature_filters(
 
 \item{missing.intensity.spl.prop.max}{NA Proportion of missing raw intensities}
 
-\item{missing.normintensity.spl.prop.max}{NA Proportion of missing normalized intensities}
+\item{missing.norm_intensity.spl.prop.max}{NA Proportion of missing normalized intensities}
 
 \item{missing.conc.spl.prop.max}{NA Proportion of missing final concentrations}
 
