@@ -166,6 +166,7 @@ qc_plot_runsequence <- function(data,
 #' @param variable Variable to plot
 #' @param qc_filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
+#' @param include_qualifier Include qualifier features. Default is `TRUE`.
 #' @param filt_include_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
 #' @param filt_exclude_features Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
 #' @param analysis_no_range Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
@@ -214,6 +215,7 @@ qc_plot_runscatter <- function(data,
                             variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
                             qc_filter_data = FALSE,
                             qc_types = NA,
+                            include_qualifier = TRUE,
                             filt_include_features = NA,
                             filt_exclude_features = NA,
                             analysis_no_range = NA,
@@ -278,6 +280,10 @@ qc_plot_runscatter <- function(data,
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
+  }
+
+  if(!include_qualifier){
+    dat_filt <- dat_filt |> filter(!.data$is_qualifier)
   }
 
   if (!all(is.na(analysis_no_range))) {
