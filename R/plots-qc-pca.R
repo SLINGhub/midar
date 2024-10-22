@@ -22,9 +22,8 @@ qc_plot_pca <- function(data, variable, filter_data, pca_dim = c(1,2), qc_types 
 
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
-
   variable <- stringr::str_c("feature_", variable)
-
+  check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
 
   # Filter data if filter_data is TRUE

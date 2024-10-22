@@ -57,6 +57,15 @@ get_analysis_interruptions <- function(data, break_mins){
     return(NA)
 }
 
+check_var_in_dataset <- function(table, variable) {
+  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort("Concentrations not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL)
+  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort("Area is not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
+  if(variable == "response" & !"response" %in% names(table)) cli_abort("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
+  if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL)
+  if(variable == "height" & !"height" %in% names(table)) cli_abort("Heights not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
+  if(variable == "conc_raw" & !"conc_raw" %in% names(table)) cli_abort("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL)
+}
+
 #' @title Get the start and end analysis numbers of specified batches
 #' @description
 #' Sets the analysis order (sequence) based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata.

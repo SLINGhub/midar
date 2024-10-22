@@ -15,7 +15,6 @@
 #' @param print_outliers Print analysis_id of outliers to the console
 #' @return MidarExperiment object
 #'
-#' @export
 #'
 #' @return ggplot2 object
 
