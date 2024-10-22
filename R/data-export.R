@@ -141,6 +141,7 @@ report_write_csv <- function(data,
   variable_strip <- str_remove(variable, "feature_")
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
+  check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
 
   # Auto-choose some arg values if user does not define
