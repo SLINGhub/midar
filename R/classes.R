@@ -239,7 +239,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("Feature QC-filtered:  {get_status_flag(object@is_filtered)}")
   cli::cli_end(id = "C")
 
-  cli::cli_h2("Outliers")
+  cli::cli_h2("Exlusion of Analyses and Features")
   cli::cli_ul(id = "D")
   cli::cli_li("One or more analyses manually excluded: {get_status_flag(object@analyses_excluded)}")
   cli::cli_end(id = "D")

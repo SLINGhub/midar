@@ -321,7 +321,7 @@ qc_apply_feature_filter <- function(data,
   resp_criteria_defined <- any(str_detect(arg_names, "response"))
 
 
-  cat("Calculating feauture QC metrics - please wait...")
+  cat("Calculating feature QC metrics - please wait...")
   data_local = qc_calc_metrics(data,
                          batch_medians = batch_medians,
                          with_norm_intensity = data@is_istd_normalized,
