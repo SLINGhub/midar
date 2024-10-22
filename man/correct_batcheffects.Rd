@@ -9,7 +9,7 @@ correct_batcheffects(
   qc_types,
   correct_location = TRUE,
   correct_scale = FALSE,
-  overwrite_batch_corr = TRUE,
+  overwrite = TRUE,
   calc_log_transform = TRUE,
   ...
 )
@@ -23,7 +23,7 @@ correct_batcheffects(
 
 \item{correct_scale}{Scale batches to the same level}
 
-\item{overwrite_batch_corr}{Overwrite previous batch correction or apply on top existing batch correction}
+\item{overwrite}{Overwrite previous batch correction or apply on top existing batch correction}
 
 \item{calc_log_transform}{Log transform the data internally for correction. Note: this will not transform the final results.}
 

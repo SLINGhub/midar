@@ -219,7 +219,10 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
     if (i %% update_frequency == 0) {setTxtProgressBar(pb, i)}
   }
 
-  if (data@is_batch_corrected) cli_alert_info(col_yellow(glue::glue("Previous drift and batch corrections are being overwritten!")))
+  if (data@is_batch_corrected){
+    cli_alert_info(col_yellow(glue::glue("Previous drift and batch corrections are being overwritten!")))
+    data@is_batch_corrected <- FALSE
+  }
 
   message(cli::col_green(glue::glue("Applying drift correction...")))
 
@@ -554,32 +557,35 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #' @param qc_types QC types used for batch correction
 #' @param correct_location Align locations (median) of batches
 #' @param correct_scale Scale batches to the same level
-#' @param overwrite_batch_corr Overwrite previous batch correction or apply on top existing batch correction
+#' @param overwrite Overwrite previous batch correction or apply on top existing batch correction
 #' @param calc_log_transform Log transform the data internally for correction. Note: this will not transform the final results.
 #' @param ... Other parameters for batch correction function. Currently not in use.
 #'
 #' @return MidarExperiment object
 #' @export
-correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite_batch_corr = TRUE, calc_log_transform = TRUE, ...) {
-  ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")
-  nbatches <- length(unique(ds$batch_id))
+correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
 
-  if(nbatches < 2) {
-    cli_abort(col_yellow(glue::glue("Batch correction was not applied as there is only one batch.")))
-    return(data)
-  }
   if (data@is_batch_corrected){
-      if(overwrite_batch_corr){
+      if(overwrite){
         cli_alert_warning(col_yellow(glue::glue("Previous batch correction is being overwritten!")))
         data@dataset$feature_conc <- data@dataset$feature_conc_adj_raw
-  } else {
+      } else {
         cli_alert_warning(col_yellow(glue::glue("Batch correction was applied onto exiting previous batch-correction(s)!")))
+        data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
       }
   } else {
       data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
   }
   # TODO var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
   #if (!data@is_drift_corrected)
+
+  ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")
+  nbatches <- length(unique(ds$batch_id))
+  if(nbatches < 2) {
+    cli_abort(col_yellow(glue::glue("Batch correction was not applied as there is only one batch.")))
+    return(data)
+  }
+
 
   d_res <- ds |>
   group_by(.data$feature_id) |>
