@@ -73,7 +73,7 @@ qc_plot_responsecurves_page <- function(dataset,
 
 #' Response curves plot
 #' @param data MidarExperiment object
-#' @param qc_filter_data Use QC-filtered data
+#' @param filter_data Use QC-filtered data
 #' @param save_pdf Save as PDF
 #' @param response_variable Variable to plot
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
@@ -94,7 +94,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @export
 qc_plot_responsecurves <- function(data,
                                 response_variable = "feature_intensity",
-                                qc_filter_data,
+                                filter_data,
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
                                 save_pdf = FALSE,
@@ -116,7 +116,7 @@ qc_plot_responsecurves <- function(data,
 
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
-  if (qc_filter_data) {
+  if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
   } else {
