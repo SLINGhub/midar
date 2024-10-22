@@ -178,13 +178,11 @@ qc_plot_summary <- function(data, use_batches = "summarise", with_venn_diag = TR
 
     sb_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_sb, TRUE)]
     cva_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_cva, TRUE)]
-    # sb_failed = d_qc_venn$feature_id[!d_qc_venn$pass_sb  & d_qc_venn$na_in_all]
     lin_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_linearity, TRUE)]
 
-    sb_label <- "below S/B" # paste0('LoD < ', parameter_processing$)
-    # sb_label <- "below S/B or LOD" #paste0('S/B < ', parameter_processing$)
+    sb_label <- "below S/B"
     cva_label <- "above CV(A)" # paste0('CV > ', percent(MAX_CV_NORM/100))
-    lin_label <- "below R^2" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
+    lin_label <- "bad linearity" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
 
     x2 <- list(sb_failed, cva_failed, lin_failed)
     names(x2) <- c(sb_label, cva_label, lin_label)
@@ -199,9 +197,7 @@ qc_plot_summary <- function(data, use_batches = "summarise", with_venn_diag = TR
     ) # + ggplot2::coord_cartesian(clip="off")
 
 
-
-    # plt <- arrangeGrob(p_bar, gTree(NULL),gTree(children=p_venn), ncol=3, widths=c(1.6, 0, 1.3), padding = 0)
-    plt <- p_bar + p_venn +
+    plt <- patchwork::wrap_plots(p_bar, p_venn) +
       patchwork::plot_layout(ncol = 2, widths = c(1.3, 1)) +
       patchwork::plot_annotation(tag_levels = c("A", "B")) &
       theme(plot.tag = element_text(face = 'bold', size = font_base_size, color = 'black', hjust = 0, vjust = 0, margin = margin(10, 20, 10, 10)))

@@ -94,7 +94,7 @@ qc_plot_x_vs_y <- function(data,
 
   # Prepare data
   if(nrow(data@metrics_qc) == 0) {
-    cli::cli_alert("Nod QC metrics available et. Please run `qc_calc_metrics()` first.")
+    cli::cli_alert("No QC metrics available et. Please run `qc_calc_metrics()`, or set qc filters first.")
     return(NULL)
   }
 
