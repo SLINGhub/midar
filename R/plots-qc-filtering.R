@@ -15,8 +15,8 @@ qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_ist
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
-  if(!"pass_missingval" %in% names(data@metrics_qc))
-    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
+  if(!data@is_filtered)
+    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `qc_apply_feature_filter()` first."))
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>
@@ -118,8 +118,8 @@ qc_plot_summary <- function(data, include_qualifier = FALSE, include_istd = FALS
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
-  if(!"pass_missingval" %in% names(data@metrics_qc))
-    cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
+  if(!data@is_filtered)
+    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `qc_apply_feature_filter()` first."))
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>
