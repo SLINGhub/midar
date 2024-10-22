@@ -11,27 +11,39 @@
 
 # TODO: filtering of names containing "(IS"
 report_write_xlsx <- function(data, path) {
-  if (!("feature_conc" %in% names(data@dataset))) cli::cli_abort("Variable '", "feature_conc", "' does not (yet) exist in dataset")
+
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
-  d_intensity_wide <- data@dataset |>
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
-    tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
+  if(nrow(data@dataset) > 0 ){
+    d_intensity_wide <- data@dataset |>
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
+      tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
+  } else {
+    d_intensity_wide <- tibble("No annotated raw data available." = NA)
+  }
 
-  d_norm_intensity_wide <- data@dataset |>
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
-    tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
+  if(data@is_istd_normalized){
+    d_norm_intensity_wide <- data@dataset |>
+      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
+      tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
+  } else {
+    d_norm_intensity_wide <- tibble("No ISTD-normalized intensities available." = NA)
+  }
 
-  d_conc_wide <- data@dataset |>
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
-    dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
-    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
-    tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
+  if(data@is_quantitated){
+      d_conc_wide <- data@dataset |>
+        dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
+        dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
+        dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
+        tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
+  } else{
+    d_conc_wide <- tibble("No concentration data available." = NA)
+  }
 
-  if ("feature_id" %in% names(data@dataset_filtered)) {
-    d_conc_wide_QC <- data@dataset_filtered |>
+  if (data@is_filtered) {
+    d_conc_wide_QC_SPL <- data@dataset_filtered |>
       #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::filter(.data$qc_type %in% c("SPL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_quantifier", "is_istd", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
@@ -40,15 +52,7 @@ report_write_xlsx <- function(data, path) {
       dplyr::filter(!.data$is_istd) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
 
-    d_conc_wide_QC_SPL <- d_conc_wide_QC |>
-      dplyr::filter(.data$qc_type == "SPL") |>
-      dplyr::select(!"qc_type":"acquisition_time_stamp")
-  } else {
-    d_conc_wide_QC <- NULL
-  }
 
-
-  if ("feature_id" %in% names(data@dataset_filtered)) {
     d_conc_wide_QC_all <- data@dataset_filtered |>
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
@@ -57,9 +61,11 @@ report_write_xlsx <- function(data, path) {
 
     d_conc_wide_QC_all <- d_conc_wide_QC_all |>
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
-      #dplyr::select(!"qc_type":"acquisition_time_stamp")
+
+
   } else {
-    d_conc_wide_QC_all <- NULL
+    d_conc_wide_QC_SPL <- tibble("No concentration data available." = NA)
+    d_conc_wide_QC_all <- tibble("No qc-filtered concentration data available." = NA)
   }
 
   d_info <- tibble::tribble(
@@ -72,10 +78,15 @@ report_write_xlsx <- function(data, path) {
   )
 
 
+  if(nrow(data@metrics_qc) == 0)
+    qc_metrics <- tibble(tibble("Feature qc metrics available." = NA))
+  else
+    qc_metrics <- data@metrics_qc
+
   table_list <- list(
     "Info" = d_info,
-    "Feature_QC_metrics" = data@metrics_qc,
-    "Conc_QCfilt_StudySamples" = d_conc_wide_QC,
+    "Feature_QC_metrics" = qc_metrics,
+    "Conc_QCfilt_StudySamples" = d_conc_wide_QC_SPL,
     "Conc_QCfilt_AllSamples" = d_conc_wide_QC_all,
     "Conc_FullDataset" = d_conc_wide,
     "Raw_Intensity_FullDataset" = d_intensity_wide,
@@ -86,8 +97,7 @@ report_write_xlsx <- function(data, path) {
     "BatchInfo" = data@annot_batches
   )
 
-
-
+  cat("\rSaving report to disk - please wait...")
   openxlsx2::write_xlsx(x = table_list,
                         file = path,
                         na.strings = "",
@@ -101,7 +111,7 @@ report_write_xlsx <- function(data, path) {
                         with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
                         tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
-  cli_alert_success(col_green(glue::glue("The full report has been saved.")))
+  cli_alert_success(col_green(glue::glue("\rThe data processing report of analysis '{mexp@title}' has been saved.")))
 }
 
 
@@ -111,7 +121,7 @@ report_write_xlsx <- function(data, path) {
 #' @param data MidarExperiment object
 #' @param path File name with path of exported CSV fil
 #' @param variable Variable to be exported
-#' @param filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`. Overwrites `include_qualifier` and `include_istd`.
+#' @param filter_data Use QC-filtered data, based on criteria set via `qc_apply_feature_filter()`. Overwrites `include_qualifier` and `include_istd`.
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
 #' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
@@ -145,14 +155,14 @@ report_write_csv <- function(data,
 
   if(length(qc_types) == 1) add_qctype <- FALSE else add_qctype <- TRUE
 
-  if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does has not yet been calculated. Please process data or chose other variable.")
+  if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '{variable}' has not yet been calculated. Please process data or choose other variable.")
 
 
 
   # Filter data if filter_data is TRUE
   if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered. Please apply `qc_apply_feature_filter` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
