@@ -364,7 +364,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
     count_feature_text <- glue::glue("{features_corrected} of {nfeat} features")
 
   mode_text <- ifelse(within_batch, "(batch-wise)", "(across all batches)")
-  mode_text2 <- ifelse(within_batch, "in study samples (median of batches)", "in study samples (across batches)")
+  mode_text2 <- ifelse(within_batch, "in study samples (batche medians)", "in study samples (across batches)")
 
   text_change <- ifelse(cv_difference_median > 0, "increased", "decreased")
 
@@ -620,7 +620,7 @@ correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correc
   text_change <- ifelse(d_res_sum$cv_diff_median > 0, "increased", "decreased")
 
   cli_alert_info(cli::col_grey(
-      c("The median CV of all features in study samples across batches {.strong {text_change}} by {d_res_sum$cv_diff_text}% ({d_res_sum$cv_diff_q1} to {d_res_sum$cv_diff_q3}%) to {format(round(d_res_sum$cv_after,1), nsmall = 1)}%.")))
+      c("The median CV of features in the study samples across batches {.strong {text_change}} by {d_res_sum$cv_diff_text}% ({d_res_sum$cv_diff_q1} to {d_res_sum$cv_diff_q3}%) to {format(round(d_res_sum$cv_after,1), nsmall = 1)}%.")))
 
   # Return data
 
