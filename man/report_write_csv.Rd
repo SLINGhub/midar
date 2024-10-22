@@ -11,7 +11,7 @@ report_write_csv(
     "conc_raw", "rt", "fwhm"),
   filter_data,
   qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK"),
-  include_qualifier,
+  include_qualifier = NA,
   include_istd = NA,
   add_qctype = NA
 )
@@ -23,11 +23,11 @@ report_write_csv(
 
 \item{variable}{Variable to be exported}
 
-\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}. Overwrites \code{include_qualifier} and \code{include_istd}.}
+\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_apply_feature_filter()}. Overwrites \code{include_qualifier} and \code{include_istd}.}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
 
-\item{include_qualifier}{Include qualifier features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_qualifier}{Include qualifier features. Is not used when \code{filter_data = TRUE} was applied.}
 
 \item{include_istd}{Include internal standard features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
 

@@ -6,7 +6,7 @@
 \usage{
 qc_plot_normalization_cv(
   data,
-  filtered_data,
+  filter_data,
   qc_type,
   var_before = c("intensity"),
   var_after = c("norm_intensity"),
@@ -24,7 +24,7 @@ qc_plot_normalization_cv(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{filtered_data}{Use all (default) or qc-filtered data}
+\item{filter_data}{Use all (default) or qc-filtered data}
 
 \item{qc_type}{QC type to use for plot.}
 

@@ -53,7 +53,7 @@ qc_plot_runscatter(
 
 \item{variable}{Variable to plot}
 
-\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
+\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_apply_feature_filter()}}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
 

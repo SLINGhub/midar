@@ -6,7 +6,7 @@
 \usage{
 qc_plot_x_vs_y(
   data,
-  filtered_data,
+  filter_data,
   x_variable,
   y_variable,
   cv_treshhold = 25,
@@ -23,7 +23,7 @@ qc_plot_x_vs_y(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{filtered_data}{Use all (default) or qc-filtered data}
+\item{filter_data}{Use all (default) or qc-filtered data}
 
 \item{x_variable}{Variable of QC metrics table used for x axis}
 

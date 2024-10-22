@@ -57,6 +57,6 @@ Provides also functions to validate data integrity, to perfom normalization and 
 
 \item{\code{has_outliers_tech}}{Flag if data has technical analysis/sample outliers}
 
-\item{\code{excl_outliers_tech}}{Flag if outliers were excluded in the QC-filtered dataset}
+\item{\code{analyses_excluded}}{Flag if outliers were excluded in the QC-filtered dataset}
 }}
 

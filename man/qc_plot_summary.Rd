@@ -6,7 +6,8 @@
 \usage{
 qc_plot_summary(
   data,
-  use_batches = "summarise",
+  include_qualifier = FALSE,
+  include_istd = FALSE,
   with_venn_diag = TRUE,
   user_defined_keeper = FALSE,
   font_base_size = 8
@@ -15,7 +16,9 @@ qc_plot_summary(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{use_batches}{How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)}
+\item{include_qualifier}{Include qualifier features. Is not used when \code{filter_data = TRUE} was applied.}
+
+\item{include_istd}{Include internal standard features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
 
 \item{with_venn_diag}{Include Venn diagram of features failing S/B, CVa, and linearity}
 
