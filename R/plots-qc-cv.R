@@ -1,6 +1,6 @@
 #' Comparison of CV values before and after normalization
 #' @param data MidarExperiment object
-#' @param filtered_data Use all (default) or qc-filtered data
+#' @param filter_data Use all (default) or qc-filtered data
 #' @param qc_type QC type to use for plot.
 #' @param var_before Variable of QC metrics table used for x axis
 #' @param var_after Variable of QC metrics table used for y axis
@@ -18,7 +18,7 @@
 
 
 qc_plot_normalization_cv <- function(data,
-                           filtered_data,
+                           filter_data,
                            qc_type,
                            var_before = c("intensity"),
                            var_after = c("norm_intensity"),
@@ -44,7 +44,7 @@ qc_plot_normalization_cv <- function(data,
   y_variable <- stringr::str_c(var_after, "_cv_", qc_type)
 
   qc_plot_x_vs_y(data = data,
-                             filtered_data = filtered_data,
+                             filter_data = filter_data,
                              x_variable = x_variable,
                              y_variable = y_variable,
                              cv_treshhold = cv_treshhold,
@@ -61,7 +61,7 @@ qc_plot_normalization_cv <- function(data,
 
 #' Contrast two variables from QC metrics table for all features per feature class
 #' @param data MidarExperiment object
-#' @param filtered_data Use all (default) or qc-filtered data
+#' @param filter_data Use all (default) or qc-filtered data
 #' @param x_variable Variable of QC metrics table used for x axis
 #' @param y_variable Variable of QC metrics table used for y axis
 #' @param cv_treshhold Treshhold values shown in plot as dashed lines
@@ -78,7 +78,7 @@ qc_plot_normalization_cv <- function(data,
 
 
 qc_plot_x_vs_y <- function(data,
-                        filtered_data,
+                        filter_data,
                         x_variable,
                         y_variable,
                         cv_treshhold = 25,
@@ -99,11 +99,11 @@ qc_plot_x_vs_y <- function(data,
   }
 
   d_qc <- data@metrics_qc |> filter(.data$valid_feature)
-  if (filtered_data){
+  if (filter_data){
     if(data@is_filtered)
       d_qc <- d_qc |> filter(.data$valid_feature, .data$qc_pass)
     else {
-      cli_abort(cli::col_red("Data has not yet been qc-filtered. Apply filter or set`use_filtered_data = FALSE`."))
+      cli_abort(cli::col_red("Data has not yet been qc-filtered. Apply filter or set`use_filter_data = FALSE`."))
     }
   } else {
     d_qc <- d_qc |> filter(.data$valid_feature)
