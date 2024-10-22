@@ -149,7 +149,7 @@ report_write_csv <- function(data,
   }
 
   if(!include_qualifier){
-    dat_filt <- dat_filt |> filter(!.data$is_qualifier)
+    dat_filt <- dat_filt |> filter(.data$is_quantifier)
   }
 
   if(!include_istd){
