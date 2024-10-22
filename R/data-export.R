@@ -8,8 +8,6 @@
 #' @importFrom tibble tribble
 #' @importFrom utils packageVersion
 
-#'
-
 
 # TODO: filtering of names containing "(IS"
 report_write_xlsx <- function(data, path) {
@@ -17,9 +15,14 @@ report_write_xlsx <- function(data, path) {
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
   d_intensity_wide <- data@dataset |>
-    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
     dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
     tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
+
+  d_norm_intensity_wide <- data@dataset |>
+    dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
+    dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
+    tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
   d_conc_wide <- data@dataset |>
     dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
@@ -75,7 +78,8 @@ report_write_xlsx <- function(data, path) {
     "Conc_QCfilt_StudySamples" = d_conc_wide_QC,
     "Conc_QCfilt_AllSamples" = d_conc_wide_QC_all,
     "Conc_FullDataset" = d_conc_wide,
-    "RawIntensiy_FullDataset" = d_intensity_wide,
+    "Raw_Intensity_FullDataset" = d_intensity_wide,
+    "Norm_Intensity_FullDataset" = d_norm_intensity_wide,
     "SampleMetadata" = data@annot_analyses,
     "FeatureMetadata" = data@annot_features,
     "InternalStandards" = data@annot_istd,
@@ -93,7 +97,7 @@ report_write_xlsx <- function(data, path) {
                         first_col = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
                         first_row = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
                         with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
-                        tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+                        tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
 }
 
@@ -102,20 +106,75 @@ report_write_xlsx <- function(data, path) {
 #' Export any parameter to a wide-format table
 #'
 #' @param data MidarExperiment object
+#' @param path File name with path of exported CSV fil
 #' @param variable Variable to be exported
-#' @param path File name with path of exported CSV file
-#' @importFrom glue glue
-#' @importFrom readr write_csv
-#' @importFrom tidyr pivot_wider
+#' @param filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`. Overwrites `include_qualifier` and `include_istd`.
+#' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
+#' @param include_qualifier Include qualifier features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
+#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
+#' @param add_qctype Add the QC type as column
+#' @return A tibble with the exported data
 #' @export
-exportWideCSV <- function(data, variable, path) {
-  var <- dplyr::sym(variable)
+report_write_csv <- function(data,
+                             path,
+                             variable = c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"),
+                             filter_data,
+                             qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK"),
+                             include_qualifier,
+                             include_istd = NA,
+                             add_qctype = NA
+                             ) {
 
-  if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does not (yet) exist in dataset.")
+  variable <- str_remove(variable, "feature_")
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- stringr::str_c("feature_", variable)
+  variable_sym = rlang::sym(variable)
 
-  ds <- data@dataset |>
-    dplyr::select("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", !!var) |>
-    tidyr::pivot_wider(names_from = .data$feature_id, values_from = !!var)
+  # Auto-choose some arg values if user does not define
+
+  if(is.na(include_istd))
+    if(variable %in% c("feature_conc", "feature_conc_raw", "feature_norm_intensity")) include_istd <- FALSE else include_istd <- TRUE
+  if(length(qc_types) == 1) add_qctype <- FALSE else add_qctype <- TRUE
+
+  if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does has not yet been calculated. Please process data or chose other variable.")
+
+
+
+  # Filter data if filter_data is TRUE
+  if (filter_data) {
+    dat_filt <- data@dataset_filtered |> dplyr::ungroup()
+    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
+  } else {
+    dat_filt <- data@dataset |> dplyr::ungroup()
+  }
+
+  if(!include_qualifier){
+    dat_filt <- dat_filt |> filter(!.data$is_qualifier)
+  }
+
+  if(!include_istd){
+    dat_filt <- dat_filt |> filter(!.data$is_istd)
+  }
+
+
+  # Subset data based on qc_types argument ----
+  if (all(!is.na(qc_types)) & all(qc_types != "")) {
+    if (length(qc_types) == 1) {
+      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
+    } else {
+      dat_filt <- dat_filt |> dplyr::filter(.data$qc_type %in% qc_types)
+    }
+  }
+
+  if(add_qctype)
+    flds <- c("analysis_id", "qc_type", "feature_id")
+  else
+    flds <- c("analysis_id", "feature_id")
+
+
+  ds <- dat_filt |>
+    dplyr::select(all_of(c(flds, variable))) |>
+    tidyr::pivot_wider(names_from = .data$feature_id, values_from = !!variable_sym)
 
   readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
   invisible(ds)
@@ -126,12 +185,10 @@ exportWideCSV <- function(data, variable, path) {
 #'
 #' @param data MidarExperiment object
 #' @param path File name with path of exported CSV file
-#' @importFrom glue glue
-#' @importFrom readr write_csv
-#' @importFrom tidyr pivot_wider
+#' @return A tibble with the exported dataset
 #' @export
 
-saveQCinfo <- function(data, path) {
+report_write_qc_metrics <- function(data, path) {
   if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'qc_calc_metrics' first.")
 
   readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)
