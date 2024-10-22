@@ -30,7 +30,7 @@
 #' @slot is_filtered Flag if data has been filtered based on QC parameters
 #' @slot is_isotope_corr Flag if one or more features have been isotope corrected
 #' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
-#' @slot excl_outliers_tech Flag if outliers were excluded in the QC-filtered dataset
+#' @slot analyses_excluded Flag if outliers were excluded in the QC-filtered dataset
 #'
 #' @include midar-global-definitions.R
 
@@ -63,7 +63,7 @@ setClass("MidarExperiment",
     is_filtered = "logical",
     has_outliers_tech = "logical",
     is_isotope_corr = "logical",
-    excl_outliers_tech = "logical"
+    analyses_excluded = "logical"
   ),
   prototype = list(
     title = "",
@@ -88,7 +88,7 @@ setClass("MidarExperiment",
     is_batch_corrected = FALSE,
     is_filtered = FALSE,
     has_outliers_tech = FALSE,
-    excl_outliers_tech = FALSE
+    analyses_excluded = FALSE
   )
 )
 
@@ -214,7 +214,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_text(cli::col_blue("Processing status: {.strong {object@status_processing}}"))
   cli::cli_end()
 
-  cli::cli_h2("Data")
+  cli::cli_h2("Annotated Raw Data")
   cli::cli_ul(id = "A")
   cli::cli_li("Samples: {length(unique(object@dataset$analysis_id))}")
   cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
@@ -241,7 +241,6 @@ setMethod("show", "MidarExperiment", function(object) {
 
   cli::cli_h2("Outliers")
   cli::cli_ul(id = "D")
-  cli::cli_li("Technical Outliers detected : {get_status_flag(object@has_outliers_tech)}")
-  cli::cli_li("Technical Outliers excluded from filtered data: {get_status_flag(object@excl_outliers_tech)}")
+  cli::cli_li("One or more analyses manually excluded: {get_status_flag(object@analyses_excluded)}")
   cli::cli_end(id = "D")
 })
