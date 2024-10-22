@@ -116,12 +116,14 @@ qc_plot_responsecurves <- function(data,
 
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
+  # Filter data if filter_data is TRUE
   if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
+
 
   dat_filt <- dat_filt |> dplyr::semi_join(data@annot_responsecurves, by = c("analysis_id"))
 
