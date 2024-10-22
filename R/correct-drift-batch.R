@@ -254,7 +254,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
 
       if(show_progress) {
         setTxtProgressBar(pb, total_groups)
-        cat(cli::col_green(" - recalc trends done!"))
+        cat(cli::col_green(" - trend recalc done!"))
         close(pb)
       }
 

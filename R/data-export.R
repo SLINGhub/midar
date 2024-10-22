@@ -111,7 +111,7 @@ report_write_xlsx <- function(data, path) {
                         with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
                         tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
-  cli_alert_success(col_green(glue::glue("\rThe data processing report of analysis '{mexp@title}' has been saved.")))
+  cli_alert_success(col_green(glue::glue("\rThe data processing report of analysis '{data@title}' has been saved.")))
 }
 
 
