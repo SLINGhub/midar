@@ -6,7 +6,7 @@
 \usage{
 qc_plot_responsecurves(
   data,
-  response_variable = "feature_intensity",
+  variable = "intensity",
   filter_data,
   feature_incl_filt = "",
   feature_excl_filt = "",
@@ -14,7 +14,7 @@ qc_plot_responsecurves(
   path = "",
   regr_max_percent = NA,
   rows_page = 4,
-  columns_page = 5,
+  cols_page = 5,
   page_no = NA,
   point_size = 2,
   line_width = 1,
@@ -27,8 +27,6 @@ qc_plot_responsecurves(
 }
 \arguments{
 \item{data}{MidarExperiment object}
-
-\item{response_variable}{Variable to plot}
 
 \item{filter_data}{Use QC-filtered data}
 
@@ -44,7 +42,7 @@ qc_plot_responsecurves(
 
 \item{rows_page}{rows per page}
 
-\item{columns_page}{columns per page}
+\item{cols_page}{columns per page}
 
 \item{page_no}{Specific page to plot. Default \code{NA}, meaning all pages are plotted}
 
@@ -61,6 +59,8 @@ qc_plot_responsecurves(
 \item{show_progress}{show progress bar}
 
 \item{return_plot_list}{return plot as list}
+
+\item{response_variable}{Variable to plot}
 }
 \value{
 A list of ggplot2 objects

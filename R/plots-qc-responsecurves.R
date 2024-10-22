@@ -5,7 +5,7 @@ qc_plot_responsecurves_page <- function(dataset,
                                      regr_max_percent,
                                      path,
                                      rows_page,
-                                     columns_page,
+                                     cols_page,
                                      page_no,
                                      point_size,
                                      line_width,
@@ -16,8 +16,8 @@ qc_plot_responsecurves_page <- function(dataset,
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
   n_cmpd <- length(unique(dataset$analysis_id))
-  row_start <- n_cmpd * columns_page * rows_page * (page_no - 1) + 1
-  row_end <- n_cmpd * columns_page * rows_page * page_no
+  row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
+  row_end <- n_cmpd * cols_page * rows_page * page_no
 
 
   dat_subset <- dataset |>
@@ -57,7 +57,7 @@ qc_plot_responsecurves_page <- function(dataset,
         vars(.data$feature_id),
         scales = "free",
         nrow = rows_page,
-        ncol = columns_page,
+        ncol = cols_page,
         trim_blank = FALSE
       ) +
       geom_point(size = point_size) +
@@ -81,7 +81,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param regr_max_percent Max relative sample amount to use in regressionb
 #' @param path file name of pdf file
 #' @param rows_page rows per page
-#' @param columns_page columns per page
+#' @param cols_page columns per page
 #' @param page_no Specific page to plot. Default `NA`, meaning all pages are plotted
 #' @param point_size point size
 #' @param line_width regression line width
@@ -93,7 +93,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @return A list of ggplot2 objects
 #' @export
 qc_plot_responsecurves <- function(data,
-                                response_variable = "feature_intensity",
+                                variable = "intensity",
                                 filter_data,
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
@@ -101,7 +101,7 @@ qc_plot_responsecurves <- function(data,
                                 path = "",
                                 regr_max_percent = NA,
                                 rows_page = 4,
-                                columns_page = 5,
+                                cols_page = 5,
                                 page_no = NA,
                                 point_size = 2,
                                 line_width = 1,
@@ -110,7 +110,16 @@ qc_plot_responsecurves <- function(data,
                                 base_size = 7,
                                 show_progress = TRUE,
                                 return_plot_list = FALSE) {
+
+  variable_strip <- str_remove(variable, "feature_")
+  rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- stringr::str_c("feature_", variable_strip)
+  variable_sym = rlang::sym(variable)
+
+
+
   if (save_pdf & path == "") cli::cli_abort("Please define parameter `path`")
+
 
 
 
@@ -167,14 +176,14 @@ qc_plot_responsecurves <- function(data,
   }
 
   if (is.na(page_no)) {
-    page_range <- 1:ceiling(dplyr::n_distinct(d_rqc$feature_id) / (columns_page * rows_page))
+    page_range <- 1:ceiling(dplyr::n_distinct(d_rqc$feature_id) / (cols_page * rows_page))
   } else {
     page_range <- page_no
   }
 
   if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
   message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
-  if(show_progress) pb <- txtProgressBar( min = 1, max = max(page_range), width = 50, style = 3)
+  if(show_progress) pb <- txtProgressBar( min = 0, max = max(page_range), width = 50, style = 3)
 
   p_list <- list()  # p_list <- vector("list", length(page_range))
   for (i in page_range) {
@@ -183,11 +192,11 @@ qc_plot_responsecurves <- function(data,
     p <-  qc_plot_responsecurves_page(
         dataset = d_rqc,
         save_pdf = save_pdf,
-        response_variable = response_variable,
+        response_variable = variable,
         regr_max_percent = regr_max_percent,
         path = path,
         rows_page = rows_page,
-        columns_page = columns_page,
+        cols_page = cols_page,
         page_no = i,
         point_size = point_size,
         line_width = line_width,
