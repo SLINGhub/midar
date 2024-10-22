@@ -164,7 +164,7 @@ qc_plot_runsequence <- function(data,
 #'
 #' @param data MidarExperiment object
 #' @param variable Variable to plot
-#' @param qc_filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`
+#' @param filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param include_qualifier Include qualifier features. Default is `TRUE`.
 #' @param filt_include_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
@@ -213,7 +213,7 @@ qc_plot_runsequence <- function(data,
 
 qc_plot_runscatter <- function(data,
                             variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
-                            qc_filter_data = FALSE,
+                            filter_data = FALSE,
                             qc_types = NA,
                             include_qualifier = TRUE,
                             filt_include_features = NA,
@@ -274,8 +274,8 @@ qc_plot_runscatter <- function(data,
 
   variable_sym = rlang::sym(variable)
 
-  # Filter data if qc_filter_data is TRUE
-  if (qc_filter_data) {
+  # Filter data if filter_data is TRUE
+  if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
     if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
   } else {
@@ -640,7 +640,7 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
 #' @param data MidarExperiment object
 #' @param rla_type_batch Must be either `within` or `across`, defining whether to use with-in or across-group RLA
 #' @param variable Variable to plot
-#' @param qc_filter_data Use QC-filtered data
+#' @param filter_data Use QC-filtered data
 #' @param qc_types QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.
 #' @param feature_incl_filt Filter text to select specific features (regex string)
 #' @param feature_excl_filt Filter text to exclude specific features (regex string)
@@ -684,7 +684,7 @@ qc_plot_rla_boxplot <- function(
                                 data,
                                 rla_type_batch = c("within", "across"),
                                 variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
-                                qc_filter_data = FALSE,
+                                filter_data = FALSE,
                                 qc_types = NA,
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
@@ -714,7 +714,7 @@ qc_plot_rla_boxplot <- function(
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
   rlang::arg_match(rla_type_batch, c("within", "across"))
 
-  if (!qc_filter_data) {
+  if (!filter_data) {
     d_temp <- data@dataset
   } else {
     d_temp <- data@dataset_filtered
