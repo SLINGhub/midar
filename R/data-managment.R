@@ -311,8 +311,10 @@ data_exclude_analyses <- function(data, analyses_exlude, overwrite ){
     if(!overwrite){
       cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
     } else{
-      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all analyses were (re)included. Please reprocess data."))
+      cli::cli_alert_info(cli::col_green("Exclusions were removed and all analyses are now included for subsequent steps. Please reprocess data."))
       data@analyses_excluded <- FALSE
+      data@annot_analyses <- data@annot_analyses |> mutate(valid_analysis = TRUE)
+      data <- link_data_metadata(data)
       return(data)
       }
   }
@@ -323,13 +325,14 @@ data_exclude_analyses <- function(data, analyses_exlude, overwrite ){
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude) & .data$valid_analysis)
     cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were now excluded for downstream processing. Please reprocess data."))
-  }
-  else {
+    data@analyses_excluded <- TRUE
+  } else {
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude))
     cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
-  }
-  data@analyses_excluded <- TRUE
+    data@analyses_excluded <- TRUE
+    }
+
   data <- link_data_metadata(data)
 
   data
