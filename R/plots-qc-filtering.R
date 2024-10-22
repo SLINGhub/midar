@@ -1,26 +1,34 @@
 #' Plot summary of feature QC filtering per class
 #' @param data MidarExperiment object
-#' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
+#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
+#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
+# #' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
 #' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
 #' @param font_base_size font size of plots
 #' @return ggplot2 object
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-qc_plot_summary_classes <- function(data, use_batches = "summarise", user_defined_keeper = FALSE, font_base_size = 8) {
+qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
-  rlang::arg_match(use_batches, c("across", "individual", "summarise"))
+  #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
+  #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!"pass_missingval" %in% names(data@metrics_qc))
     cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
 
-
-  if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
-
   d_qc <- data@metrics_qc |>
-    filter(.data$valid_feature, !.data$is_istd) |>
+    filter(.data$valid_feature, .data$in_data) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
+
+  if(!include_qualifier){
+    d_qc <- d_qc |> filter(.data$is_quantifier)
+  }
+
+  if(!include_istd){
+    d_qc <- d_qc |> filter(!.data$is_istd)
+  }
 
 
   # TODO: cleanup feature/lipidclasses
@@ -93,7 +101,9 @@ qc_plot_summary_classes <- function(data, use_batches = "summarise", user_define
 
 #' Plot summary of feature QC filtering
 #' @param data MidarExperiment object
-#' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
+# #' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
+#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
+#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
 #' @param with_venn_diag Include Venn diagram of features failing S/B, CVa, and linearity
 #' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
 #' @param font_base_size font size of plots
@@ -102,19 +112,27 @@ qc_plot_summary_classes <- function(data, use_batches = "summarise", user_define
 
 
 
-qc_plot_summary <- function(data, use_batches = "summarise", with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
+qc_plot_summary <- function(data, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
 
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
-  rlang::arg_match(use_batches, c("across", "individual", "summarise"))
-  if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
+  #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
+  #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!"pass_missingval" %in% names(data@metrics_qc))
     cli_abort(col_red("QC filter has not yet been applied. Please use `qc_set_feature_filters()` to filter the data."))
 
   d_qc <- data@metrics_qc |>
-    filter(.data$valid_feature, !.data$is_istd) |>
+    filter(.data$valid_feature, .data$in_data) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
+
+  if(!include_qualifier){
+    d_qc <- d_qc |> filter(.data$is_quantifier)
+  }
+
+  if(!include_istd){
+    d_qc <- d_qc |> filter(!.data$is_istd)
+  }
 
   d_qc_sum <- d_qc |>
     ungroup() |>

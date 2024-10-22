@@ -86,6 +86,8 @@ report_write_xlsx <- function(data, path) {
     "BatchInfo" = data@annot_batches
   )
 
+
+
   openxlsx2::write_xlsx(x = table_list,
                         file = path,
                         na.strings = "",
@@ -99,6 +101,7 @@ report_write_xlsx <- function(data, path) {
                         with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
                         tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
+  cli_alert_success(col_green(glue::glue("The full report has been saved.")))
 }
 
 
@@ -110,7 +113,7 @@ report_write_xlsx <- function(data, path) {
 #' @param variable Variable to be exported
 #' @param filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`. Overwrites `include_qualifier` and `include_istd`.
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
-#' @param include_qualifier Include qualifier features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
+#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
 #' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
 #' @param add_qctype Add the QC type as column
 #' @return A tibble with the exported data
@@ -120,20 +123,26 @@ report_write_csv <- function(data,
                              variable = c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"),
                              filter_data,
                              qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK"),
-                             include_qualifier,
+                             include_qualifier = NA,
                              include_istd = NA,
                              add_qctype = NA
                              ) {
 
-  variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
-  variable <- stringr::str_c("feature_", variable)
+  variable_strip <- str_remove(variable, "feature_")
+  rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- stringr::str_c("feature_", variable_strip)
   variable_sym = rlang::sym(variable)
 
   # Auto-choose some arg values if user does not define
 
-  if(is.na(include_istd))
+  if(is.na(include_qualifier)) {
+    if(variable %in% c("feature_conc", "feature_conc_raw")) include_qualifier <- FALSE else include_qualifier <- TRUE
+  }
+
+  if(is.na(include_istd)) {
     if(variable %in% c("feature_conc", "feature_conc_raw", "feature_norm_intensity")) include_istd <- FALSE else include_istd <- TRUE
+  }
+
   if(length(qc_types) == 1) add_qctype <- FALSE else add_qctype <- TRUE
 
   if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '", variable, "' does has not yet been calculated. Please process data or chose other variable.")
@@ -177,6 +186,9 @@ report_write_csv <- function(data,
     tidyr::pivot_wider(names_from = .data$feature_id, values_from = !!variable_sym)
 
   readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
+  if(variable_strip ==  "conc") variable_strip <- "concentration"
+  cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values of {nrow(ds) -1} analyses and {length(unique(dat_filt$feature_id))} features have been exported.")))
+
   invisible(ds)
 }
 
