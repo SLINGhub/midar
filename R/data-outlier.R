@@ -75,7 +75,7 @@ analysis_outlier_detection <- function(data,
       )
 
     # data@has_outliers_tech <- TRUE
-    # data@excl_outliers_tech <- TRUE
+    # data@analyses_excluded <- TRUE
     # data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_seq_num < 0) # Todo: check if (still neeeded)
   }
   cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
@@ -99,7 +99,7 @@ clear_outlier <- function(data) {
   data@dataset$outlier_technical <- FALSE
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE
-  data@excl_outliers_tech <- FALSE
-  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'qc_set_feature_filters()'.")))
+  data@analyses_excluded <- FALSE
+  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'qc_apply_feature_filter()'.")))
   data
 }
