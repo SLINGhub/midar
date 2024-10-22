@@ -16,11 +16,11 @@ qc_plot_responsecurves(
   rows_page = 4,
   cols_page = 5,
   page_no = NA,
-  point_size = 2,
-  line_width = 1,
-  text_scale_factor = 1,
+  point_size = 1.5,
+  line_width = 0.7,
+  scale_factor = 1,
   paper_orientation = "LANDSCAPE",
-  base_size = 7,
+  font_base_size = 7,
   show_progress = TRUE,
   return_plot_list = FALSE
 )
@@ -50,11 +50,11 @@ qc_plot_responsecurves(
 
 \item{line_width}{regression line width}
 
-\item{text_scale_factor}{text scale factor}
+\item{scale_factor}{scale factor for fonts, symbols and lines}
 
 \item{paper_orientation}{Landscape/Portrait}
 
-\item{base_size}{base font size}
+\item{font_base_size}{base font size}
 
 \item{show_progress}{show progress bar}
 
