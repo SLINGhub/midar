@@ -270,7 +270,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
 ## TODO:  Handle feature with all being NA in SPL or QC or all.
-qc_set_feature_filters <- function(data,
+qc_apply_feature_filter <- function(data,
                             overwrite = TRUE,
                             batch_medians = FALSE,
                             qualifier.include = FALSE,
@@ -321,7 +321,7 @@ qc_set_feature_filters <- function(data,
   resp_criteria_defined <- any(str_detect(arg_names, "response"))
 
 
-
+  cat("Calculating feauture QC metrics - please wait...")
   data_local = qc_calc_metrics(data,
                          batch_medians = batch_medians,
                          with_norm_intensity = data@is_istd_normalized,
@@ -538,14 +538,14 @@ qc_set_feature_filters <- function(data,
   if(qualifier.include){
     if(!overwrite & nrow(data@metrics_qc) > 0){
 
-      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+      cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
     } else
-      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
+      cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   } else {
     if(!overwrite & nrow(data@metrics_qc) > 0){
-      cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)")))
+      cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)")))
     } else {
-      cli::cli_alert_success(cli::col_green((glue::glue("New QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
+      cli::cli_alert_success(cli::col_green((glue::glue("\rNew QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
     }
   }
   if (!qualifier.include) d_filt <- d_filt |> filter(.data$is_quantifier)
