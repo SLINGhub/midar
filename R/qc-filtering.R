@@ -4,13 +4,13 @@
 #' full analysis or as medians of batch-wise calculations
 #'
 #' @param data MidarExperiment object
-#' @param batchwise_median Use median of batch-wise derived QC values. Default is FALSE.
+#' @param batch_medians Use median of batch-wise derived QC values. Default is FALSE.
 #' @param with_norm_intensity Include normalized intensity statistics of features. Default is TRUE.
 #' @param with_conc Include concentration statistics of features. Default is TRUE.
 #' @param with_linearity Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.
 #' @return MidarExperiment object
 #' @export
-qc_calc_metrics <- function(data, batchwise_median, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
+qc_calc_metrics <- function(data, batch_medians, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
 
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
@@ -49,7 +49,7 @@ qc_calc_metrics <- function(data, batchwise_median, with_norm_intensity = TRUE, 
           na_in_all = if ("feature_intensity" %in% names(data@dataset )) all(is.na(.data$feature_intensity)) else NA_real_
         )
 
-      if (batchwise_median) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
+      if (batch_medians) grp <- c("feature_id", "batch_id") else grp <- c("feature_id")
       d_stats_var <- data@dataset |>
         select(any_of(c("batch_id", "feature_id", "qc_type","feature_intensity", "feature_conc", "feature_norm_intensity"))) |>
         filter(.data$qc_type != "RQC") |>
@@ -122,7 +122,7 @@ qc_calc_metrics <- function(data, batchwise_median, with_norm_intensity = TRUE, 
      }
 
 
-    if (batchwise_median){
+    if (batch_medians){
       d_stats_var_final <- d_stats_var_final |>
         summarise(across(-ends_with("_id"), ~ median(.x, na.rm = TRUE)), .by= "feature_id")
     }
@@ -233,8 +233,8 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 #' Note: When `istd.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
 #'
 #' @param data MidarExperiment object
-#' @param ammend Add/change previously defined qc filters or define a new set of filters. Default is `FALSE`.
-#' @param batchwise_median Use median of batch-wise derived QC values. Default is FALSE.
+#' @param overwrite Add/change previously defined qc filters or define a new set of filters. Default is `FALSE`.
+#' @param batch_medians Use median of batch-wise derived QC values. Default is FALSE.
 #' @param qualifier.include Include qualifier features
 #' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
 #
@@ -271,8 +271,8 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
 ## TODO:  Handle feature with all being NA in SPL or QC or all.
 qc_set_feature_filters <- function(data,
-                            ammend,
-                            batchwise_median,
+                            overwrite = TRUE,
+                            batch_medians = FALSE,
                             qualifier.include = FALSE,
                             istd.include = FALSE,
                             missing.intensity.spl.prop.max  = NA,
@@ -323,7 +323,7 @@ qc_set_feature_filters <- function(data,
 
 
   data_local = qc_calc_metrics(data,
-                         batchwise_median = batchwise_median,
+                         batch_medians = batch_medians,
                          with_norm_intensity = data@is_istd_normalized,
                          with_conc = data@is_quantitated,
                          with_linearity = resp_criteria_defined)
@@ -443,7 +443,7 @@ qc_set_feature_filters <- function(data,
 
   # Check if filter has been previously set and if it should be overwritten
   #browser()
-  if(ammend & nrow(data@metrics_qc) > 0){
+  if(!overwrite & nrow(data@metrics_qc) > 0){
     metrics_old <- data@metrics_qc |>
       select(
         any_of(c(
@@ -514,7 +514,7 @@ qc_set_feature_filters <- function(data,
     n_filt_quant <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass))
     n_filt_qual <- nrow(d_metrics_temp |>  filter(.data$in_data, !.data$is_quantifier, .data$qc_pass))
 
-    if(ammend & nrow(data@metrics_qc) > 0){
+    if(!overwrite & nrow(data@metrics_qc) > 0){
       n_filt_quant_before <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass_before))
       n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_quantifier, .data$qc_pass_before))
       qc_pass_prev <- sum(d_metrics_temp$qc_pass_before, na.rm = TRUE)
@@ -527,7 +527,7 @@ qc_set_feature_filters <- function(data,
       n_filt_quant <- nrow(d_filt |>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier))
       n_filt_qual <- nrow(d_filt |>  filter(.data$in_data, !.data$is_istd, !.data$is_quantifier))
 
-      if(ammend & nrow(data@metrics_qc) > 0){
+      if(!overwrite & nrow(data@metrics_qc) > 0){
         n_filt_quant_before <- nrow(d_metrics_temp|>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier, .data$qc_pass_before))
         n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_istd, !.data$is_quantifier, .data$qc_pass_before))
       }
@@ -536,13 +536,13 @@ qc_set_feature_filters <- function(data,
     qc_pass_now <- sum(metrics_qc_local$qc_pass, na.rm = TRUE)
 
   if(qualifier.include){
-    if(ammend & nrow(data@metrics_qc) > 0){
+    if(!overwrite & nrow(data@metrics_qc) > 0){
 
       cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
     } else
       cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   } else {
-    if(ammend & nrow(data@metrics_qc) > 0){
+    if(!overwrite & nrow(data@metrics_qc) > 0){
       cli::cli_alert_success(cli::col_green(glue::glue("QC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)")))
     } else {
       cli::cli_alert_success(cli::col_green((glue::glue("New QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
