@@ -1,7 +1,7 @@
 #' PCA plot for QC
 #' @param data MidarExperiment object
 #' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".
-#' @param filtered_data Use all (default) or qc-filtered data
+#' @param filter_data Use all (default) or qc-filtered data
 #' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is `c(1,2)`
 #' @param qc_types qc types to plot. Default is `c("SPL", "BQC", "TQC", "NIST", "LTR")`
 #' @param label_k_mad Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is `3`. Set to `NULL` to supress labels.
@@ -16,7 +16,7 @@
 #'
 #' @return ggplot2 object
 #' @export
-qc_plot_pca <- function(data, variable, filtered_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+qc_plot_pca <- function(data, variable, filter_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
                         label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
                         ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 
@@ -27,13 +27,13 @@ qc_plot_pca <- function(data, variable, filtered_data, pca_dim = c(1,2), qc_type
 
   variable_sym = rlang::sym(variable)
 
-  if(filtered_data)
-    if(data@is_filtered)
-      d_wide <- data@dataset_filtered
-    else
-      cli_abort(cli::col_red("Data has not yet been qc-filtered. Use `use_filtered_data = FALSE` to use unfiltered data."))
-  else
-    d_wide <- data@dataset
+  # Filter data if filter_data is TRUE
+  if (filter_data) {
+    d_wide <- data@dataset_filtered |> dplyr::ungroup()
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
+  } else {
+    d_wide <- data@dataset |> dplyr::ungroup()
+  }
 
 
   PCx <- rlang::sym(paste0(".fittedPC", pca_dim[1]))
@@ -143,13 +143,13 @@ qc_plot_pca <- function(data, variable, filtered_data, pca_dim = c(1,2), qc_type
   p
 }
 
-plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filtered_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
+plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
-  if(use_filtered_data)
+  if(use_filter_data)
     if(data@is_filtered)
       d_wide <- data@dataset_filtered
   else
-    cli_abort(cli::col_red("Data has not yet been qc-filtered. Use `use_filtered_data = FALSE` to use unfiltered data."))
+    cli_abort(cli::col_red("Data has not yet been qc-filtered. Use `use_filter_data = FALSE` to use unfiltered data."))
   else
     d_wide <- data@dataset
 
