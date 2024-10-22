@@ -7,7 +7,7 @@
 qc_plot_responsecurves(
   data,
   response_variable = "feature_intensity",
-  qc_filter_data,
+  filter_data,
   feature_incl_filt = "",
   feature_excl_filt = "",
   save_pdf = FALSE,
@@ -30,7 +30,7 @@ qc_plot_responsecurves(
 
 \item{response_variable}{Variable to plot}
 
-\item{qc_filter_data}{Use QC-filtered data}
+\item{filter_data}{Use QC-filtered data}
 
 \item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
 

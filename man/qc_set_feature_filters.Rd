@@ -6,8 +6,8 @@
 \usage{
 qc_set_feature_filters(
   data,
-  ammend,
-  batchwise_median,
+  overwrite = TRUE,
+  batch_medians = FALSE,
   qualifier.include = FALSE,
   istd.include = FALSE,
   missing.intensity.spl.prop.max = NA,
@@ -41,9 +41,9 @@ qc_set_feature_filters(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{ammend}{Add/change previously defined qc filters or define a new set of filters. Default is \code{FALSE}.}
+\item{overwrite}{Add/change previously defined qc filters or define a new set of filters. Default is \code{FALSE}.}
 
-\item{batchwise_median}{Use median of batch-wise derived QC values. Default is FALSE.}
+\item{batch_medians}{Use median of batch-wise derived QC values. Default is FALSE.}
 
 \item{qualifier.include}{Include qualifier features}
 

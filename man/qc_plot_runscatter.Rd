@@ -8,7 +8,7 @@ qc_plot_runscatter(
   data,
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm"),
-  qc_filter_data = FALSE,
+  filter_data = FALSE,
   qc_types = NA,
   include_qualifier = TRUE,
   filt_include_features = NA,
@@ -53,7 +53,7 @@ qc_plot_runscatter(
 
 \item{variable}{Variable to plot}
 
-\item{qc_filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
+\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_set_feature_filters()}}
 
 \item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
 

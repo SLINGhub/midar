@@ -6,7 +6,7 @@
 \usage{
 qc_calc_metrics(
   data,
-  batchwise_median,
+  batch_medians,
   with_norm_intensity = TRUE,
   with_conc = TRUE,
   with_linearity = TRUE
@@ -15,7 +15,7 @@ qc_calc_metrics(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{batchwise_median}{Use median of batch-wise derived QC values. Default is FALSE.}
+\item{batch_medians}{Use median of batch-wise derived QC values. Default is FALSE.}
 
 \item{with_norm_intensity}{Include normalized intensity statistics of features. Default is TRUE.}
 

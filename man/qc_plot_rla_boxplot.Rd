@@ -9,7 +9,7 @@ qc_plot_rla_boxplot(
   rla_type_batch = c("within", "across"),
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm"),
-  qc_filter_data = FALSE,
+  filter_data = FALSE,
   qc_types = NA,
   feature_incl_filt = "",
   feature_excl_filt = "",
@@ -35,7 +35,7 @@ qc_plot_rla_boxplot(
 
 \item{variable}{Variable to plot}
 
-\item{qc_filter_data}{Use QC-filtered data}
+\item{filter_data}{Use QC-filtered data}
 
 \item{qc_types}{QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.}
 
