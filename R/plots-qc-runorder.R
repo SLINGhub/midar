@@ -31,13 +31,13 @@ qc_plot_runsequence <- function(data,
                              base_font_size = 8) {
 
   # Extract columns needed for plotting
-  d_temp <- data$dataset |>
+  d_filt <- data$dataset |>
     select("run_seq_num", "acquisition_time_stamp", "batch_id", "analysis_id", "qc_type") |>
     distinct()
 
   # Filter qc_types if provided
   if (all(!is.na(qc_types)) & all(qc_types != "")) {
-    d_temp <- d_temp |>
+    d_filt <- d_filt |>
       filter(if (is.vector(qc_types) && length(qc_types) > 1) {
         .data$qc_type %in% qc_types
       } else {
@@ -47,12 +47,12 @@ qc_plot_runsequence <- function(data,
 
   # Convert acquisition_time_stamp to POSIXct if using datetime
   if (show_timestamp) {
-    d_temp$acquisition_time_stamp <- as.POSIXct(d_temp$acquisition_time_stamp)
+    d_filt$acquisition_time_stamp <- as.POSIXct(d_filt$acquisition_time_stamp)
   }
 
   # Convert qc_type to factor and create sample_category
-  d_temp$qc_type <- factor(d_temp$qc_type, levels = pkg.env$qc_type_annotation$qc_type_levels) |> forcats::fct_drop()
-  d_temp$sample_category <- as.character(d_temp$qc_type)
+  d_filt$qc_type <- factor(d_filt$qc_type, levels = pkg.env$qc_type_annotation$qc_type_levels) |> forcats::fct_drop()
+  d_filt$sample_category <- as.character(d_filt$qc_type)
 
   # Retrieve batch info
   d_batch_info <- data@annot_batches |>
@@ -64,7 +64,7 @@ qc_plot_runsequence <- function(data,
                 distinct(), by = c("id_batch_end" = "run_seq_num"), suffix = c("", "_end"), keep = FALSE)
 
   # Count samples per run_seq_num
-  sample_counts <- d_temp |>
+  sample_counts <- d_filt |>
     group_by(.data$qc_type) |>
     summarise(sample_count = stringr::str_c("", dplyr::n()), .groups = 'drop')
 
@@ -72,7 +72,7 @@ qc_plot_runsequence <- function(data,
   qc_colors <- replace(pkg.env$qc_type_annotation$qc_type_col, "SPL", "grey35")
 
   # Initialize ggplot
-  p <- ggplot(d_temp, aes(x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
+  p <- ggplot(d_filt, aes(x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
                           y = rev(.data$qc_type),
                           color = .data$sample_category)) +
     labs(x = if (show_timestamp) "Acquisition Time" else "Analysis Order", y = "Sample Type") +
@@ -130,11 +130,11 @@ qc_plot_runsequence <- function(data,
 
     # Position sample counts outside the y-axis
     p <- p +
-      scale_y_continuous(breaks = seq(1, nlevels(d_temp$qc_type), by = 1),
+      scale_y_continuous(breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
                          labels = sample_counts$qc_type,
                          expand = expansion(0.02, 0.02),
                          sec.axis = sec_axis(~ ., name = "n",
-                                             breaks = seq(1, nlevels(d_temp$qc_type), by = 1),
+                                             breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
                                              labels = sample_counts$sample_count))
     }
 
@@ -143,7 +143,7 @@ qc_plot_runsequence <- function(data,
   if (show_timestamp) {
     p <- p + scale_x_datetime(date_labels = "%Y-%m-%d", expand = expansion(0.02, 0.02), date_breaks = "day", date_minor_breaks = "hour")
   } else {
-    p <- p + scale_x_continuous(expand = expansion(0.02, 0.02), breaks = seq(0, max(d_temp$run_seq_num), 10^ceiling(log10(max(d_temp$run_seq_num))) / 10))
+    p <- p + scale_x_continuous(expand = expansion(0.02, 0.02), breaks = seq(0, max(d_filt$run_seq_num), 10^ceiling(log10(max(d_filt$run_seq_num))) / 10))
   }
 
  if(add_info_title) {
@@ -164,7 +164,7 @@ qc_plot_runsequence <- function(data,
 #'
 #' @param data MidarExperiment object
 #' @param variable Variable to plot
-#' @param filter_data Use QC-filtered data, based on criteria set via `qc_set_feature_filters()`
+#' @param filter_data Use QC-filtered data, based on criteria set via `qc_apply_feature_filter()`
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param include_qualifier Include qualifier features. Default is `TRUE`.
 #' @param filt_include_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
@@ -276,21 +276,21 @@ qc_plot_runscatter <- function(data,
 
   # Filter data if filter_data is TRUE
   if (filter_data) {
-    dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (nrow(dat_filt) < 1) cli::cli_abort("Data has not been qc filtered. Please apply `qc_set_feature_filters` first.")
+    d_filt <- data@dataset_filtered |> dplyr::ungroup()
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
   } else {
-    dat_filt <- data@dataset |> dplyr::ungroup()
+    d_filt <- data@dataset |> dplyr::ungroup()
   }
 
   if(!include_qualifier){
-    dat_filt <- dat_filt |> filter(!.data$is_qualifier)
+    d_filt <- d_filt |> filter(!.data$is_qualifier)
   }
 
   if (!all(is.na(analysis_no_range))) {
-    dat_filt <- dat_filt |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
+    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
   }
 
-  dat_filt <- dat_filt |>
+  d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   # Define y axis label based on if cap_outlier was selected
@@ -304,45 +304,45 @@ qc_plot_runscatter <- function(data,
 
   if (all(!is.na(filt_include_features)) & all(filt_include_features != "")) {
     if (length(filt_include_features) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, filt_include_features))
+      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, filt_include_features))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$feature_id %in% filt_include_features)
+      d_filt <- d_filt |> dplyr::filter(.data$feature_id %in% filt_include_features)
     }
   }
 
   if (all(!is.na(filt_exclude_features)) & all(filt_exclude_features != "")) {
     if (length(filt_exclude_features) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, filt_exclude_features))
+      d_filt <- d_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, filt_exclude_features))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(!.data$feature_id %in% filt_exclude_features)
+      d_filt <- d_filt |> dplyr::filter(!.data$feature_id %in% filt_exclude_features)
     }
   }
 
   # Subset data based on qc_types argument ----
   if (all(!is.na(qc_types)) & all(qc_types != "")) {
     if (length(qc_types) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
+      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
     } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$qc_type %in% qc_types)
+      d_filt <- d_filt |> dplyr::filter(.data$qc_type %in% qc_types)
     }
   }
 
   # Error in case the set filters excluded all features
 
-  if (nrow(dat_filt) < 1) cli::cli_abort("None of the feature id's meet the filter criteria. Please check `filt_include_features` and `filt_exclude_features` parameters.")
+  if (nrow(d_filt) < 1) cli::cli_abort("None of the feature id's meet the filter criteria. Please check `filt_include_features` and `filt_exclude_features` parameters.")
 
   # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
-  dat_filt$qc_type <- factor(as.character(dat_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
+  d_filt$qc_type <- factor(as.character(d_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
 
   # Cap upper outliers  ----
 
-  dat_filt <- dat_filt |>
+  d_filt <- d_filt |>
     dplyr::mutate(value = !!variable_sym)
 
   if (cap_outliers) {
 
     if (!is.na(cap_top_n_values) & cap_top_n_values > 0) {
-      dat_filt <- dat_filt |>
+      d_filt <- d_filt |>
         dplyr::group_by(.data$feature_id) |>
         dplyr::arrange(.data$value) |>
         mutate(
@@ -352,7 +352,7 @@ qc_plot_runscatter <- function(data,
         dplyr::ungroup()
     }
 
-    dat_filt <- dat_filt |>
+    d_filt <- d_filt |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::mutate(
         value_max_spl = median(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_spl_k_mad * mad(.data$value[.data$qc_type=="SPL"], na.rm=T),
@@ -372,7 +372,7 @@ qc_plot_runscatter <- function(data,
       ) |>
       dplyr::ungroup()
   } else {
-    dat_filt <- dat_filt |>
+    d_filt <- d_filt |>
       dplyr::mutate(value_mod = .data$value)
   }
 
@@ -389,7 +389,7 @@ qc_plot_runscatter <- function(data,
   }
 
   if (is.na(page_no)) {
-    page_range <- 1:ceiling(dplyr::n_distinct(dat_filt$feature_id) / (cols_page * rows_page))
+    page_range <- 1:ceiling(dplyr::n_distinct(d_filt$feature_id) / (cols_page * rows_page))
   } else {
     page_range <- page_no
   }
@@ -404,7 +404,7 @@ qc_plot_runscatter <- function(data,
   for (i in page_range) {
 
     p <- runscatter_one_page(
-      dat_filt = dat_filt, data = data, y_var = variable, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
+      d_filt = d_filt, data = data, y_var = variable, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
       show_trend_samples = show_trend_samples, trend_samples_function = trend_samples_function, trend_samples_col = trend_samples_col, show_before_after_smooth = show_before_after_smooth, fit_qc_type = fit_qc_type, save_pdf = save_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
@@ -435,7 +435,7 @@ qc_plot_runscatter <- function(data,
 
 
 
-runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
+runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
                                 show_trend, show_before_after_smooth = FALSE, fit_qc_type, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_function, trend_samples_col, plot_other_qc,
                                 save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width,
@@ -446,25 +446,25 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
-  n_cmpd <- length(unique(dat_filt$analysis_id))
+  n_cmpd <- length(unique(d_filt$analysis_id))
   row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
   row_end <- n_cmpd * cols_page * rows_page * page_no
 
 
-  dat_subset <- dat_filt |>
+  d_subset <- d_filt |>
     dplyr::arrange(.data$feature_id, .data$run_seq_num) |>
     dplyr::slice(row_start:row_end)
 
-  dat_subset$qc_type <- forcats::fct_relevel(dat_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
-  dat_subset <- dat_subset |>
+  d_subset$qc_type <- forcats::fct_relevel(d_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
+  d_subset <- d_subset |>
     dplyr::arrange(.data$qc_type)
 
 
 
 
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
-  if (nrow(dat_subset) > 0) {
-    dMax <- dat_subset |>
+  if (nrow(d_subset) > 0) {
+    dMax <- d_subset |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::summarise(
         y_max =
@@ -481,7 +481,7 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
   d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
   d_batch_data <- d_batch_data |> dplyr::left_join(dMax, by = c("feature_id"))
 
-  p <- ggplot2::ggplot(dat_subset, ggplot2::aes_string(x = "run_seq_num"))
+  p <- ggplot2::ggplot(d_subset, ggplot2::aes_string(x = "run_seq_num"))
 
   # browser()
   if (show_batches) {
@@ -526,14 +526,14 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
   #   if (show_before_after_smooth) {
   #     p <- p +
   #       ggplot2::geom_smooth(
-  #         data = filter(dat_subset, .data$qc_type == fit_qc_type), ggplot2::aes_string(x = "run_seq_num", y = "y_fit", group = "batch_id"), se = TRUE, na.rm = TRUE,
+  #         data = filter(d_subset, .data$qc_type == fit_qc_type), ggplot2::aes_string(x = "run_seq_num", y = "y_fit", group = "batch_id"), se = TRUE, na.rm = TRUE,
   #         colour = pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type], fill = pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type],
   #         method = "loess", alpha = 0.35, size = 0.8 # TODO before used MASS::rlm
   #       )
   #
   #     if (show_trend_samples) {
   #       p <- p + ggplot2::geom_smooth(
-  #         data = filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col, linetype = "dashed",
+  #         data = filter(d_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col, linetype = "dashed",
   #         method = trend_samples_function, se = FALSE, alpha = 0.2, size = .8, na.rm = TRUE
   #       )
   #     }
@@ -543,14 +543,14 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
   #       other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
   #       p <- p +
   #         ggplot2::geom_smooth(
-  #           data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
+  #           data = dplyr::filter(d_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
   #           method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
   #         )
   #     }
   #   } else {
   #     p <- p +
   #       geom_smooth(
-  #         data = dplyr::filter(dat_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_seq_num", y = "y_fit", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col,
+  #         data = dplyr::filter(d_subset, .data$qc_type == "SPL"), ggplot2::aes_string(x = "run_seq_num", y = "y_fit", group = "batch_id"), colour = trend_samples_col, fill = trend_samples_col,
   #         method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
   #       )
   #
@@ -559,7 +559,7 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
   #       other_qc_col <- pkg.env$qc_type_annotation$qc_type_fillcol[other_qc]
   #       p <- p +
   #         ggplot2::geom_smooth(
-  #           data = dplyr::filter(dat_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
+  #           data = dplyr::filter(d_subset, .data$qc_type == other_qc), ggplot2::aes_string(x = "run_seq_num", y = "value", group = "batch_id"), colour = other_qc_col, fill = other_qc_col,
   #           method = trend_samples_function, se = TRUE, alpha = 0.2, size = .4, na.rm = FALSE
   #         )
   #     }
@@ -568,7 +568,7 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
 
   if(!all(is.na(show_control_limits))) {
     if(limits_batchwise) grp = c("feature_id", "batch_id") else grp = c("feature_id")
-    dat_subset_stats <- dat_subset |>
+    d_subset_stats <- d_subset |>
       left_join(d_batches, by = c("batch_id")) |>
       filter(.data$qc_type %in% show_control_limits) |>
        group_by(dplyr::pick(grp)) |>
@@ -579,14 +579,14 @@ runscatter_one_page <- function(dat_filt, data, y_var, d_batches, cols_page, row
                  .groups = 'drop')
     if(limits_batchwise){
       p <- p +
-        ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = limits_linecolor, size = limits_linewidth, linetype = "solid", alpha = 1) +
-        ggplot2::geom_rect(data = dat_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$mean - .data$sd , ymax = .data$mean + .data$sd, group = .data$batch_id), fill = limits_linecolor, size = limits_linewidth, alpha = .25)
-        #ggplot2::geom_segment(data = dat_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean - .data$sd , yend = .data$mean - .data$sd, group = .data$batch_id), color = limits_linecolor, linetype = "solid", size = limits_linewidth, alpha = 1)
+        ggplot2::geom_segment(data = d_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = limits_linecolor, size = limits_linewidth, linetype = "solid", alpha = 1) +
+        ggplot2::geom_rect(data = d_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$mean - .data$sd , ymax = .data$mean + .data$sd, group = .data$batch_id), fill = limits_linecolor, size = limits_linewidth, alpha = .25)
+        #ggplot2::geom_segment(data = d_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean - .data$sd , yend = .data$mean - .data$sd, group = .data$batch_id), color = limits_linecolor, linetype = "solid", size = limits_linewidth, alpha = 1)
     } else{
       p <- p +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "longdash") +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean + .data$sd ), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed") +
-        ggplot2::geom_hline(data = dat_subset_stats, aes(yintercept = .data$mean - .data$sd), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed")
+        ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$mean), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "longdash") +
+        ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$mean + .data$sd ), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed") +
+        ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$mean - .data$sd), color = limits_linecolor, size = limits_linewidth, alpha = 1, linetype = "dashed")
     }
 
   }
@@ -714,29 +714,31 @@ qc_plot_rla_boxplot <- function(
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
   rlang::arg_match(rla_type_batch, c("within", "across"))
 
-  if (!filter_data) {
-    d_temp <- data@dataset
+  # Filter data if filter_data is TRUE
+  if (filter_data) {
+    d_filt <- data@dataset_filtered |> dplyr::ungroup()
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
   } else {
-    d_temp <- data@dataset_filtered
+    d_filt <- data@dataset |> dplyr::ungroup()
   }
 
   # Subset data based on qc_types argument ----
   if (all(!is.na(qc_types)) & all(qc_types != "")) {
     if (length(qc_types) == 1) {
-      d_temp <- d_temp |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types)) |> droplevels()
+      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types)) |> droplevels()
     } else {
-      d_temp <- d_temp |> dplyr::filter(.data$qc_type %in% qc_types) |> droplevels()
+      d_filt <- d_filt |> dplyr::filter(.data$qc_type %in% qc_types) |> droplevels()
     }
   }
 
   if (!all(is.na(analysis_no_range))) {
-    d_temp <- d_temp |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
+    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
   }
 
-  d_temp <- d_temp |>
+  d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
-  d_temp <- d_temp |>
+  d_filt <- d_filt |>
     dplyr::select(any_of(c("analysis_id", "run_seq_num", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
     group_by(.data$feature_id) |>
     filter(median(.data$feature_intensity) >= min_feature_intensity) |>
@@ -746,33 +748,33 @@ qc_plot_rla_boxplot <- function(
 
   if (relative_log_abundances) {
 
-    d_temp = d_temp |>
+    d_filt = d_filt |>
       mutate(val = log2(!!variable_sym))
 
     if(rla_type_batch == "within") grp = c("feature_id","batch_id") else grp = c("feature_id")
 
-    d_temp_medians <- d_temp |>
+    d_filt_medians <- d_filt |>
       group_by(dplyr::pick(grp)) |>
       summarise(val_median = median(val, na.rm = TRUE)) |> ungroup()
 
-    d_temp <- d_temp |>
-      left_join(d_temp_medians, by = grp) |>
+    d_filt <- d_filt |>
+      left_join(d_filt_medians, by = grp) |>
       mutate(val_res = .data$val - .data$val_median)
 
   } else {
-    d_temp <- d_temp |> mutate(val_res = log2(!!variable_sym))
+    d_filt <- d_filt |> mutate(val_res = log2(!!variable_sym))
   }
 
 
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
   if(x_axis_variable != "run_seq_num"){
-    labels <- unique(d_temp[[x_axis_variable]])[seq(1, length(unique(d_temp[[x_axis_variable]])), length.out = 20)]
-    breaks <- d_temp |> filter(!!x_axis_variable_sym %in% labels) |> pull(run_seq_num) |> unique()
+    labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 20)]
+    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(run_seq_num) |> unique()
   } else {
-    breaks <- scales::breaks_pretty(n = 20)(range(d_temp$run_seq_num))
+    breaks <- scales::breaks_pretty(n = 20)(range(d_filt$run_seq_num))
     labels = breaks
   }
-  p <- ggplot(d_temp, aes(x = .data$run_seq_num, y = .data$val_res, group = .data$run_seq_num))
+  p <- ggplot(d_filt, aes(x = .data$run_seq_num, y = .data$val_res, group = .data$run_seq_num))
 
   p <- p + scale_x_continuous(breaks = breaks, labels = labels)
 
@@ -827,7 +829,7 @@ qc_plot_rla_boxplot <- function(
   if (!all(is.na(y_lim))) {
     ylim = y_lim
   } else if(ignore_outliers) {
-    tails <- get_mad_tails(d_temp$val_res, k = 4)
+    tails <- get_mad_tails(d_filt$val_res, k = 4)
     ylim = tails
   }
 
