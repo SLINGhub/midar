@@ -9,8 +9,8 @@ qc_plot_responsecurves_page <- function(dataset,
                                      page_no,
                                      point_size,
                                      line_width,
-                                     text_scale_factor,
-                                     base_size) {
+                                     scale_factor,
+                                     font_base_size) {
   plot_var <- rlang::sym(response_variable)
   dataset$rqc_series_id <- as.character(dataset$rqc_series_id)
 
@@ -18,7 +18,6 @@ qc_plot_responsecurves_page <- function(dataset,
   n_cmpd <- length(unique(dataset$analysis_id))
   row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
   row_end <- n_cmpd * cols_page * rows_page * page_no
-
 
   dat_subset <- dataset |>
     dplyr::arrange(.data$feature_id, .data$rqc_series_id) |>
@@ -39,11 +38,11 @@ qc_plot_responsecurves_page <- function(dataset,
           y = !!plot_var,
           color = .data$rqc_series_id
         ),
-        se = FALSE, na.rm = TRUE, size = line_width, inherit.aes = FALSE
+        se = FALSE, na.rm = TRUE, size = line_width * scale_factor, inherit.aes = FALSE
       ) +
       ggpmisc::stat_poly_eq(
         aes(group = .data$rqc_series_id, label = ggplot2::after_stat(.data$rr.label)),
-        size = 2 * text_scale_factor, rr.digits = 3, vstep = .1
+        size = 2 * scale_factor, rr.digits = 3, vstep = .1
       ) +
       # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
       scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
@@ -62,10 +61,10 @@ qc_plot_responsecurves_page <- function(dataset,
       ) +
       geom_point(size = point_size) +
       xlab("Sample Amount (Relative to BQC/TQC)") +
-      theme_light(base_size = base_size) +
+      theme_light(base_size = font_base_size) +
       theme(
-        strip.text = element_text(size = 9 * text_scale_factor, face = "bold"),
-        strip.background = element_rect(size = 0.0001, fill = "#8C8C8C")
+        strip.text = element_text(size = font_base_size * scale_factor, face = "bold"),
+        strip.background = element_rect(size = 0.0001, fill = "#496875")
       )
   p
 }
@@ -85,10 +84,10 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param page_no Specific page to plot. Default `NA`, meaning all pages are plotted
 #' @param point_size point size
 #' @param line_width regression line width
-#' @param text_scale_factor text scale factor
+#' @param scale_factor scale factor for fonts, symbols and lines
 #' @param paper_orientation Landscape/Portrait
 #' @param return_plot_list return plot as list
-#' @param base_size base font size
+#' @param font_base_size base font size
 #' @param show_progress show progress bar
 #' @return A list of ggplot2 objects
 #' @export
@@ -103,11 +102,11 @@ qc_plot_responsecurves <- function(data,
                                 rows_page = 4,
                                 cols_page = 5,
                                 page_no = NA,
-                                point_size = 2,
-                                line_width = 1,
-                                text_scale_factor = 1,
+                                point_size = 1.5,
+                                line_width = 0.7,
+                                scale_factor = 1,
                                 paper_orientation = "LANDSCAPE",
-                                base_size = 7,
+                                font_base_size = 7,
                                 show_progress = TRUE,
                                 return_plot_list = FALSE) {
 
@@ -115,7 +114,7 @@ qc_plot_responsecurves <- function(data,
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
   variable_sym = rlang::sym(variable)
-
+  check_var_in_dataset(data@dataset, variable)
 
 
   if (save_pdf & path == "") cli::cli_abort("Please define parameter `path`")
@@ -154,7 +153,7 @@ qc_plot_responsecurves <- function(data,
 
   d_rqc <- dat_filt |>
     dplyr::select(tidyselect::any_of(
-      c("analysis_id", "feature_id", "feature_intensity", "feature_norm_intensity")
+      c("analysis_id", "feature_id", variable)
     )) |>
     dplyr::right_join(data@annot_responsecurves, by = c("analysis_id" = "analysis_id"))
 
@@ -200,8 +199,8 @@ qc_plot_responsecurves <- function(data,
         page_no = i,
         point_size = point_size,
         line_width = line_width,
-        text_scale_factor = text_scale_factor,
-        base_size = base_size
+        scale_factor = scale_factor,
+        font_base_size = font_base_size
     )
     plot(p)
     dev.flush()
