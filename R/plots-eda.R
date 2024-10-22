@@ -481,7 +481,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
 
 
 plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrasts, paired, inner_group_colors = NULL,
-                            rows_page, columns_page, class_per_page = TRUE, save_pdf = FALSE, path = NULL, scale_text = 1, scale_signf = 1, point_size = 1) {
+                            rows_page, cols_page, class_per_page = TRUE, save_pdf = FALSE, path = NULL, scale_text = 1, scale_signf = 1, point_size = 1) {
   d_long_full <- data |>
     right_join(d_metadata |> rename(analysis_id = .data$sample_id))
 
@@ -499,9 +499,9 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
     group_by(.data$lipidClass) |>
     mutate(lipidclass_id = cur_group_id()) |>
     group_by(.data$lipidClass, .data$analysis_id) |>
-    mutate(lipid_class_page_no = max(ceiling(which(unique(.data$feature_id) == .data$feature_id) / (rows_page * columns_page)))) |>
+    mutate(lipid_class_page_no = max(ceiling(which(unique(.data$feature_id) == .data$feature_id) / (rows_page * cols_page)))) |>
     group_by(.data$feature_id) |>
-    mutate(page_no = ceiling(cur_group_id() / (rows_page * columns_page)))
+    mutate(page_no = ceiling(cur_group_id() / (rows_page * cols_page)))
 
   if (class_per_page) {
     plt_list <- page_list |>
@@ -509,7 +509,7 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
       nest() |>
       mutate(plt = map(data, ~ plot_dotboxplus_onepage(.,
         outer_inner = FALSE, GroupOuter = {{ outer_group }}, GroupInner = {{ inner_group }},
-        n_row = rows_page, n_col = columns_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size
+        n_row = rows_page, n_col = cols_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size
       )))
   } else {
     plt_list <- page_list |>
@@ -517,7 +517,7 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
       nest() |>
       mutate(plt = map(data, ~ plot_dotboxplus_onepage(.,
         outer_inner = FALSE, GroupOuter = {{ outer_group }}, GroupInner = {{ inner_group }},
-        n_row = rows_page, n_col = columns_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size
+        n_row = rows_page, n_col = cols_page, scale_colors = inner_group_colors, contrasts = contrasts, paired = paired, scale_text, scale_signf, point_size = point_size
       )))
   }
 
