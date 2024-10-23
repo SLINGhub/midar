@@ -20,7 +20,8 @@ correct_drift_gaussiankernel(
   feature_list = NULL,
   ignore_istd = TRUE,
   max_cv_ratio_before_after = 1,
-  use_uncorrected_if_fail = FALSE
+  use_uncorrected_if_fail = FALSE,
+  show_progress = TRUE
 )
 }
 \arguments{
@@ -56,6 +57,8 @@ correct_drift_gaussiankernel(
 A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
 
 \item{use_uncorrected_if_fail}{In case the smoothing function fails for a species, then use original (uncorrected) data when \code{TRUE} (the default) or return \code{NA} for all analyses of the feature where the fit failed.}
+
+\item{show_progress}{Show progress bars. Set this to \code{FALSE} when rendering the notebook.}
 }
 \value{
 MidarExperiment object

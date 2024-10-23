@@ -431,6 +431,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
 #' A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.
 #' @param feature_list Subset the features for correction whose names matches the specified text using regular expression. Default is `NULL` which means all features are selected.
 #' @param use_uncorrected_if_fail In case the smoothing function fails for a species, then use original (uncorrected) data when `TRUE` (the default) or return `NA` for all analyses of the feature where the fit failed.
+#' @param show_progress Show progress bars. Set this to `FALSE` when rendering the notebook.
 #' @return MidarExperiment object
 #' @references
 #' Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H (2020). MRMkit: Automated Data Processing for Large-Scale Targeted Metabolomics Analysis. *Analytical Chemistry*, 92(20), 13677–13682. \url{https://doi.org/10.1021/acs.analchem.0c03060}
@@ -451,7 +452,8 @@ correct_drift_gaussiankernel <- function(data,
                                       feature_list = NULL,
                                       ignore_istd = TRUE,
                                       max_cv_ratio_before_after = 1,
-                                      use_uncorrected_if_fail = FALSE
+                                      use_uncorrected_if_fail = FALSE,
+                                      show_progress = TRUE
 ) {
 
   corr_drift_fun(
