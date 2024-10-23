@@ -705,6 +705,7 @@ batch.correction = function(tab,
 
   if(correct_scale) {
     tmp <- val.clean
+    tmp_fit_after <- y_fit_after.clean # BB
     tmp_for_loc <- val.clean
     tmp_for_loc[!sample.for.loc] <- NA_real_
 
