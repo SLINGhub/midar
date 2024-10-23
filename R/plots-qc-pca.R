@@ -197,7 +197,6 @@ plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filter_data,
     dim_range <- dim_range[seq(1, length(dim_range), 2)]
   }
 
-browser()
   plot_list <- list()
 
   j <- 1

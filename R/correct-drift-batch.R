@@ -244,7 +244,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
   if(recalc_trend_after){
     if(show_progress) pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
      d_smooth_recalc <- d_smooth_res |>
-      rename(y = y_predicted) |>
+      rename(y = .data$y_predicted) |>
       select("analysis_id", "qc_type", "feature_id", "batch_id", "x", "y") |>
       group_split(pick(adj_groups))
      d_smooth_recalc <- d_smooth_recalc |>
@@ -423,6 +423,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
 #' @param scale_smooth Scale parameter smoothing
 #' @param batch_wise Apply to each batch separately if `TRUE` (the default)
 #' @param calc_log_transform Log transform the data for correction when `TRUE` (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.
+#' @param recalc_trend_after Recalculate trends after smoothing, used for plotting (e.g., in `qc_plot_runscatter()`)
 #' @param ignore_istd Do not apply corrections to ISTDs
 #' @param apply_conditionally Apply drift correction to all species if `TRUE`, or only when sample CV after smoothing changes below a threshold defined via `max_cv_ratio_before_after`
 #' @param apply_conditionally_per_batch When `apply_conditionally = TRUE`, correction is conditionally applied per batch when `TRUE` and across all batches when `FALSE`
@@ -564,7 +565,7 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #' @return MidarExperiment object
 #' @export
 correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
-browser()
+
   ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")
   nbatches <- length(unique(ds$batch_id))
   if(nbatches < 2) {

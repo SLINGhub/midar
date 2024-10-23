@@ -96,6 +96,7 @@ setClass("MidarExperiment",
 
 #' Constructor for the MidarExperiment object.
 #' @importFrom methods new
+#' @param title Title of experiment
 #' @param analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @return `MidarExperiment` object
 #' @export

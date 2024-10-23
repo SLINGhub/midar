@@ -27,8 +27,6 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
   if (relative_contribution < 0 | relative_contribution >= 1) cli::cli_abort("`relative_contribution` must be between 0 and 1")
   if (new_feature_id %in% data@annot_features$feature_id) cli::cli_abort("Mew fFeature name must not present already be present in the dataset")
 
-  browser()
-
   # Correction
   data@dataset <- data@dataset |>
     group_by(.data$analysis_id) |>

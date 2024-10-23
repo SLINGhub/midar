@@ -74,7 +74,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param data MidarExperiment object
 #' @param filter_data Use QC-filtered data
 #' @param save_pdf Save as PDF
-#' @param response_variable Variable to plot
+#' @param variable Variable to plot
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
 #' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
 #' @param regr_max_percent Max relative sample amount to use in regressionb

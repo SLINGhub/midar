@@ -96,9 +96,9 @@ qc_plot_runsequence <- function(data,
   # Add batch shading if defined
   if (show_batches) {
     if (batches_as_shades) {
-      d_batch_shading <- d_batch_info %>%
-        slice(-1) %>%
-        filter(batch_no %% 2 != 1)
+      d_batch_shading <- d_batch_info |>
+        slice(-1) |>
+        filter(.data$batch_no %% 2 != 1)
       p <- p + geom_rect(data = d_batch_shading,inherit.aes = FALSE,
                          aes(xmin = if(show_timestamp) .data$acquisition_time_stamp else .data$id_batch_start + 0.5,
                              xmax = if(show_timestamp) .data$acquisition_time_stamp_end else .data$id_batch_end - 0.5,
@@ -133,7 +133,7 @@ qc_plot_runsequence <- function(data,
       scale_y_continuous(breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
                          labels = sample_counts$qc_type,
                          expand = expansion(0.02, 0.02),
-                         sec.axis = sec_axis(~ ., name = "n",
+                         sec.axis = ggplot2::sec_axis(~ ., name = "n",
                                              breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
                                              labels = sample_counts$sample_count))
     }
@@ -141,7 +141,7 @@ qc_plot_runsequence <- function(data,
 
   # Format x-axis as date-time if using acquisition_time_stamp
   if (show_timestamp) {
-    p <- p + scale_x_datetime(date_labels = "%Y-%m-%d", expand = expansion(0.02, 0.02), date_breaks = "day", date_minor_breaks = "hour")
+    p <- p + ggplot2::scale_x_datetime(date_labels = "%Y-%m-%d", expand = expansion(0.02, 0.02), date_breaks = "day", date_minor_breaks = "hour")
   } else {
     p <- p + scale_x_continuous(expand = expansion(0.02, 0.02), breaks = seq(0, max(d_filt$run_seq_num), 10^ceiling(log10(max(d_filt$run_seq_num))) / 10))
   }
@@ -376,7 +376,7 @@ qc_plot_runscatter <- function(data,
   }
 
 
-  if (save_pdf & (is.na(path) | path == "")) cli:cli_abort("Save to PDF selected, but no valid path defined. Please set path via `path`.")
+  if (save_pdf & (is.na(path) | path == "")) cli::cli_abort("Save to PDF selected, but no valid path defined. Please set path via `path`.")
 
   if (save_pdf & !is.na(path)) {
     path <- ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
@@ -404,9 +404,9 @@ qc_plot_runscatter <- function(data,
 
     p <- runscatter_one_page(
       d_filt = d_filt, data = data, y_var = variable, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
-      show_trend_samples = show_trend_samples, trend_samples_function = trend_samples_function, trend_samples_col = trend_samples_col, show_before_after_smooth = show_before_after_smooth, fit_qc_type = fit_qc_type, save_pdf = save_pdf, page_no = i,
+      fit_qc_type = fit_qc_type, save_pdf = save_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
-      show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color, plot_other_qc,
+      show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color,
       batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines,
       log_scale = log_scale, analysis_no_range = analysis_no_range, show_control_limits = show_control_limits, set_limits_n_sd = set_limits_n_sd, limits_batchwise = limits_batchwise, limits_linecolor = limits_linecolor,
       limits_linewidth = limits_linewidth, trend_linecolor = trend_linecolor
@@ -435,8 +435,8 @@ qc_plot_runscatter <- function(data,
 
 
 runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
-                                show_trend, show_before_after_smooth = FALSE, fit_qc_type, cap_outliers,
-                                show_batches, batches_as_shades, batch_line_color, batch_shading_color, show_trend_samples, trend_samples_function, trend_samples_col, plot_other_qc,
+                                show_trend, fit_qc_type, cap_outliers,
+                                show_batches, batches_as_shades, batch_line_color, batch_shading_color,
                                 save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width,
                                 show_grid, log_scale, analysis_no_range, show_control_limits, set_limits_n_sd, limits_batchwise, limits_linecolor,
                                 limits_linewidth, trend_linecolor) {
@@ -624,7 +624,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   }
 
   if(!all(is.na(analysis_no_range))) {
-    p <- p + coord_cartesian(xlim = analysis_no_range)
+    p <- p + ggplot2::coord_cartesian(xlim = analysis_no_range)
   }
 
   return(p)
@@ -641,13 +641,13 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #' @param variable Variable to plot
 #' @param filter_data Use QC-filtered data
 #' @param qc_types QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.
+#' @param x_axis_variable Variable used for the x axis, muste be one of: `run_seq_num`, `run_no`, `analysis_id`, or `timestamp`
 #' @param feature_incl_filt Filter text to select specific features (regex string)
 #' @param feature_excl_filt Filter text to exclude specific features (regex string)
 #' @param analysis_no_range Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
 #' @param min_feature_intensity Exclude features with overall median signal below this value
 #' @param y_lim Y-axis lower and upper limits as vector (default is NA). This also overwrites limits calculated by `ignore_outliers`
 #' @param ignore_outliers Exclude outlier values based on 4x MAD (median absolute deviation) fences
-#' @param feature_filter Filter text to select specific features (regex string)
 #' @param show_batches Show batches
 #' @param batches_as_shades Show batches as shades
 #' @param batch_line_color batch separator color
@@ -685,6 +685,7 @@ qc_plot_rla_boxplot <- function(
                                 variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
                                 filter_data = FALSE,
                                 qc_types = NA,
+                                x_axis_variable = c("run_seq_num"),
                                 feature_incl_filt = "",
                                 feature_excl_filt = "",
                                 analysis_no_range = NA,
@@ -695,7 +696,6 @@ qc_plot_rla_boxplot <- function(
                                 batches_as_shades = FALSE,
                                 batch_line_color = "#b6f0c5",
                                 batch_shading_color = "grey93",
-                                x_axis_variable = c("run_seq_num"),
                                 x_gridlines = FALSE,
                                 linewidth = 0.2,
                                 base_font_size = 8,
@@ -755,7 +755,7 @@ qc_plot_rla_boxplot <- function(
 
     d_filt_medians <- d_filt |>
       group_by(dplyr::pick(grp)) |>
-      summarise(val_median = median(val, na.rm = TRUE)) |> ungroup()
+      summarise(val_median = median(.data$val, na.rm = TRUE)) |> ungroup()
 
     d_filt <- d_filt |>
       left_join(d_filt_medians, by = grp) |>
@@ -769,7 +769,7 @@ qc_plot_rla_boxplot <- function(
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
   if(x_axis_variable != "run_seq_num"){
     labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 20)]
-    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(run_seq_num) |> unique()
+    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$run_seq_num) |> unique()
   } else {
     breaks <- scales::breaks_pretty(n = 20)(range(d_filt$run_seq_num))
     labels = breaks
@@ -837,7 +837,7 @@ qc_plot_rla_boxplot <- function(
     xlim = analysis_no_range
   }
 
-  p <- p + coord_cartesian(xlim = xlim, ylim = ylim)
+  p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
 
   return(p)
 }

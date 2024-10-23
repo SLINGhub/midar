@@ -28,6 +28,7 @@ data_import_agilent <- function(data, path, use_metadata, file_format = "csv", e
     data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
     data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_", "feature_height")
     if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
+    data
   } else {
     cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
   }
@@ -483,7 +484,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @return A tibble in the long format
 #' @export
 #'
-read_analysisresult_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
+read_data_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
   value_type <- match.arg(value_type)
 
   value_type <- dplyr::case_match(
@@ -505,7 +506,9 @@ read_analysisresult_table <- function(file, value_type = c("area", "height", "in
   ext <- fs::path_ext(file)
 
   if (ext == "csv") {
-    d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE, na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."), col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
+    d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, progress = FALSE,
+                         na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."),
+                         col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
   } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
     if (sheet == "") cli::cli_abort("Please define sheet name via the `sheet` parameter")
     # nms <- names(readxl::read_excel(path = file, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
@@ -575,7 +578,6 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 #' @return tibble table
 #' @noRd
 .read_generic_excel <- function(path, sheetname) {
-  #nms <- names(readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
   data <- openxlsx2::read_xlsx(file = path,
                               sheet = sheetname,
                               col_names = TRUE,
@@ -590,17 +592,16 @@ data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NUL
 
   n_col <- length(nms) - 1
   c_numeric <- rep("numeric", n_col)
-  ct <- c("text", c_numeric)
-  cat("c_numeric contains:", ct, "\n")
-  #readxl::read_excel(path = path, sheet = sheetname, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
+  ct <- c("character", c_numeric)
   data <- openxlsx2::read_xlsx(file = path,
                               sheet = sheetname,
                               col_names = TRUE,
                               detect_dates = TRUE,
                               skip_empty_rows = TRUE,
                               skip_empty_cols = TRUE,
-                              na.strings = c("n/a", "N/A", "NA"),
-                              types = ct) |>
+                              na.strings = c("n/a", "N/A", "NA")
+                              #types = ct
+                              ) |>
     mutate(across(where(is.character), str_trim))
   data
 }

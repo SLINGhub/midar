@@ -350,13 +350,13 @@ data_exclude_features <- function(data, features_exlude, overwrite ){
 
   if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
     if(!overwrite){
-      cli_abort(cli:col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `overwrite = TRUE`."))
+      cli_abort(cli::col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `overwrite = TRUE`."))
     } else{
-      cli::cli_alert_info(cli:col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
+      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
       return(data)
     }
   }
-  if (any(!c(feature_ids_exlude) %in% data@annot_features$feature_id) > 0) {
+  if (any(!c(features_exlude) %in% data@annot_features$feature_id) > 0) {
     cli_abort(cli::col_red("One or more provided `feature id`s to exclude are not present. Please check the feature metadata."))
   }
   if(!overwrite){

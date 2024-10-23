@@ -7,6 +7,8 @@
 MidarExperiment(title = "", analysis_type = "")
 }
 \arguments{
+\item{title}{Title of experiment}
+
 \item{analysis_type}{Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"}
 }
 \value{

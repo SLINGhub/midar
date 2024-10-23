@@ -28,6 +28,8 @@ qc_plot_responsecurves(
 \arguments{
 \item{data}{MidarExperiment object}
 
+\item{variable}{Variable to plot}
+
 \item{filter_data}{Use QC-filtered data}
 
 \item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
@@ -59,8 +61,6 @@ qc_plot_responsecurves(
 \item{show_progress}{show progress bar}
 
 \item{return_plot_list}{return plot as list}
-
-\item{response_variable}{Variable to plot}
 }
 \value{
 A list of ggplot2 objects

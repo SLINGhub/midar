@@ -42,6 +42,8 @@ correct_drift_gaussiankernel(
 
 \item{calc_log_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
+\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{qc_plot_runscatter()})}
+
 \item{apply_conditionally}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
 
 \item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}

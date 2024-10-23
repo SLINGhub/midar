@@ -11,6 +11,7 @@ qc_plot_rla_boxplot(
     "fwhm"),
   filter_data = FALSE,
   qc_types = NA,
+  x_axis_variable = c("run_seq_num"),
   feature_incl_filt = "",
   feature_excl_filt = "",
   analysis_no_range = NA,
@@ -21,7 +22,6 @@ qc_plot_rla_boxplot(
   batches_as_shades = FALSE,
   batch_line_color = "#b6f0c5",
   batch_shading_color = "grey93",
-  x_axis_variable = c("run_seq_num"),
   x_gridlines = FALSE,
   linewidth = 0.2,
   base_font_size = 8,
@@ -38,6 +38,8 @@ qc_plot_rla_boxplot(
 \item{filter_data}{Use QC-filtered data}
 
 \item{qc_types}{QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.}
+
+\item{x_axis_variable}{Variable used for the x axis, muste be one of: \code{run_seq_num}, \code{run_no}, \code{analysis_id}, or \code{timestamp}}
 
 \item{feature_incl_filt}{Filter text to select specific features (regex string)}
 
@@ -66,8 +68,6 @@ qc_plot_rla_boxplot(
 \item{base_font_size}{base font size for plots (default is 8)}
 
 \item{relative_log_abundances}{Use relative log abundances (RLA). If \code{FALSE} just use log-transformed values (then the result is not an RLA plot)}
-
-\item{feature_filter}{Filter text to select specific features (regex string)}
 }
 \value{
 ggplot object

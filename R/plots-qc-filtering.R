@@ -55,7 +55,7 @@ qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_ist
     tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
     ungroup() |>
     group_by(.data$feature_class) |>
-    mutate(percent_pass = count_pass / sum(count_pass, na.rm = TRUE) * 100)
+    mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100)
 
   qc_colors <- c(qc_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
@@ -83,9 +83,9 @@ qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_ist
     ggplot2::scale_x_continuous(breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
                                 labels = rev(levels(d_qc_sum$feature_class)),
                                 expand = expansion(0.02, 0.02),
-                              sec.axis = sec_axis(~ ., name = "Features passed QC",
+                                sec.axis = ggplot2::sec_axis(~ ., name = "Features passed QC",
                                                   breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
-                                                  labels = rev(d_qc_sum |> filter(qc_criteria == "qc_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(txt)))) +
+                                                  labels = rev(d_qc_sum |> filter(.data$qc_criteria == "qc_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(.data$txt)))) +
     theme_bw(base_size = font_base_size) +
     theme(
       legend.position = c(0.8, 0.8),
@@ -148,7 +148,7 @@ qc_plot_summary <- function(data, include_qualifier = FALSE, include_istd = FALS
     ) |>
     tidyr::pivot_longer(names_to = "qc_criteria", values_to = "count_pass", cols = everything()) |>
     ungroup() |>
-    mutate(percent_pass = count_pass / sum(count_pass, na.rm = TRUE) * 100) |>
+    mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100) |>
     ungroup() |>
     mutate(qc_criteria = factor(.data$qc_criteria, c("exceed_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
 
