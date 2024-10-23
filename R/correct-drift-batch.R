@@ -564,27 +564,30 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #' @return MidarExperiment object
 #' @export
 correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
-
-  if (data@is_batch_corrected){
-      if(overwrite){
-        cli_alert_warning(col_yellow(glue::glue("Previous batch correction is being overwritten!")))
-        data@dataset$feature_conc <- data@dataset$feature_conc_adj_raw
-      } else {
-        cli_alert_warning(col_yellow(glue::glue("Batch correction was applied onto exiting previous batch-correction(s)!")))
-        data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
-      }
-  } else {
-      data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
-  }
-  # TODO var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
-  #if (!data@is_drift_corrected)
-
+browser()
   ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")
   nbatches <- length(unique(ds$batch_id))
   if(nbatches < 2) {
     cli_abort(col_yellow(glue::glue("Batch correction was not applied as there is only one batch.")))
     return(data)
   }
+
+  if (data@is_batch_corrected){
+      if(overwrite){
+        cli_alert_warning(col_yellow(glue::glue("Previous batch correction is being overwritten!")))
+        ds$feature_conc <- data@dataset$feature_conc_adj_before
+        ds$y_fit_after <- data@dataset$y_fit_after_before
+      } else {
+        cli_alert_warning(col_yellow(glue::glue("Batch correction was applied onto exiting previous batch-correction(s)!")))
+      }
+  } else {
+    data@dataset$feature_conc_adj_before <- data@dataset$feature_conc
+    data@dataset$y_fit_after_before <- data@dataset$y_fit_after
+  }
+
+  # TODO var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
+  #if (!data@is_drift_corrected)
+
 
 
   d_res <- ds |>
@@ -636,6 +639,11 @@ correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correc
     mutate(feature_conc = .data$y_adjusted,
            y_fit_after = .data$y_fit_after_adjusted) |>
     select(-"y_adjusted", -"y_fit_after_adjusted")
+
+  #if (!data@is_batch_corrected | (data@is_batch_corrected &!overwrite)){
+    #data@dataset$feature_conc_adj_raw <- data@dataset$feature_conc
+    #data@dataset$y_fit_after_raw <- data@dataset$y_fit_after
+  #}
 
   data@is_batch_corrected <- TRUE
   data@is_filtered <- FALSE
@@ -727,7 +735,7 @@ batch.correction = function(tab,
   }
 
     tab$y_adjusted <- if(calc_log_transform) 2^val.clean else val.clean
-    tab$y_fit_after_adjusted <- if(calc_log_transform) 2^ y_fit_after.clean else  y_fit_after.clean
+    tab$y_fit_after_adjusted <- if(calc_log_transform) 2^y_fit_after.clean else  y_fit_after.clean
   tab
 
 }
