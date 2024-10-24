@@ -187,8 +187,25 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
                                                    "CONC_DRIFT_ADJ", "cv_raw_spl", "cv_adj_spl", "drift_correct",
                                                    "fit_error", "feature_conc_adj")))
 
-  if(!"feature_conc_raw" %in% names(data@dataset))
+  if(!data@is_quantitated)
     cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `calc_quant_by_istd`")))
+
+
+  if(data@is_drift_corrected){
+    data@dataset$feature_conc <- data@dataset$feature_conc_raw
+  } else {
+    #ds$y_fit_after <- NA_real_
+    #data@dataset$y_fit_after_before <- NA_real_
+    if(!"feature_conc_raw" %in% names(data@dataset)) data@dataset$feature_conc_raw <- data@dataset$feature_conc
+  }
+
+  if (data@is_batch_corrected){
+    cli_alert_info(col_yellow(glue::glue("Previous drift and batch corrections are being overwritten!")))
+    data@is_batch_corrected <- FALSE
+    data@dataset$feature_conc <- data@dataset$feature_conc_raw
+  }
+
+
 
     # Subset features
   ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = "feature_conc_raw")
@@ -219,10 +236,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
     if (i %% update_frequency == 0) {setTxtProgressBar(pb, i)}
   }
 
-  if (data@is_batch_corrected){
-    cli_alert_info(col_yellow(glue::glue("Previous drift and batch corrections are being overwritten!")))
-    data@is_batch_corrected <- FALSE
-  }
+
 
   message(cli::col_green(glue::glue("Applying drift correction...")))
 
@@ -509,46 +523,7 @@ correct_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75
   )
 }
 
-#' Batch centering
-#' @description
-#' A short description...
-#' #' @details
-#' Additional details...
-#' @param data MidarExperiment object
-#' @param qc_types QC types used for batch correction
-#' @param use_raw_concs Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used
-#' @param center_fun Function used to center. Default is "median".
-#' @return MidarExperiment object
-#' @importFrom glue glue
-corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_fun = "median") {
-  ds <- data@dataset
-  if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
-  # Normalize by the median (or user-defined function)
-  ds <- ds |>
-    dplyr::group_by(.data$feature_id, .data$batch_id) |>
-    dplyr::mutate(CONC_ADJ_NEW = {{ var }} / do.call(center_fun, list(({{ var }}[.data$qc_type %in% qc_types]), na.rm = TRUE))) |>
-    dplyr::ungroup()
 
-  # Re-level data to the median of all batches
-  ds <- ds |>
-    dplyr::group_by(.data$feature_id) |>
-    dplyr::mutate(CONC_ADJ = .data$CONC_ADJ_NEW * do.call(center_fun, list({{ var }}[.data$qc_type %in% qc_types], na.rm = TRUE))) |>
-    dplyr::select(-"CONC_ADJ_NEW") |>
-    dplyr::ungroup()
-
-  data@dataset <- ds
-  if (data@is_drift_corrected) {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concs of all {get_feature_count(data)} features.")))
-  } else {
-    cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {get_feature_count(data)} features.")))
-  }
-
-  if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.")))
-  data@status_processing <- "Batch-adjusted concentrations"
-  data@is_batch_corrected <- TRUE
-  data@dataset$feature_conc <- data@dataset$CONC_ADJ
-  data
-}
 
 
 #' Batch centering
@@ -566,16 +541,16 @@ corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_f
 #'
 #' @return MidarExperiment object
 #' @export
-correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
+correct_batch_centering <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
 
-  ds <- data@dataset |> select("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")
+  ds <- data@dataset |> select(any_of(c("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")))
   nbatches <- length(unique(ds$batch_id))
   if(nbatches < 2) {
     cli_abort(col_yellow(glue::glue("Batch correction was not applied as there is only one batch.")))
     return(data)
   }
 
-  if (data@is_batch_corrected){
+  if (data@is_batch_corrected | (!data@is_drift_corrected & data@is_batch_corrected)){
       if(overwrite){
         cli_alert_warning(col_yellow(glue::glue("Previous batch correction is being overwritten!")))
         ds$feature_conc <- data@dataset$feature_conc_adj_before
@@ -584,8 +559,14 @@ correct_batcheffects <- function(data, qc_types, correct_location = TRUE, correc
         cli_alert_warning(col_yellow(glue::glue("Batch correction was applied onto exiting previous batch-correction(s)!")))
       }
   } else {
-    data@dataset$feature_conc_adj_before <- data@dataset$feature_conc
-    data@dataset$y_fit_after_before <- data@dataset$y_fit_after
+    if(data@is_drift_corrected){
+      data@dataset$feature_conc_adj_before <- data@dataset$feature_conc
+    } else {
+      ds$y_fit_after <- NA_real_
+      data@dataset$y_fit_after_before <- NA_real_
+      data@dataset$feature_conc_adj_before <- data@dataset$feature_conc
+      if(!"feature_conc_raw" %in% names(data@dataset)) data@dataset$feature_conc_raw <- data@dataset$feature_conc
+    }
   }
 
   # TODO var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
@@ -762,3 +743,43 @@ batch.correction = function(tab,
 #   list(res = res, fit_error = all(is.na(res)))
 # }
 
+#' Batch centering
+#' @description
+#' A short description...
+#' #' @details
+#' Additional details...
+#' @param data MidarExperiment object
+#' @param qc_types QC types used for batch correction
+#' @param use_raw_concs Apply to unadjusted (raw) feature_conc. Default is FALSE, which means previously drift-corrected concs will be used if available, otherwise unadjusted concs will be used
+#' @param center_fun Function used to center. Default is "median".
+#' @return MidarExperiment object
+#' @importFrom glue glue
+# corr_batch_centering <- function(data, qc_types, use_raw_concs = FALSE, center_fun = "median") {
+#   ds <- data@dataset
+#   if (!data@is_drift_corrected | use_raw_concs) var <- rlang::sym("feature_conc_raw") else var <- rlang::sym("CONC_ADJ")
+#   # Normalize by the median (or user-defined function)
+#   ds <- ds |>
+#     dplyr::group_by(.data$feature_id, .data$batch_id) |>
+#     dplyr::mutate(CONC_ADJ_NEW = {{ var }} / do.call(center_fun, list(({{ var }}[.data$qc_type %in% qc_types]), na.rm = TRUE))) |>
+#     dplyr::ungroup()
+#
+#   # Re-level data to the median of all batches
+#   ds <- ds |>
+#     dplyr::group_by(.data$feature_id) |>
+#     dplyr::mutate(CONC_ADJ = .data$CONC_ADJ_NEW * do.call(center_fun, list({{ var }}[.data$qc_type %in% qc_types], na.rm = TRUE))) |>
+#     dplyr::select(-"CONC_ADJ_NEW") |>
+#     dplyr::ungroup()
+#
+#   data@dataset <- ds
+#   if (data@is_drift_corrected) {
+#     cli_alert_success(col_green(glue::glue("Batch correction was applied to drift-corrected concs of all {get_feature_count(data)} features.")))
+#   } else {
+#     cli_alert_success(col_green(glue::glue("Batch correction was applied to raw concs of all {get_feature_count(data)} features.")))
+#   }
+#
+#   if (data@is_drift_corrected & use_raw_concs) cli_alert_warning(col_yellow(glue::glue("Note: previous drift correction has been removed.")))
+#   data@status_processing <- "Batch-adjusted concentrations"
+#   data@is_batch_corrected <- TRUE
+#   data@dataset$feature_conc <- data@dataset$CONC_ADJ
+#   data
+# }
