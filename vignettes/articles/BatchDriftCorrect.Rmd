@@ -1,0 +1,99 @@
+---
+title: "Drift and Batch Correction"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
+vignette: >
+  %\VignetteIndexEntry{Drift and Batch Correction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(midar)
+```
+
+## Batch-Centering
+
+```{r}
+
+# Created a data object
+myexp <- midar::MidarExperiment(title = "batch-effects")
+
+# Import a wide CSV file with some metadata 
+myexp <- data_import_csv(data = myexp,
+                           path = "batch_effect-simdata-u1000-sd100_7batches.csv", 
+                           variable_name = "conc", 
+                           use_metadata = TRUE)
+
+
+# Correct batch effects - Set `correct_scale = TRUE` to scale also variance
+myexp <- midar::correct_batch_centering(myexp, 
+                                        qc_types = "SPL", 
+                                        correct_scale = FALSE)
+
+# Plot before and after batch correction
+midar::qc_plot_runscatter(myexp, variable = "conc_raw", rows_page = 2, cols_page = 1)
+midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 2, cols_page = 1)
+
+# Correct batch effects - WITH scaling of variance
+myexp <- midar::correct_batch_centering(myexp, 
+                                        qc_types = "SPL", 
+                                        correct_scale = TRUE)
+
+midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 2, cols_page = 1)
+
+# Save corrected data 
+midar::report_write_csv(myexp, 
+                        path = "corrected-data.csv", 
+                        variable = "conc", 
+                        filter_data = FALSE)
+
+```
+
+## Drift Correction and Batch-Centering
+
+```{r}
+
+# Created a data object
+myexp <- midar::MidarExperiment(title = "batch-effects")
+
+# Import a wide CSV file with some metadata 
+myexp <- data_import_csv(data = myexp, 
+                          path = "drift_batch_effect-simdata-u1000-sd100_7batches.csv", 
+                          variable_name = "conc", 
+                          use_metadata = TRUE)
+
+# Within-batch drift correction (smoothing) based on study samples
+myexp <- midar::correct_drift_gaussiankernel(myexp,
+                                        qc_types = "SPL", 
+                                        batch_wise = TRUE, 
+                                        kernel_size = 10, 
+                                        recalc_trend_after = TRUE)
+
+# Plot before and after batch correction 
+midar::qc_plot_runscatter(myexp, variable = "conc_raw", rows_page = 2, cols_page = 1, show_trend = TRUE)
+midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 2, cols_page = 1, show_trend = TRUE)
+
+# Correct between-batch effects (median centering)
+myexp <- midar::correct_batch_centering(myexp, 
+                                        qc_types = "SPL", 
+                                        correct_scale = TRUE)
+#Plot again the fully corrected data
+midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 2, cols_page = 1, show_trend = TRUE)
+
+
+# Save corrected data
+midar::report_write_csv(myexp, 
+                        path = "corrected-data.csv", 
+                        variable = "conc", 
+                        filter_data = FALSE)
+```
