@@ -279,6 +279,7 @@ add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
     metadata$annot_features <- metadata$annot_features |>
       add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE) |>
       add_missing_column(col_name = "is_quantifier", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE) |>
+      add_missing_column(col_name = "is_istd", init_value = FALSE, make_lowercase = FALSE, all_na_replace = TRUE) |>
       add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE) |>
       add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
     data@annot_features <- metadata$annot_features |>
