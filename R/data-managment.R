@@ -256,18 +256,20 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 #' @param data MidarExperiment object
 #' @param variable_name Feature variable to be used as default feature intensity for downstream processing.
 #' @param auto_select If `TRUE` then the first available of these will be used as default: "feature_intensity", "feature_response", "feature_area", "feature_height".
+#' @param warnings Suppress warnings
 #' @param ... Feature variables to best search for one-by-one when `auto-detect = TRUE`
 #' @return MidarExperiment object
 #' @export
 
-data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...){
+data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, warnings = TRUE, ...){
 
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
-    idx = match(var_list,names(data@dataset_orig))[1]
+    id_all <- match(var_list,names(data@dataset_orig))
+    idx <- which(!is.na(id_all))[1]
     if (!is.na(idx)) {
-      data@feature_intensity_var = var_list[1]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[1]}} selected as default raw feature intensity. Use {.fn data_set_intensity_var} to modify."))
+      data@feature_intensity_var = var_list[idx]
+      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default raw feature intensity. Use {.fn data_set_intensity_var} to modify."))
       variable_name <- var_list[1]
       } else {
       cli_alert_warning(text = cli::col_yellow("No typical raw feature intensity variable found in the data. Use {.fn data_set_intensity_var to set it.}}"))
@@ -279,7 +281,7 @@ data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, ...
       cli_abort(c("x" = "{.var variable_name} is not present in the raw data."))
 
     if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height"))
-      cli_alert_warning(text = "{.var {variable_name}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
+      if(warnings) cli_alert_warning(text = "{.var {variable_name}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
   }
   data@feature_intensity_var <- variable_name
 
