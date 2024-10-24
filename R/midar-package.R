@@ -4,6 +4,7 @@
 ## usethis namespace: start
 #' @importFrom rlang .data ensym sym := arg_match is_na are_na caller_env
 #' @importFrom ggh4x facet_wrap2
+#' @importFrom glue glue
 #' @importFrom ggplot2 ggplot aes Stat unit geom_point geom_line geom_abline margin coord_flip geom_text geom_bar geom_segment scale_y_discrete scale_x_discrete scale_y_log10 xlab ylab vars theme facet_wrap position_jitter scale_color_manual labs scale_fill_manual theme_light geom_vline geom_rect geom_vline aes_string scale_fill_manual scale_shape_manual expand_limits geom_smooth geom_hline scale_y_continuous element_blank element_text theme_bw stat_ellipse element_rect element_line expansion scale_x_continuous geom_boxplot ggtitle position_dodge
 #' @importFrom tidyselect vars_select_helpers everything starts_with
 #' @importFrom dplyr group_by desc ungroup mutate summarise slice if_else rowwise arrange left_join right_join inner_join full_join anti_join semi_join join_by cur_group_id case_when distinct rename relocate pull across all_of any_of if_any ends_with if_all case_match case_when bind_rows group_split pick
