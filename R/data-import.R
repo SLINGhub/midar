@@ -4,7 +4,7 @@
 #' Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
 #' Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the `MidarExperiment` object for downstream analyses.
 #'
-#' When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+#' When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 #' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
 #'
 #' @param data MidarExperiment object
@@ -26,7 +26,7 @@
 data_import_agilent <- function(data, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   if (file_format == "csv") {
     data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
-    data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_", "feature_height")
+    data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
     if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
     data
   } else {
@@ -41,7 +41,7 @@ data_import_agilent <- function(data, path, use_metadata, file_format = "csv", e
 #' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
 #' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
 #'
-#' When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+#' When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 #' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
 #'
 #' @param data MidarExperiment object
@@ -58,14 +58,48 @@ data_import_agilent <- function(data, path, use_metadata, file_format = "csv", e
 #' @export
 data_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
   data <- data_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
-  data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, "feature_area", "feature_height")
+  data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
 
   if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
   data
 }
 
-data_import_main <- function(data, path, import_function, file_ext, include_metadata, silent, ...) {
+#' @title Import plain analysis results
+#' @description
+#' Imports .csv file(s) reprensenting analysis results in a wide format with samples in rows and features in columns.
+#' The first column must contain the analysis identifier, subsequent columns can be metadata columns, followed by value of different features.
+#' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
+#' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
+#'
+#' When a path to a folder is provided, all .scv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
+#' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+#'
+#' @param data MidarExperiment object
+#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
+#' @param variable_name Variable type representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
+#' @param analysis_id_col Column to be used as analysis_id. `NA` (default) used 'analysis_id' if present, or the first column if it contains unique values.
+#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
+#' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "run_seq_num", "precursor_mz", "product_mz", "collision_energy"
+# #' @param silent Suppress notifications
+#' @return MidarExperiment object
+#' @examples
+#' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
+#' mexp <- MidarExperiment()
+#' mexp <- data_import_csv(data = mexp, path = file_path, variable_name = "conc", use_metadata = TRUE)
+#' mexp
+#' @export
 
+data_import_csv <- function(data, path, variable_name, analysis_id_col = NA, use_metadata) {
+  data <- data_import_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, use_metadata)
+  data <- data_set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height", "feature_conc")
+  if (use_metadata) data <- metadata_from_data(data, qc_type_field = "qc_type")
+
+  data
+}
+
+
+
+data_import_main <- function(data, path, import_function, file_ext, silent, ...) {
   if (!fs::is_dir(path)) {
     file_paths <- fs::path_tidy(path)
   } else {
@@ -98,9 +132,9 @@ data_import_main <- function(data, path, import_function, file_ext, include_meta
 
   if (has_duplicated_id) {
     if (has_duplicated_id_values) {
-      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with identical intensity values. Please check imported dataset(s)."))
+      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with **identical** intensity values. Please check imported dataset(s)."))
     } else {
-      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with different intensity values. Please check imported dataset(s)."))
+      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with **different intensity values. Please check imported dataset(s)."))
     }
   }
 
@@ -123,6 +157,7 @@ data_import_main <- function(data, path, import_function, file_ext, include_meta
   }
 
   data@status_processing <- "Raw Data"
+
   data
 }
 
@@ -469,6 +504,102 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 
 
 
+#' Reads a long CSV file with Feature Intensities
+#'
+#' @param file File name and path of a plain long-format CSV file
+#' @param variable_name Name of the variable representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
+#' @param analysis_id_col Column to be used as analysis_id
+#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
+#' @return A tibble in the long format
+#' @export
+ parse_plain_csv <- function(file, variable_name, analysis_id_col = NA, use_metadata) {
+
+  if(fs::path_ext(file) != "csv") cli::cli_abort("Only csv files are currently supported.")
+
+  variable_name <- str_remove(variable_name, "feature_")
+  rlang::arg_match(variable_name, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable_name <- stringr::str_c("feature_", variable_name)
+  variable_name_sym = rlang::sym(variable_name)
+
+
+  if(use_metadata){
+    analysis_metadata_cols <- c(
+      "qc_type",
+      "batch_id",
+      "is_quantifier",
+      "is_istd",
+      "run_seq_num",
+      "precursor_mz",
+      "product_mz",
+      "collision_energy"
+    )
+  } else {
+    analysis_metadata_cols = NULL
+  }
+
+  d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "n", progress = FALSE)
+
+  if (!is.null(analysis_id_col) & !is.na(analysis_id_col)){
+    if (!analysis_id_col %in% names(d)) {
+      cli::cli_abort("No column with the name `{analysis_id_col}` found in the data file.")
+    }
+  } else {
+    if ("analysis_id" %in% names(d) & (length(unique(d$analysis_id)) == nrow(d))){
+      analysis_id_col <- "analysis_id"
+    } else {
+      if (all(is.character(d[,1]))) {
+        analysis_id_col <- "analysis_id"
+        cli::cli_alert_info("The first column was used as `analysis_id`.")
+      } else {
+        cli::cli_abort("No column with the name `analysis_id` or other potential column with unique text identifiers found in the data file.")
+      }
+    }
+  }
+
+  if(use_metadata){
+    analysis_metadata_cols <- c(
+      "qc_type",
+      "batch_id",
+      "is_quantifier",
+      "is_istd",
+      "run_seq_num",
+      "precursor_mz",
+      "product_mz",
+      "collision_energy"
+    )
+    if(!any(analysis_metadata_cols %in% names(d))) {
+      cli::cli_abort("No metadata column names found. Please refer to `??data_import_plain` for more information on support metadata column names.")
+    }
+  } else {
+    analysis_metadata_cols = NULL
+  }
+  analysis_id_col_sym = rlang::sym(analysis_id_col)
+
+  # Verify all data columns are numeric
+
+  val_cols <- setdiff(names(d), c(analysis_id_col, analysis_metadata_cols))
+  analysis_cols <- setdiff(names(d), c(val_cols))
+
+  if(!all(purrr::map_lgl(d[val_cols], is.numeric))) {
+    if(use_metadata)
+      cli::cli_abort("All columns with feature values must be numeric. Check your data, or if metadata is present, set `use_metadata = TRUE`.")
+    else
+      cli::cli_abort("All columns with feature values must be numeric. Check your data, and metadata column names, see `??data_import_plain`")
+  }
+
+  d_long <- d |>
+    dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1) |>
+    tidyr::pivot_longer(cols = -all_of(c("run_seq_num", analysis_cols)), names_to = "feature_id", values_to = variable_name) |>
+    dplyr::rename(analysis_id = !!analysis_id_col_sym) |>
+    dplyr::mutate(across(any_of(c("analysis_id", "batch_id")), as.character)) |>
+    dplyr::mutate(integration_qualifier = FALSE)
+
+  d_long
+  }
+
+
+
+
 
 #' Reads a generic wide .csv or .xls sheet with analysis results data
 #'
@@ -482,7 +613,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @param silent Suppress messages
 
 #' @return A tibble in the long format
-#' @export
+
 #'
 read_data_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
   value_type <- match.arg(value_type)
@@ -529,48 +660,7 @@ read_data_table <- function(file, value_type = c("area", "height", "intensity", 
 
 
 
-#' Reads a long CSV file with Feature Intensities
-#'
-#' @param file File name and path of a plain long-format CSV file
-#' @param analysis_id_col Column to be used as analysis_id
-#' @param feature_id_col Column to be used feature_id
-#' @param silent Suppress messages
-#'
-#' @return A tibble in the long format
-#' @export
-data_import_plain <- function(file, analysis_id_col = NULL, feature_id_col = NULL, silent = FALSE) {
-  analysis_inf_cols <- c(
-    "analysis_id",
-    "raw_data_filename",
-    "feature_id",
-    "sample_name",
-    "acquisition_time_stamp",
-    "sample_type",
-    "vial_position",
-    "inj_volume",
-    "sample_type",
-    "run_seq_num"
-  )
 
-  quant_cols <- c(
-    "feature_area",
-    "feature_height",
-    "feature_response",
-    "feature_intensity",
-    "feature_rt",
-    "feature_fwhm",
-    "feature_sn_ratio"
-  )
-
-  d <- readr::read_csv(file, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), progress = TRUE)
-
-  if (!is.null(analysis_id_col) && analysis_id_col %in% names(d)) cli::cli_abort("Analysis Id column not defined. ")
-
-  #TODO
-  dplyr::select(tidyselect::any_of(.data$sample_def_cols), "feature_id", feature_intensity = {{ .data$field }})
-
-  d
-}
 
 
 #' @title internal method to read excel sheets
