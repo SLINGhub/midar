@@ -198,7 +198,7 @@ report_write_csv <- function(data,
 
   readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
   if(variable_strip ==  "conc") variable_strip <- "concentration"
-  cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values of {nrow(ds) -1} analyses and {length(unique(dat_filt$feature_id))} features have been exported.")))
+  cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values of {nrow(ds)} analyses and {length(unique(dat_filt$feature_id))} features have been exported.")))
 
   invisible(ds)
 }
