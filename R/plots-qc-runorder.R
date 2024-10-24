@@ -456,10 +456,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   d_subset$qc_type <- forcats::fct_relevel(d_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
   d_subset <- d_subset |>
-    dplyr::arrange(.data$qc_type)
-
-
-
+    dplyr::arrange(rev(.data$qc_type))
 
   # https://stackoverflow.com/questions/46327431/facet-wrap-add-geom-hline
   if (nrow(d_subset) > 0) {
