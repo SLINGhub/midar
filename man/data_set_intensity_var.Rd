@@ -4,7 +4,13 @@
 \alias{data_set_intensity_var}
 \title{Set default variable to be used as feature raw signal value}
 \usage{
-data_set_intensity_var(data, variable_name, auto_select = FALSE, ...)
+data_set_intensity_var(
+  data,
+  variable_name,
+  auto_select = FALSE,
+  warnings = TRUE,
+  ...
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}
@@ -12,6 +18,8 @@ data_set_intensity_var(data, variable_name, auto_select = FALSE, ...)
 \item{variable_name}{Feature variable to be used as default feature intensity for downstream processing.}
 
 \item{auto_select}{If \code{TRUE} then the first available of these will be used as default: "feature_intensity", "feature_response", "feature_area", "feature_height".}
+
+\item{warnings}{Suppress warnings}
 
 \item{...}{Feature variables to best search for one-by-one when \code{auto-detect = TRUE}}
 }

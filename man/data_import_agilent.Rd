@@ -34,7 +34,7 @@ Imports .csv file(s) exported from \verb{Agilent MassHunter (MH) Quantitative An
 Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
 Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the \code{MidarExperiment} object for downstream analyses.
 
-When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
 }
 \examples{

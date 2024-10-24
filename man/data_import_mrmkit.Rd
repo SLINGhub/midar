@@ -23,7 +23,7 @@ Imports .tsv file(s) generated from \code{MRMkit} containing peak integration re
 The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
 Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the \code{MidarExperiment} object for downstream analyses.
 
-When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that are pre-processing in blocks resulting in different files.
+When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
 }
 \examples{
