@@ -228,12 +228,14 @@ link_data_metadata <- function(data, minimal_info = TRUE){
     # )
 
   data@is_isotope_corr <- FALSE
-  data@is_istd_normalized <- FALSE
-  data@is_quantitated <- FALSE
+  #data@is_istd_normalized <- FALSE
+  #data@is_quantitated <- FALSE
   data@is_drift_corrected <- FALSE
   data@is_batch_corrected <- FALSE
   data@is_filtered <- FALSE
-  data@status_processing <- "Annotated raw"
+
+
+  data@status_processing <- glue::glue("Annotated raw {toupper(str_remove(data@feature_intensity_var, 'feature_'))} values")
 
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
@@ -269,10 +271,10 @@ data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, war
     idx <- which(!is.na(id_all))[1]
     if (!is.na(idx)) {
       data@feature_intensity_var = var_list[idx]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default raw feature intensity. Use {.fn data_set_intensity_var} to modify."))
-      variable_name <- var_list[1]
+      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default feature intensity. Modify with {.fn data_set_intensity_var}."))
+      variable_name <- var_list[idx]
       } else {
-      cli_alert_warning(text = cli::col_yellow("No typical raw feature intensity variable found in the data. Use {.fn data_set_intensity_var to set it.}}"))
+      cli_alert_warning(text = cli::col_yellow("No typical feature intensity variable found in the data. Use {.fn data_set_intensity_var} to set it.}}."))
       return(data)
       }
   } else {
@@ -289,13 +291,15 @@ data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, war
     calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
     if (any(calc_cols %in% names(data@dataset))){
       data@dataset <- data@dataset |> select(-any_of(calc_cols))
-      cli_alert_info(cli::col_green("New default feature intensity variable defined, please reprocess data"))
+      cli_alert_info(cli::col_yellow("New feature intensity variable defined, please reprocess data."))
     } else
     {
       cli_alert_success(cli::col_green("`{variable_name}` was set as default feature intensity variable for downstream processing."))
     }
     data <- link_data_metadata(data)
   }
+
+  if(variable_name == "feature_conc") data@is_quantitated <- TRUE
   data
 }
 
