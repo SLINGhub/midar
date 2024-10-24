@@ -206,6 +206,8 @@ setMethod(
 
 
 setMethod("show", "MidarExperiment", function(object) {
+
+
   cli::cli_par()
   cli::cli_h1(is(object)[[1]])
   cli::cli_text(cli::col_blue("Title: {.strong {object@title}}"))
@@ -219,6 +221,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_ul(id = "A")
   cli::cli_li("Samples: {length(unique(object@dataset$analysis_id))}")
   cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
+  cli::cli_li("Intensity Variable: {object@feature_intensity_var}")
   cli::cli_end(id = "A")
 
   cli::cli_h2("Metadata")
