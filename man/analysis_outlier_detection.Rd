@@ -5,7 +5,7 @@
 \title{Get list of analyses classified as technical outliers}
 \usage{
 analysis_outlier_detection(
-  data,
+  data = NULL,
   variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
   qc_types = c("BQC", "TQC", "SPL"),
   pca_component,
@@ -37,8 +37,6 @@ analysis_outlier_detection(
 }
 \value{
 MidarExperiment object
-
-ggplot2 object
 }
 \description{
 Retrieves IDs os analysis technical outliers, i.e, analyses with systematic differences in multiple features.

@@ -91,7 +91,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param show_progress show progress bar
 #' @return A list of ggplot2 objects
 #' @export
-qc_plot_responsecurves <- function(data,
+qc_plot_responsecurves <- function(data = NULL,
                                 variable = "intensity",
                                 filter_data,
                                 feature_incl_filt = "",
@@ -109,7 +109,7 @@ qc_plot_responsecurves <- function(data,
                                 font_base_size = 7,
                                 show_progress = TRUE,
                                 return_plot_list = FALSE) {
-
+  check_data(data)
   variable_strip <- str_remove(variable, "feature_")
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
@@ -181,7 +181,7 @@ qc_plot_responsecurves <- function(data,
   }
 
   if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
-  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
+  cat(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
   if(show_progress) pb <- txtProgressBar( min = 0, max = max(page_range), width = 50, style = 3)
 
   p_list <- list()  # p_list <- vector("list", length(page_range))

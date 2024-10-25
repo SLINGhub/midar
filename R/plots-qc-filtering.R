@@ -9,7 +9,8 @@
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
+qc_plot_summary_classes <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
+  check_data(data)
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
@@ -112,8 +113,8 @@ qc_plot_summary_classes <- function(data, include_qualifier = FALSE, include_ist
 
 
 
-qc_plot_summary <- function(data, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
-
+qc_plot_summary <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
+  check_data(data)
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")

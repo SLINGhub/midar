@@ -5,7 +5,7 @@
 \title{Imports an Agilent MassHunter Quant CSV file}
 \usage{
 data_import_agilent(
-  data,
+  data = NULL,
   path,
   use_metadata,
   file_format = "csv",

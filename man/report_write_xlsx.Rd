@@ -4,7 +4,7 @@
 \alias{report_write_xlsx}
 \title{Writes all a data processing report to an EXCEL file}
 \usage{
-report_write_xlsx(data, path)
+report_write_xlsx(data = NULL, path)
 }
 \arguments{
 \item{data}{MidarExperiment object}

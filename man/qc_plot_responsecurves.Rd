@@ -5,7 +5,7 @@
 \title{Response curves plot}
 \usage{
 qc_plot_responsecurves(
-  data,
+  data = NULL,
   variable = "intensity",
   filter_data,
   feature_incl_filt = "",

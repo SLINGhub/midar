@@ -5,7 +5,7 @@
 \title{Contrast two variables from QC metrics table for all features per feature class}
 \usage{
 qc_plot_x_vs_y(
-  data,
+  data = NULL,
   filter_data,
   x_variable,
   y_variable,

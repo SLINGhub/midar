@@ -5,7 +5,7 @@
 \title{Plot summary of feature QC filtering per class}
 \usage{
 qc_plot_summary_classes(
-  data,
+  data = NULL,
   include_qualifier = FALSE,
   include_istd = FALSE,
   user_defined_keeper = FALSE,

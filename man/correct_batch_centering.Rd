@@ -5,7 +5,7 @@
 \title{Batch centering}
 \usage{
 correct_batch_centering(
-  data,
+  data = NULL,
   qc_types,
   correct_location = TRUE,
   correct_scale = FALSE,

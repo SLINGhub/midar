@@ -14,11 +14,9 @@
 #' @param log_transform Log-transform data for outlier detection
 #' @param print_outliers Print analysis_id of outliers to the console
 #' @return MidarExperiment object
-#'
-#'
-#' @return ggplot2 object
 
-analysis_outlier_detection <- function(data,
+
+analysis_outlier_detection <- function(data = NULL,
                                        variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
                                        qc_types = c("BQC", "TQC", "SPL"),
                                        pca_component,
@@ -27,6 +25,7 @@ analysis_outlier_detection <- function(data,
                                        outlier_detection = c("sd", "mad"),
                                        log_transform = TRUE,
                                        print_outliers = TRUE) {
+  check_data(data)
   variable <- rlang::arg_match(variable)
   summarize_fun <- rlang::arg_match(summarize_fun)
   outlier_detection <- rlang::arg_match(outlier_detection)
@@ -93,8 +92,8 @@ analysis_outlier_detection <- function(data,
 #' @param data  description
 #' @return MidarExperiment object
 #'
-#' @export
-clear_outlier <- function(data) {
+clear_outlier <- function(data = NULL) {
+  check_data(data)
   data@dataset$outlier_technical <- FALSE
   data@dataset$outlier_technical_note <- NA_character_
   data@has_outliers_tech <- FALSE

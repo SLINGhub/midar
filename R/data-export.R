@@ -10,7 +10,8 @@
 
 
 # TODO: filtering of names containing "(IS"
-report_write_xlsx <- function(data, path) {
+report_write_xlsx <- function(data = NULL, path) {
+  check_data(data)
 
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
@@ -128,7 +129,7 @@ report_write_xlsx <- function(data, path) {
 #' @param add_qctype Add the QC type as column
 #' @return A tibble with the exported data
 #' @export
-report_write_csv <- function(data,
+report_write_csv <- function(data = NULL,
                              path,
                              variable = c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"),
                              filter_data,
@@ -137,7 +138,7 @@ report_write_csv <- function(data,
                              include_istd = NA,
                              add_qctype = NA
                              ) {
-
+  check_data(data)
   variable_strip <- str_remove(variable, "feature_")
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
@@ -211,7 +212,8 @@ report_write_csv <- function(data,
 #' @return A tibble with the exported dataset
 #' @export
 
-report_write_qc_metrics <- function(data, path) {
+report_write_qc_metrics <- function(data = NULL, path) {
+  check_data(data)
   if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'qc_calc_metrics' first.")
 
   readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)

@@ -138,31 +138,32 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 })
 
 # TODODO: ALIGN WITH ASSERTION and DEFINE WHERE WHEN TO RUN THIS
-check_integrity <- function(object, excl_unannotated_analyses) {
-  if (nrow(object@dataset_orig) > 0 & nrow(object@annot_analyses) > 0) {
-    d_xy <- length(setdiff(object@dataset_orig$analysis_id |> unique(), object@annot_analyses$analysis_id))
-    d_yx <- length(setdiff(object@annot_analyses$analysis_id, object@dataset_orig$analysis_id |> unique()))
+check_integrity <- function(data = NULL, excl_unannotated_analyses) {
+  check_data(data)
+  if (nrow(data@dataset_orig) > 0 & nrow(data@annot_analyses) > 0) {
+    d_xy <- length(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id))
+    d_yx <- length(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()))
     if (d_xy > 0) {
-      if (d_xy == length(object@dataset_orig$analysis_id |> unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
+      if (d_xy == length(data@dataset_orig$analysis_id |> unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
       if (!excl_unannotated_analyses) {
         # if (d_xy < 50) {
         #   writeLines(glue::glue(""))
-        #   cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {object@dataset_orig$analysis_id |> unique() |> length()} analyses/samples: {paste0(setdiff(object@dataset_orig$analysis_id |> unique(), object@annot_analyses$analysis_id), collapse = ", ")}"))
+        #   cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses/samples: {paste0(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id), collapse = ", ")}"))
         # } else {
-        #   cli::cli_abort(call. = FALSE, glue::glue("{d_xy} of {object@dataset_orig$analysis_id |> unique() |> length()} measurements have no matching metadata."))
+        #   cli::cli_abort(call. = FALSE, glue::glue("{d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} measurements have no matching metadata."))
         # }
       } else {
-        #cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {object@dataset_orig$analysis_id |> unique() |> length()} measurements without matching metadata were excluded.")))
+        #cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} measurements without matching metadata were excluded.")))
       }
     } else if (d_yx > 0) {
       if (d_yx < 50) {
-        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(object@annot_analyses$analysis_id, object@dataset_orig$analysis_id |> unique()), collapse = ", ")}"))
+        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()), collapse = ", ")}"))
       } else {
         writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
       }
       cli::cli_abort(glue::glue(""))
     } else {
-      object@status_processing <- "DataMetadataLoaded"
+      data@status_processing <- "DataMetadataLoaded"
       TRUE
     }
   }
@@ -204,6 +205,27 @@ setMethod(
 )
 
 
+#' Check integrity of MidarExperiment data object
+#'
+#' @description
+#' Helper function that checks the structure and contents of
+#' a MidarExperiment object
+#'
+#' @param data MidarExperiment object
+#'
+#' @return silent on success, prints abort message on fail
+#'
+check_data <- function(data = NULL){
+    # fail if data is NULL
+  if(is.null(data)) {
+      cli::cli_div(theme = list(span.emph = list(color = "#e81744")))
+      cli::cli_abort(c("x" = "`data` cannot be {.emph NULL}, please use a {.emph MidarExperiment}"))
+    }
+  if(is(data) != 'MidarExperiment') {
+    cli::cli_div(theme = list(span.emph = list(color = "#e81744")))
+    cli::cli_abort(c("x" = "`data` must be a {.emph MidarExperiment}"))
+  }
+}
 
 setMethod("show", "MidarExperiment", function(object) {
 

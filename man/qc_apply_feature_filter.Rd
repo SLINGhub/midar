@@ -5,7 +5,7 @@
 \title{Filter dataset according to QC and other criteria}
 \usage{
 qc_apply_feature_filter(
-  data,
+  data = NULL,
   overwrite = TRUE,
   batch_medians = FALSE,
   qualifier.include = FALSE,

@@ -29,7 +29,8 @@ get_analyte_name <- function(transition_name) {
 #' @export
 
 
-lipidomics_get_lipid_class_names <- function(data, use_as_feature_class = "lipid_class", add_transition_names = FALSE) {
+lipidomics_get_lipid_class_names <- function(data = NULL, use_as_feature_class = "lipid_class", add_transition_names = FALSE) {
+  check_data(data)
   use_as_feature_class_s <- rlang::sym(use_as_feature_class)
 
   dat <- data@dataset |>

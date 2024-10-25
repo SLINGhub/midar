@@ -15,7 +15,10 @@
 
 #  Example:  mexp <- correct_interference_manually(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
-correct_interference_manually <- function(data, variable, feature, interfering_feature, relative_contribution, new_feature_id = NULL) {
+correct_interference_manually <- function(data = NULL, variable, feature, interfering_feature, relative_contribution, new_feature_id = NULL) {
+
+  check_data(data)
+
   variable_var <- rlang::ensym(variable)
 
   new_feature_id <- ifelse(is.null(new_feature_id) | is.na(new_feature_id), "", new_feature_id)
@@ -57,7 +60,10 @@ correct_interference_manually <- function(data, variable, feature, interfering_f
 #' @return MidarExperiment object
 #' @export
 
-correct_interferences <- function(data, variable = "feature_intensity") {
+correct_interferences <- function(data = NULL, variable = "feature_intensity") {
+
+  check_data(data)
+
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
   if (data@is_isotope_corr & (c("feature_intensity_raw") %in% names(data@dataset))) {

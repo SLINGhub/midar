@@ -10,8 +10,8 @@
 #' @param with_linearity Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.
 #' @return MidarExperiment object
 #' @export
-qc_calc_metrics <- function(data, batch_medians, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
-
+qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
+  check_data(data)
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
         # All features defined in the metadata
@@ -167,9 +167,9 @@ qc_calc_metrics <- function(data, batch_medians, with_norm_intensity = TRUE, wit
 #' @return Tibble with linear regression stats of all curves in a wide format
 #' @export
 
-get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
-
-   get_lm_results <- function(x){
+get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
+  check_data(data)
+  get_lm_results <- function(x){
     res <- lm(feature_intensity ~ relative_sample_amount, data = x, na.action = na.exclude)
     return(list(feature_id = x$feature_id[1], rqc_series_id = x$rqc_series_id[1], r.squared = summary(res)$r.squared , relative_sample_amount = res$coefficients[[2]], intercept = res$coefficients[1]))
   }
@@ -270,7 +270,7 @@ get_response_curve_stats <- function(data, with_staturation_stats = FALSE, limit
 
 # TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
 ## TODO:  Handle feature with all being NA in SPL or QC or all.
-qc_apply_feature_filter <- function(data,
+qc_apply_feature_filter <- function(data = NULL,
                             overwrite = TRUE,
                             batch_medians = FALSE,
                             qualifier.include = FALSE,
@@ -302,7 +302,8 @@ qc_apply_feature_filter <- function(data,
                             outlier.technical.exlude = FALSE,
                             features_to_keep = NULL) {
 
-  # Check if RQC curve ID is defined when r2 is set
+  check_data(data)
+   # Check if RQC curve ID is defined when r2 is set
   if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) cli::cli_abort("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
   if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) cli::cli_abort("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
 

@@ -5,7 +5,7 @@
 \title{Linear regression statistics of response curves}
 \usage{
 get_response_curve_stats(
-  data,
+  data = NULL,
   with_staturation_stats = FALSE,
   limit_to_rqc = FALSE
 )

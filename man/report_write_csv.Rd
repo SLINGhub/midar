@@ -5,7 +5,7 @@
 \title{Export any parameter to a wide-format table}
 \usage{
 report_write_csv(
-  data,
+  data = NULL,
   path,
   variable = c("area", "height", "intensity", "norm_intensity", "response", "conc",
     "conc_raw", "rt", "fwhm"),

@@ -4,7 +4,13 @@
 \alias{data_import_csv}
 \title{Import plain analysis results}
 \usage{
-data_import_csv(data, path, variable_name, analysis_id_col = NA, use_metadata)
+data_import_csv(
+  data = NULL,
+  path,
+  variable_name,
+  analysis_id_col = NA,
+  use_metadata
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}

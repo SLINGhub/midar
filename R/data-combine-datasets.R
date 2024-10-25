@@ -13,7 +13,11 @@
 
 combine_experiments <- function(..., ordered_by_runsequence) {
   exp_list <- list(...)
+
+  #TODO: check class of all objects
+
   if (is.null(attr(exp_list, which = "class")[[1]])) exp_list <- exp_list[[1]]
+
 
   mexp <- MidarExperiment()
   mexp@dataset_orig <- purrr::map_dfr(.x = exp_list, .f = \(x) x@dataset_orig) |> dplyr::distinct()

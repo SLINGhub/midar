@@ -4,7 +4,7 @@
 \alias{report_write_qc_metrics}
 \title{Save the QC table to a CSV file}
 \usage{
-report_write_qc_metrics(data, path)
+report_write_qc_metrics(data = NULL, path)
 }
 \arguments{
 \item{data}{MidarExperiment object}

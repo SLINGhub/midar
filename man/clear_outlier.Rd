@@ -4,7 +4,7 @@
 \alias{clear_outlier}
 \title{Clear all analysis/sample outlier classifications}
 \usage{
-clear_outlier(data)
+clear_outlier(data = NULL)
 }
 \arguments{
 \item{data}{description}

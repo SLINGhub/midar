@@ -5,7 +5,7 @@
 \title{Drift Correction by Gaussian Kernel Smoothing}
 \usage{
 correct_drift_gaussiankernel(
-  data,
+  data = NULL,
   qc_types,
   batch_wise = TRUE,
   kernel_size,

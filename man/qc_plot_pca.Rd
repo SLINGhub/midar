@@ -5,7 +5,7 @@
 \title{PCA plot for QC}
 \usage{
 qc_plot_pca(
-  data,
+  data = NULL,
   variable,
   filter_data,
   pca_dim = c(1, 2),

@@ -16,10 +16,11 @@
 #'
 #' @return ggplot2 object
 #' @export
-qc_plot_pca <- function(data, variable, filter_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
                         label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
                         ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
 
+  check_data(data)
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable)
@@ -142,8 +143,9 @@ qc_plot_pca <- function(data, variable, filter_data, pca_dim = c(1,2), qc_types 
   p
 }
 
-plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
+plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
+  check_data(data)
   if(use_filter_data)
     if(data@is_filtered)
       d_wide <- data@dataset_filtered
@@ -238,7 +240,8 @@ plot_pca_pairs <- function(data, variable, dim_range = c(1, 8), use_filter_data,
   # print(cowplot::plot_grid( pl1,lg, ncol = 1, rel_heights = c(1,0.2)))
 }
 
-plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, top_n, text_size = 1, fill_alpha = 0.1) {
+plot_pca_loading_coord <- function(data = NULL, variable, log_transform, dim_x, dim_y, top_n, text_size = 1, fill_alpha = 0.1) {
+  check_data(data)
   PCx <- rlang::sym(paste0("PC", dim_x))
   PCy <- rlang::sym(paste0("PC", dim_y))
 
@@ -290,7 +293,8 @@ plot_pca_loading_coord <- function(data, variable, log_transform, dim_x, dim_y, 
   p
 }
 
-plot_pca_loading <- function(data, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
+plot_pca_loading <- function(data = NULL, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
+  check_data(data)
   d_wide <- data@dataset_filtered |> filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
   if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")

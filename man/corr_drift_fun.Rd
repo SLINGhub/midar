@@ -5,7 +5,7 @@
 \title{Drift Correction by Custom Function}
 \usage{
 corr_drift_fun(
-  data,
+  data = NULL,
   smooth_fun,
   qc_types,
   calc_log_transform = TRUE,

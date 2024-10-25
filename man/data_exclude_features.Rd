@@ -4,7 +4,7 @@
 \alias{data_exclude_features}
 \title{Exclude features from the dataset}
 \usage{
-data_exclude_features(data, features_exlude, overwrite)
+data_exclude_features(data = NULL, features_exlude, overwrite)
 }
 \arguments{
 \item{data}{MidarExperiment object}

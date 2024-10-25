@@ -5,7 +5,7 @@
 \title{Retrieve lipid name, lipid class and transition from feature names}
 \usage{
 lipidomics_get_lipid_class_names(
-  data,
+  data = NULL,
   use_as_feature_class = "lipid_class",
   add_transition_names = FALSE
 )

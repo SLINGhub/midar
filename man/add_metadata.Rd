@@ -4,7 +4,7 @@
 \alias{add_metadata}
 \title{Add metadata an MidarExperiment object}
 \usage{
-add_metadata(data, metadata, excl_unannotated_analyses = FALSE)
+add_metadata(data = NULL, metadata, excl_unannotated_analyses = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}

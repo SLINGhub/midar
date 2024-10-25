@@ -5,7 +5,7 @@
 \title{Calculate feature quality control (QC) metrics}
 \usage{
 qc_calc_metrics(
-  data,
+  data = NULL,
   batch_medians,
   with_norm_intensity = TRUE,
   with_conc = TRUE,

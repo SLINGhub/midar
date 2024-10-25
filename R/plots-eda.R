@@ -14,7 +14,7 @@
 #' @param squared make plot a square
 #' @param axistick axis ticks
 #' @return tibble with p values, fdr and log2FC
-#' @export
+
 volcano_plot <- function(d_FC, p_adjust, sig_FC_min, sig_p_value_min, symmetric_x, x_min, x_max, point_size, point_transparency, scale_factor, scale_factor_species_label, squared = TRUE, axistick = 1) {
   if (p_adjust) {
     d_FC$p_value_mod <- p.adjust(d_FC$p_value, method = "BH")
@@ -231,8 +231,8 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
     # column_dend_height = unit(30, "mm"),
     show_row_names = TRUE,
     show_column_names = TRUE,
-    row_names_gp = gpar(fontsize = row_names_size),
-    column_names_gp = gpar(fontsize = col_names_size),
+    row_names_gp = grid::gpar(fontsize = row_names_size),
+    column_names_gp = grid::gpar(fontsize = col_names_size),
     heatmap_legend_param = list(title = "Row z score", color_bar = "discrete", at = z_score_seq)
   )
 }
@@ -381,7 +381,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
         position = position_dodge(width = 0.8)
       ) +
       geom_point(aes(color = {{ GroupInner }}, fill = {{ GroupInner }}), size = point_size, position = pos, width = .4, shape = 1, stroke = 0.7) +
-      facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      ggh4x::facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, .15))) +
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +
@@ -440,7 +440,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
         alpha = 0.2, lwd = 0.1, outlier.shape = NA
       ) +
       ggbeeswarm::geom_quasirandom(aes(color = {{ GroupInner }}, fill = {{ GroupInner }}), size = point_size, na.rm = TRUE, shape = 1, stroke = 0.4, width = 0.2) +
-      facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
+      ggh4x::facet_wrap2(vars(.data$feature_id), scales = "free", nrow = n_row, ncol = n_col, drop = FALSE, trim_blank = FALSE) +
       scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, .25))) +
       scale_color_manual(values = scale_colors) +
       scale_fill_manual(values = scale_colors) +

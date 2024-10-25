@@ -23,7 +23,8 @@
 
 #' @export
 
-data_import_agilent <- function(data, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+data_import_agilent <- function(data = NULL, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+  check_data(data)
   if (file_format == "csv") {
     data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
     data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
@@ -56,7 +57,8 @@ data_import_agilent <- function(data, path, use_metadata, file_format = "csv", e
 #' mexp
 
 #' @export
-data_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
+data_import_mrmkit <- function(data = NULL, path, use_metadata, silent = FALSE) {
+  check_data(data)
   data <- data_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
   data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
 
@@ -89,7 +91,8 @@ data_import_mrmkit <- function(data, path, use_metadata, silent = FALSE) {
 #' mexp
 #' @export
 
-data_import_csv <- function(data, path, variable_name, analysis_id_col = NA, use_metadata) {
+data_import_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, use_metadata) {
+  check_data(data)
   data <- data_import_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, use_metadata)
   data <- data_set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height", "feature_conc")
   if (use_metadata) data <- metadata_from_data(data, qc_type_field = "qc_type")
@@ -99,7 +102,8 @@ data_import_csv <- function(data, path, variable_name, analysis_id_col = NA, use
 
 
 
-data_import_main <- function(data, path, import_function, file_ext, silent, ...) {
+data_import_main <- function(data = NULL, path, import_function, file_ext, silent, ...) {
+  check_data(data)
   if (!fs::is_dir(path)) {
     file_paths <- fs::path_tidy(path)
   } else {

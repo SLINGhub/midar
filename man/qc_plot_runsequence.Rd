@@ -5,7 +5,7 @@
 \title{RunSequence plot}
 \usage{
 qc_plot_runsequence(
-  data,
+  data = NULL,
   qc_types = NA,
   show_batches = TRUE,
   show_timestamp = FALSE,

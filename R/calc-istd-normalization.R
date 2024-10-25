@@ -28,7 +28,9 @@ get_conc_unit <- function(sample_amount_unit) {
 #' @export
 
 # TODO: interference correction not done here
-calc_normalize_by_istd <- function(data, error_missing_info = TRUE) {
+calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
+
+  check_data(data)
 
   if (nrow(data@annot_features) < 1) cli::cli_abort("No feature metadata available. Please add matching feature metadata.")
   if (any(!is.na(data@annot_features$interference_feature_id) & !data@is_isotope_corr))
@@ -109,11 +111,12 @@ calc_normalize_by_istd <- function(data, error_missing_info = TRUE) {
 #' @param ignore_unused_istds Ignore ISTDs with missing concentrations that are not used in any feature quantitation. Default: `FALSE`.
 #' @return MidarExperiment object
 #' @export
-calc_quant_by_istd <- function(data, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
+calc_quant_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
+
+  check_data(data)
+
   if (nrow(data@annot_istd) < 1) cli::cli_abort("ISTD concentrations are missing...please import ISTD metadata first.")
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'calc_normalize_by_istd' first.")
-
-
 
   istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
   istds <- data@annot_features |> filter(.data$is_istd) |> pull(.data$feature_id)

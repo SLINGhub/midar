@@ -14,6 +14,10 @@ Depends:
     ggplot2 (>= 3.5.0),
     R (>= 4.1.0)
 Imports: 
+    ggh4x,
+    ggpmisc,
+    ggrepel,
+    ggvenn,
     assertr,
     broom,
     cli,
@@ -21,10 +25,6 @@ Imports:
     dtplyr,
     forcats,
     fs,
-    ggh4x,
-    ggpmisc,
-    ggrepel,
-    ggvenn,
     glue,
     lubridate,
     methods,
@@ -86,5 +86,4 @@ Collate:
     'plots-qc-runorder.R'
     'qc-filtering.R'
     'tibble-classes.R'
-    'utils-pipe.R'
     'utils.R'

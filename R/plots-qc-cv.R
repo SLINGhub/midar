@@ -17,7 +17,7 @@
 #' @export
 
 
-qc_plot_normalization_cv <- function(data,
+qc_plot_normalization_cv <- function(data = NULL,
                            filter_data,
                            qc_type,
                            var_before = c("intensity"),
@@ -32,6 +32,7 @@ qc_plot_normalization_cv <- function(data,
                            scale_factor = 1,
                            font_base_size = 8) {
 
+  check_data(data)
   var_before <- str_remove(var_before, "feature_")
   rlang::arg_match(var_before, c("intensity", "norm_intensity", "conc"))
 
@@ -77,7 +78,7 @@ qc_plot_normalization_cv <- function(data,
 #' @export
 
 
-qc_plot_x_vs_y <- function(data,
+qc_plot_x_vs_y <- function(data = NULL,
                         filter_data,
                         x_variable,
                         y_variable,
@@ -91,6 +92,7 @@ qc_plot_x_vs_y <- function(data,
                         scale_factor = 1,
                         font_base_size = 8) {
 
+  check_data(data)
 
   # Prepare data
   if(nrow(data@metrics_qc) == 0) {

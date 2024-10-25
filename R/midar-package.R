@@ -3,7 +3,6 @@
 
 ## usethis namespace: start
 #' @importFrom rlang .data ensym sym := arg_match is_na are_na caller_env
-#' @importFrom ggh4x facet_wrap2
 #' @importFrom glue glue
 #' @importFrom ggplot2 ggplot aes Stat unit geom_point geom_line geom_abline margin coord_flip geom_text geom_bar geom_segment scale_y_discrete scale_x_discrete scale_y_log10 xlab ylab vars theme facet_wrap position_jitter scale_color_manual labs scale_fill_manual theme_light geom_vline geom_rect geom_vline aes_string scale_fill_manual scale_shape_manual expand_limits geom_smooth geom_hline scale_y_continuous element_blank element_text theme_bw stat_ellipse element_rect element_line expansion scale_x_continuous geom_boxplot ggtitle position_dodge
 #' @importFrom tidyselect vars_select_helpers everything starts_with
@@ -11,11 +10,9 @@
 #' @importFrom stringr str_remove str_replace str_replace_all str_detect str_trim str_extract str_squish fixed
 #' @importFrom tibble column_to_rownames as_tibble tibble
 #' @importFrom tidyr unite drop_na pivot_wider nest unnest replace_na
-#' @importFrom grid gpar
 #' @importFrom methods is validObject
 #' @importFrom purrr map_dfr map
 #' @importFrom stats as.formula lm median na.exclude sd quantile na.omit setNames p.adjust t.test IQR dnorm mad reorder prcomp
-#' @importFrom ggpmisc stat_poly_line stat_poly_eq
 #' @importFrom cli cli_abort cli_alert_success cli_alert_warning cli_alert_info cli_alert_danger cli_alert col_green col_red col_yellow
 #' @importFrom assertr chain_start chain_end verify assert has_all_names in_set is_uniq not_na
 #' @importFrom fs is_dir path_tidy file_exists dir_ls

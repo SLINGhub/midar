@@ -4,7 +4,11 @@
 \alias{calc_quant_by_istd}
 \title{Calculate analyte concentrations}
 \usage{
-calc_quant_by_istd(data, error_missing_info = TRUE, ignore_unused_istds = TRUE)
+calc_quant_by_istd(
+  data = NULL,
+  error_missing_info = TRUE,
+  ignore_unused_istds = TRUE
+)
 }
 \arguments{
 \item{data}{MidarExperiment object}

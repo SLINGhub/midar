@@ -5,7 +5,7 @@
 \title{Comparison of CV values before and after normalization}
 \usage{
 qc_plot_normalization_cv(
-  data,
+  data = NULL,
   filter_data,
   qc_type,
   var_before = c("intensity"),

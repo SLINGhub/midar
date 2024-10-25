@@ -5,7 +5,7 @@
 \title{Plot summary of feature QC filtering}
 \usage{
 qc_plot_summary(
-  data,
+  data = NULL,
   include_qualifier = FALSE,
   include_istd = FALSE,
   with_venn_diag = TRUE,

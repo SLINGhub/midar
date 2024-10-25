@@ -4,7 +4,7 @@
 \alias{metadata_from_data}
 \title{Retrieve available metadata from imported analysis data}
 \usage{
-metadata_from_data(data, qc_type_field = "qc_type")
+metadata_from_data(data = NULL, qc_type_field = "qc_type")
 }
 \arguments{
 \item{data}{MidarExperiment object}

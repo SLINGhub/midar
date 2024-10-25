@@ -4,7 +4,7 @@
 \alias{get_batch_boundaries}
 \title{Get the start and end analysis numbers of specified batches}
 \usage{
-get_batch_boundaries(data, batch_ids = NULL)
+get_batch_boundaries(data = NULL, batch_ids = NULL)
 }
 \arguments{
 \item{data}{MidarExperiment object}

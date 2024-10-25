@@ -5,7 +5,7 @@
 \title{Import metadata from the midar template (.XLM) and associates it with the analysis data}
 \usage{
 metadata_import_midarxlm(
-  data,
+  data = NULL,
   path,
   excl_unannotated_analyses = FALSE,
   ignore_warnings = FALSE

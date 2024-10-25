@@ -4,11 +4,10 @@
 #' @param data MidarExperiment object
 #' @param qc_type_field Column name in imported raw data file representing the `qc_type`
 #' @return MidarExperiment object
-#' @export
 #'
 
-metadata_from_data<- function(data, qc_type_field = "qc_type") {
-
+metadata_from_data<- function(data = NULL, qc_type_field = "qc_type") {
+  check_data(data)
   # get analysis metadata
    annot_analyses <- data@dataset_orig |>
     dplyr::select("analysis_id", dplyr::any_of(c(qc_type_field, "batch_id"))) |>
@@ -24,7 +23,7 @@ metadata_from_data<- function(data, qc_type_field = "qc_type") {
     dplyr::bind_rows(pkg.env$table_templates$annot_features_template)
 
   # check and add metadata
-  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
+  metadata <- metadata_assert(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
   data <- add_metadata(data = data, metadata = metadata, excl_unannotated_analyses = FALSE)
   data <- link_data_metadata(data)
 
@@ -60,10 +59,11 @@ get_metadata_batches <- function(annot_analyses){
 #' @export
 #'
 
-metadata_import_midarxlm<- function(data, path,  excl_unannotated_analyses = FALSE, ignore_warnings = FALSE) {
+metadata_import_midarxlm<- function(data = NULL, path,  excl_unannotated_analyses = FALSE, ignore_warnings = FALSE) {
+  check_data(data)
   metadata <- read_metadata_midarxlm(path)
 
-  metadata  <- assert_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
+  metadata  <- metadata_assert(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
   data  <- add_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
   data <- link_data_metadata(data)
 }
@@ -131,8 +131,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 # Verify/assert metadata consistency with analysis data
 
 #TODO: align with metadata assertions and when it is check_integrity called
- assert_metadata <- function(data, metadata, excl_unannotated_analyses, ignore_warnings) {
-
+ metadata_assert <- function(data = NULL, metadata, excl_unannotated_analyses, ignore_warnings) {
+   check_data(data)
    #Note: to check for multiple missing columns defects, first each column will be check
    # for presence and error is raised for reporting, then a defect is raised to
    # disable further check, but without reporting it (using flag "DX")
@@ -253,8 +253,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
  #'
 
 # Add verified metadata to the MidarExperiment object
-add_metadata <- function(data, metadata, excl_unannotated_analyses = FALSE) {
-
+add_metadata <- function(data = NULL, metadata, excl_unannotated_analyses = FALSE) {
+  check_data(data)
   # ANALYSES METADATA ====================
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
     metadata$annot_analyses  <- metadata$annot_analyses  |>

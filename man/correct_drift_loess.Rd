@@ -5,7 +5,7 @@
 \title{Drift Correction by LOESS Smoothing}
 \usage{
 correct_drift_loess(
-  data,
+  data = NULL,
   qc_types,
   within_batch = TRUE,
   span = 0.75,

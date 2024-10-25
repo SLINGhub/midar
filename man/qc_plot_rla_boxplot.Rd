@@ -5,7 +5,7 @@
 \title{RLA (Relative Log Abundance) plot}
 \usage{
 qc_plot_rla_boxplot(
-  data,
+  data = NULL,
   rla_type_batch = c("within", "across"),
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm"),

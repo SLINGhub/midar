@@ -4,7 +4,7 @@
 \alias{set_analysis_order}
 \title{Set the analysis order}
 \usage{
-set_analysis_order(data, analysis_sequence = "default")
+set_analysis_order(data = NULL, analysis_sequence = "default")
 }
 \arguments{
 \item{data}{MidarExperiment object}

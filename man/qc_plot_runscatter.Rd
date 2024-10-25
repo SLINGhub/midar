@@ -5,7 +5,7 @@
 \title{RunScatter plot}
 \usage{
 qc_plot_runscatter(
-  data,
+  data = NULL,
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm"),
   filter_data = FALSE,

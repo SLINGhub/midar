@@ -178,11 +178,12 @@ fun_loess <- function(tbl, qc_types,...) {
 #' @param ... Parameters specific for the smoothing function
 #' @return MidarExperiment object
 #' @export
-corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
+corr_drift_fun <- function(data = NULL, smooth_fun, qc_types, calc_log_transform = TRUE, within_batch, apply_conditionally, apply_conditionally_per_batch = TRUE,
                            max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, ignore_istd = TRUE, feature_list = NULL,
                            recalc_trend_after = FALSE, show_progress = TRUE, ...) {
 
-  # Clear all previous calculations
+  check_data(data)
+   # Clear all previous calculations
   data@dataset <- data@dataset |> select(-any_of(c("CURVE_y_predicted", "y_fit", "y_fit_after", "y_predicted_median",
                                                    "CONC_DRIFT_ADJ", "cv_raw_spl", "cv_adj_spl", "drift_correct",
                                                    "fit_error", "feature_conc_adj")))
@@ -451,7 +452,7 @@ corr_drift_fun <- function(data, smooth_fun, qc_types, calc_log_transform = TRUE
 #' Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H (2020). MRMkit: Automated Data Processing for Large-Scale Targeted Metabolomics Analysis. *Analytical Chemistry*, 92(20), 13677–13682. \url{https://doi.org/10.1021/acs.analchem.0c03060}
 
 #' @export
-correct_drift_gaussiankernel <- function(data,
+correct_drift_gaussiankernel <- function(data = NULL,
                                       qc_types,
                                       batch_wise = TRUE,
                                       kernel_size,
@@ -469,6 +470,8 @@ correct_drift_gaussiankernel <- function(data,
                                       use_uncorrected_if_fail = FALSE,
                                       show_progress = TRUE
 ) {
+
+  check_data(data)
 
   corr_drift_fun(
     data = data,
@@ -515,8 +518,9 @@ correct_drift_gaussiankernel <- function(data,
 #' @param extrapolate Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.
 #' @return MidarExperiment object
 #' @export
-correct_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75, apply_conditionally = FALSE, apply_conditionally_per_batch = TRUE,
+correct_drift_loess <- function(data = NULL, qc_types, within_batch = TRUE, span = 0.75, apply_conditionally = FALSE, apply_conditionally_per_batch = TRUE,
                              calc_log_transform = TRUE,  feature_list = NULL,ignore_istd = TRUE,  max_cv_ratio_before_after = 1, use_uncorrected_if_fail = TRUE, extrapolate = FALSE) {
+  check_data(data)
   corr_drift_fun(
     data = data, smooth_fun = "fun_loess", qc_types = qc_types, within_batch = within_batch, apply_conditionally = apply_conditionally, apply_conditionally_per_batch = apply_conditionally_per_batch,
     calc_log_transform = calc_log_transform, feature_list = feature_list, ignore_istd = ignore_istd, max_cv_ratio_before_after = max_cv_ratio_before_after, use_uncorrected_if_fail = use_uncorrected_if_fail, extrapolate = extrapolate,  span_width = span
@@ -541,8 +545,8 @@ correct_drift_loess <- function(data, qc_types, within_batch = TRUE, span = 0.75
 #'
 #' @return MidarExperiment object
 #' @export
-correct_batch_centering <- function(data, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
-
+correct_batch_centering <- function(data = NULL, qc_types, correct_location = TRUE, correct_scale = FALSE, overwrite = TRUE, calc_log_transform = TRUE, ...) {
+  check_data(data)
   ds <- data@dataset |> select(any_of(c("analysis_id", "feature_id", "qc_type", "batch_id", "y_fit_after", "feature_conc")))
   nbatches <- length(unique(ds$batch_id))
   if(nbatches < 2) {

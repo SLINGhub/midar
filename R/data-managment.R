@@ -73,7 +73,8 @@ check_var_in_dataset <- function(table, variable) {
 #' @param batch_ids A vector with one or two elements: the first and/or last batch ID. If NULL or invalid, the function will abort.
 #' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).
 #' @export
-get_batch_boundaries <- function(data, batch_ids = NULL) {
+get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
+  check_data(data)
   if (nrow(data@annot_batches) == 0) {
     cli::cli_abort("No batches defined in the dataset.")
   }
@@ -128,7 +129,8 @@ get_batch_boundaries <- function(data, batch_ids = NULL) {
 #' @export
 
 #c("timestamp", "resultfile", "metadata")
-set_analysis_order <- function(data, analysis_sequence = "default"){
+set_analysis_order <- function(data = NULL, analysis_sequence = "default"){
+  check_data(data)
 
   analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
 
@@ -186,7 +188,8 @@ set_analysis_order <- function(data, analysis_sequence = "default"){
 # Link DATA with METADATA and create DATASET table. =================
 ## - Only valid analyses and features will be added
 ## - Only key information will be added
-link_data_metadata <- function(data, minimal_info = TRUE){
+link_data_metadata <- function(data = NULL, minimal_info = TRUE){
+  check_data(data)
   data@dataset <- data@dataset_orig |>
     select(
       "analysis_id",
@@ -263,7 +266,8 @@ link_data_metadata <- function(data, minimal_info = TRUE){
 #' @return MidarExperiment object
 #' @export
 
-data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, warnings = TRUE, ...){
+data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, warnings = TRUE, ...){
+  check_data(data)
 
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
@@ -311,8 +315,8 @@ data_set_intensity_var <- function(data, variable_name, auto_select = FALSE, war
 #' @return `MidarExperiment` object
 #' @export
 
-data_exclude_analyses <- function(data, analyses_exlude, overwrite ){
-
+data_exclude_analyses <- function(data = NULL, analyses_exlude, overwrite ){
+  check_data(data)
   if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
     if(!overwrite){
       cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
@@ -352,7 +356,8 @@ data_exclude_analyses <- function(data, analyses_exlude, overwrite ){
 #' @return `MidarExperiment` object
 #' @export
 
-data_exclude_features <- function(data, features_exlude, overwrite ){
+data_exclude_features <- function(data = NULL, features_exlude, overwrite ){
+  check_data(data)
 
   if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
     if(!overwrite){

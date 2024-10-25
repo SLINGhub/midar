@@ -118,7 +118,7 @@ FacetEqualWrap <- ggplot2::ggproto(
     }
   }
 )
-#' @importFrom ggplot2 ggproto
+
 facet_wrap_equal <- function(...) {
   # take advantage of the sanitizing that happens in facet_wrap
   facet_super <- facet_wrap(...)

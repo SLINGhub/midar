@@ -5,7 +5,7 @@
 \title{Set default variable to be used as feature raw signal value}
 \usage{
 data_set_intensity_var(
-  data,
+  data = NULL,
   variable_name,
   auto_select = FALSE,
   warnings = TRUE,

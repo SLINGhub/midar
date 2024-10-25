@@ -4,7 +4,7 @@
 \alias{data_exclude_analyses}
 \title{@title Exclude analyses from the dataset}
 \usage{
-data_exclude_analyses(data, analyses_exlude, overwrite)
+data_exclude_analyses(data = NULL, analyses_exlude, overwrite)
 }
 \arguments{
 \item{data}{MidarExperiment object}

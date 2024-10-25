@@ -5,7 +5,7 @@
 \title{Manual correction for interference contributed by another feature}
 \usage{
 correct_interference_manually(
-  data,
+  data = NULL,
   variable,
   feature,
   interfering_feature,

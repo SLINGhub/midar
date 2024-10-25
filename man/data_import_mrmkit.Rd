@@ -4,7 +4,7 @@
 \alias{data_import_mrmkit}
 \title{Imports MRMkit peak integration results}
 \usage{
-data_import_mrmkit(data, path, use_metadata, silent = FALSE)
+data_import_mrmkit(data = NULL, path, use_metadata, silent = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}

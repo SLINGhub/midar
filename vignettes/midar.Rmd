@@ -1,7 +1,12 @@
 ---
-title: "Getting Started"
+title: "Getting Started with MiDAR"
+author: "Bo Burla"
+date: "`r Sys.Date()`"
+
 output: 
   rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
     fig_width: 6
     fig_height: 4
 vignette: >
@@ -10,7 +15,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r pkgs, include=FALSE}
+library(midar)
 knitr::opts_chunk$set(
   collapse = TRUE,
   warning = FALSE,
@@ -29,7 +35,7 @@ Datasets and processing steps are tracked, and can be saved as `MiDAR` object (R
 Below is example of a simple data processing workflow, starting with the peak integration results from `MRMkit` ([https://github.com/MRMkit](https://github.com/MRMkit/MRMkit))
 
 ```{r}
-library(midar)
+
 
 # Get paths of example files included with this package
 file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
@@ -38,22 +44,24 @@ file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::data_import_mrmkit(data = mexp, path = file_path,use_metadata = TRUE)
+mexp <- midar::data_import_mrmkit(data = mexp, 
+                                  path = file_path, 
+                                  use_metadata = TRUE)
 
-# Normalize and quantitate each feature by internal standards
-#mexp <- calc_normalize_by_istd(mexp)
-
-# Get QC metrics for each feature
-#mexp <- qc_calc_metrics(mexp)
-
-# Filter features according to QC criteria
-#mexp <- qc_apply_feature_filter(
-#  data = mexp, 
-#  missing.normintensity.spl.prop.max = 0.2,
-#  cv.conc.bqc.max = 30,
-#  signalblank.median.pblk.min = 3,
-#  qualifier.include = TRUE, 
-#  istd.include = FALSE
+# # Normalize and quantitate each feature by internal standards
+# mexp <- calc_normalize_by_istd(mexp)
+# 
+# # Get QC metrics for each feature
+# mexp <- qc_calc_metrics(mexp)
+# 
+# # Filter features according to QC criteria
+# mexp <- qc_apply_feature_filter(
+#   data = mexp, 
+#   missing.normintensity.spl.prop.max = 0.2,
+#   cv.conc.bqc.max = 30,
+#   signalblank.median.pblk.min = 3,
+#   qualifier.include = TRUE, 
+#   istd.include = FALSE
 #)
 ```
 

@@ -16,7 +16,7 @@
 #' @return ggplot object
 #' @export
 
-qc_plot_runsequence <- function(data,
+qc_plot_runsequence <- function(data = NULL,
                              qc_types = NA,
                              show_batches = TRUE,
                              show_timestamp = FALSE,
@@ -29,6 +29,8 @@ qc_plot_runsequence <- function(data,
                              scale_factor = 1,
                              show_outlier = TRUE,
                              base_font_size = 8) {
+
+  check_data(data)
 
   # Extract columns needed for plotting
   d_filt <- data$dataset |>
@@ -207,11 +209,12 @@ qc_plot_runsequence <- function(data,
 #' @param return_plot_list return list with plots
 #' @param show_gridlines show x and y major gridlines
 #' @param show_progress show progress bar
+# #' @param silent suppress messages
 #' @return A list of ggplot2 plots or NULL
 
 #' @export
 
-qc_plot_runscatter <- function(data,
+qc_plot_runscatter <- function(data = NULL,
                             variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
                             filter_data = FALSE,
                             qc_types = NA,
@@ -257,6 +260,7 @@ qc_plot_runscatter <- function(data,
                             show_gridlines = FALSE,
                             show_progress = FALSE) {
 
+  check_data(data)
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   if (show_trend) {
@@ -396,7 +400,7 @@ qc_plot_runscatter <- function(data,
   if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
   #if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
 
-  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
+  cat(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
   if(show_progress) pb <- txtProgressBar( min = 0, max = max(page_range), width = 50, style = 3)
 
    p_list <- list()  # p_list <- vector("list", length(page_range))
@@ -677,7 +681,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 # TODO: Add minor ticks to x-axis
 qc_plot_rla_boxplot <- function(
-                                data,
+                                data = NULL,
                                 rla_type_batch = c("within", "across"),
                                 variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
                                 filter_data = FALSE,
@@ -697,6 +701,7 @@ qc_plot_rla_boxplot <- function(
                                 linewidth = 0.2,
                                 base_font_size = 8,
                                 relative_log_abundances = TRUE) {
+  check_data(data)
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   # Check if selected variable is valid
