@@ -179,7 +179,7 @@ set_analysis_order <- function(data = NULL, analysis_sequence = "default"){
 #   dplyr::inner_join(
 #     metadata$annot_features |>
 #       filter(.data$valid_feature) |>
-#       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "norm_istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "table_templates", "interference_feature_id", "interference_proportion"))),
+#       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "table_templates", "interference_feature_id", "interference_proportion"))),
 #     by = c("feature_id"), keep = FALSE
 #   )
 
@@ -348,6 +348,23 @@ data_exclude_analyses <- function(data = NULL, analyses_exlude, overwrite ){
   data
 }
 
+
+
+#' @title Get the annotated or the originally imported analytical data
+#' @param data MidarExperiment object
+#' @param original Boolean indicating whether to return the original imported data (`TRUE`) or the annotated data (`FALSE`)
+#' @param overwrite If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
+#' @return A tibble with the analytical data in the long format
+#' @export
+
+data_get_analyticaldata <- function(data = NULL, original = FALSE){
+  check_data(data)
+  if (original) {
+    return(data@dataset_orig)
+  } else {
+    return(data@dataset)
+  }
+}
 
 #' @title Exclude features from the dataset
 #' @param data MidarExperiment object
