@@ -94,7 +94,7 @@ fun_gauss.kernel.smooth = function(tbl, qc_types, ...) {
 #' @param qc_types QC types used for the smoothing (fit) by loess
 #' @param ... Additional parameters forwarded to KernSmooth::locpoly
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
-
+#' @noRd
 fun_gaussiankernel_old <- function(tbl, qc_types, ...) {
   arg <- list(...)
 
@@ -189,7 +189,7 @@ corr_drift_fun <- function(data = NULL, smooth_fun, qc_types, calc_log_transform
                                                    "fit_error", "feature_conc_adj")))
 
   if(!data@is_quantitated)
-    cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `calc_quant_by_istd`")))
+    cli_abort(col_red(glue::glue("Drift correction currently only implemented for concentration values. Please processes first with `calc_quantify_by_istd`")))
 
 
   if(data@is_drift_corrected){
