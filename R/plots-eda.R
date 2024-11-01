@@ -14,6 +14,7 @@
 #' @param squared make plot a square
 #' @param axistick axis ticks
 #' @return tibble with p values, fdr and log2FC
+#' @noRd
 
 volcano_plot <- function(d_FC, p_adjust, sig_FC_min, sig_p_value_min, symmetric_x, x_min, x_max, point_size, point_transparency, scale_factor, scale_factor_species_label, squared = TRUE, axistick = 1) {
   if (p_adjust) {
