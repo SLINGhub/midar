@@ -1,0 +1,88 @@
+---
+title: "Importing analytical data"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: postprocessing and quality control of small molecule mass spectrometry data 
+vignette: >
+  %\VignetteIndexEntry{Importing analytical data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+Analytical data, i.e. preprocessed data from mass spectrometry
+experiments, can be imported from different sources.
+
+Data files present in a folder can also be imported and merged as well.
+This can be useful when the raw data processing is broken down in
+batches resulting in separate result files.
+
+### Data Sources
+
+Following formats are currently supported:
+
+| Source | MiDAR function | Details | File |
+|------------------|------------------|------------------|------------------|
+| Agilent MassHunter | `data_import_massshunter()` | Flat and nested tables from MassHunter Quant. | .csv |
+| MRMkit | `data_import_mrmkit()` | Long format output format | .tsv |
+| Plain wide CSV | `data_import_table()` | Samples/analyses as rows and features as columns. Can contain columns specific sample annotations. | .csv |
+
+### Metadata within analytical results
+
+When the analytical results contain metadata, such as sample and feature
+annotations, these can be imported as metadata in the `MidarExperiment`
+object as well. The imported metadata is checked for integrity and
+consistency (see TODO) and then added to the annotation tables within
+the `MidarExperiment`. To include available metadata, set the argument
+`use_metadata = TRUE`.
+
+### Importing and merging multiple files
+
+Multiple data files can be imported and merged simultaneously. Users can
+either provide a list of file paths or specify a folder path to import
+all data files within that directory. This support for multiple files is
+useful when raw data processing is divided into batches, leading to
+separate result files.
+
+The imported merged data is checked for consistency, ensuring that each
+analysis ID and feature ID pair is unique. This means that the same
+feature cannot be reported multiple times within the same analysis,
+which can happend for example if the same feature in the same sample was
+integrated in different raw data processing batches.
+
+### MRMkit Results
+
+```{r}
+library(midar)
+filepath <- system.file("extdata/sPerfect_MRMkit.tsv", package = "midar")
+myexp <- MidarExperiment()
+myexp <- data_import_mrmkit(myexp, filepath, use_metadata = TRUE)
+
+```
+
+### Agilent MassHunter Quantitative
+
+```{r}
+filepath <- system.file("extdata/Example_MHQuant_1.csv", package = "midar")
+myexp <- MidarExperiment()
+
+myexp <- data_import_masshunter(myexp, filepath, use_metadata = TRUE)
+```
+
+### Plain CSV files
+
+```{r}
+library(midar)
+myexp <- MidarExperiment()
+```

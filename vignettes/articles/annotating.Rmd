@@ -1,0 +1,98 @@
+---
+title: "MidarExperiment dataset object"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: postprocessing and quality control of small molecule mass spectrometry data 
+vignette: >
+  %\VignetteIndexEntry{MidarExperiment dataset object}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+The `MidarExperiment` object is the main **data container** used in the MiDAR workflow. It holds all the experimental and processed data and metadata, as well as details of the applied processing steps and the current status of the data.
+
+Most `MiDAR` functions take an MidarExperiment object as input. Functions that process or update the data return a modified `MidarExperiment` object as output, allowing it to be used in subsequent functions. You can create and process multiple `MidarExperiment` objects independently within the same script.
+
+### Creating a MidarExperiment object
+
+First the {midar} package is loaded and then we create a new `MidarExperiment` object.
+
+```{r}
+library(midar)
+myexp <- MidarExperiment()
+```
+
+At any time we can obtain a summary on the status of the `myexp` object using the `print()` function.
+
+```{r}
+print(myexp)
+```
+
+### Using MidarExperiment objects
+
+Most `MiDAR` functions take an MidarExperiment object as input. Functions that process or update the data return a modified `MidarExperiment` object as output, allowing it to be used in subsequent functions. 
+
+```{r}
+myexp <- MidarExperiment()
+myexp <- data_load_example(myexp, 1)
+myexp <- calc_normalize_by_istd(myexp)
+myexp <- report_write_csv(myexp, 
+                          "mydata.csv", 
+                          variable = "norm_intensity", 
+                          filter_data = FALSE)
+```
+
+You can also use `MidarExperiment` objects in an R pipe chain. This allows you to chain multiple functions together, making your code more streamlined and easier to read while clearly indicating the flow of your processing workflow.
+
+```{r}
+myexp <- myexp |> 
+  MidarExperiment() |>
+  data_load_example(1) |>
+  calc_normalize_by_istd() |>
+  report_write_csv(myexp, 
+                   "mydata.csv", 
+                   variable = "norm_intensity", 
+                   filter_data = FALSE)
+
+```
+
+
+Multiple `MidarExperiment` objects can be created and processed independently within the same script.
+
+```{r}
+myexp_panel_1 <- data_load_example(myexp, 1)
+myexp_panel_2 <- data_load_example(myexp, 1)
+```
+
+### Accessing data and metadata
+
+Use specific functions to access data and metadata stored in the `MidarExperiment` object, rather than directly accessing the object slots. TODO
+
+```{r}
+myexp <- MidarExperiment()
+myexp <- data_load_example(myexp, 1)
+print(midar::data_get_analyticaldata(myexp))
+```
+
+### Saving and Reading MidarExperiment objects
+
+```{r}
+myexp <- MidarExperiment()
+myexp <- data_load_example(myexp, 1)
+saveRDS(myexp, file = "myexp-midar.rds", compress = TRUE)
+my_saved_exp <- readRDS(file = "myexp-midar.rds")
+print(my_saved_exp)
+```
+

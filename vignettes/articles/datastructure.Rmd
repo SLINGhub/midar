@@ -1,0 +1,92 @@
+---
+title: "Data Structure of MiDAR"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{Data Structure of MiDAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, warning = FALSE,
+                      message = FALSE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+# Overview
+
+The **`MidarExperiment`** object organizes data into two main categories: `data`
+and `metadata.` The `data` category includes tables for raw data, processed
+data, and feature metrics, while the `metadata` category encompasses
+analysis annotations, feature annotations, internal standard annotations, batch
+annotations, response curve annotations, and calibration curves. Key
+identifiers, such as `analysis_id` for analyses and `feature_id` for
+features, are used to link data and metadata and are integral to the functions
+of the package.
+
+--------------------------------------------------------------------------------
+
+# MidarExperiment
+
+The `MidarExperiment` object serves as the primary data container in the MiDAR
+workflow. It encompasses all experimental and processed data, metadata, details
+of applied processing steps, and the current data status. All MiDAR functions
+for data processing, management, and visualization utilize `MidarExperiment`
+objects as both input and output.
+
+# Data and Metadata
+
+Data within the `MidarExperiment` is organized into
+[**data**]{style="color: blue;"} and [**metadata**]{style="color: blue;"}
+categories, each divided into tables (data.frames).
+
+## Data
+
+| Category | Table name (Slot) | Description |
+|---------------------------|---------------------------|---------------------------|
+| Raw Data | `dataset_orig` | Original imported analysis data. |
+| Processed Data | `dataset` | Annotated raw and processed data with available metadata. |
+| Feature metrics | `feature_metrics` | Information and various quality control metrics for features. |
+
+## Metadata
+
+| Data Type | Table name (Slot) | Description |
+|---------------------------|---------------------------|---------------------------|
+| Analyses Annotation | `annot_analyses` | Details sample categories, amounts, dilutions, processing batches, and other relevant information. |
+| Features Annotation | `annot_features` | Describes internal standards for normalization, response factors, feature classification, and specifies quantifiers and internal standards. |
+| Internal Standard | `annot_istd` | Concentrations of internal standards added to samples. |
+| Batches | `annot_batches` | Specifies the boundaries (start and end) for each defined batch. |
+| Response Curves | `annot_responsecurves` | Defines response curves, detailing sample amounts across different steps. |
+| Calibration Curves | `annot_standards` | Defines concentrations of unlabelled and labelled standards in calibration curves and other quality control materials. |
+
+# Key Data Identifiers
+
+The following key data fields are essential for organizing data within MiDAR.
+Many MiDAR functions depend on these fields, and exported data utilizes these
+identifier names.
+
+| Table | Field | Description |
+|--------------------|--------------------|----------------------------------------|
+| Analyses | [`analysis_id`]{style="color: blue;"} | Unique identifier for each analysis. |
+|  | `sample_category` | Describes the function of sample in the analysis, such as Blank, QC, or study sample. Must be a subset of SPL, TQC, BQC, PBLK, SBLK, UBLK, MBLK, |
+|  | `batch_id` | Unique identifier for each batch level. |
+| Features | [`feature_id`]{style="color: blue;"} | Unique identifier for each feature. |
+|  | `istd_feature_id` | The `feature_id` of the internal standard used to normalize raw intensities (each internal standard must be defined as a feature). |
+
+**Field Naming Considerations**
+
+Certain field names differ from conventional terminology
+(e.g., `analysis_id` instead of `sample_id`) to enhance clarity and prevent
+confusion with other identifiers. A sample may be measured multiple times across
+different methods or processing replicates, necessitating distinct identifiers.
+Similarly, analytes can be quantified through multiple transitions or adducts,
+which is why `feature_id` is designated as the primary identifier.

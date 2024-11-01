@@ -2,3 +2,141 @@ url: https://slinghub.github.io/midar/
 template:
   bootstrap: 5
   bootswatch: flatly
+navbar:
+  components:
+    home: ~
+    intro:
+      text: Overview
+      href: articles/overview.html
+    articles:
+      text: Articles
+      menu:
+      - text: '-------'
+      - text: Key Concepts
+      - text: Data Structures
+        href: articles/datastructure.html
+      - text: MidarExperiment
+        href: articles/midarexperiment.html
+      - text: '-------'
+      - text: Data and Metadata
+      - text: Importing
+        href: articles/dataimport.html
+      - text: Annotating (Metadata)
+        href: articles/annotating.html
+      - text: '-------'
+      - text: Batch/Drift Correction
+        href: articles/BatchDriftCorrect.html
+    news:
+      text: Updates
+      href: articles/updates.html
+
+reference:
+- title: MidarExperiment
+  description: |
+    The MidarExperiment S4 class is the central data object in the MiDAR workflow.
+  contents:
+  - MidarExperiment
+  - MidarExperiment-class
+  - analysis_type,MidarExperiment-method
+  - analysis_type<-,MidarExperiment-method
+  - analysis_type<-
+  - metadata_responsecurves,MidarExperiment-method
+  - metadata_responsecurves<-,MidarExperiment-method
+  - metadata_responsecurves<-
+  - analysis_type
+  - $,MidarExperiment-method
+  - set_analysis_order
+  - get_batch_boundaries
+  - data_exclude_analyses
+  - data_exclude_features
+  - combine_experiments
+  - data_get_analyticaldata
+  - data_set_intensity_var
+- title: Analysis data import
+  description: |
+    Analytical data from different sources can be imported into MidarExperiment objects.
+    Additionally, the file parser functions used by these import functions are available
+    for direct use.
+  contents:
+  - data_import_mrmkit
+  - data_import_masshunter
+  - data_import_csv
+  - parse_mrmkit_result
+  - parse_masshunter_csv
+  - parse_plain_csv
+- title: Metadata import
+  description: |
+    Metadata describing the analyses (samples), features (analytes), internal standards
+    and other relevant information can be imported from the MiDAR Excel template and
+    from CSV files.
+  contents:
+  - metadata_import_midarxlm
+  - metadata_import_fromdata
+  - metadata_responsecurves
+  - metadata_assert
+  - add_metadata
+- title: Lipidomics
+  description: |
+    Functions specific to lipidomics data processing and analysis.
+  contents: lipidomics_get_lipid_class_names
+- title: Data Processing
+  description: |
+    Data processing, including normalization for internal standards, sample amounts,
+    and quantification based on internal standards and external calibration curves.
+  contents:
+  - calc_normalize_by_istd
+  - calc_quantify_by_istd
+  - get_response_curve_stats
+- title: Data Correction and Adjustments
+  description: |
+    Further processing that includes drift correction, batch correction, and
+    isotopic interference correction can be applied using a specific set of functions.
+  contents:
+  - correct_drift_loess
+  - correct_drift_gaussiankernel
+  - corr_drift_fun
+  - fun_gauss.kernel.smooth
+  - fun_loess
+  - correct_batch_centering
+  - correct_interferences
+- title: Quality Control and Filtering
+  description: |
+    Calculation of QC metrics for features is used for feature filtering and reporting.
+  contents:
+  - qc_calc_metrics
+  - qc_apply_feature_filter
+  - qc_plot_summary_classes
+  - qc_plot_summary
+- title: Quality Control Plots
+  description: |
+    Plots to visualize run order effects, sample type characteristics,
+    and analytical performance share many arguments and are based on MidarExperiment
+    objects.
+  contents:
+  - qc_plot_runsequence
+  - qc_plot_runscatter
+  - qc_plot_rla_boxplot
+  - qc_plot_pca
+  - qc_plot_responsecurves
+  - qc_plot_normalization_cv
+  - qc_plot_x_vs_y
+- title: Data Reporting and Sharing
+  description: |
+    The datasets and the processing steps can be exported to different formats.
+  contents:
+  - report_write_xlsx
+  - report_write_csv
+  - report_write_qc_metrics
+- title: Datasets
+  description: |
+    Example datasets for testing and demonstration.
+  contents:
+  - dataset_plasma_lipidomics
+  - data_load_example
+- title: Helper functions
+  description: |
+    A collection of functions that may be useful in the context of mass spectrometry is also available.
+  contents:
+  - cv_log
+  - report_write_csv
+

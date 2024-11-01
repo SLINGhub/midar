@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with MiDAR"
+title: "Getting Started"
 author: "Bo Burla"
 date: "`r Sys.Date()`"
 
@@ -24,11 +24,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-`MiDAR` is an R package to reproducibly post-process, assess, quality control, and report small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
+`MiDAR` is an R package designed to assist with the reproducible post-processing, assessment, quality control, and reporting of small-molecule mass spectrometry (MS) datasets, such as those from targeted lipidomics and metabolomics experiments.
 
-`MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source software. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.
+This package is aimed at experimental lab scientists and analysts, enabling them to process their data with only basic coding or R skills required.
 
-Datasets and processing steps are tracked, and can be saved as `MiDAR` object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting of all data, metadata and applied data processing steps.
+MiDAR can handle different analytical designs and data types, offering functions to import data from various software platforms. It includes options for normalization, quantification, and drift/batch corrections, as well as quality control metrics, feature filtering, and visualizations. Functions to produce reports and data exports are also available, allowing users to share full datasets along with processing information.
+
+With MiDAR, both analytical and bioinformatics scientists can manage their mass spectrometry data more easily and independently, facilitating collaboration on datasets.
 
 ## Example Workflow
 
