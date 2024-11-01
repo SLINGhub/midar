@@ -1,4 +1,8 @@
-# MiDAR <img src="man/figures/logo.svg" align="right" height="139"/>
+---
+title: "MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data "
+---
+
+# MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
 
 <!-- badges: start -->
 
@@ -6,61 +10,49 @@
 
 <!-- badges: end -->
 
-> ### NOTE:
-> This version is under heavy development. Function and argument names may change, examples and Vignettes may not have been updated.
+MiDAR is an R package designed for reproducible post-processing, assessment, quality control, and reporting of small-molecule mass spectrometry (MS) datasets, including those from lipidomics and metabolomics. It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects. Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.
 
-`MiDAR` is an R package to reproducibly manage, post-process, visualize, apply quality control, and analyze small-molecule mass spectrometry (MS) datasets, e.g. from targeted lipidomics and metabolomics experiments.
+MiDAR is intended for both analytical and bioinformatics scientists. ItIts core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customizations and access to all data. With this approach, the package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.
 
-`MiDAR` is tailored to handle different analytical designs, data types and data processing strategies. As such, this package provides functions to import data files from from different commercial and open-source tools. Data processing functions include, internal standard and sample amount-based normalization, quantification, as well as drift and batch corrections. Quality control (QC) functions provide QC metrics and plots of raw and processed data, and QC-based feature filtering.  
-
-Datasets and processing steps are tracked, and can be saved as `MiDAR` S4 class object (RDS) files, Excel, PowerPoint and interactive HTML-based reports, enabling sharing and reporting the of all data, metadata and applied data processing steps.
-
+MiDAR emphasizes fully documented, reproducible data processing workflows and serves as a tool for creating automated data processing pipelines.
 
 ## Installation
 
-`{midar}` is currently only available via GitHub:
+In the console run:
 
 ``` r
 if (!require("pak")) install.packages("pak")
 pak::pkg_install("SLINGhub/midar")
 ```
 
-## Example
+## Example workflow
 
 ``` r
 library(midar)
 
-#' 
-#' mexp <- MidarExperiment()
-#' mexp <- 
-#' mexp
+# Create a MidarExperiment object
+myexp <- MidarExperiment()
 
-# Get paths of example files included with this package
-file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar", mustWork = TRUE)
-
-# Create a MidarExperiment object (S4)
-mexp <- MidarExperiment()
-
-# Load data and available metadata from MRMkit output file
-mexp <- data_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
+# Load data and available metadata
+myexp <- data_import_mrmkit(myexp, path = "data.tsv")
+myexp <- metadata_import_midarxlm(myexp, path = "metadata.csv")
 
 
 # Normalize and quantitate each feature by internal standards
-mexp <- calc_normalize_by_istd(mexp)
-mexp <- calc_quant_by_istd(mexp)
-
-# Get QC metrics for each feature
-mexp <- qc_calc_metrics(mexp)
+myexp <- calc_normalize_by_istd(myexp)
+myexp <- calc_quantify_by_istd(myexp)
 
 # Filter features according to QC criteria
-mexp <- qc_apply_feature_filter(data = mexp,
-                        min_cv_conc_bqc = 30,
-                        min_intensity_bqc = 100,
-                        min_signal_blank_ratio = 5,
-                        min_response_rsquare = 0.8,
-                        rqc_curve_used_for_filt = 1)
+mexp <- qc_apply_feature_filter(
+  data = mexp, 
+  cv.conc.bqc.max = 30,
+  signalblank.median.pblk.min = 3,
+)
+
+# Export concentration data
+myexp <- report_write_csv(
+  myexp, 
+  path = "mydata.csv", 
+  variable = "norm_intensity", 
+  filter_data = FALSE)
 ```
-
-## Contributor Code of Conduct
-
-Please note that the midar project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
