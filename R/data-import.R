@@ -18,17 +18,17 @@
 #' @examples
 #' file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_agilent(data = mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- data_import_masshunter(data = mexp, path = file_path, use_metadata = TRUE)
 #' mexp
 
 #' @export
 
-data_import_agilent <- function(data = NULL, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+data_import_masshunter <- function(data = NULL, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   check_data(data)
   if (file_format == "csv") {
     data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
     data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
-    if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
+    if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "sample_type")
     data
   } else {
     cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
@@ -62,7 +62,7 @@ data_import_mrmkit <- function(data = NULL, path, use_metadata, silent = FALSE) 
   data <- data_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
   data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
 
-  if (use_metadata) data <- metadata_from_data(data, qc_type_field = "sample_type")
+  if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "sample_type")
   data
 }
 
@@ -95,7 +95,7 @@ data_import_csv <- function(data = NULL, path, variable_name, analysis_id_col = 
   check_data(data)
   data <- data_import_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, use_metadata)
   data <- data_set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height", "feature_conc")
-  if (use_metadata) data <- metadata_from_data(data, qc_type_field = "qc_type")
+  if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "qc_type")
 
   data
 }
@@ -457,7 +457,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     "sample_type" = "sample_type",
     "batch_id" = "batch",
     "featurename" = "feature_name",
-    "norm_istd_feature_id" = "internal_standard",
+    "istd_feature_id" = "internal_standard",
     "feature_rt" = "rt_apex",
     "feature_area" = "area",
     #"feature_norm_intensity" = "area_normalized",
@@ -480,10 +480,10 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
   d_feature <- d_mrmkit_data |>
-    dplyr::select(c("featurename", "norm_istd_feature_id")) |>
+    dplyr::select(c("featurename", "istd_feature_id")) |>
     distinct() |>
     mutate(feature_id = stringr::str_squish(.data$featurename),
-           norm_istd_feature_id = stringr::str_squish(.data$norm_istd_feature_id))
+           istd_feature_id = stringr::str_squish(.data$istd_feature_id))
 
   # finalize data
   d_mrmkit_data <- d_mrmkit_data |>
@@ -491,11 +491,11 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     dplyr::mutate(dplyr::across(tidyselect::ends_with("_mz"), as.numeric)) |>
     dplyr::mutate(dplyr::across(tidyselect::ends_with("_energy"), as.numeric)) |>
     dplyr::mutate(integration_qualifier = FALSE) |>
-    select(-c("acquisition_time_stamp",  "norm_istd_feature_id", "batch_id")) |>
+    select(-c("acquisition_time_stamp",  "istd_feature_id", "batch_id")) |>
     left_join(d_sample, by = "raw_data_filename") |>
     left_join(d_feature, by = "featurename", keep = FALSE) |>
     select(-"featurename") |>
-    relocate("analysis_id", "raw_data_filename", "acquisition_time_stamp", "sample_type", "batch_id", "feature_id", "norm_istd_feature_id", "integration_qualifier")
+    relocate("analysis_id", "raw_data_filename", "acquisition_time_stamp", "sample_type", "batch_id", "feature_id", "istd_feature_id", "integration_qualifier")
 
   # if (!use_normalized_data) {
   #   #d_mrmkit_data <- d_mrmkit_data |> mutate(feature_norm_intensity = NA_real_)
@@ -617,8 +617,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @param silent Suppress messages
 
 #' @return A tibble in the long format
-
-#'
+#' @noRd
 read_data_table <- function(file, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
   value_type <- match.arg(value_type)
 
