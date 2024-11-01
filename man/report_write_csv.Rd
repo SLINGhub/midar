@@ -33,9 +33,6 @@ report_write_csv(
 
 \item{add_qctype}{Add the QC type as column}
 }
-\value{
-A tibble with the exported data
-}
 \description{
 Export any parameter to a wide-format table
 }
