@@ -1,10 +1,10 @@
 #' S4 Class Representing the MIDAR Dataset
 #'
 #' @description
-#' Core class to store raw and processed data, annotations and metadata.
 #'
-#' @details
-#' Provides also functions to validate data integrity, to perfom normalization and quantitation based on internal standards and to calculate the QC parameters of the experiment
+#' The `MidarExperiment` object is the core data structure utilized within the MiDAR workflow, encapsulating all relevant experimental data and metadata.
+#' It also includes processing results, details of the applied processing steps, and the current status of the data.
+#'
 #'
 #' @docType class
 #'
@@ -33,12 +33,14 @@
 #' @slot analyses_excluded Flag if outliers were excluded in the QC-filtered dataset
 #'
 #' @include midar-global-definitions.R
-
-#'
 #' @export
+#' @examples
 #'
+#' myexp <- MidarExperiment(title = "my_experiment")
+#' print(myexp)
 
 
+#' @importFrom methods setClass
 setClass("MidarExperiment",
   slots = c(
     title = "character",
@@ -169,11 +171,7 @@ check_integrity <- function(data = NULL, excl_unannotated_analyses) {
   }
 }
 
-##' @importFrom methods setValidity
-##'
-# methods::setValidity("MidarExperiment")
-
-
+#' @noRd
 get_status_flag <- function(x) {
   ifelse(x, {cli::col_green(cli::symbol$tick)}, {cli::col_red(cli::symbol$cross)})
   }
@@ -198,7 +196,7 @@ setMethod(
   signature = c("MidarExperiment"),
   definition = function(x, name) {
     # check for other struct slots
-    valid <- c("analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized")
+    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized")
     if (!name %in% valid) cli::cli_abort('"', name, '" is not valid for this object: ', class(x)[1])
     methods::slot(x, name)
   }
@@ -212,23 +210,21 @@ setMethod(
 #' a MidarExperiment object
 #'
 #' @param data MidarExperiment object
-#'
 #' @return silent on success, prints abort message on fail
-#'
+#' @noRd
 check_data <- function(data = NULL){
     # fail if data is NULL
   if(is.null(data)) {
       cli::cli_div(theme = list(span.emph = list(color = "#e81744")))
       cli::cli_abort(c("x" = "`data` cannot be {.emph NULL}, please use a {.emph MidarExperiment}"))
     }
-  if(is(data) != 'MidarExperiment') {
+  if(is(data)[1] != 'MidarExperiment') {
     cli::cli_div(theme = list(span.emph = list(color = "#e81744")))
     cli::cli_abort(c("x" = "`data` must be a {.emph MidarExperiment}"))
   }
 }
 
 setMethod("show", "MidarExperiment", function(object) {
-
 
   cli::cli_par()
   cli::cli_h1(is(object)[[1]])
@@ -241,7 +237,7 @@ setMethod("show", "MidarExperiment", function(object) {
 
   cli::cli_h2("Annotated Raw Data")
   cli::cli_ul(id = "A")
-  cli::cli_li("Samples: {length(unique(object@dataset$analysis_id))}")
+  cli::cli_li("Samples: {nrow(unique(object@dataset$analysis_id))}")
   cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
   cli::cli_li("Intensity Variable: {object@feature_intensity_var}")
   cli::cli_end(id = "A")
