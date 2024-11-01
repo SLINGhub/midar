@@ -67,10 +67,12 @@ Collate:
     'correct-drift-batch.R'
     'correct-isotope.R'
     'data-combine-datasets.R'
+    'data-example.R'
     'data-export.R'
     'data-import.R'
     'data-managment.R'
     'data-outlier.R'
+    'datasets.R'
     'functions-math.R'
     'functions-stats.R'
     'helper.R'
@@ -87,3 +89,4 @@ Collate:
     'qc-filtering.R'
     'tibble-classes.R'
     'utils.R'
+LazyData: true
