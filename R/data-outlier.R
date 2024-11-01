@@ -14,6 +14,7 @@
 #' @param log_transform Log-transform data for outlier detection
 #' @param print_outliers Print analysis_id of outliers to the console
 #' @return MidarExperiment object
+#' @noRd
 
 
 analysis_outlier_detection <- function(data = NULL,
@@ -86,18 +87,3 @@ analysis_outlier_detection <- function(data = NULL,
   data
 }
 
-#' Clear all analysis/sample outlier classifications
-#'
-#' @description MidarExperiment object
-#' @param data  description
-#' @return MidarExperiment object
-#'
-clear_outlier <- function(data = NULL) {
-  check_data(data)
-  data@dataset$outlier_technical <- FALSE
-  data@dataset$outlier_technical_note <- NA_character_
-  data@has_outliers_tech <- FALSE
-  data@analyses_excluded <- FALSE
-  cli_alert_success(col_green(glue::glue("All analysis/sample outlier classifications were cleared. Please reapply 'qc_apply_feature_filter()'.")))
-  data
-}
