@@ -11,7 +11,7 @@
 #' @param new_feature_id Optional. New name of corrected feature. If empty then feature name will not change.
 #' @param variable Default: `feature_intensity`. Name of Variable to be corrected.
 #' @return MidarExperiment object
-
+#' @noRd
 
 #  Example:  mexp <- correct_interference_manually(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
