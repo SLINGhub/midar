@@ -45,17 +45,22 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
 
   # Check if all ISTDs are defined as distinct feature in the feature metadata
-  d_annot <- data@annot_features |> select("feature_id", "norm_istd_feature_id")
-  all_istds <- unique(d_annot$norm_istd_feature_id)
+  d_annot <- data@annot_features |> select("feature_id", "istd_feature_id")
+  all_istds <- unique(d_annot$istd_feature_id)
 
-  istd_not_defined <- setdiff(all_istds, d_annot$feature_id)
-  if (length(istd_not_defined) > 0) {
-    cli::cli_abort(cli::col_red("All ISTDs must be defined as feature in the feature metadata, {nrow(istd_not_defined)} ISTD(s) were not. Please check metadata."))
+
+  if(!all(is.na(all_istds))){
+    istd_not_defined <- setdiff(all_istds, d_annot$feature_id)
+    if (length(istd_not_defined) > 0) {
+      cli::cli_abort(cli::col_red("All ISTDs must be defined as feature in the feature metadata, {nrow(istd_not_defined)} ISTD(s) were not. Please check metadata."))
+    }
+  } else {
+    cli::cli_abort(cli::col_red("No ISTDs defined in metadata. Please add feature metadata with ISTDs defined."))
   }
 
   # check if ISTDs are defined for all features (except ISTDs that are not defined for themselves)
   features_no_istd <- data@annot_features |>
-    filter(.data$valid_feature, !.data$is_istd, is.na(.data$norm_istd_feature_id)) |>
+    filter(.data$valid_feature, !.data$is_istd, is.na(.data$istd_feature_id)) |>
     dplyr::semi_join(data@dataset, by = c("feature_id"))
 
   if (nrow(features_no_istd) > 0) {
@@ -71,7 +76,7 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
   # Normalize intensities
   d_temp <- d_temp |>
-    dplyr::group_by(.data$norm_istd_feature_id, .data$analysis_id) |>
+    dplyr::group_by(.data$istd_feature_id, .data$analysis_id) |>
     dplyr::mutate(feature_norm_intensity = .data$feature_intensity / .data$feature_intensity[.data$is_istd]) |>
     dplyr::ungroup()
 
@@ -111,7 +116,7 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 #' @param ignore_unused_istds Ignore ISTDs with missing concentrations that are not used in any feature quantitation. Default: `FALSE`.
 #' @return MidarExperiment object
 #' @export
-calc_quant_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
+calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
 
   check_data(data)
 
