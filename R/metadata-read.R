@@ -1,12 +1,12 @@
 
 #' @title Retrieve available metadata from imported analysis data
-#' @description Available information will depend on the format of imported raw analysis data. See [data_import_agilent()] and [data_import_mrmkit()]
+#' @description Available information will depend on the format of imported raw analysis data. See [data_import_masshunter()] and [data_import_mrmkit()]
 #' @param data MidarExperiment object
 #' @param qc_type_field Column name in imported raw data file representing the `qc_type`
 #' @return MidarExperiment object
 #'
 
-metadata_from_data<- function(data = NULL, qc_type_field = "qc_type") {
+metadata_import_fromdata<- function(data = NULL, qc_type_field = "qc_type") {
   check_data(data)
   # get analysis metadata
    annot_analyses <- data@dataset_orig |>
@@ -18,7 +18,7 @@ metadata_from_data<- function(data = NULL, qc_type_field = "qc_type") {
   # get feature metadata
 
   annot_features <- data@dataset_orig |>
-    dplyr::select("feature_id", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "norm_istd_feature"))) |>
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "istd_feature_id"))) |>
     dplyr::distinct() |>
     dplyr::bind_rows(pkg.env$table_templates$annot_features_template)
 
@@ -33,6 +33,7 @@ metadata_from_data<- function(data = NULL, qc_type_field = "qc_type") {
 # Retrieve batch info from analysis metadata
 
 get_metadata_batches <- function(annot_analyses){
+
   annot_batches <- annot_analyses |>
     mutate(batch_no = dplyr::cur_group_id(), .by = c("batch_id"), .before = "batch_id") |>
     dplyr::group_by(.data$batch_no) |>
@@ -62,9 +63,8 @@ get_metadata_batches <- function(annot_analyses){
 metadata_import_midarxlm<- function(data = NULL, path,  excl_unannotated_analyses = FALSE, ignore_warnings = FALSE) {
   check_data(data)
   metadata <- read_metadata_midarxlm(path)
-
-  metadata  <- metadata_assert(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
-  data  <- add_metadata(data = data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
+  metadata  <- metadata_assert(data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
+  data  <- add_metadata(data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
   data <- link_data_metadata(data)
 }
 
@@ -137,6 +137,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
    # for presence and error is raised for reporting, then a defect is raised to
    # disable further check, but without reporting it (using flag "DX")
    # Columns with all values =  NA will be ignored
+
+
   # ANALYSES METADATA ====================
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
 
@@ -177,9 +179,9 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
     metadata$annot_features <- metadata$annot_features |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=FALSE, description = "E;Missing value(s);Features") |>
-      assertr::verify(has_any_name("feature_class","norm_istd_feature_id","quant_istd_feature_id","table_templates","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features") |>
+      assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","table_templates","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features") |>
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features") |>
-      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "norm_istd_feature_id", description = "E;ISTD(s) not defined as feature;Features")
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features")
 
       #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
       #assertr::assert(\(x) {any(metadata$annot_istd$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istd)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
@@ -249,8 +251,8 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
  #' @param metadata List of tibbles or data.frames containing analysis, feature, istd, response curve tables
  #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
  #' @return metadata list
- #'
- #'
+ #' @export
+
 
 # Add verified metadata to the MidarExperiment object
 add_metadata <- function(data = NULL, metadata, excl_unannotated_analyses = FALSE) {
@@ -282,6 +284,13 @@ add_metadata <- function(data = NULL, metadata, excl_unannotated_analyses = FALS
       add_missing_column(col_name = "is_istd", init_value = FALSE, make_lowercase = FALSE, all_na_replace = TRUE) |>
       add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE) |>
       add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
+
+    #TODO: move to add_metadata function
+    all_istds <- unique(metadata$annot_features$istd_feature_id) |> na.omit()
+
+    metadata$annot_features <- metadata$annot_features |>
+      mutate(is_istd = .data$feature_id %in% all_istds, .after = "feature_class")
+
     data@annot_features <- metadata$annot_features |>
       dplyr::bind_rows(pkg.env$table_templates$annot_features_template)
 
@@ -342,20 +351,25 @@ add_metadata <- function(data = NULL, metadata, excl_unannotated_analyses = FALS
 #' @importFrom dplyr select mutate filter group_by row_number
 #' @importFrom stringr regex
 #' @return A list with tibbles containing different metadata
+#' @noRd
 read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   metadata <- list()
 
+  w_xlm <- openxlsx2::wb_load(path)
+
   # ANALYSIS/SAMPLE annotation --------
-  #d_temp_analyses<- readxl::read_excel(path, sheet = "Analyses (Samples)", trim_ws = TRUE)
-  d_temp_analyses <- openxlsx2::read_xlsx(file = path,
+  d_temp_analyses <- openxlsx2::wb_to_df(w_xlm,
                               sheet = "Analyses (Samples)",
-                              skip_empty_rows = TRUE,
-                              skip_empty_cols = TRUE,
+                              skip_empty_rows = FALSE,
+                              skip_empty_cols = FALSE,
+                              skip_hidden_rows = FALSE,
+                              skip_hidden_cols = FALSE,
                               convert = TRUE,
                               col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
-    as_tibble()
+    as_tibble() |>
+    filter(!if_all(everything(), is.na))
 
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
@@ -408,15 +422,17 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   # FEATURE annotation  -------------------------
 
   # ToDo: Make note if feature names are not original
-  #d_temp_features <- readxl::read_excel(path, sheet = "Features (Analytes)", trim_ws = TRUE)
-  d_temp_features <- openxlsx2::read_xlsx(file = path,
+  d_temp_features <- openxlsx2::wb_to_df(file = w_xlm,
                                          sheet = "Features (Analytes)",
-                                         skip_empty_rows = TRUE,
-                                         skip_empty_cols = TRUE,
+                                         skip_empty_rows = FALSE,
+                                         skip_empty_cols = FALSE,
+                                         skip_hidden_rows = FALSE,
+                                         skip_hidden_cols = FALSE,
                                          convert = TRUE,
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
-    as_tibble()
+    as_tibble() |>
+    filter(!if_all(everything(), is.na))
 
   names(d_temp_features) <- tolower(names(d_temp_features))
 
@@ -439,7 +455,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       feature_id = stringr::str_squish(.data$feature_name),
       feature_label = stringr::str_squish(.data$new_feature_name),
       feature_class = stringr::str_squish(.data$feature_class),
-      norm_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
+      istd_feature_id = stringr::str_squish(.data$istd_feature_name),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
       is_quantifier = as.logical(case_match(tolower(.data$quantifier),
                                              "yes" ~ TRUE,
@@ -460,7 +476,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     dplyr::select(
       "feature_id",
       "feature_class",
-      "norm_istd_feature_id",
+      "istd_feature_id",
       "quant_istd_feature_id",
       table_templates = "response_factor",
       "is_quantifier",
@@ -469,10 +485,6 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       "interference_proportion",
       "remarks"
     )
-
-  all_istds <- unique(metadata$annot_features$quant_istd_feature_id) |> na.omit()
-  metadata$annot_features <- metadata$annot_features |>
-    mutate(is_istd = .data$feature_id %in% all_istds, .after = "feature_class")
 
 
   # Handle the non-mandatory field Valid_Analysis  TODO: still needed?
@@ -490,29 +502,27 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       cli::cli_abort("`Quantifier` is not defined for one or more features/analytes. Please check sheet 'Features (Analytes)'")
 
 
-
   # ISTD annotation -------------------------
 
-  # annot_istd <- readxl::read_excel(path,
-  #   sheet = "Internal Standards",
-  #   trim_ws = TRUE,
-  #   .name_repair = ~ if_else(nzchar(.x), .x, LETTERS[seq_along(.x)])
-  # )
-  #
-  annot_istd <- openxlsx2::read_xlsx(file = path,
+  annot_istd <- openxlsx2::wb_to_df(file = w_xlm,
                                          sheet = "Internal Standards",
                                          cols = c(1,2),
-                                         skip_empty_rows = TRUE,
-                                         skip_empty_cols = TRUE,
+                                         skip_empty_rows = FALSE,
+                                         skip_empty_cols = FALSE,
+                                         skip_hidden_rows = FALSE,
+                                         skip_hidden_cols = FALSE,
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
-    as_tibble()
+    as_tibble() |>
+    filter(!if_all(everything(), is.na))
 
   # Repair column names
   #names(annot_istd) <- ifelse(nzchar(names(annot_istd)), names(annot_istd), LETTERS[seq_along(names(annot_istd))])
 
   names(annot_istd) <- tolower(names(annot_istd))
   names(annot_istd)[1] <- "istd_feature_id"
+
+
 
   metadata$annot_istd <- annot_istd |>
     # dplyr::mutate(istd_compound_name = na_character_) |>
@@ -526,14 +536,16 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   # RESPONSE CURVE annotation -------------------------
 
-  #metadata_responsecurves <- readxl::read_excel(path, sheet = "Response Curves")
-    metadata_responsecurves <- openxlsx2::read_xlsx(file = path,
+    metadata_responsecurves <- openxlsx2::wb_to_df(file = w_xlm,
                                          sheet = "Response Curves",
-                                         skip_empty_rows = TRUE,
-                                         skip_empty_cols = TRUE,
+                                         skip_empty_rows = FALSE,
+                                         skip_empty_cols = FALSE,
+                                         skip_hidden_rows = FALSE,
+                                         skip_hidden_cols = FALSE,
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
-    as_tibble()
+    as_tibble() |>
+    filter(!if_all(everything(), is.na))
 
   names(metadata_responsecurves) <- tolower(names(metadata_responsecurves))
 
