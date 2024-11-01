@@ -2,12 +2,14 @@ pandoc: '3.2'
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
-  articles/01_Overview: 01_Overview.html
   articles/02_QualityControl: 02_QualityControl.html
+  articles/1_datastructure: 1_datastructure.html
+  articles/annotating: annotating.html
   articles/BatchDriftCorrect: BatchDriftCorrect.html
+  articles/importing: importing.html
   midar: midar.html
-  my-vignette: my-vignette.html
-last_built: 2024-10-24T15:54Z
+  articles/midarexperiment: midarexperiment.html
+last_built: 2024-10-28T07:01Z
 urls:
   reference: https://slinghub.github.io/midar/reference
   article: https://slinghub.github.io/midar/articles

@@ -5,10 +5,8 @@
 \alias{MidarExperiment-class}
 \title{S4 Class Representing the MIDAR Dataset}
 \description{
-Core class to store raw and processed data, annotations and metadata.
-}
-\details{
-Provides also functions to validate data integrity, to perfom normalization and quantitation based on internal standards and to calculate the QC parameters of the experiment
+The \code{MidarExperiment} object is the core data structure utilized within the MiDAR workflow, encapsulating all relevant experimental data and metadata.
+It also includes processing results, details of the applied processing steps, and the current status of the data.
 }
 \section{Slots}{
 
@@ -60,3 +58,8 @@ Provides also functions to validate data integrity, to perfom normalization and 
 \item{\code{analyses_excluded}}{Flag if outliers were excluded in the QC-filtered dataset}
 }}
 
+\examples{
+
+myexp <- MidarExperiment(title = "my_experiment")
+print(myexp)
+}
