@@ -127,7 +127,6 @@ report_write_xlsx <- function(data = NULL, path) {
 #' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
 #' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
 #' @param add_qctype Add the QC type as column
-#' @return A tibble with the exported data
 #' @export
 report_write_csv <- function(data = NULL,
                              path,
@@ -140,7 +139,7 @@ report_write_csv <- function(data = NULL,
                              ) {
   check_data(data)
   variable_strip <- str_remove(variable, "feature_")
-  rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable_strip, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
@@ -200,8 +199,6 @@ report_write_csv <- function(data = NULL,
   readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
   if(variable_strip ==  "conc") variable_strip <- "concentration"
   cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values of {nrow(ds)} analyses and {length(unique(dat_filt$feature_id))} features have been exported.")))
-
-  invisible(ds)
 }
 
 
