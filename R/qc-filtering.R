@@ -16,7 +16,7 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
         # All features defined in the metadata
       d_feature_info <- data@annot_features |>
-        select("valid_feature", "feature_id", "feature_class", "is_istd", "is_quantifier", "norm_istd_feature_id", "quant_istd_feature_id", "response_factor")
+        select("valid_feature", "feature_id", "feature_class", "is_istd", "is_quantifier", "istd_feature_id", "quant_istd_feature_id", "response_factor")
 
       # All features MS method parameters
       method_var <- c("method_precursor_mz", "method_product_mz", "method_collision_energy")
