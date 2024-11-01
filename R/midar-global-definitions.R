@@ -43,15 +43,17 @@ pkg.env$table_templates <- list(
     "feature_id" = character(),
     "feature_class" = character(),
     "is_istd" = logical(),
-    "norm_istd_feature_id" = character(),
+    "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
     "is_quantifier" = logical(),
     "valid_feature" = logical(),
     "response_factor" = numeric(),
+    "interference_feature_id" = character(),
+    "interference_proportion" = numeric(),
     "remarks" = character()
   ),
   annot_istd_template = tibble::tibble(
-    "norm_istd_feature_id" = character(),
+    "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
     "istd_conc_nmolar" = numeric()
   ),
