@@ -6,8 +6,8 @@ navbar:
   components:
     home: ~
     intro:
-      text: Overview
-      href: articles/overview.html
+      text: Get Started
+      href: articles/getstarted.html
     articles:
       text: Articles
       menu:
