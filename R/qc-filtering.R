@@ -61,10 +61,10 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
      d_stats_var_int <-  d_stats_var |>
         summarise(
           .by = grp,
-          intensity_min_SPL = min_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          intensity_max_SPL = max_val(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          intensity_min_BQC = min_val(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          intensity_min_TQC = min_val(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
+          intensity_min_SPL = safe_min(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          intensity_max_SPL = safe_max(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          intensity_min_BQC = safe_min(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
+          intensity_min_TQC = safe_min(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
           intensity_median_PBLK = median(.data$feature_intensity[.data$qc_type == "PBLK"], na.rm = TRUE),
           intensity_median_SPL = median(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
           intensity_median_BQC = median(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
@@ -169,9 +169,28 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
 
 get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE, limit_to_rqc = FALSE) {
   check_data(data)
-  get_lm_results <- function(x){
-    res <- lm(feature_intensity ~ relative_sample_amount, data = x, na.action = na.exclude)
-    return(list(feature_id = x$feature_id[1], rqc_series_id = x$rqc_series_id[1], r.squared = summary(res)$r.squared , relative_sample_amount = res$coefficients[[2]], intercept = res$coefficients[1]))
+  get_lm_results <- function(data){
+
+    dt <- data
+
+    # Scale to max x and max y (1 = max)
+    dt$x_scaled <- (dt$analyzed_amount) / (max(dt$analyzed_amount))
+    dt$y_scaled <- (dt$feature_intensity) / (max(dt$feature_intensity))
+    tryCatch(
+      {
+        res <- lm(y_scaled ~ x_scaled, data = dt, na.action = na.exclude)
+        r.squared <- summary(res)$r.squared
+        slope <- res$coefficients[[2]]
+        intercept <- res$coefficients[1]
+        return(list(feature_id = dt$feature_id[1], curve_id = dt$curve_id[1], r.squared = r.squared , slope = slope, intercept = intercept))
+
+      },
+      error = function(e) {
+        return(list(feature_id = dt$feature_id[1], curve_id = dt$curve_id[1], r.squared = NA_real_ , slope = NA_real_, intercept = NA_real_))
+
+        }
+    )
+
   }
 
 
@@ -179,14 +198,15 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
     select("analysis_id", "feature_id", "feature_intensity") |>
     dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
     dplyr::filter(!all(is.na(.data$feature_intensity))) |>
-    dplyr::group_split(.data$feature_id, .data$rqc_series_id)
+    dplyr::group_split(.data$feature_id, .data$curve_id)
 
     d_stats <- map(d_stats, function(x) get_lm_results(x))
 
     d_stats <- d_stats |> bind_rows() |>
-      dplyr::mutate(y0rel = .data$intercept / .data$relative_sample_amount) |>
-      dplyr::select("feature_id", "rqc_series_id", r2 = "r.squared", y0rel = "y0rel") |>
-      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r2", "y0rel"), names_prefix = "rqc_")
+      dplyr::mutate(slopenorm = .data$slope,
+                    y0norm = .data$intercept) |>
+      dplyr::select("feature_id", "curve_id", r2 = "r.squared", "slopenorm", "y0norm") |>
+      tidyr::pivot_wider(names_from = "curve_id", values_from = c("r2", "slopenorm", "y0norm"), names_prefix = "rqc_")
 
 
   if (with_staturation_stats){
@@ -200,25 +220,23 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
     d_stats_lancer <- data@dataset |>
       select("analysis_id", "feature_id", "feature_intensity")
       dplyr::inner_join(data@annot_responsecurves, by = "analysis_id") |>
-      dplyr::group_by(.data$feature_id, .data$rqc_series_id) |>
+      dplyr::group_by(.data$feature_id, .data$curve_id) |>
       dplyr::filter(!all(is.na(.data$feature_intensity))) |>
       tidyr::nest() |>
       mutate(
-        lancer_raw = map(data, \(x) lancer::summarise_curve_data(x, "relative_sample_amount", "feature_intensity")),
+        lancer_raw = map(data, \(x) lancer::summarise_curve_data(x, "analyzed_amount", "feature_intensity")),
         lancer = map(.data$lancer_raw, \(x) lancer::evaluate_linearity(x))
       ) |>
       select(-"lancer_raw") |>
       tidyr::unnest(c("lancer")) |>
-      dplyr::select("feature_id", "rqc_series_id", "r_corr", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") |>
-      tidyr::pivot_wider(names_from = "rqc_series_id", values_from = c("r_corr", "class_wf2", "pra_linear", "mandel_p_val", "concavity"), names_prefix = "rqc_") |>
+      dplyr::select("feature_id", "curve_id", "r_corr", class_wf2 = "wf2_group",  "pra_linear", "mandel_p_val", "concavity") |>
+      tidyr::pivot_wider(names_from = "curve_id", values_from = c("r_corr", "class_wf2", "pra_linear", "mandel_p_val", "concavity"), names_prefix = "rqc_") |>
       ungroup()
 
     d_stats <- d_stats |> left_join(d_stats_lancer, by = c("feature_id"))
   }
   d_stats
 }
-
-
 
 
 #' Filter dataset according to QC and other criteria
@@ -261,10 +279,23 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
 #' @param signalblank.median.pblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
 #' @param signalblank.median.ublk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)
 #' @param signalblank.median.sblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)
-#' @param response.rsquare.min = Minimum r squared of RQC curve defined under `response.curve.id`
-#' @param response.yintersect.rel.max = Minimum relative y0 intersect, whereby 1 refers to a `relative_sample_amount` of 100%. Used to filter for curves that have a good r2 but are flat or even have a negative slope.
-#' @param response.curve.id Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)
-#' @param features_to_keep Features that must be kept, even if they did not meet the given QC criteria
+
+#' @param response.curve.id A single value or vector specifying the identifiers or indices of the response curves to be used for filtering. This can be either numeric indices or text identifiers.
+#' @param response.curve.summary A string indicating how to summarize the metrics of multiple selected curves, if applicable. Must be either 'mean', 'median', 'best', or 'worst'.
+#' @param response.rsquare.min The minimum acceptable R squared value for the response curve(s). Refer to the details section for more information.
+#' @param response.slope.min The minimum normalized slope for the response curve(s). Refer to the details section for further explanation.
+#' @param response.slope.max The maximum normalized slope for the response curve(s). Refer to the details section for additional details.
+#' @param response.yintersect.max The maximum allowable normalized y0 intercept for the response curve(s).
+
+#' @param features_to_keep A vector specifying the features that should be retained, regardless of whether they meet the specified quality control filtering criteria.
+
+#' @details
+#'
+#' Response curves
+#'
+#' A normalized slope of 1 indicates a proportional relationship between the response and the sample amount. Negative slopes reflect an inverse relationship, where the response decreases as the sample amount increases.
+#' The normalized y-intercept represents the value of the response when the sample amount is zero. A value of 1 corresponds to the maximum measured response on the curve.
+#'
 #' @return MidarExperiment object
 #' @export
 
@@ -296,22 +327,35 @@ qc_apply_feature_filter <- function(data = NULL,
                             dratio.conc.tqc.sd.max = NA,
                             dratio.conc.bqc.mad.max = NA,
                             dratio.conc.tqc.mad.max = NA,
-                            response.rsquare.min = NA,
-                            response.yintersect.rel.max = NA,
                             response.curve.id = NA,
+                            response.curve.summary = NA,
+                            response.rsquare.min = NA,
+                            response.slope.min = NA,
+                            response.slope.max = NA,
+                            response.yintersect.max = NA,
                             outlier.technical.exlude = FALSE,
                             features_to_keep = NULL) {
 
   check_data(data)
    # Check if RQC curve ID is defined when r2 is set
-  if ((!is.na(response.rsquare.min)) & is.na(response.curve.id) & nrow(data@annot_responsecurves) > 0) cli::cli_abort("RQC Curve ID not defined! Please set response.curve.id parameter or set response.rsquare.min to NA if you which not to filter based on RQC r2 values.")
-  if (((!is.na(response.rsquare.min)) | !is.na(response.curve.id)) & nrow(data@annot_responsecurves) == 0) cli::cli_abort("No RQC curves were defined in the metadata. Please reprocess with updated metadata, or to ignore linearity filtering, remove or set response.curve.id and response.rsquare.min to NA")
-
-  # # Check if QC metrics have been calculated
-  # if (nrow(data@metrics_qc) == 0) {
-  #   cli::cli_abort("QC info has not yet been calculated. Please run 'qc_calc_metrics()' first.")
-  # }
-
+  if (all(is.na(response.curve.id))) {
+    if(!is.na(response.rsquare.min) | !is.na(response.slope.min) | !is.na(response.slope.max) |!is.na(response.yintersect.max) | !is.na(response.curve.summary))
+      cli::cli_abort(cli::col_red("No response curves selected. Please set the curves using `response.curve.id`, or remove `response.___` arguments to proceed without response filters."))
+  } else {
+    if(is.na(response.rsquare.min) & is.na(response.slope.min) & is.na(response.slope.max) & is.na(response.yintersect.max)) {
+      cli::cli_abort(cli::col_red("No response filters were defined. Please set the appropriate `response.___` arguments, remove `response.curve.id`, or set it to NA."))
+    } else {
+      if (length(unique(response.curve.id)) > 1){
+        if(is.na(response.curve.summary)){
+          cli::cli_abort(cli::col_red("Please define `response.curve.summary` to define how the results from different curves should be summarized for filtered, Must be either o either 'mean', 'median', 'best' or 'worst'."))
+        } else {
+          rlang::arg_match(response.curve.summary, c("mean", "median", "best", "worst"))
+          if (nrow(data@annot_responsecurves) == 0)
+            cli::cli_abort(cli::col_red("No response curves are defined in the metadata. Please either remove `response.curve.id` and any response filters, or reprocess with updated metadata"))
+        }
+      }
+    }
+  }
 
 
   # Check which criteria categories were defined
@@ -334,7 +378,7 @@ qc_apply_feature_filter <- function(data = NULL,
   if (!is.null(features_to_keep)) {
     keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
-    if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following defined in features_to_keep are not present in this dataset: {txt}"))
+    if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following features defined via `features_to_keep` are not present in this dataset: {txt}"))
   }
 
   # Save QC filter criteria to MidarExperiment object
@@ -365,9 +409,11 @@ qc_apply_feature_filter <- function(data = NULL,
       signalblank.median.pblk.min = signalblank.median.pblk.min,
       signalblank.median.ublk.min = signalblank.median.ublk.min,
       signalblank.median.sblk.min = signalblank.median.sblk.min,
-      response.curve.id_used_for_filt = response.curve.id,
+      response.curve.id_used_for_filt = list(response.curve.id),
       response.rsquare.min = response.rsquare.min,
-      response.yintersect.rel.max = response.yintersect.rel.max,
+      response.slope.min = response.slope.min,
+      response.slope.max = response.slope.max,
+      response.yintersect.max = response.yintersect.max,
       qualifier.include = qualifier.include,
       istd.include = istd.include,
       features_to_keep = NA
@@ -417,29 +463,85 @@ qc_apply_feature_filter <- function(data = NULL,
   ##tictoc::toc()
   # Check if linearity criteria are defined
   metrics_qc_local<- metrics_qc_local |> mutate(pass_linearity = NA)
-  if (resp_criteria_defined){
-    if (is.numeric(response.curve.id)) {
-      rqc_r2_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "r2_rqc"))]
-      rqc_r2_col <- rqc_r2_col_names[response.curve.id]
-      rqc_y0_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "y0rel_rqc"))]
-      rqc_y0_col <- rqc_y0_col_names[response.curve.id]
 
-      if (is.na(rqc_r2_col)) cli::cli_abort(glue::glue("RQC curve index exceeds the {length(rqc_r2_col_names)} present RQC curves in the dataset. Please check `response.curve.id` value."))
+  if (resp_criteria_defined){
+    #browser()
+    if (is.numeric(response.curve.id)) {
+
+      rqc_r2_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "r2_rqc"))]
+      rqc_r2_col <-  rqc_r2_col_names[response.curve.id]
+      rqc_slope_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "slopenorm_rqc"))]
+      rqc_slope_col <-  rqc_slope_col_names[response.curve.id]
+      rqc_y0_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "y0norm_rqc"))]
+      rqc_y0_col <-  rqc_y0_col_names[response.curve.id]
+
+      if (any(is.na(rqc_r2_col))) cli::cli_abort(cli::col_red("The specified RQC curve index exceeds the available range. There are only {length(rqc_r2_col_names)} RQC curves in the dataset. Please adjust the indices set via `response.curve.id`"))
 
     } else if(is.character(response.curve.id)){
-      rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
-      rqc_y0_col <- paste0("y0rel_rqc_", response.curve.id)
+        rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
+        rqc_slope_col <- paste0("slopenorm_rqc_", response.curve.id)
+        rqc_y0_col <- paste0("y0norm_rqc_", response.curve.id)
+        missing_curves <- response.curve.id[!(rqc_r2_col %in% names(metrics_qc_local))]
+        if (length(missing_curves) > 0) {
+          cli::cli_abort(cli::col_red("The following response curves are not defined in the metadata: {paste(missing_curves, collapse=', ')}. Please adjust the curve ids or ensure correct identifiers."))
+        }
     } else {
-      cli::cli_abort("`response.curve.id` must be either a numeric index or a text identifier (id) of the RQC curve.")
+      cli::cli_abort(cli::col_red("The `response.curve.id` must be specified as either numeric indices or identifiers provided as strings, corresponding to the RQC curve(s)."))
     }
 
-    if (rqc_r2_col %in% names(metrics_qc_local)) {
+    # Summarize metrics across curves (columns) based on specified criteria
+
+    # Determine the function to apply based on response.curve.summary
+    fun_r2 <- case_match(
+      response.curve.summary,
+      "worst" ~ "safe_min",
+      "best" ~ "safe_max",
+      .default = response.curve.summary
+    )
+
+    fun_slope <- case_match(
+      response.curve.summary,
+      c("worst") ~ "safe_min",
+      c("best") ~ "safe_max",
+      .default = response.curve.summary
+    )
+
+    fun_y0 <- case_match(
+      response.curve.summary,
+      c("worst") ~ "safe_max",
+      c("best") ~ "safe_min",
+      .default = response.curve.summary
+    )
+
+    # Calculate summary metrics using purrr::pmap_dbl
+    metrics_qc_local <- metrics_qc_local |>
+      mutate(
+        rqc_r2__sum__ = purrr::pmap_dbl(
+          across(all_of(rqc_r2_col)), ~ do.call(fun_r2, list(c(...), na.rm = TRUE))
+        ),
+        rqc_slope__sum__ = purrr::pmap_dbl(
+          across(all_of(rqc_slope_col)), ~ do.call(fun_slope, list(c(...), na.rm = TRUE))
+        ),
+        rqc_y0__sum__ = purrr::pmap_dbl(
+          across(all_of(rqc_y0_col)), ~ do.call(fun_y0, list(c(...), na.rm = TRUE))
+        )
+      )
+
+    # Check if columns exist before mutating pass_linearity
+    if (all(rqc_r2_col %in% names(metrics_qc_local))) {
       metrics_qc_local <- metrics_qc_local |>
         mutate(
-          pass_linearity = if_else(is.na(!!ensym(rqc_r2_col)), NA, !!ensym(rqc_r2_col) > response.rsquare.min &
-            !!ensym(rqc_y0_col) < response.yintersect.rel.max)
+          pass_linearity = if_else(
+            !is.na(rqc_r2__sum__) | (!is.na(response.slope.min) & !is.na(response.slope.max) & !is.na(response.yintersect.max)),
+            (rqc_r2__sum__ > response.rsquare.min | is.na(response.rsquare.min)) &
+              (rqc_slope__sum__ > response.slope.min | is.na(response.slope.min)) &
+              (rqc_slope__sum__ <= response.slope.max | is.na(response.slope.max)) &
+              (rqc_y0__sum__ < response.yintersect.max | is.na(response.yintersect.max)),
+            NA
+          )
         )
-      }
+    }
+
   }
 
   # Check if filter has been previously set and if it should be overwritten
