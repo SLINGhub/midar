@@ -12,7 +12,7 @@ qc_plot_responsecurves(
   feature_excl_filt = "",
   save_pdf = FALSE,
   path = "",
-  regr_max_percent = NA,
+  regr_max_value = NA,
   rows_page = 4,
   cols_page = 5,
   page_no = NA,
@@ -40,7 +40,7 @@ qc_plot_responsecurves(
 
 \item{path}{file name of pdf file}
 
-\item{regr_max_percent}{Max relative sample amount to use in regressionb}
+\item{regr_max_value}{Maximum x value (\code{analyzed_amount}) to fit regression line to}
 
 \item{rows_page}{rows per page}
 

@@ -31,9 +31,12 @@ qc_apply_feature_filter(
   dratio.conc.tqc.sd.max = NA,
   dratio.conc.bqc.mad.max = NA,
   dratio.conc.tqc.mad.max = NA,
-  response.rsquare.min = NA,
-  response.yintersect.rel.max = NA,
   response.curve.id = NA,
+  response.curve.summary = NA,
+  response.rsquare.min = NA,
+  response.slope.min = NA,
+  response.slope.max = NA,
+  response.yintersect.max = NA,
   outlier.technical.exlude = FALSE,
   features_to_keep = NULL
 )
@@ -91,15 +94,21 @@ qc_apply_feature_filter(
 
 \item{dratio.conc.tqc.mad.max}{D-ratio defined as CV_TQC/CV_SPL, based on mad}
 
-\item{response.rsquare.min}{= Minimum r squared of RQC curve defined under \code{response.curve.id}}
+\item{response.curve.id}{A single value or vector specifying the identifiers or indices of the response curves to be used for filtering. This can be either numeric indices or text identifiers.}
 
-\item{response.yintersect.rel.max}{= Minimum relative y0 intersect, whereby 1 refers to a \code{relative_sample_amount} of 100\%. Used to filter for curves that have a good r2 but are flat or even have a negative slope.}
+\item{response.curve.summary}{A string indicating how to summarize the metrics of multiple selected curves, if applicable. Must be either 'mean', 'median', 'best', or 'worst'.}
 
-\item{response.curve.id}{Name of RQC curve as string, or index number of curve to use for filtering (first curve is 1)}
+\item{response.rsquare.min}{The minimum acceptable R squared value for the response curve(s). Refer to the details section for more information.}
+
+\item{response.slope.min}{The minimum normalized slope for the response curve(s). Refer to the details section for further explanation.}
+
+\item{response.slope.max}{The maximum normalized slope for the response curve(s). Refer to the details section for additional details.}
+
+\item{response.yintersect.max}{The maximum allowable normalized y0 intercept for the response curve(s).}
 
 \item{outlier.technical.exlude}{Remove samples classified as outliers}
 
-\item{features_to_keep}{Features that must be kept, even if they did not meet the given QC criteria}
+\item{features_to_keep}{A vector specifying the features that should be retained, regardless of whether they meet the specified quality control filtering criteria.}
 }
 \value{
 MidarExperiment object
@@ -115,4 +124,10 @@ Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values p
 }
 
 Note: When \code{istd.include} is TRUE, then \code{signalblank.median.sblk.min} and \code{signalblank.median.sblk.min} are ignored for ISTDs, because these blanks are defined as containing ISTDs.
+}
+\details{
+Response curves
+
+A normalized slope of 1 indicates a proportional relationship between the response and the sample amount. Negative slopes reflect an inverse relationship, where the response decreases as the sample amount increases.
+The normalized y-intercept represents the value of the response when the sample amount is zero. A value of 1 corresponds to the maximum measured response on the curve.
 }
