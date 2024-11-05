@@ -201,7 +201,7 @@ qc_plot_summary <- function(data = NULL, include_qualifier = FALSE, include_istd
 
     sb_label <- "below S/B"
     cva_label <- "above CV(A)" # paste0('CV > ', percent(MAX_CV_NORM/100))
-    lin_label <- "bad linearity" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)o
+    lin_label <- "bad linearity" # paste0('RQC r^2 < ', MIN_LINEARITY_RSQUARE, ' OR rel y0 > ', REL_Y_INTERSECT)
 
     x2 <- list(sb_failed, cva_failed, lin_failed)
     names(x2) <- c(sb_label, cva_label, lin_label)
