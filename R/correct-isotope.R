@@ -8,27 +8,27 @@
 #' @param feature Name of feature to be corrected
 #' @param interfering_feature Name of feature that is interfering, i.e. contributing to the signal of `feature`
 #' @param relative_contribution Relative portion of the interfering feature to contribute to the feature signal. Must be between 0 and 1.
-#' @param new_feature_id Optional. New name of corrected feature. If empty then feature name will not change.
+#' @param updated_feature_id Optional. New name of corrected feature. If empty then feature name will not change.
 #' @param variable Default: `feature_intensity`. Name of Variable to be corrected.
 #' @return MidarExperiment object
 #' @noRd
 
 #  Example:  mexp <- correct_interference_manually(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
-correct_interference_manually <- function(data = NULL, variable, feature, interfering_feature, relative_contribution, new_feature_id = NULL) {
+correct_interference_manually <- function(data = NULL, variable, feature, interfering_feature, relative_contribution, updated_feature_id = NULL) {
 
   check_data(data)
 
   variable_var <- rlang::ensym(variable)
 
-  new_feature_id <- ifelse(is.null(new_feature_id) | is.na(new_feature_id), "", new_feature_id)
+  updated_feature_id <- ifelse(is.null(updated_feature_id) | is.na(updated_feature_id), "", updated_feature_id)
 
   # Validate input
   if (!feature %in% data@annot_features$feature_id) cli::cli_abort("Feature is not present in the dataset")
   if (!interfering_feature %in% data@annot_features$feature_id) cli::cli_abort("Interfering feature is not present in the dataset")
   if (!variable %in% names(data@dataset)) stop(glue::glue("Variable `{variable` is not defined in the dataset"))
   if (relative_contribution < 0 | relative_contribution >= 1) cli::cli_abort("`relative_contribution` must be between 0 and 1")
-  if (new_feature_id %in% data@annot_features$feature_id) cli::cli_abort("Mew fFeature name must not present already be present in the dataset")
+  if (updated_feature_id %in% data@annot_features$feature_id) cli::cli_abort("Mew fFeature name must not present already be present in the dataset")
 
   # Correction
   data@dataset <- data@dataset |>
@@ -42,7 +42,7 @@ correct_interference_manually <- function(data = NULL, variable, feature, interf
     )
 
   data@dataset <- data@dataset |>
-    mutate(feature_id = if_else(.data$feature_id == feature & nchar(stringr::str_squish(.data$new_feature_id)) > 0, new_feature_id, .data$feature_id))
+    mutate(feature_id = if_else(.data$feature_id == feature & nchar(stringr::str_squish(.data$updated_feature_id)) > 0, updated_feature_id, .data$feature_id))
 
   data
 }
