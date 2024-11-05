@@ -4,12 +4,20 @@ some_na <- function(x){
   !all(is.na(x)) & any(is.na(x))
 }
 
-min_val <- function(x, na.rm = FALSE){
+safe_min <- function(x, na.rm = FALSE){
   if (all(is.na(x) | is.nan(x))) NA_real_ else min(x, na.rm = na.rm)
 }
 
-max_val <- function(x, na.rm = FALSE) {
+safe_max <- function(x, na.rm = FALSE) {
   if (all(is.na(x) | is.nan(x))) NA_real_ else max(x, na.rm = na.rm)
+}
+
+# checks if all values of a specific column are identicval in a grouped
+check_groupwise_identical_ids <- function(data, group_col, id_col) {
+
+  data |>
+    summarise(all_identical = dplyr::n_distinct({{id_col}}) == 1, .by = {{group_col}}) |>
+    pull(all_identical) |> all()
 }
 
 # Used for qc filtering ####
