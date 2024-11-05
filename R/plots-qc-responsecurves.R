@@ -2,7 +2,7 @@
 qc_plot_responsecurves_page <- function(dataset,
                                      save_pdf,
                                      response_variable,
-                                     regr_max_percent,
+                                     regr_max_value,
                                      path,
                                      rows_page,
                                      cols_page,
@@ -10,9 +10,10 @@ qc_plot_responsecurves_page <- function(dataset,
                                      point_size,
                                      line_width,
                                      scale_factor,
-                                     font_base_size) {
+                                     font_base_size,
+                                     x_axis_title) {
   plot_var <- rlang::sym(response_variable)
-  dataset$rqc_series_id <- as.character(dataset$rqc_series_id)
+  dataset$curve_id <- as.character(dataset$curve_id)
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
   n_cmpd <- length(unique(dataset$analysis_id))
@@ -20,38 +21,34 @@ qc_plot_responsecurves_page <- function(dataset,
   row_end <- n_cmpd * cols_page * rows_page * page_no
 
   dat_subset <- dataset |>
-    dplyr::arrange(.data$feature_id, .data$rqc_series_id) |>
+    dplyr::arrange(.data$feature_id, .data$curve_id) |>
     dplyr::slice(row_start:row_end)
 
   p <- ggplot(
       data = dat_subset,
       aes(
-        x = .data$relative_sample_amount,
+        x = .data$analyzed_amount,
         y = !!plot_var,
-        color = .data$rqc_series_id
+        color = .data$curve_id
       )
     ) +
       ggpmisc::stat_poly_line(
-        data = subset(dat_subset, dat_subset$relative_sample_amount <= (regr_max_percent / 100)),
+        data = subset(dat_subset, dat_subset$analyzed_amount <= regr_max_value),
         aes(
-          x = .data$relative_sample_amount,
+          x = .data$analyzed_amount,
           y = !!plot_var,
-          color = .data$rqc_series_id
+          color = .data$curve_id
         ),
         se = FALSE, na.rm = TRUE, size = line_width * scale_factor, inherit.aes = FALSE
       ) +
       ggpmisc::stat_poly_eq(
-        aes(group = .data$rqc_series_id, label = ggplot2::after_stat(.data$rr.label)),
+        aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
         size = 2 * scale_factor, rr.digits = 3, vstep = .1
       ) +
       # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
       scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
       scale_y_continuous(limits = c(0, NA)) +
-      scale_x_continuous(
-        limits = c(0, NA),
-        breaks = c(0, 0.5, 1, 1.5, 2, 4),
-        labels = scales::percent_format(accuracy = NULL)
-      ) +
+      scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
       ggh4x::facet_wrap2(
         vars(.data$feature_id),
         scales = "free",
@@ -60,7 +57,7 @@ qc_plot_responsecurves_page <- function(dataset,
         trim_blank = FALSE
       ) +
       geom_point(size = point_size) +
-      xlab("Sample Amount (Relative to BQC/TQC)") +
+      xlab(x_axis_title) +
       theme_light(base_size = font_base_size) +
       theme(
         strip.text = element_text(size = font_base_size * scale_factor, face = "bold"),
@@ -77,7 +74,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param variable Variable to plot
 #' @param feature_incl_filt Filter features names matching the criteria (regex). When empty, `NA` or `NULL` all available features are included.
 #' @param feature_excl_filt Exclude features names matching the criteria (regex).  When empty, `NA` or `NULL` all available features are included.
-#' @param regr_max_percent Max relative sample amount to use in regressionb
+#' @param regr_max_value Maximum x value (`analyzed_amount`) to fit regression line to
 #' @param path file name of pdf file
 #' @param rows_page rows per page
 #' @param cols_page columns per page
@@ -98,7 +95,7 @@ qc_plot_responsecurves <- function(data = NULL,
                                 feature_excl_filt = "",
                                 save_pdf = FALSE,
                                 path = "",
-                                regr_max_percent = NA,
+                                regr_max_value = NA,
                                 rows_page = 4,
                                 cols_page = 5,
                                 page_no = NA,
@@ -118,10 +115,6 @@ qc_plot_responsecurves <- function(data = NULL,
 
 
   if (save_pdf & path == "") cli::cli_abort("Please define parameter `path`")
-
-
-
-
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
   # Filter data if filter_data is TRUE
@@ -131,6 +124,7 @@ qc_plot_responsecurves <- function(data = NULL,
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
+
 
 
   dat_filt <- dat_filt |> dplyr::semi_join(data@annot_responsecurves, by = c("analysis_id"))
@@ -157,12 +151,17 @@ qc_plot_responsecurves <- function(data = NULL,
     )) |>
     dplyr::right_join(data@annot_responsecurves, by = c("analysis_id" = "analysis_id"))
 
+  # Verify if unit is the same for all data points/curves
+  x_axis_unit <- unique(d_rqc$analyzed_amount_unit)
+  if (length(x_axis_unit) > 1)
+    cli::cli_abort(cli::col_red("The `analyzed_amount_unit` (x axis) must be identical for selected curves and data points. Please change selection of curves or update response curve metadata."))
 
-  regr_max_percent <-
+
+  regr_max_value <-
     ifelse(
-      is.na(regr_max_percent),
-      max(d_rqc$relative_sample_amount * 100),
-      regr_max_percent
+      is.na(regr_max_value),
+      max(d_rqc$analyzed_amount, na.rm = TRUE),
+      regr_max_value
     )
 
   if (save_pdf & !is.na(path)) {
@@ -192,7 +191,7 @@ qc_plot_responsecurves <- function(data = NULL,
         dataset = d_rqc,
         save_pdf = save_pdf,
         response_variable = variable,
-        regr_max_percent = regr_max_percent,
+        regr_max_value = regr_max_value,
         path = path,
         rows_page = rows_page,
         cols_page = cols_page,
@@ -200,7 +199,8 @@ qc_plot_responsecurves <- function(data = NULL,
         point_size = point_size,
         line_width = line_width,
         scale_factor = scale_factor,
-        font_base_size = font_base_size
+        font_base_size = font_base_size,
+        x_axis_title = x_axis_unit
     )
     plot(p)
     dev.flush()
