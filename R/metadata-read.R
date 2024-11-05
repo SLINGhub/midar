@@ -74,11 +74,12 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
   res <- as_tibble(do.call(rbind, list_of_errors))
   res <- res |>
     select("message", "description", "num.violations") |>
-    mutate(message = str_replace_all(.data$message, fixed('"'), "'")) |>
+    mutate(message = str_replace_all(unlist(.data$message)[1], fixed('"'), "'")) |>
     mutate(Field = paste0(str_extract(unlist(.data$message), "(?<=\\').+?(?=\\')")) ) |>
-    tidyr::separate(col = "description", into = c("Type", "Issue", "Table"), sep = ";", remove = TRUE) |>
+    tidyr::separate(col = "description", into = c("Type", "Issue", "Table", "TargetField"), sep = ";", remove = TRUE) |>
     filter(.data$Type != "DX") |>
-    select("Type", "Table", "Issue", Column = "Field", Count = "num.violations") |> ungroup()
+    mutate(Field = if_else(Field == "NA", TargetField, Field)) |>
+    select("Type", "Table", Column = "Field", "Issue", Count = "num.violations") |> ungroup()
 
   res$Count <- res$Count |> unlist()
   as_assertr_tibble(res)
@@ -146,21 +147,21 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
     #TODO remove: metadata$annot_analyses$qc_type[3] <- NA
 
     metadata$annot_analyses <- metadata$annot_analyses |>
-      assertr::verify(has_any_name("analysis_id"), obligatory=FALSE, description = "D;Column missing;Analyses", defect_fun = assertr::defect_append) |>
-      assertr::verify(has_any_name("qc_type"), obligatory=FALSE, description = "D;Column missing;Analyses", defect_fun = assertr::defect_append) |>
-      assertr::verify(has_any_name("analysis_id", "qc_type"), obligatory=TRUE, description = "DX;Column missing;Analyses", defect_fun = assertr::defect_append)
+      assertr::verify(has_any_name("analysis_id"), obligatory=FALSE, description = "D;Column missing;Analyses;analysis_id", defect_fun = assertr::defect_append) |>
+      assertr::verify(has_any_name("qc_type"), obligatory=FALSE, description = "D;Column missing;Analyses;qc_type", defect_fun = assertr::defect_append) |>
+      assertr::verify(has_any_name("analysis_id", "qc_type"), obligatory=TRUE, description = "DX;Column missing;Analyses;analysis_id|qc_type", defect_fun = assertr::defect_append)
 
     # Check data integrity ----
     metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & !dplyr::any_of(c("analysis_id", "qc_type")), description = "W;Missing value(s);Analyses")
-      #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses")
+      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses;analysis_id|qc_type") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & !dplyr::any_of(c("analysis_id", "qc_type")), description = "W;Missing value(s);Analyses;analysis_id|qc_type")
+      #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses;analysis_id")
 
     if(!is.null(data)){
       metadata$annot_analyses <- metadata$annot_analyses |>
-        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "W;Analyses not in analysis data;Analyses") |>
-        assertr::verify((unique(data@dataset_orig$analysis_id) %in% .data$analysis_id), description = "W;Analyses without metadata;Analyses")
+        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "W;Analyses not in analysis data;Analyses;analysis_id") |>
+        assertr::verify((unique(data@dataset_orig$analysis_id) %in% .data$analysis_id), description = "W;Analyses without metadata;Analyses;analysis_id")
     }
     metadata$annot_analyses <- metadata$annot_analyses |> assertr::chain_end(error_fun = assertr::error_append)
   }
@@ -179,9 +180,9 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
     metadata$annot_features <- metadata$annot_features |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=FALSE, description = "E;Missing value(s);Features") |>
-      assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","table_templates","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features") |>
-      assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features") |>
-      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features")
+      assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
+      assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id")
 
       #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
       #assertr::assert(\(x) {any(metadata$annot_istd$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istd)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
@@ -189,10 +190,10 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 
     if(!is.null(data)){
       metadata$annot_features <- metadata$annot_features |>
-        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "W;Feature(s) not in analysis data;Features") |>
-        assertr::verify((unique(data@dataset_orig$feature_id) %in% .data$feature_id), description = "W;Feature(s) without metadata;Features")
+        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "W;Feature(s) not in analysis data;Features;feature_id") |>
+        assertr::verify((unique(data@dataset_orig$feature_id) %in% .data$feature_id), description = "W;Feature(s) without metadata;Features;feature_id")
     }
-      #assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("table_templates", "interference_proportion")), description = "W;Values 0 or negative;Features") |>
+      #assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("response_factor", "interference_proportion")), description = "W;Values 0 or negative;Features") |>
       metadata$annot_features <- metadata$annot_features |> assertr::chain_end(error_fun = assertr::error_append)
    }
 
@@ -201,18 +202,18 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
   if (!is.null(metadata$annot_istd) && nrow(metadata$annot_istd) > 0){
     ## Check for data defects ----
     metadata$annot_istd  <- metadata$annot_istd |>
-      assertr::verify(assertr::has_all_names("quant_istd_feature_id"), obligatory=FALSE, description = "D;Column missing;ISTDs", defect_fun = assertr::defect_append) |>
-      assertr::verify(assertr::has_all_names("istd_conc_nmolar"), obligatory=FALSE, description = "D;Column missing;ISTDs", defect_fun = assertr::defect_append) |>
-      assertr::verify(assertr::has_all_names("quant_istd_feature_id", "istd_conc_nmolar"), obligatory=TRUE, description = "DX;Column missing;ISTDs", defect_fun = assertr::defect_append)
+      assertr::verify(assertr::has_all_names("quant_istd_feature_id"), obligatory=FALSE, description = "D;Column missing;ISTDs;quant_istd_feature_id", defect_fun = assertr::defect_append) |>
+      assertr::verify(assertr::has_all_names("istd_conc_nmolar"), obligatory=FALSE, description = "D;Column missing;ISTDs;istd_conc_nmolar", defect_fun = assertr::defect_append) |>
+      assertr::verify(assertr::has_all_names("quant_istd_feature_id", "istd_conc_nmolar"), obligatory=TRUE, description = "DX;Column missing;ISTDs;quant_istd_feature_id", defect_fun = assertr::defect_append)
 
     ## Check data integrity =====
     metadata$annot_istd  <- metadata$annot_istd  |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert(\(x){not_na(x)}, all_of(c("quant_istd_feature_id", "istd_conc_nmolar")), obligatory=TRUE, description = "E;Missing value(s);ISTDs") |>
-      #assertr::assert(\(x) {unique(x) %in% metadata$annot_istd$quant_istd_feature_id},quant_istd_feature_id, obligatory=TRUE, description = "W;Internal standard(s) not defined;ISTDs") |>
-      assertr::verify(all(assertr::is_uniq("quant_istd_feature_id")), obligatory=TRUE, description = "E;Internal standard(s) duplicated;ISTDs") |>
-      assertr::assert(\(x) {x %in% metadata$annot_features$feature_id}, "quant_istd_feature_id", description = "W;Internal standard(s) not used;ISTDs") |>
-      assertr::assert(\(x){x > 0}, any_of(c("istd_conc_nmolar")), description = "W;Values 0 or negative;ISTDs") |>
+      assertr::assert(\(x){not_na(x)}, all_of(c("quant_istd_feature_id", "istd_conc_nmolar")), obligatory=TRUE, description = "E;Missing value(s);ISTDs; ") |>
+      #assertr::assert(\(x) {unique(x) %in% metadata$annot_istd$quant_istd_feature_id},quant_istd_feature_id, obligatory=TRUE, description = "W;Internal standard(s) not defined;ISTDs;quant_istd_feature_id") |>
+      assertr::verify(all(assertr::is_uniq("quant_istd_feature_id")), obligatory=TRUE, description = "E;Internal standard(s) duplicated;ISTDs;quant_istd_feature_id") |>
+      assertr::assert(\(x) {x %in% metadata$annot_features$feature_id}, "quant_istd_feature_id", description = "W;Internal standard(s) not used;ISTDs;feature_id") |>
+      assertr::assert(\(x){x > 0}, any_of(c("istd_conc_nmolar")), description = "W;Values 0 or negative;ISTDs;istd_conc_nmolar") |>
       assertr::chain_end(error_fun = assertr::error_append)
   }
 
@@ -221,19 +222,20 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
   if (!is.null(metadata$annot_responsecurves) && nrow(metadata$annot_responsecurves) > 0){
     ## Check for data defects ----
     metadata$annot_responsecurves <- metadata$annot_responsecurves |>
-      assertr::verify(assertr::has_all_names("analysis_id", "rqc_series_id", "relative_sample_amount"), obligatory=TRUE, description = "D;Column missing;Response Curves", defect_fun = assertr::defect_append)
+      assertr::verify(assertr::has_all_names("analysis_id", "curve_id", "analyzed_amount"), obligatory=TRUE, description = "D;Column missing;Response Curves; ", defect_fun = assertr::defect_append)
 
     ## Check data integrity ----
     ### TODO: check for qc_type RQC
     metadata$annot_responsecurves <- metadata$annot_responsecurves |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "rqc_series_id")), obligatory=TRUE, description = "E;Missing value(s);Response Curves") |>
-      assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Response Curves") |>
-      #assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "W;Analyses of QC type 'RQC' not defined;Response Curves") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("relative_sample_amount")), description = "W;Missing value(s);Response Curves")
+      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "curve_id")), obligatory=TRUE, description = "E;Missing value(s);Response Curves;analysis_id|curve_id") |>
+      assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Response Curves;analysis_id") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_responsecurves , group_col = curve_id, id_col = analyzed_amount_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Response Curves;analyzed_amount_unit") |>
+      #assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "W;Analyses of QC type 'RQC' not defined;Response Curves;analysis_id") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("analyzed_amount")), description = "W;Missing value(s);Response Curves;analyzed_amount")
     if(!is.null(data)){
       metadata$annot_responsecurves <- metadata$annot_responsecurves |>
-        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "E;Analysis not present in analysis data;Response Curves")
+        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "E;Analysis not present in analysis data;Response Curves;analysis_id")
     }
       metadata$annot_responsecurves <- metadata$annot_responsecurves |> assertr::chain_end(error_fun = assertr::error_append)
   }
@@ -242,7 +244,6 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 
   metadata
 }
-
 
 
  #' @title Add metadata an MidarExperiment object
@@ -373,6 +374,11 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   names(d_temp_analyses) <- tolower(names(d_temp_analyses))
 
+  # Ensure compatibility with older template versions (< 1.9.2)
+  if("raw_data_filename" %in% names(d_temp_analyses))
+    d_temp_analyses <- d_temp_analyses |> rename("analysis_id" = "raw_data_filename")
+
+  # Fill missing columns
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "valid_analysis", init_value = TRUE, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "replicate_no", init_value = 1L, make_lowercase = FALSE)
   d_temp_analyses <- d_temp_analyses |> add_missing_column(col_name = "specimen", init_value = NA_character_, make_lowercase = FALSE)
@@ -382,7 +388,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   metadata$annot_analyses <- d_temp_analyses |>
     select(
-      "analysis_id" = "raw_data_filename",
+      "analysis_id",
       qc_type = "sample_type",
       "sample_amount",
       "sample_amount_unit",
@@ -436,27 +442,32 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   names(d_temp_features) <- tolower(names(d_temp_features))
 
+  # Ensure compatibility with older template versions (< 1.9.2)
+  if("feature_name" %in% names(d_temp_analyses))
+    d_temp_features <- d_temp_features |> rename("feature_id" = "feature_name")
+
+  if("istd_feature_name" %in% names(d_temp_analyses))
+    d_temp_features <- d_temp_features |> rename("istd_feature_id" = "istd_feature_name")
+
+  if("new_feature_name" %in% names(d_temp_analyses))
+    d_temp_features <- d_temp_features |> rename("feature_label" = "new_feature_name")
+
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "is_quantifier", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "new_feature_id", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_name", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
-
-
-  # TODO: feauture_id and (new)_feature_name...find a clear way
-  # feature_label... idea from
-
   metadata$annot_features <- d_temp_features |>
     dplyr::mutate(
-      feature_id = stringr::str_squish(.data$feature_name),
-      feature_label = stringr::str_squish(.data$new_feature_name),
+      feature_id = stringr::str_squish(.data$feature_id),
+      feature_label = stringr::str_squish(.data$feature_label),
       feature_class = stringr::str_squish(.data$feature_class),
-      istd_feature_id = stringr::str_squish(.data$istd_feature_name),
-      quant_istd_feature_id = stringr::str_squish(.data$istd_feature_name),
+      istd_feature_id = stringr::str_squish(.data$istd_feature_id),
+      quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       is_quantifier = as.logical(case_match(tolower(.data$quantifier),
                                              "yes" ~ TRUE,
                                              "no"~ FALSE,
@@ -476,9 +487,10 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     dplyr::select(
       "feature_id",
       "feature_class",
+      "feature_label",
       "istd_feature_id",
       "quant_istd_feature_id",
-      table_templates = "response_factor",
+      response_factor = "response_factor",
       "is_quantifier",
       "valid_feature",
       "interference_feature_id" = "interference_feature_name",
@@ -516,16 +528,12 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     as_tibble() |>
     filter(!if_all(everything(), is.na))
 
-  # Repair column names
-  #names(annot_istd) <- ifelse(nzchar(names(annot_istd)), names(annot_istd), LETTERS[seq_along(names(annot_istd))])
-
   names(annot_istd) <- tolower(names(annot_istd))
   names(annot_istd)[1] <- "istd_feature_id"
 
 
 
   metadata$annot_istd <- annot_istd |>
-    # dplyr::mutate(istd_compound_name = na_character_) |>
     dplyr::select(
       quant_istd_feature_id = "istd_feature_id",
       istd_conc_nmolar = "istd_conc_[nm]"
@@ -549,18 +557,29 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   names(metadata_responsecurves) <- tolower(names(metadata_responsecurves))
 
+  # Ensure compatibility with older template versions (< 1.9.2)
+  if("raw_data_filename" %in% names(d_temp_analyses))
+    metadata_responsecurves <- metadata_responsecurves |> rename("analysis_id" = "raw_data_filename")
+  if("response_curve_name" %in% names(d_temp_analyses))
+    metadata_responsecurves <- metadata_responsecurves |> rename("curve_id" = "response_curve_name")
+
+  if("relative_sample_amount_[%]" %in% names(metadata_responsecurves)){
+    metadata_responsecurves <- metadata_responsecurves |> rename("analyzed_amount" = "relative_sample_amount_[%]")
+    metadata_responsecurves <- metadata_responsecurves |> mutate("analyzed_amount_unit" = "%")
+  }
+
   metadata$annot_responsecurves <- metadata_responsecurves |>
     dplyr::select(
-      analysis_id = "raw_data_filename",
-      rqc_series_id = "response_curve_name",
-      "relative_sample_amount" = "relative_sample_amount_[%]",
-      "injection_volume" = "injection_volume_[ul]"
+      "analysis_id",
+      "curve_id",
+      "analyzed_amount",
+      "analyzed_amount_unit"
     ) |>
     dplyr::mutate(
       analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
-      rqc_series_id = stringr::str_squish(as.character(.data$rqc_series_id)),
-      relative_sample_amount = .data$relative_sample_amount / 100
+      curve_id = stringr::str_squish(as.character(.data$curve_id)),
+      analyzed_amount_unit = stringr::str_squish(.data$analyzed_amount_unit)
     ) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
 
