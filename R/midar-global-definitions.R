@@ -59,8 +59,8 @@ pkg.env$table_templates <- list(
   ),
   annot_responsecurves_template = tibble::tibble(
     "analysis_id" = character(),
-    "rqc_series_id" = character(),
-    "relative_sample_amount" = numeric(),
+    "curve_id" = character(),
+    "analyzed_amount" = numeric(),
     "injection_volume" = numeric()
   ),
   annot_batch_info_template = tibble::tibble(
