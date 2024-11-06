@@ -44,18 +44,17 @@ setMethod("metadata_responsecurves<-", "MidarExperiment", function(x, value) {
     cli::cli_abort(message = "`metadata` must contain a column `analysis_id` defining the ")
   if(!"curve_id" %in% names(value))
     cli::cli_abort(message = "`metadata` must contain a column `curve_id` defining response curve series")
-  if(!(any(c("analyzed_amount", "injection_volume") %in% names(value))))
-    cli::cli_abort(message = "`metadata` must contain a column `analyzed_amount` or `injection_volume`")
+  if(!(any(c("analyzed_amount") %in% names(value))))
+    cli::cli_abort(message = "`metadata` must contain a column `analyzed_amount`")
   if(!all(value$analysis_id %in% x@annot_analyses$analysis_id))
     cli::cli_abort(message = "One or more analysis are not present in the analysis data. Please ensure all `analysis_id` are present in the analysis data.")
   if(any(is.na(value$curve_id)))
     cli::cli_abort(message = "One or `more curve_id` is not defined. Please check your data.")
 
   if(any(is.na(value$curve_id)) &
-     (ifelse("analyzed_amount" %in% names(value), all(is.numeric(value$analyzed_amount)), FALSE) |
-      ifelse("injection_volume" %in% names(value), all(is.numeric(value$injection_volume)), FALSE)))
+     (ifelse("analyzed_amount" %in% names(value), all(is.numeric(value$analyzed_amount)), FALSE)))
 
-    cli::cli_abort(message = "One or more `analyzed_amount` or `injection_volume` are not defined. Please ensure completness of at least one of the variables.")
+    cli::cli_abort(message = "One or more `analyzed_amount` are not defined. Please ensure completness of at least one of the variables.")
 
   x@annot_responsecurves <- as_tibble(value)
   validObject(x)
