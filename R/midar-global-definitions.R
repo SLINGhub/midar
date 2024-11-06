@@ -60,8 +60,7 @@ pkg.env$table_templates <- list(
   annot_responsecurves_template = tibble::tibble(
     "analysis_id" = character(),
     "curve_id" = character(),
-    "analyzed_amount" = numeric(),
-    "injection_volume" = numeric()
+    "analyzed_amount" = numeric()
   ),
   annot_batch_info_template = tibble::tibble(
     "batch_id" = character(),
