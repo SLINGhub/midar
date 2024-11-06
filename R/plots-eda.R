@@ -482,7 +482,7 @@ plot_dotboxplus_onepage <- function(data, outer_inner, GroupOuter = NULL, GroupI
 
 
 plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrasts, paired, inner_group_colors = NULL,
-                            rows_page, cols_page, class_per_page = TRUE, save_pdf = FALSE, path = NULL, scale_text = 1, scale_signf = 1, point_size = 1) {
+                            rows_page, cols_page, class_per_page = TRUE, output_pdf = FALSE, path = NULL, scale_text = 1, scale_signf = 1, point_size = 1) {
   d_long_full <- data |>
     right_join(d_metadata |> rename(analysis_id = .data$sample_id))
 
@@ -523,7 +523,7 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
   }
 
 
-  if (save_pdf) {
+  if (output_pdf) {
     pdf(file = path, onefile = TRUE, paper = "A4r", width = 10, height = 8)
     print(plt_list$plt)
     dev.off()
