@@ -169,10 +169,10 @@ qc_plot_runsequence <- function(data = NULL,
 #' @param filter_data Use QC-filtered data, based on criteria set via `qc_apply_feature_filter()`
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param include_qualifier Include qualifier features. Default is `TRUE`.
-#' @param filt_include_features Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
-#' @param filt_exclude_features Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
-#' @param analysis_no_range Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
-#' @param save_pdf save as PDF
+#' @param include_feature_filter Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
+#' @param exclude_feature_filter Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
+#' @param plot_range_indices A numeric vector of length two, specifying the start and end indices of the sequence to be plotted. If `NA` is provided, all samples will be plotted. These indices correspond to the order in which the samples were measured. For example, `c(1, 10)` will plot the data from the first to the tenth sample in the sequence. Ensure the indices are within the valid range of the dataset.
+#' @param output_pdf save as PDF
 #' @param path file name of PDF
 #' @param log_scale Use log10 scale for the y axis
 #' @param cap_outliers Cap upper outliers, based on MAD fences of SPL and QC samples, see `cap_spl_k_mad` and `cap_qc_k_mad`. Useful to cap extreme values distorting the plot.
@@ -195,7 +195,7 @@ qc_plot_runsequence <- function(data = NULL,
 #' @param rows_page rows per page
 #' @param base_font_size base font size of plot
 #' @param annot_scale scale factor of text elements
-#' @param paper_orientation Landscape/Portrait
+#' @param page_orientation Landscape/Portrait
 # #' @param show_trend_samples Fit trend line for study samples, if `show_trend` is TRUE. Default is FALSE.
 # #' @param trend_samples_function Function used for drift correction. Default 'loess'. TODO: Add more detail
 # #' @param trend_samples_color Color of drift line
@@ -203,10 +203,10 @@ qc_plot_runsequence <- function(data = NULL,
 # #' @param plot_other_qc Plot all QCs in addition to `fit_qc_type`
 #' @param point_transparency Alpha of points
 #' @param point_size point size
-#' @param page_no Show/save specific page number. Default is `NA`, which plots all pages.
+#' @param specific_page Show/save specific page number. Default is `NA`, which plots all pages.
 #' @param y_label_text Overwrite y label with this text
-#' @param point_stroke_width point stroke width
-#' @param return_plot_list return list with plots
+#' @param point_border_width point stroke width
+#' @param return_plots return list with plots
 #' @param show_gridlines show x and y major gridlines
 #' @param show_progress show progress bar
 # #' @param silent suppress messages
@@ -219,10 +219,10 @@ qc_plot_runscatter <- function(data = NULL,
                             filter_data = FALSE,
                             qc_types = NA,
                             include_qualifier = TRUE,
-                            filt_include_features = NA,
-                            filt_exclude_features = NA,
-                            analysis_no_range = NA,
-                            save_pdf = FALSE,
+                            include_feature_filter = NA,
+                            exclude_feature_filter = NA,
+                            plot_range_indices = NA,
+                            output_pdf = FALSE,
                             path = "",
                             log_scale = FALSE,
                             cap_outliers = FALSE,
@@ -250,13 +250,13 @@ qc_plot_runscatter <- function(data = NULL,
                             #trend_samples_col = "darkred",
                             #show_before_after_smooth = FALSE,
                             #plot_other_qc = FALSE,
-                            paper_orientation = "LANDSCAPE",
+                            page_orientation = "LANDSCAPE",
                             point_transparency = 1,
                             point_size = 2,
-                            point_stroke_width = 1,
-                            page_no = NA,
+                            point_border_width = 1,
+                            specific_page = NA,
                             y_label_text = NA,
-                            return_plot_list = FALSE,
+                            return_plots = FALSE,
                             show_gridlines = FALSE,
                             show_progress = FALSE) {
 
@@ -289,8 +289,8 @@ qc_plot_runscatter <- function(data = NULL,
     d_filt <- d_filt |> filter(!.data$is_qualifier)
   }
 
-  if (!all(is.na(analysis_no_range))) {
-    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
+  if (!all(is.na(plot_range_indices))) {
+    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= plot_range_indices[1] & .data$run_seq_num <= plot_range_indices[2]) |> droplevels()
   }
 
   d_filt <- d_filt |>
@@ -305,19 +305,19 @@ qc_plot_runscatter <- function(data = NULL,
 
   # Subset data based on incl and excl argument values ----
 
-  if (all(!is.na(filt_include_features)) & all(filt_include_features != "")) {
-    if (length(filt_include_features) == 1) {
-      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, filt_include_features))
+  if (all(!is.na(include_feature_filter)) & all(include_feature_filter != "")) {
+    if (length(include_feature_filter) == 1) {
+      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$feature_id, include_feature_filter))
     } else {
-      d_filt <- d_filt |> dplyr::filter(.data$feature_id %in% filt_include_features)
+      d_filt <- d_filt |> dplyr::filter(.data$feature_id %in% include_feature_filter)
     }
   }
 
-  if (all(!is.na(filt_exclude_features)) & all(filt_exclude_features != "")) {
-    if (length(filt_exclude_features) == 1) {
-      d_filt <- d_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, filt_exclude_features))
+  if (all(!is.na(exclude_feature_filter)) & all(exclude_feature_filter != "")) {
+    if (length(exclude_feature_filter) == 1) {
+      d_filt <- d_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id, exclude_feature_filter))
     } else {
-      d_filt <- d_filt |> dplyr::filter(!.data$feature_id %in% filt_exclude_features)
+      d_filt <- d_filt |> dplyr::filter(!.data$feature_id %in% exclude_feature_filter)
     }
   }
 
@@ -332,7 +332,7 @@ qc_plot_runscatter <- function(data = NULL,
 
   # Error in case the set filters excluded all features
 
-  if (nrow(d_filt) < 1) cli::cli_abort("None of the feature id's meet the filter criteria. Please check `filt_include_features` and `filt_exclude_features` parameters.")
+  if (nrow(d_filt) < 1) cli::cli_abort("None of the feature id's meet the filter criteria. Please check `include_feature_filter` and `exclude_feature_filter` parameters.")
 
   # Re-order qc_type levels to define plot layers, i.e.  QCs are plotted over StudySamples
   d_filt$qc_type <- factor(as.character(d_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
@@ -380,24 +380,24 @@ qc_plot_runscatter <- function(data = NULL,
   }
 
 
-  if (save_pdf & (is.na(path) | path == "")) cli::cli_abort("Save to PDF selected, but no valid path defined. Please set path via `path`.")
+  if (output_pdf & (is.na(path) | path == "")) cli::cli_abort("Save to PDF selected, but no valid path defined. Please set path via `path`.")
 
-  if (save_pdf & !is.na(path)) {
+  if (output_pdf & !is.na(path)) {
     path <- ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
-    if (paper_orientation == "LANDSCAPE") {
+    if (page_orientation == "LANDSCAPE") {
       pdf(file = path, onefile = T, paper = "A4r", useDingbats = FALSE, width = 28 / 2.54, height = 20 / 2.54)
     } else {
       pdf(file = path, onefile = T, paper = "A4", useDingbats = FALSE, height = 28 / 2.54, width = 20 / 2.54)
     }
   }
 
-  if (is.na(page_no)) {
+  if (is.na(specific_page)) {
     page_range <- 1:ceiling(dplyr::n_distinct(d_filt$feature_id) / (cols_page * rows_page))
   } else {
-    page_range <- page_no
+    page_range <- specific_page
   }
 
-  if(save_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
+  if(output_pdf) action_text = "Saving plots to pdf" else action_text = "Generating plots"
   #if(show_progress) cli::cli_progress_bar(action_text, total = max(page_range))
 
   cat(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
@@ -408,11 +408,11 @@ qc_plot_runscatter <- function(data = NULL,
 
     p <- runscatter_one_page(
       d_filt = d_filt, data = data, y_var = variable, d_batches = data@annot_batches, cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
-      fit_qc_type = fit_qc_type, save_pdf = save_pdf, page_no = i,
+      fit_qc_type = fit_qc_type, output_pdf = output_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency = point_transparency, annot_scale = annot_scale,
       show_batches = show_batches, batches_as_shades = batches_as_shades, batch_line_color = batch_line_color,
-      batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_stroke_width = point_stroke_width, show_grid = show_gridlines,
-      log_scale = log_scale, analysis_no_range = analysis_no_range, show_control_limits = show_control_limits, set_limits_n_sd = set_limits_n_sd, limits_batchwise = limits_batchwise, limits_linecolor = limits_linecolor,
+      batch_shading_color = batch_shading_color, y_label = y_label, base_font_size = base_font_size, point_border_width = point_border_width, show_grid = show_gridlines,
+      log_scale = log_scale, plot_range_indices = plot_range_indices, show_control_limits = show_control_limits, set_limits_n_sd = set_limits_n_sd, limits_batchwise = limits_batchwise, limits_linecolor = limits_linecolor,
       limits_linewidth = limits_linewidth, trend_linecolor = trend_linecolor
     )
 
@@ -423,7 +423,7 @@ qc_plot_runscatter <- function(data = NULL,
     p_list[[i]] <- p
 
   }
-  if (save_pdf) dev.off()
+  if (output_pdf) dev.off()
   cat(cli::col_green(" - done!"))
   if(show_progress) close(pb)
 
@@ -431,7 +431,7 @@ qc_plot_runscatter <- function(data = NULL,
   # on.exit(
   #   dev.off())
 
-  if (return_plot_list) {
+  if (return_plots) {
     return(p_list)
   }
 }
@@ -441,11 +441,11 @@ qc_plot_runscatter <- function(data = NULL,
 runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
                                 show_trend, fit_qc_type, cap_outliers,
                                 show_batches, batches_as_shades, batch_line_color, batch_shading_color,
-                                save_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_stroke_width,
-                                show_grid, log_scale, analysis_no_range, show_control_limits, set_limits_n_sd, limits_batchwise, limits_linecolor,
+                                output_pdf, annot_scale, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
+                                show_grid, log_scale, plot_range_indices, show_control_limits, set_limits_n_sd, limits_batchwise, limits_linecolor,
                                 limits_linewidth, trend_linecolor) {
   point_size <- ifelse(missing(point_size), 2, point_size)
-  point_stroke_width <- dplyr::if_else(save_pdf, .3, .2 * (1 + annot_scale / 5))
+  point_border_width <- dplyr::if_else(output_pdf, .3, .2 * (1 + annot_scale / 5))
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
@@ -502,7 +502,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   }
 
   p <- p +
-    ggplot2::geom_point(aes_string(x = "run_seq_num", y = "value_mod", color = "qc_type", fill = "qc_type", shape = "qc_type", group = "batch_id"), size = point_size, alpha = point_transparency, stroke = point_stroke_width, na.rm = TRUE)
+    ggplot2::geom_point(aes_string(x = "run_seq_num", y = "value_mod", color = "qc_type", fill = "qc_type", shape = "qc_type", group = "batch_id"), size = point_size, alpha = point_transparency, stroke = point_border_width, na.rm = TRUE)
 
 
   if (show_trend) {
@@ -624,8 +624,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     p <- p + scale_y_log10()
   }
 
-  if(!all(is.na(analysis_no_range))) {
-    p <- p + ggplot2::coord_cartesian(xlim = analysis_no_range)
+  if(!all(is.na(plot_range_indices))) {
+    p <- p + ggplot2::coord_cartesian(xlim = plot_range_indices)
   }
 
   return(p)
@@ -643,9 +643,9 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #' @param filter_data Use QC-filtered data
 #' @param qc_types QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.
 #' @param x_axis_variable Variable used for the x axis, muste be one of: `run_seq_num`, `run_no`, `analysis_id`, or `timestamp`
-#' @param feature_incl_filt Filter text to select specific features (regex string)
-#' @param feature_excl_filt Filter text to exclude specific features (regex string)
-#' @param analysis_no_range Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
+#' @param include_feature_filter Filter text to select specific features (regex string)
+#' @param exclude_feature_filter Filter text to exclude specific features (regex string)
+#' @param plot_range_indices Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
 #' @param min_feature_intensity Exclude features with overall median signal below this value
 #' @param y_lim Y-axis lower and upper limits as vector (default is NA). This also overwrites limits calculated by `ignore_outliers`
 #' @param ignore_outliers Exclude outlier values based on 4x MAD (median absolute deviation) fences
@@ -687,9 +687,9 @@ qc_plot_rla_boxplot <- function(
                                 filter_data = FALSE,
                                 qc_types = NA,
                                 x_axis_variable = c("run_seq_num"),
-                                feature_incl_filt = "",
-                                feature_excl_filt = "",
-                                analysis_no_range = NA,
+                                include_feature_filter = "",
+                                exclude_feature_filter = "",
+                                plot_range_indices = NA,
                                 min_feature_intensity = 0,
                                 y_lim = NA,
                                 ignore_outliers = FALSE,
@@ -733,8 +733,8 @@ qc_plot_rla_boxplot <- function(
     }
   }
 
-  if (!all(is.na(analysis_no_range))) {
-    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= analysis_no_range[1] & .data$run_seq_num <= analysis_no_range[2]) |> droplevels()
+  if (!all(is.na(plot_range_indices))) {
+    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= plot_range_indices[1] & .data$run_seq_num <= plot_range_indices[2]) |> droplevels()
   }
 
   d_filt <- d_filt |>
@@ -835,8 +835,8 @@ qc_plot_rla_boxplot <- function(
     ylim = tails
   }
 
-  if(!all(is.na(analysis_no_range))) {
-    xlim = analysis_no_range
+  if(!all(is.na(plot_range_indices))) {
+    xlim = plot_range_indices
   }
 
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
