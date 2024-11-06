@@ -100,7 +100,7 @@ six batches to see how the analyses went. The same ISTD amount was
 spiked into each sample (except `SBLK`) so we should expect the same
 intensities in all samples and sample types.
 
-| What do you observe? You can set `save_pdf = TRUE` to save the plots as PDF (see subfolder `output`).
+| What do you observe? You can set `output_pdf = TRUE` to save the plots as PDF (see subfolder `output`).
 
 ```{r runscatter}
 #| message: true
@@ -108,13 +108,13 @@ qc_plot_runscatter(
   data = myexp,
   variable = "intensity",
   qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
-  analysis_no_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
-  filt_include_features = "ISTD", 
-  filt_exclude_features = "Hex|282",
+  plot_range_indices = NA, #get_batch_boundaries(myexp, c(1,6)), 
+  include_feature_filter = "ISTD", 
+  exclude_feature_filter = "Hex|282",
   cap_outliers = FALSE,
   log_scale = FALSE, 
   show_batches = TRUE,base_font_size = 5,
-  save_pdf = FALSE,
+  output_pdf = FALSE,
   path = "./output/runscatter_istd.pdf",
   cols_page = 3, rows_page = 2
 )
@@ -155,7 +155,7 @@ instrument sensitivity changes.
 
 > First, run the code below as it is. What observations can be made?
 > Then, examine batch 6, by uncommenting the line
-> `#analysis_no_range =`. What do you see in this batch? Identify the
+> `#plot_range_indices =`. What do you see in this batch? Identify the
 > potential outlier sample by setting `x_axis_variable = "analysis_id"`.
 > Next, set the y-axis limits manually `y_lim = c(-2,2)` and display all
 > analyses/batches again to inspect the data for other trends or
@@ -168,7 +168,7 @@ midar::qc_plot_rla_boxplot(
   variable = "intensity",
   qc_types = c("BQC", "SPL", "RQC", "TQC", "PBLK"), 
   filter_data = FALSE, 
-  #analysis_no_range = get_batch_boundaries(myexp, batch_ids = c(6,6)), 
+  #plot_range_indices = get_batch_boundaries(myexp, batch_ids = c(6,6)), 
   #y_lim = c(-3,3),
   x_axis_variable = "run_seq_num",
   ignore_outliers = FALSE, x_gridlines = FALSE,
@@ -239,10 +239,10 @@ performance can affect the dynamic range. Therefore, we measured
 injection volume series at the start and end of this analysis as a QC.
 
 > Look at the response curves below. What do we see from these results?
-> Change the plotted lipid species by modifying `feature_incl_filt` (it
+> Change the plotted lipid species by modifying `include_feature_filter` (it
 > can use regular expressions). Save a PDF of all lipids by setting
-> `save_pdf = TRUE` and commenting out (add a `#` in front of)
-> `feature_incl_filt`
+> `output_pdf = TRUE` and commenting out (add a `#` in front of)
+> `include_feature_filter`
 
 ```{r responsecurves}
 # Exclude very low abundant features
@@ -253,9 +253,9 @@ qc_plot_responsecurves(
   data = myexp, 
   variable = "intensity", 
   filter_data = TRUE, 
-  feature_incl_filt = "", 
-  save_pdf = TRUE, path = "response-curves.pdf", 
-  cols_page = 5, rows_page = 5
+  include_feature_filter = "", 
+  output_pdf = FALSE, path = "response-curves.pdf", 
+  cols_page = 5, rows_page = 5, 
 )
 ```
 
@@ -363,12 +363,12 @@ my_trend_plot <- function(variable, feature){
     data = myexp,
     variable = variable,
     qc_types = c("BQC", "TQC", "SPL"),
-    filt_include_features = feature,
-    filt_exclude_features = "ISTD",
+    include_feature_filter = feature,
+    exclude_feature_filter = "ISTD",
     cap_outliers = TRUE,
     log_scale = FALSE,
     show_trend = TRUE,
-    save_pdf = FALSE,
+    output_pdf = FALSE,
     path = "./output/runscatter_PC408_beforecorr.pdf",
     cols_page = 1, rows_page = 1, 
   )
@@ -434,12 +434,12 @@ qc_plot_runscatter(
   data = myexp,
   variable = "conc",
   qc_types = c("BQC", "TQC", "SPL"),
-  filt_include_features =  NA,
-  filt_exclude_features = "ISTD",
+  include_feature_filter =  NA,
+  exclude_feature_filter = "ISTD",
   cap_outliers = TRUE,
   log_scale = FALSE,
   show_trend = TRUE,
-  save_pdf = TRUE,
+  output_pdf = TRUE,
   path = "./output/runscatter_after-drift-batch-correction.pdf",
   cols_page = 2, 
   rows_page = 2,
