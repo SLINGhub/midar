@@ -2,69 +2,69 @@
 % Please edit documentation in R/plots-qc-responsecurves.R
 \name{qc_plot_responsecurves}
 \alias{qc_plot_responsecurves}
-\title{Response curves plot}
+\title{Plot Response Curves}
 \usage{
 qc_plot_responsecurves(
   data = NULL,
   variable = "intensity",
-  filter_data,
-  feature_incl_filt = "",
-  feature_excl_filt = "",
-  save_pdf = FALSE,
+  filter_data = FALSE,
+  output_pdf = FALSE,
+  include_feature_filter = "",
+  exclude_feature_filter = "",
+  max_regression_value = NA,
   path = "",
-  regr_max_value = NA,
   rows_page = 4,
   cols_page = 5,
-  page_no = NA,
+  specific_page = NA,
   point_size = 1.5,
   line_width = 0.7,
-  scale_factor = 1,
-  paper_orientation = "LANDSCAPE",
+  scaling_factor = 1,
+  page_orientation = "LANDSCAPE",
   font_base_size = 7,
   show_progress = TRUE,
-  return_plot_list = FALSE
+  return_plots = FALSE
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object containing the dataset with sample amounts and detector signals. Required.}
 
-\item{variable}{Variable to plot}
+\item{output_pdf}{Logical. If \code{TRUE}, saves the generated plots as a PDF file. Defaults to \code{FALSE}.}
 
-\item{filter_data}{Use QC-filtered data}
+\item{include_feature_filter}{A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.}
 
-\item{feature_incl_filt}{Filter features names matching the criteria (regex). When empty, \code{NA} or \code{NULL} all available features are included.}
+\item{exclude_feature_filter}{A regex pattern to filter and exclude features that match the criteria. If omitted, no features are excluded.}
 
-\item{feature_excl_filt}{Exclude features names matching the criteria (regex).  When empty, \code{NA} or \code{NULL} all available features are included.}
+\item{max_regression_value}{The maximum x value (analyzed amount) for which the regression line is fitted. Defaults to \code{NA}, considering all data points.}
 
-\item{save_pdf}{Save as PDF}
+\item{path}{The file path for saving the PDF. Defaults to an empty string, meaning no file is saved.}
 
-\item{path}{file name of pdf file}
+\item{rows_page}{The number of rows of plots per page for the PDF output. Defaults to 4.}
 
-\item{regr_max_value}{Maximum x value (\code{analyzed_amount}) to fit regression line to}
+\item{cols_page}{The number of columns of plots per page for the PDF output. Defaults to 5.}
 
-\item{rows_page}{rows per page}
+\item{specific_page}{An integer specifying a particular page to plot. If \code{NA}, all pages are plotted.}
 
-\item{cols_page}{columns per page}
+\item{point_size}{Numeric value specifying the size of points in the plot. Defaults to 1.5.}
 
-\item{page_no}{Specific page to plot. Default \code{NA}, meaning all pages are plotted}
+\item{line_width}{Numeric value specifying the width of regression lines. Defaults to 0.7.}
 
-\item{point_size}{point size}
+\item{scaling_factor}{A universal scaling factor for fonts, symbols, and lines. Defaults to 1.}
 
-\item{line_width}{regression line width}
+\item{page_orientation}{The orientation of the PDF paper, either \code{"LANDSCAPE"} or \code{"PORTRAIT"}. Defaults to \code{"LANDSCAPE"}.}
 
-\item{scale_factor}{scale factor for fonts, symbols and lines}
+\item{font_base_size}{The base font size for text in the plots. Defaults to 7.}
 
-\item{paper_orientation}{Landscape/Portrait}
+\item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of \code{ggplot2} objects. Each item represents a page of plots. Defaults to \code{FALSE}.}
 
-\item{font_base_size}{base font size}
+\item{use_filtered_data}{Logical. Indicates whether to use quality control (QC) filtered data (\code{TRUE}) or the raw data (\code{FALSE}). Defaults to \code{FALSE}.}
 
-\item{show_progress}{show progress bar}
+\item{plot_variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}.}
 
-\item{return_plot_list}{return plot as list}
+\item{display_progress}{Logical. Show a progress bar during plot creation if set to \code{TRUE}. Defaults to \code{TRUE}.}
 }
 \value{
-A list of ggplot2 objects
+If \code{return_plots} is \code{TRUE}, a list of \code{ggplot2} objects is returned. Otherwise, the function may return a plot output and/or save a PDF, depending on the \code{output_pdf} parameter.
 }
 \description{
-Response curves plot
+Generates linear regression plots for each measured feature within a dataset. The function allows for customization of the plot's appearance and format, and it can filter features based on specified criteria.
 }

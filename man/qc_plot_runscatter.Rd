@@ -11,10 +11,10 @@ qc_plot_runscatter(
   filter_data = FALSE,
   qc_types = NA,
   include_qualifier = TRUE,
-  filt_include_features = NA,
-  filt_exclude_features = NA,
-  analysis_no_range = NA,
-  save_pdf = FALSE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
+  plot_range_indices = NA,
+  output_pdf = FALSE,
   path = "",
   log_scale = FALSE,
   cap_outliers = FALSE,
@@ -37,13 +37,13 @@ qc_plot_runscatter(
   show_trend = FALSE,
   trend_linecolor = "#22e06b",
   fit_qc_type = "BQC",
-  paper_orientation = "LANDSCAPE",
+  page_orientation = "LANDSCAPE",
   point_transparency = 1,
   point_size = 2,
-  point_stroke_width = 1,
-  page_no = NA,
+  point_border_width = 1,
+  specific_page = NA,
   y_label_text = NA,
-  return_plot_list = FALSE,
+  return_plots = FALSE,
   show_gridlines = FALSE,
   show_progress = FALSE
 )
@@ -59,13 +59,13 @@ qc_plot_runscatter(
 
 \item{include_qualifier}{Include qualifier features. Default is \code{TRUE}.}
 
-\item{filt_include_features}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+\item{include_feature_filter}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
-\item{filt_exclude_features}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+\item{exclude_feature_filter}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
 
-\item{analysis_no_range}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
+\item{plot_range_indices}{A numeric vector of length two, specifying the start and end indices of the sequence to be plotted. If \code{NA} is provided, all samples will be plotted. These indices correspond to the order in which the samples were measured. For example, \code{c(1, 10)} will plot the data from the first to the tenth sample in the sequence. Ensure the indices are within the valid range of the dataset.}
 
-\item{save_pdf}{save as PDF}
+\item{output_pdf}{save as PDF}
 
 \item{path}{file name of PDF}
 
@@ -111,19 +111,19 @@ qc_plot_runscatter(
 
 \item{fit_qc_type}{QC type used for smoothing  TODO: Add more detail}
 
-\item{paper_orientation}{Landscape/Portrait}
+\item{page_orientation}{Landscape/Portrait}
 
 \item{point_transparency}{Alpha of points}
 
 \item{point_size}{point size}
 
-\item{point_stroke_width}{point stroke width}
+\item{point_border_width}{point stroke width}
 
-\item{page_no}{Show/save specific page number. Default is \code{NA}, which plots all pages.}
+\item{specific_page}{Show/save specific page number. Default is \code{NA}, which plots all pages.}
 
 \item{y_label_text}{Overwrite y label with this text}
 
-\item{return_plot_list}{return list with plots}
+\item{return_plots}{return list with plots}
 
 \item{show_gridlines}{show x and y major gridlines}
 

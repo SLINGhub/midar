@@ -12,9 +12,9 @@ qc_plot_rla_boxplot(
   filter_data = FALSE,
   qc_types = NA,
   x_axis_variable = c("run_seq_num"),
-  feature_incl_filt = "",
-  feature_excl_filt = "",
-  analysis_no_range = NA,
+  include_feature_filter = "",
+  exclude_feature_filter = "",
+  plot_range_indices = NA,
   min_feature_intensity = 0,
   y_lim = NA,
   ignore_outliers = FALSE,
@@ -41,11 +41,11 @@ qc_plot_rla_boxplot(
 
 \item{x_axis_variable}{Variable used for the x axis, muste be one of: \code{run_seq_num}, \code{run_no}, \code{analysis_id}, or \code{timestamp}}
 
-\item{feature_incl_filt}{Filter text to select specific features (regex string)}
+\item{include_feature_filter}{Filter text to select specific features (regex string)}
 
-\item{feature_excl_filt}{Filter text to exclude specific features (regex string)}
+\item{exclude_feature_filter}{Filter text to exclude specific features (regex string)}
 
-\item{analysis_no_range}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
+\item{plot_range_indices}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
 
 \item{min_feature_intensity}{Exclude features with overall median signal below this value}
 
