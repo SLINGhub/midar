@@ -1,18 +1,17 @@
-
-#' @title Retrieve available metadata from imported analysis data
-#' @description Available information will depend on the format of imported raw analysis data. See [data_import_masshunter()] and [data_import_mrmkit()]
-#' @param data MidarExperiment object
-#' @param qc_type_field Column name in imported raw data file representing the `qc_type`
-#' @return MidarExperiment object
+#' @title Retrieve Metadata from Imported Analysis Data
+#' @description Retrieves available metadata from the imported analysis data and associates it with the provided MidarExperiment object.
+#' @param data MidarExperiment object containing the imported analysis data
+#' @param qc_type_column_name Column name in the imported raw data representing the `qc_type`
+#' @return The input MidarExperiment object with the metadata retrieved and associated
 #'
 
-metadata_import_fromdata<- function(data = NULL, qc_type_field = "qc_type") {
+metadata_import_fromdata<- function(data = NULL, qc_type_column_name = "qc_type") {
   check_data(data)
   # get analysis metadata
    annot_analyses <- data@dataset_orig |>
-    dplyr::select("analysis_id", dplyr::any_of(c(qc_type_field, "batch_id"))) |>
+    dplyr::select("analysis_id", dplyr::any_of(c(qc_type_column_name, "batch_id"))) |>
     dplyr::distinct() |>
-    dplyr::rename(any_of(c(qc_type = qc_type_field))) |>
+    dplyr::rename(any_of(c(qc_type = qc_type_column_name))) |>
     dplyr::bind_rows(pkg.env$table_templates$annot_analyses_template)
 
   # get feature metadata
@@ -24,7 +23,7 @@ metadata_import_fromdata<- function(data = NULL, qc_type_field = "qc_type") {
 
   # check and add metadata
   metadata <- metadata_assert(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
-  data <- add_metadata(data = data, metadata = metadata, excl_unannotated_analyses = FALSE)
+  data <- add_metadata(data = data, metadata = metadata, exclude_unmatched_analyses = FALSE)
   data <- link_data_metadata(data)
 
   data
@@ -49,22 +48,20 @@ get_metadata_batches <- function(annot_analyses){
 }
 
 
-# TODO: This below has to be changed, mapping of metadata to data should be a distinct function
-#' @title Import metadata from the midar template (.XLM) and associates it with the analysis data
-#' @description Requires version 1.9.1 of the template. Template is based on the MSorganizer template (see TODO)
-#' @param data MidarExperiment object
-#' @param path file name and path
-#' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
+#' @title Import Metadata from MIDAR Template
+#' @description Imports metadata from a MIDAR template (.XML) file and associates it with  analysis data.
+#' @param data MidarExperiment object containing the analysis data
+#' @param path File name and path of the MIDAR template (.XML) file
+#' @param exclude_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
-#' @return MidarExperiment object
+#' @return The input MidarExperiment object with the metadata imported and associated
 #' @export
 #'
-
-metadata_import_midarxlm<- function(data = NULL, path,  excl_unannotated_analyses = FALSE, ignore_warnings = FALSE) {
+metadata_import_midarxlm<- function(data = NULL, path,  exclude_unmatched_analyses = FALSE, ignore_warnings = FALSE) {
   check_data(data)
   metadata <- read_metadata_midarxlm(path)
-  metadata  <- metadata_assert(data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses, ignore_warnings = ignore_warnings)
-  data  <- add_metadata(data, metadata = metadata, excl_unannotated_analyses = excl_unannotated_analyses)
+  metadata  <- metadata_assert(data, metadata = metadata, exclude_unmatched_analyses = exclude_unmatched_analyses, ignore_warnings = ignore_warnings)
+  data  <- add_metadata(data, metadata = metadata, exclude_unmatched_analyses = exclude_unmatched_analyses)
   data <- link_data_metadata(data)
 }
 
@@ -123,16 +120,15 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
 #' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
 #' @param data MidarExperiment object
 #' @param metadata List of tibbles or data.frames containing analysis, feature, istd, response curve tables
-#' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
+#' @param exclude_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore data validation warnings and proceed with adding metadata
 #' @return metadata list
-#' @export
 #'
 #'
 # Verify/assert metadata consistency with analysis data
 
 #TODO: align with metadata assertions and when it is check_integrity called
- metadata_assert <- function(data = NULL, metadata, excl_unannotated_analyses, ignore_warnings) {
+ metadata_assert <- function(data = NULL, metadata, exclude_unmatched_analyses, ignore_warnings) {
    check_data(data)
    #Note: to check for multiple missing columns defects, first each column will be check
    # for presence and error is raised for reporting, then a defect is raised to
@@ -250,13 +246,13 @@ alert_assertion_issues <- function(data, data_label, assert_type = c("defect", "
  #' @description Metadata provided as a list of tibbles will validates for consistency again loaded analysis data of the provided MidarExperiment object and then transfered.
  #' @param data MidarExperiment object
  #' @param metadata List of tibbles or data.frames containing analysis, feature, istd, response curve tables
- #' @param excl_unannotated_analyses Exclude analyses (samples) that have no matching metadata
+ #' @param exclude_unmatched_analyses Exclude analyses (samples) that have no matching metadata
  #' @return metadata list
  #' @export
 
 
 # Add verified metadata to the MidarExperiment object
-add_metadata <- function(data = NULL, metadata, excl_unannotated_analyses = FALSE) {
+add_metadata <- function(data = NULL, metadata, exclude_unmatched_analyses = FALSE) {
   check_data(data)
   # ANALYSES METADATA ====================
   if (!is.null(metadata$annot_analyses) && nrow(metadata$annot_analyses) > 0){
@@ -402,11 +398,12 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
     ) |>
     mutate(analysis_no = dplyr::row_number(), .before = 1) |>
     mutate(
-      batch_id = as.character(.data$batch_id),
-      remarks = as.character(.data$remarks),
+      batch_id = str_squish(as.character(.data$batch_id)),
+      remarks = str_squish(as.character(.data$remarks)),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
       analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       sample_id = stringr::str_squish(as.character(.data$sample_id)),
+      specimen = stringr::str_squish(as.character(.data$specimen)),
       valid_analysis = as.logical(case_match(tolower(.data$valid_analysis),
                                   "yes" ~ TRUE,
                                   "no"~ FALSE,
@@ -443,13 +440,13 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   names(d_temp_features) <- tolower(names(d_temp_features))
 
   # Ensure compatibility with older template versions (< 1.9.2)
-  if("feature_name" %in% names(d_temp_analyses))
+  if("feature_name" %in% names(d_temp_features))
     d_temp_features <- d_temp_features |> rename("feature_id" = "feature_name")
 
-  if("istd_feature_name" %in% names(d_temp_analyses))
+  if("istd_feature_name" %in% names(d_temp_features))
     d_temp_features <- d_temp_features |> rename("istd_feature_id" = "istd_feature_name")
 
-  if("new_feature_name" %in% names(d_temp_analyses))
+  if("new_feature_name" %in% names(d_temp_features))
     d_temp_features <- d_temp_features |> rename("feature_label" = "new_feature_name")
 
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE)
@@ -457,7 +454,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "response_factor", init_value = 1, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
-  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_name", init_value = NA_character_, make_lowercase = FALSE)
+  d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
   d_temp_features <- d_temp_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
@@ -480,7 +477,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
                                             "true" ~ TRUE,
                                             "false" ~ FALSE,
                                             .default = NA)),
-      interference_feature_name = stringr::str_squish(.data$interference_feature_name),
+      interference_feature_id = stringr::str_squish(.data$interference_feature_id),
       remarks = as.character(.data$remarks)
     ) |>
     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
@@ -493,7 +490,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       response_factor = "response_factor",
       "is_quantifier",
       "valid_feature",
-      "interference_feature_id" = "interference_feature_name",
+      "interference_feature_id",
       "interference_proportion",
       "remarks"
     )
@@ -558,9 +555,9 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   names(metadata_responsecurves) <- tolower(names(metadata_responsecurves))
 
   # Ensure compatibility with older template versions (< 1.9.2)
-  if("raw_data_filename" %in% names(d_temp_analyses))
+  if("raw_data_filename" %in% names(metadata_responsecurves))
     metadata_responsecurves <- metadata_responsecurves |> rename("analysis_id" = "raw_data_filename")
-  if("response_curve_name" %in% names(d_temp_analyses))
+  if("response_curve_name" %in% names(metadata_responsecurves))
     metadata_responsecurves <- metadata_responsecurves |> rename("curve_id" = "response_curve_name")
 
   if("relative_sample_amount_[%]" %in% names(metadata_responsecurves)){
