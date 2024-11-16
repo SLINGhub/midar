@@ -2,18 +2,18 @@
 % Please edit documentation in R/metadata-read.R
 \name{metadata_import_fromdata}
 \alias{metadata_import_fromdata}
-\title{Retrieve available metadata from imported analysis data}
+\title{Retrieve Metadata from Imported Analysis Data}
 \usage{
-metadata_import_fromdata(data = NULL, qc_type_field = "qc_type")
+metadata_import_fromdata(data = NULL, qc_type_column_name = "qc_type")
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment object containing the imported analysis data}
 
-\item{qc_type_field}{Column name in imported raw data file representing the \code{qc_type}}
+\item{qc_type_column_name}{Column name in the imported raw data representing the \code{qc_type}}
 }
 \value{
-MidarExperiment object
+The input MidarExperiment object with the metadata retrieved and associated
 }
 \description{
-Available information will depend on the format of imported raw analysis data. See \code{\link[=data_import_masshunter]{data_import_masshunter()}} and \code{\link[=data_import_mrmkit]{data_import_mrmkit()}}
+Retrieves available metadata from the imported analysis data and associates it with the provided MidarExperiment object.
 }

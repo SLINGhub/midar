@@ -4,12 +4,12 @@
 \alias{fun_loess}
 \title{Loess smoothing helper function}
 \usage{
-fun_loess(tbl, qc_types, ...)
+fun_loess(tbl, reference_qc_types, ...)
 }
 \arguments{
 \item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
-\item{qc_types}{QC types used for the smoothing (fit) by loess}
+\item{reference_qc_types}{QC types used for the smoothing (fit) by loess}
 
 \item{...}{Additional parameters forwarded to Loess}
 }

@@ -2,132 +2,148 @@
 % Please edit documentation in R/qc-filtering.R
 \name{qc_apply_feature_filter}
 \alias{qc_apply_feature_filter}
-\title{Filter dataset according to QC and other criteria}
+\title{Feature Filtering Based on Quality Control Criteria}
 \usage{
 qc_apply_feature_filter(
   data = NULL,
-  overwrite = TRUE,
+  replace_existing = TRUE,
   batch_medians = FALSE,
   qualifier.include = FALSE,
   istd.include = FALSE,
-  missing.intensity.spl.prop.max = NA,
-  missing.norm_intensity.spl.prop.max = NA,
-  missing.conc.spl.prop.max = NA,
-  intensity.min.bqc.min = NA,
-  intensity.min.tqc.min = NA,
-  intensity.min.spl.min = NA,
-  intensity.median.bqc.min = NA,
-  intensity.median.tqc.min = NA,
-  intensity.median.spl.min = NA,
-  intensity.max.spl.min = NA,
-  signalblank.median.pblk.min = NA,
-  signalblank.median.ublk.min = NA,
-  signalblank.median.sblk.min = NA,
-  cv.conc.bqc.max = NA,
-  cv.conc.tqc.max = NA,
-  cv.intensity.bqc.min = NA,
-  cv.intensity.tqc.min = NA,
-  dratio.conc.bqc.sd.max = NA,
-  dratio.conc.tqc.sd.max = NA,
-  dratio.conc.bqc.mad.max = NA,
-  dratio.conc.tqc.mad.max = NA,
-  response.curve.id = NA,
-  response.curve.summary = NA,
-  response.rsquare.min = NA,
-  response.slope.min = NA,
-  response.slope.max = NA,
-  response.yintersect.max = NA,
-  outlier.technical.exlude = FALSE,
-  features_to_keep = NULL
+  features.to.keep = NULL,
+  max.prop.missing.intensity.spl = NA,
+  max.prop.missing.normintensity.spl = NA,
+  max.prop.missing.conc.spl = NA,
+  min.intensity.lowest.bqc = NA,
+  min.intensity.lowest.tqc = NA,
+  min.intensity.lowest.spl = NA,
+  min.intensity.median.bqc = NA,
+  min.intensity.median.tqc = NA,
+  min.intensity.median.spl = NA,
+  min.intensity.highest.spl = NA,
+  min.signalblank.median.spl.pblk = NA,
+  min.signalblank.median.spl.ublk = NA,
+  min.signalblank.median.spl.sblk = NA,
+  max.cv.intensity.bqc = NA,
+  max.cv.intensity.tqc = NA,
+  max.cv.normintensity.bqc = NA,
+  max.cv.normintensity.tqc = NA,
+  max.cv.conc.bqc = NA,
+  max.cv.conc.tqc = NA,
+  response.curves.select = NA,
+  response.curves.summary = NA,
+  min.rsquare.response = NA,
+  min.slope.response = NA,
+  max.slope.response = NA,
+  max.yintercept.response = NA,
+  max.dratio.sd.conc.bqc = NA,
+  max.dratio.sd.conc.tqc = NA,
+  max.dratio.mad.conc.bqc = NA,
+  max.dratio.mad.conc.tqc = NA,
+  max.dratio.sd.normint.bqc = NA,
+  max.dratio.sd.normint.tqc = NA,
+  max.dratio.mad.normint.bqc = NA,
+  max.dratio.mad.normint.tqc = NA
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment object.}
 
-\item{overwrite}{Add/change previously defined qc filters or define a new set of filters. Default is \code{FALSE}.}
+\item{replace_existing}{Logical. If \code{TRUE}, replaces any existing filters; if \code{FALSE}, adds new filters on top of existing ones. Default is \code{TRUE}.}
 
-\item{batch_medians}{Use median of batch-wise derived QC values. Default is FALSE.}
+\item{batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
 
-\item{qualifier.include}{Include qualifier features}
+\item{qualifier.include}{Logical. If \code{TRUE}, includes qualifier features in the filtering process. Default is \code{FALSE}.}
 
-\item{istd.include}{Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then \code{min_signal_blank_ratio} is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.}
+\item{istd.include}{Logical. If \code{TRUE}, includes internal standards (ISTDs) in the filtering process. Default is \code{FALSE}.}
 
-\item{missing.intensity.spl.prop.max}{NA Proportion of missing raw intensities}
+\item{features.to.keep}{A vector of feature identifiers to retain, even if they do not meet the filtering criteria.}
 
-\item{missing.norm_intensity.spl.prop.max}{NA Proportion of missing normalized intensities}
+\item{max.prop.missing.intensity.spl}{Maximum proportion of missing intensity values among study samples (SPL). Default is \code{NA}.}
 
-\item{missing.conc.spl.prop.max}{NA Proportion of missing final concentrations}
+\item{max.prop.missing.normintensity.spl}{Maximum proportion of missing normalized intensity values among study samples (SPL). Default is \code{NA}.}
 
-\item{intensity.min.bqc.min}{Minimum median feature intensity of BQC}
+\item{max.prop.missing.conc.spl}{Maximum proportion of missing concentration values among study samples (SPL). Default is \code{NA}.}
 
-\item{intensity.min.tqc.min}{Minimum median feature intensity of TQC}
+\item{min.intensity.lowest.bqc}{Minimum intensity of the lowest BQC sample. Default is \code{NA}.}
 
-\item{intensity.min.spl.min}{Minimum median feature intensity of study samples (SPL)}
+\item{min.intensity.lowest.tqc}{Minimum intensity of the lowest TQC sample. Default is \code{NA}.}
 
-\item{intensity.median.bqc.min}{Minimum median feature intensity of BQC}
+\item{min.intensity.lowest.spl}{Minimum intensity of the lowest study sample (SPL). Default is \code{NA}.}
 
-\item{intensity.median.tqc.min}{Minimum median feature intensity of TQC}
+\item{min.intensity.median.bqc}{Minimum median intensity of BQC samples. Default is \code{NA}.}
 
-\item{intensity.median.spl.min}{Minimum median feature intensity of study samples (SPL)}
+\item{min.intensity.median.tqc}{Minimum median intensity of TQC samples. Default is \code{NA}.}
 
-\item{intensity.max.spl.min}{Minimum maximun feature intensity oof study samples (SPL)}
+\item{min.intensity.median.spl}{Minimum median intensity of study samples (SPL). Default is \code{NA}.}
 
-\item{signalblank.median.pblk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)}
+\item{min.intensity.highest.spl}{Minimum intensity of the highest intensity study sample (SPL). Default is \code{NA}.}
 
-\item{signalblank.median.ublk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)}
+\item{min.signalblank.median.spl.pblk}{Minimum signal-to-blank ratio for SPL samples and PBLK. Default is \code{NA}.}
 
-\item{signalblank.median.sblk.min}{= Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)}
+\item{min.signalblank.median.spl.ublk}{Minimum signal-to-blank ratio for SPL samples and UBLK. Default is \code{NA}.}
 
-\item{cv.conc.bqc.max}{= Maximum \%CV of BQC}
+\item{min.signalblank.median.spl.sblk}{Minimum signal-to-blank ratio for SPL samples and SBLK. Default is \code{NA}.}
 
-\item{cv.conc.tqc.max}{Maximum \%CV of TQC}
+\item{max.cv.intensity.bqc}{Maximum CV for intensity in BQC samples. Default is \code{NA}.}
 
-\item{cv.intensity.bqc.min}{Maximum \%CV of BQC}
+\item{max.cv.intensity.tqc}{Maximum CV for intensity in TQC samples. Default is \code{NA}.}
 
-\item{cv.intensity.tqc.min}{Maximum \%CV of TQC}
+\item{max.cv.normintensity.bqc}{Maximum CV for normalized intensity in BQC samples. Default is \code{NA}.}
 
-\item{dratio.conc.bqc.sd.max}{D-ratio defined as CV_BQC/CV_SPL, based on sd}
+\item{max.cv.normintensity.tqc}{Maximum CV for normalized intensity in TQC samples. Default is \code{NA}.}
 
-\item{dratio.conc.tqc.sd.max}{D-ratio defined as CV_TQC/CV_SPL, based on sd}
+\item{max.cv.conc.bqc}{Maximum CV for concentration in BQC samples. Default is \code{NA}.}
 
-\item{dratio.conc.bqc.mad.max}{D-ratio defined as CV_BQC/CV_SPL, based on mad}
+\item{max.cv.conc.tqc}{Maximum CV for concentration in TQC samples. Default is \code{NA}.}
 
-\item{dratio.conc.tqc.mad.max}{D-ratio defined as CV_TQC/CV_SPL, based on mad}
+\item{response.curves.select}{Select specific response curves by ID. Default is \code{NA}.}
 
-\item{response.curve.id}{A single value or vector specifying the identifiers or indices of the response curves to be used for filtering. This can be either numeric indices or text identifiers.}
+\item{response.curves.summary}{Define the method to summarize multiple response curves. Default is \code{NA}.}
 
-\item{response.curve.summary}{A string indicating how to summarize the metrics of multiple selected curves, if applicable. Must be either 'mean', 'median', 'best', or 'worst'.}
+\item{min.rsquare.response}{Minimum R-squared value for the response curves. Default is \code{NA}.}
 
-\item{response.rsquare.min}{The minimum acceptable R squared value for the response curve(s). Refer to the details section for more information.}
+\item{min.slope.response}{Minimum slope for the response curve. Default is \code{NA}.}
 
-\item{response.slope.min}{The minimum normalized slope for the response curve(s). Refer to the details section for further explanation.}
+\item{max.slope.response}{Maximum slope for the response curve. Default is \code{NA}.}
 
-\item{response.slope.max}{The maximum normalized slope for the response curve(s). Refer to the details section for additional details.}
+\item{max.yintercept.response}{Maximum y-intercept of the response curve. Default is \code{NA}.}
 
-\item{response.yintersect.max}{The maximum allowable normalized y0 intercept for the response curve(s).}
+\item{max.dratio.sd.normint.bqc}{Maximum allowed D-ratio (SD of normalized intensity in BQC / SD of SPL) using standard deviation. Default is \code{NA}.}
 
-\item{outlier.technical.exlude}{Remove samples classified as outliers}
+\item{max.dratio.sd.normint.tqc}{Maximum allowed D-ratio (SD of normalized intensity in TQC / SD of SPL) using standard deviation. Default is \code{NA}.}
 
-\item{features_to_keep}{A vector specifying the features that should be retained, regardless of whether they meet the specified quality control filtering criteria.}
+\item{max.dratio.mad.normint.bqc}{Maximum allowed D-ratio (MAD of normalized intensity in BQC / MAD of SPL) using mean absolute deviation. Default is \code{NA}.}
+
+\item{max.dratio.mad.normint.tqc}{Maximum allowed D-ratio (MAD of normalized intensity in TQC / MAD of SPL) using mean absolute deviation. Default is \code{NA}.}
+
+\item{max.dratio.sd.bqc}{Maximum allowed D-ratio (SD of BQC / SD of SPL) using standard deviation for BQC samples. Default is \code{NA}.}
+
+\item{max.dratio.sd.tqc}{Maximum allowed D-ratio (SD of TQC / SD of SPL) using standard deviation for TQC samples. Default is \code{NA}.}
+
+\item{max.dratio.mad.bqc}{Maximum allowed D-ratio (MAD of BQC / MAD of SPL) using mean absolute deviation for BQC samples. Default is \code{NA}.}
+
+\item{max.dratio.mad.tqc}{Maximum allowed D-ratio (MAD of TQC / MAD of SPL) using mean absolute deviation for TQC samples. Default is \code{NA}.}
 }
 \value{
-MidarExperiment object
+The input MidarExperiment object with the feature filtering criteria applied.
 }
 \description{
-Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
-Exclude features and analyses that were annotated as not valid in the metadata (valid_feature, valid_analysis).
-
-Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
-\itemize{
-\item If a filter is applied (e.g. \code{intensity.min.bqc.min}) but qc value is NA then this feature will be excluded.
-\item If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
-}
-
-Note: When \code{istd.include} is TRUE, then \code{signalblank.median.sblk.min} and \code{signalblank.median.sblk.min} are ignored for ISTDs, because these blanks are defined as containing ISTDs.
+Filters a dataset based on quality control (QC) criteria, including intensity,
+coefficient of variation (CV), signal-to-blank ratios, D-ratio, response curve properties,
+and proportion of missing values. Criteria apply to different QC types (BQC, TQC) and
+measurement variables (concentration, intensity, and normalized intensity).
 }
 \details{
-Response curves
-
-A normalized slope of 1 indicates a proportional relationship between the response and the sample amount. Negative slopes reflect an inverse relationship, where the response decreases as the sample amount increases.
-The normalized y-intercept represents the value of the response when the sample amount is zero. A value of 1 corresponds to the maximum measured response on the curve.
+This function implements filtering criteria based on quality control (QC) samples
+and additional analytical parameters, following recommendations outlined by
+Broadhurst et al. (2018). The implemented criteria evaluate data quality through
+analysis of QC samples, blanks, and study samples.
+}
+\references{
+Broadhurst, D., Goodacre, R., Reinke, S. N., Kuligowski, J., Wilson, I. D.,
+Lewis, M. R., & Dunn, W. B. (2018). Guidelines and considerations for the use
+of system suitability and quality control samples in mass spectrometry assays
+applied in clinical studies. \emph{Metabolomics}, 14(6), 72.
+\doi{10.1007/s11306-018-1367-3}
 }

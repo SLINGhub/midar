@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-runorder.R
 \name{qc_plot_runsequence}
 \alias{qc_plot_runsequence}
-\title{RunSequence plot}
+\title{Run Sequence Plot to Visualize Analysis Design and Timelines}
 \usage{
 qc_plot_runsequence(
   data = NULL,
@@ -11,45 +11,44 @@ qc_plot_runsequence(
   show_timestamp = FALSE,
   add_info_title = TRUE,
   single_row = FALSE,
-  segment_thickness = 0.5,
+  segment_width = 0.5,
   batches_as_shades = FALSE,
   batch_line_color = "#b6f0c5",
   batch_shading_color = "grey85",
   scale_factor = 1,
-  show_outlier = TRUE,
   base_font_size = 8
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{qc_types}{QC types to be shown, \code{NA} displays all available QC/Sample types. Can be a vector with QC types or a string with regex pattern.}
+\item{qc_types}{QC types to be shown. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
 
-\item{show_batches}{Show batches}
+\item{show_batches}{Logical, whether to show batch separators in the plot}
 
-\item{show_timestamp}{Use acquisition time stamp as x-axis}
+\item{show_timestamp}{Logical, whether to use the acquisition timestamp as the x-axis instead of the run sequence number}
 
-\item{add_info_title}{Add title with experiment title and analysis date and times}
+\item{add_info_title}{Logical, whether to add a title with the experiment title, analysis date, and analysis times}
 
-\item{single_row}{Show all qc types in a single row}
+\item{single_row}{Logical, whether to show all QC types in a single row}
 
-\item{segment_thickness}{Linewidth of the segments}
+\item{segment_width}{Numeric, line width of the segments}
 
-\item{batches_as_shades}{Show batches as shades}
+\item{batches_as_shades}{Logical, whether to show batches as shaded areas instead of line separators}
 
-\item{batch_line_color}{batch separator color}
+\item{batch_line_color}{Color of the batch separator lines}
 
-\item{batch_shading_color}{batch shade color}
+\item{batch_shading_color}{Color of the batch shaded areas}
 
-\item{scale_factor}{Overall plot scale factor}
+\item{scale_factor}{Numeric, overall plot scale factor}
 
-\item{show_outlier}{Should samples defined as outlier as separate row}
-
-\item{base_font_size}{base font size}
+\item{base_font_size}{Numeric, base font size for the plot}
 }
 \value{
-ggplot object
+A ggplot object representing the run sequence plot
 }
 \description{
-RunSequence plot
+The run sequence plot provides an overview of the analysis design and timelines, which can be useful for subsequent processing steps. The plot illustrates the batch structure, the quality control (QC) samples included with their respective positions, and additional information regarding the date, duration, and run time of the analysis.
+
+Setting \code{show_timestamp = TRUE} allows you to check for any interruptions in the analysis timeline.
 }

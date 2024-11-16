@@ -2,27 +2,27 @@
 % Please edit documentation in R/metadata-read.R
 \name{metadata_import_midarxlm}
 \alias{metadata_import_midarxlm}
-\title{Import metadata from the midar template (.XLM) and associates it with the analysis data}
+\title{Import Metadata from MIDAR Template}
 \usage{
 metadata_import_midarxlm(
   data = NULL,
   path,
-  excl_unannotated_analyses = FALSE,
+  exclude_unmatched_analyses = FALSE,
   ignore_warnings = FALSE
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment object containing the analysis data}
 
-\item{path}{file name and path}
+\item{path}{File name and path of the MIDAR template (.XML) file}
 
-\item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
+\item{exclude_unmatched_analyses}{Exclude analyses (samples) that have no matching metadata}
 
 \item{ignore_warnings}{Ignore warnings from data validation and proceed with importing metadata}
 }
 \value{
-MidarExperiment object
+The input MidarExperiment object with the metadata imported and associated
 }
 \description{
-Requires version 1.9.1 of the template. Template is based on the MSorganizer template (see TODO)
+Imports metadata from a MIDAR template (.XML) file and associates it with  analysis data.
 }

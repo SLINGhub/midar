@@ -45,10 +45,6 @@ It also includes processing results, details of the applied processing steps, an
 
 \item{\code{is_quantitated}}{Flag if data has been quantitated using ISTD and sample amount}
 
-\item{\code{is_drift_corrected}}{Flag if data has been drift corrected}
-
-\item{\code{is_batch_corrected}}{Flag if data has been batch corrected}
-
 \item{\code{is_filtered}}{Flag if data has been filtered based on QC parameters}
 
 \item{\code{is_isotope_corr}}{Flag if one or more features have been isotope corrected}
@@ -56,10 +52,9 @@ It also includes processing results, details of the applied processing steps, an
 \item{\code{has_outliers_tech}}{Flag if data has technical analysis/sample outliers}
 
 \item{\code{analyses_excluded}}{Flag if outliers were excluded in the QC-filtered dataset}
+
+\item{\code{var_drift_corrected}}{List indicating which variables are drift corrected}
+
+\item{\code{var_batch_corrected}}{List indicating which variables are batch corrected}
 }}
 
-\examples{
-
-myexp <- MidarExperiment(title = "my_experiment")
-print(myexp)
-}

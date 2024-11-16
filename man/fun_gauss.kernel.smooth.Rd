@@ -4,12 +4,12 @@
 \alias{fun_gauss.kernel.smooth}
 \title{Gaussian Kernel smoothing helper function}
 \usage{
-fun_gauss.kernel.smooth(tbl, qc_types, ...)
+fun_gauss.kernel.smooth(tbl, reference_qc_types, ...)
 }
 \arguments{
 \item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
-\item{qc_types}{QC types used for the smoothing (fit) by loess}
+\item{reference_qc_types}{QC types used for the smoothing (fit) by loess}
 
 \item{...}{Additional parameters}
 }

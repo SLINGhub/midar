@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-filtering.R
 \name{qc_plot_summary}
 \alias{qc_plot_summary}
-\title{Plot summary of feature QC filtering}
+\title{Plot Overall QC Filtering Summary}
 \usage{
 qc_plot_summary(
   data = NULL,
@@ -16,19 +16,27 @@ qc_plot_summary(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{include_qualifier}{Include qualifier features. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_qualifier}{Whether to include qualifier features in the plot. Default is \code{FALSE}.}
 
-\item{include_istd}{Include internal standard features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_istd}{Whether to include internal standard features in the plot. Default is \code{FALSE}.}
 
-\item{with_venn_diag}{Include Venn diagram of features failing S/B, CVa, and linearity}
+\item{with_venn_diag}{Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is \code{TRUE}.}
 
-\item{user_defined_keeper}{Include user-defined feature inclusion list, even they did not pass QC filtering}
+\item{user_defined_keeper}{Whether to retain user-specified features that were not selected by the QC filters. Default is \code{FALSE}.}
 
-\item{font_base_size}{font size of plots}
+\item{font_base_size}{The base font size for the plot. Default is \code{8}.}
 }
 \value{
-ggplot2 object
+A \code{ggplot2} object showing the feature QC filtering summary with or without a Venn diagram.
 }
 \description{
-Plot summary of feature QC filtering
+This function generates a summary of the feature QC filtering process, visualizing the number of features that passed or failed the various QC criteria.
+It includes a Venn diagram showing the features excluded due to different filtering criteria such as signal-to-blank ratios, CV thresholds, and linearity.
+The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters.
+}
+\details{
+The QC filtering process follows a hierarchical structure, where features are first evaluated against lower-level filters such as signal-to-blank ratios and limit of detection (LOD).
+Only features that pass these basic criteria are then subjected to higher-level filters like the coefficient of variation (CV) or linear regression results.
+A feature will only fail a higher-level filter (such as \code{CV} or \code{R-squared}) if it has passed all previous lower-level filters.
+This ensures that features are evaluated progressively, starting from fundamental quality checks up to more stringent filtering criteria.
 }

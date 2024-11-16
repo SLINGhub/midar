@@ -34,7 +34,7 @@ myexp <- data_import_csv(
   data = midar::MidarExperiment(),
   path = "batch_effect-simdata-u1000-sd100_7batches.csv", 
   variable_name = "conc", 
-  use_metadata = TRUE)
+  include_metadata = TRUE)
 ```
 
 ## Batch-Centering
@@ -46,7 +46,8 @@ myexp <- data_import_csv(
 # Correct batch effects - Set `correct_scale = TRUE` to scale also variance
 myexp <- correct_batch_centering(
   data = myexp, 
-  qc_types = "SPL", 
+  variable = "conc",
+  reference_qc_types = "SPL", 
   correct_scale = FALSE)
 
 ```
@@ -66,7 +67,8 @@ Next, we correct the batch effects again, this time with scaling of variance.
 # Correct batch effects - WITH scaling of variance
 myexp <- midar::correct_batch_centering(
   myexp, 
-  qc_types = "SPL", 
+  reference_qc_types = "SPL", 
+  variable = "conc",
   correct_scale = TRUE)
 
 qc_plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
@@ -88,12 +90,13 @@ myexp <- midar::MidarExperiment(title = "batch-effects")
 myexp <- data_import_csv(data = myexp, 
                           path = "drift_batch_effect-simdata-u1000-sd100_7batches.csv", 
                           variable_name = "conc", 
-                          use_metadata = TRUE)
+                          include_metadata = TRUE)
 
 # Within-batch drift correction (smoothing) based on study samples
 myexp <- midar::correct_drift_gaussiankernel(myexp,
-                                        qc_types = "SPL", 
-                                        batch_wise = TRUE, 
+                                        variable = "conc",
+                                        reference_qc_types = "SPL", 
+                                        within_batch = TRUE, 
                                         kernel_size = 10, 
                                         recalc_trend_after = TRUE,show_progress = T)
 
@@ -105,7 +108,8 @@ midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1
 
 # Correct between-batch effects (median centering)
 myexp <- midar::correct_batch_centering(myexp, 
-                                        qc_types = "SPL", 
+                                        variable = "conc",
+                                        reference_qc_types = "SPL", 
                                         correct_scale = TRUE)
 #Plot again the fully corrected data
 midar::qc_plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 

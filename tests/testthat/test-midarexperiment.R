@@ -1,7 +1,7 @@
 testthat::test_that("import_msorganizer_xlm: Template with all information", {
   # mexp <- midar::MidarExperiment()
   # mexp <- midar::data_import_masshunter(mexp, "21_Test_MH.csv")
-  # mexp <- midar::metadata_import_midarxlm(mexp, "20_MSTemplate_Creator_forTest.xlsm", excl_unannotated_analyses = TRUE)
+  # mexp <- midar::metadata_import_midarxlm(mexp, "20_MSTemplate_Creator_forTest.xlsm", exclude_unmatched_analyses = TRUE)
   #
   # mexp <- midar::calc_normalize_by_istd(mexp)
   # mexp <- midar::calc_quantify_by_istd(mexp)

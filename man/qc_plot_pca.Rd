@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-pca.R
 \name{qc_plot_pca}
 \alias{qc_plot_pca}
-\title{PCA plot for QC}
+\title{PCA Plot for Quality Control}
 \usage{
 qc_plot_pca(
   data = NULL,
@@ -10,49 +10,49 @@ qc_plot_pca(
   filter_data,
   pca_dim = c(1, 2),
   qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
-  label_k_mad = 3,
+  label_mad_threshold = 3,
   log_transform = TRUE,
-  remove_istds = TRUE,
+  exclude_istds = TRUE,
   min_median_signal = NA,
   point_size = 2,
   point_alpha = 0.7,
   ellipse_alpha = 0.8,
   font_base_size = 8,
-  hide_label_text = NA
+  hide_text_from_labels = NA
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment object containing the QC data}
 
-\item{variable}{Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".}
+\item{variable}{Variable to use for PCA analysis. Must be one of: "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"}
 
 \item{filter_data}{Use all (default) or qc-filtered data}
 
-\item{pca_dim}{PCA dimensions to plot as a vector of length 2. Default is \code{c(1,2)}}
+\item{pca_dim}{PCA dimensions to plot as a vector of length 2. Default is c(1,2)}
 
-\item{qc_types}{qc types to plot. Default is \code{c("SPL", "BQC", "TQC", "NIST", "LTR")}}
+\item{qc_types}{QC types to include in the plot. Default is c("SPL", "BQC", "TQC", "NIST", "LTR")}
 
-\item{label_k_mad}{Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is \code{3}. Set to \code{NULL} to supress labels.}
+\item{label_mad_threshold}{Show analysis_id label for points outside k * MAD of the selected PCA dimensions. Default is 3. Set NULL to suppress labels}
 
-\item{log_transform}{log-transform data before calculating PCA. Default is \code{TRUE}}
+\item{log_transform}{Whether to log-transform data before PCA. Default is TRUE}
 
-\item{remove_istds}{Exlude ISTD features. Default is \code{TRUE}}
+\item{exclude_istds}{Whether to exclude internal standards. Default is TRUE}
 
-\item{min_median_signal}{Minimum median signal across all samples from all selected qc types. \code{NA} (default) will not filter any features based on signal.}
+\item{min_median_signal}{Minimum median signal across all samples from selected QC types. NA (default) will not filter any features}
 
-\item{point_size}{size of points. Default is \code{2}}
+\item{point_size}{Size of plot points. Default is 2}
 
-\item{point_alpha}{transparency of points}
+\item{point_alpha}{Transparency of plot points (0-1). Default is 0.7}
 
-\item{ellipse_alpha}{transparency of ellipse fill}
+\item{ellipse_alpha}{Transparency of ellipse fill (0-1). Default is 0.8}
 
-\item{font_base_size}{Base font size for plot text elements}
+\item{font_base_size}{Base font size for plot text elements. Default is 8}
 
-\item{hide_label_text}{Hide shared text (case-senstive) in labels. If it results in non-unique analysis_id's then an error will be raised.}
+\item{hide_shared_label_text}{Hide shared text (case-sensitive) in labels. If resulting in non-unique analysis_id's, an error will be raised}
 }
 \value{
-ggplot2 object
+A ggplot2 object
 }
 \description{
-PCA plot for QC
+Generates a Principal Component Analysis (PCA) plot for visualizing QC samples, with options for filtering, transformations, and customizable visual elements.
 }

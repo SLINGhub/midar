@@ -4,31 +4,32 @@
 \alias{data_import_mrmkit}
 \title{Imports MRMkit peak integration results}
 \usage{
-data_import_mrmkit(data = NULL, path, use_metadata, silent = FALSE)
+data_import_mrmkit(data = NULL, path, include_metadata, silent = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{path}{One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.}
+\item{silent}{Logical, whether to suppress most notifications}
 
-\item{use_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
+\item{input_path}{One or more file paths, or a directory path (in which case all matching files will be imported)}
 
-\item{silent}{Suppress most notifications}
+\item{import_metadata}{Logical, whether to import additional metadata columns (e.g., \code{batch_id}, \code{qc_type})}
 }
 \value{
-MidarExperiment object
+MidarExperiment object with the imported data
 }
 \description{
-Imports .tsv file(s) generated from \code{MRMkit} containing peak integration results.
-The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
-Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the \code{MidarExperiment} object for downstream analyses.
+Imports tabular data files (*.tsv) generated from \code{MRMkit} containing peak integration results.
+The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other parameters.
+Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and made available in the \code{MidarExperiment} object for downstream analyses.
 
-When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+When a directory path is provided, all matching files in that directory will be imported and merged into a single dataset.
+This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
+Each unique combination of feature and raw data file must only occur once across all source data files.
+Duplicate combinations will result in an error.
 }
 \examples{
-file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- data_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
-mexp
+mexp <- data_import_mrmkit(data = mexp, input_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar"), import_metadata = TRUE)
+mexp <- data_import_mrmkit(data = mexp, input_path = "/path/to/directory/with/mrmkit/files", import_metadata = TRUE)
 }

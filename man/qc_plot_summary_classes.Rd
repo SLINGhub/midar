@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-filtering.R
 \name{qc_plot_summary_classes}
 \alias{qc_plot_summary_classes}
-\title{Plot summary of feature QC filtering per class}
+\title{Plot QC Filtering Summary by Feature Class}
 \usage{
 qc_plot_summary_classes(
   data = NULL,
@@ -15,17 +15,24 @@ qc_plot_summary_classes(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{include_qualifier}{Include qualifier features. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_qualifier}{Whether to include qualifier features in the plot. Default is \code{FALSE}. Qualifier features are those that may not be included in the final analysis but are still retained for reference.}
 
-\item{include_istd}{Include internal standard features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_istd}{Whether to include internal standard features in the plot. Default is \code{FALSE}. Internal standards are used for calibration purposes in mass spectrometry experiments.}
 
-\item{user_defined_keeper}{Include user-defined feature inclusion list, even they did not pass QC filtering}
+\item{user_defined_keeper}{Whether to retain user-specified features that were not selected by the QC filters. Default is \code{FALSE}. If \code{TRUE}, the user-defined features are kept even if they fail QC.}
 
-\item{font_base_size}{font size of plots}
+\item{font_base_size}{The base font size for the plot. Default is \code{8}.}
 }
 \value{
-ggplot2 object
+A \code{ggplot2} object showing the feature QC filtering summary by class.
 }
 \description{
-Plot summary of feature QC filtering per class
+This function provides a summary of feature QC filtering based on class,
+showing the number of features that passed or failed various quality control criteria.
+It visualizes the hierarchical filtering process for different feature classes.
+Features are classified as failing a given criterion (e.g., \code{CV}) only after passing all
+the hierarchically lower filters (e.g., \code{S/B} ratio and \code{LOD}).
+}
+\seealso{
+\code{\link{qc_plot_summary_overall}} for an overall summary plot
 }

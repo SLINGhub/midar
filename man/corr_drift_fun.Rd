@@ -7,13 +7,14 @@
 corr_drift_fun(
   data = NULL,
   smooth_fun,
-  qc_types,
-  calc_log_transform = TRUE,
+  variable,
+  reference_qc_types,
   within_batch,
-  apply_conditionally,
-  apply_conditionally_per_batch = TRUE,
-  max_cv_ratio_before_after = 1,
-  use_uncorrected_if_fail = TRUE,
+  replace_previous = TRUE,
+  log_transform_internal = TRUE,
+  conditional_correction = FALSE,
+  cv_ratio_threshold = 1,
+  use_original_if_fail = TRUE,
   ignore_istd = TRUE,
   feature_list = NULL,
   recalc_trend_after = FALSE,
@@ -24,29 +25,31 @@ corr_drift_fun(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{qc_typeS} (one or more strings), and \code{span_width} (numerical).
+\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{reference_qc_types} (one or more strings), and \code{span_width} (numerical).
 Function needs to return a numerical vector with the length of number of rows in \code{data}. In case functions fails a vector with NA_real_ needs be returned}
 
-\item{qc_types}{QC types used for drift correction}
+\item{variable}{The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"}
 
-\item{calc_log_transform}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
+\item{reference_qc_types}{QC types used for drift correction}
 
 \item{within_batch}{Apply to each batch separately if \code{TRUE} (the default)}
 
-\item{apply_conditionally}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{max_cv_ratio_before_after}}
+\item{replace_previous}{Logical. Replace previous correction (\code{TRUE}), or adds on top of previous correction (\code{FALSE}). Default is \code{TRUE}.}
 
-\item{apply_conditionally_per_batch}{When \code{apply_conditionally = TRUE}, correction is conditionally applied per batch when \code{TRUE} and across all batches when \code{FALSE}}
+\item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.}
 
-\item{max_cv_ratio_before_after}{Only used when \code{apply_conditionally = TRUE}. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
-A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
+\item{conditional_correction}{Determines whether drift correction should be applied to all species unconditionally (\code{TRUE}) or only when the sample CV after smoothing is below the ratio threshold specified by \code{cv_ratio_threshold}.}
 
-\item{use_uncorrected_if_fail}{In case the smoothing function fails for a species, then use original (uncorrected) data when \code{TRUE} (the default) or return \code{NA} for all analyses of the feature where the fit failed.}
+\item{cv_ratio_threshold}{This parameter defines the maximum allowable change (ratio) in the coefficient of variation (CV) ratio of samples before and after smoothing for the correction to be applied.
+A value of 1 (the default) requires the CV to improve, while a value above 1 allows the CV to improve, or to degrade by a maximum of the indicated fold-difference times post-smoothing.}
+
+\item{use_original_if_fail}{Determines the action when smoothing fails for a feature. If TRUE (default), the original data is used; if FALSE, the result for each analysis is NA.}
 
 \item{ignore_istd}{Do not apply corrections to ISTDs}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
-\item{recalc_trend_after}{Recalculate trend after drift correction, to be used in \code{plot_qc_runscatter()}. This will double the calculation time.}
+\item{recalc_trend_after}{Recalculate trend post-drift correction for \code{plot_qc_runscatter()}. This will double calculation time.}
 
 \item{show_progress}{Show progress bar. Default = `TRUE.}
 

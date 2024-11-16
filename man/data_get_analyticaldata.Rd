@@ -11,7 +11,7 @@ data_get_analyticaldata(data = NULL, original = FALSE)
 
 \item{original}{Boolean indicating whether to return the original imported data (\code{TRUE}) or the annotated data (\code{FALSE})}
 
-\item{overwrite}{If \code{TRUE} then existing valid_feature flags will be overwritten, otherwise appended}
+\item{replace_existing}{If \code{TRUE} then existing valid_feature flags will be overwritten, otherwise appended}
 }
 \value{
 A tibble with the analytical data in the long format

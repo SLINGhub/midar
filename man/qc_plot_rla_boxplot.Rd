@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-runorder.R
 \name{qc_plot_rla_boxplot}
 \alias{qc_plot_rla_boxplot}
-\title{RLA (Relative Log Abundance) plot}
+\title{Relative Log Abundance (RLA) Plot}
 \usage{
 qc_plot_rla_boxplot(
   data = NULL,
@@ -29,66 +29,57 @@ qc_plot_rla_boxplot(
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment}
 
-\item{rla_type_batch}{Must be either \code{within} or \code{across}, defining whether to use with-in or across-group RLA}
+\item{rla_type_batch}{Character, must be either "within" or "across", defining whether to use within-batch or across-batch RLA}
 
-\item{variable}{Variable to plot}
+\item{variable}{Variable to plot, must be one of "intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm".}
 
-\item{filter_data}{Use QC-filtered data}
+\item{filter_data}{Logical, whether to use QC-filtered data}
 
-\item{qc_types}{QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.}
+\item{qc_types}{QC type(s) to plot. Can be a vector of QC types or \code{NA}/\code{NULL} to plot all available QC types.}
 
-\item{x_axis_variable}{Variable used for the x axis, muste be one of: \code{run_seq_num}, \code{run_no}, \code{analysis_id}, or \code{timestamp}}
+\item{x_axis_variable}{Character, variable to use for the x-axis. Must be one of: "run_seq_num", "run_no", "analysis_id", or "timestamp"}
 
-\item{include_feature_filter}{Filter text to select specific features (regex string)}
+\item{include_feature_filter}{Regex pattern to select specific features}
 
-\item{exclude_feature_filter}{Filter text to exclude specific features (regex string)}
+\item{exclude_feature_filter}{Regex pattern to exclude specific features}
 
-\item{plot_range_indices}{Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.}
+\item{plot_range_indices}{Numeric vector of length 2, specifying the start and end indices of the sequence to be plotted. \code{NA} plots all samples.}
 
-\item{min_feature_intensity}{Exclude features with overall median signal below this value}
+\item{min_feature_intensity}{Numeric, exclude features with overall median signal below this value}
 
-\item{y_lim}{Y-axis lower and upper limits as vector (default is NA). This also overwrites limits calculated by \code{ignore_outliers}}
+\item{y_lim}{Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is \code{NA}, which uses limits calculated based on \code{ignore_outliers}.}
 
-\item{ignore_outliers}{Exclude outlier values based on 4x MAD (median absolute deviation) fences}
+\item{ignore_outliers}{Logical, whether to exclude outlier values based on 4x MAD (median absolute deviation) fences}
 
-\item{show_batches}{Show batches}
+\item{show_batches}{Logical, whether to show batch separators in the plot}
 
-\item{batches_as_shades}{Show batches as shades}
+\item{batches_as_shades}{Logical, whether to show batches as shaded areas instead of line separators}
 
-\item{batch_line_color}{batch separator color}
+\item{batch_line_color}{Character, color of the batch separator lines}
 
-\item{batch_shading_color}{batch shade color}
+\item{batch_shading_color}{Character, color of the batch shaded areas}
 
-\item{x_gridlines}{Show major x gridlines}
+\item{x_gridlines}{Logical, whether to show major x-axis gridlines}
 
-\item{linewidth}{Line width used for whiskers of boxplot}
+\item{linewidth}{Numeric, line width used for whiskers of the boxplot}
 
-\item{base_font_size}{base font size for plots (default is 8)}
+\item{base_font_size}{Numeric, base font size for the plot}
 
-\item{relative_log_abundances}{Use relative log abundances (RLA). If \code{FALSE} just use log-transformed values (then the result is not an RLA plot)}
+\item{relative_log_abundances}{Logical, whether to use relative log abundances (RLA) or just log-transformed values}
 }
 \value{
-ggplot object
+A ggplot object representing the RLA plot
 }
 \description{
-Relative log abundance (RLA) plots show standardized analyte abundances of each sample. Standardization is done by removing the within- or across-batch median from each analyte.
-}
-\details{
-This plot was first introduced by De Livera et al. (2012) in the context of metabolomics and
-is used to visualize the relative log abundance (RLA) of each feature in each sample.
-The RLA is calculated by subtracting the within- or across-batch median from each feature.
-This normalization is useful to examine the dataset for technical effect that involve all feature in a similar manner,
-such as batch effects due to changes of instrument response, pipeting errors,
-sample spillage.
-As all features are normmalized, this plot is more robust to detect such effects,
-unlike e.g. sum abundance plots which are a biased toward the most abundant lipid species in the analysed matrix
+Relative log abundance (RLA) plots show standardized feature abundances across samples. Standardization is done by removing either the within-batch or across-batch median from each feature
+
+RLA plots are useful for visualizing technical effects that impact all features in a similar manner, such as batch effects due to changes in instrument response, pipetting errors, or sample spillage. Unlike plots of raw or normalized abundances, RLA plots are more robust to these types of effects.
 }
 \references{
 De Livera et al. (2012) Normalizing and integrating metabolomics data. Analytical Chemistry 10768-10776
 \href{https://doi.org/10.1021/ac302748b}{DOI: 10.1021/ac302748b}
-
 De Livera et al. (2015) Statistical Methods for Handling Unwanted Variation in Metabolomics Data. Analytical Chemistry 87(7):3606-3615
 \href{https://doi.org/10.1021/ac502439y}{DOI: 10.1021/ac502439y}
 }

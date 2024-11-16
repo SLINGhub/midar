@@ -28,6 +28,8 @@ qc_plot_responsecurves(
 \arguments{
 \item{data}{A \code{MidarExperiment} object containing the dataset with sample amounts and detector signals. Required.}
 
+\item{variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}.}
+
 \item{output_pdf}{Logical. If \code{TRUE}, saves the generated plots as a PDF file. Defaults to \code{FALSE}.}
 
 \item{include_feature_filter}{A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.}
@@ -57,8 +59,6 @@ qc_plot_responsecurves(
 \item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of \code{ggplot2} objects. Each item represents a page of plots. Defaults to \code{FALSE}.}
 
 \item{use_filtered_data}{Logical. Indicates whether to use quality control (QC) filtered data (\code{TRUE}) or the raw data (\code{FALSE}). Defaults to \code{FALSE}.}
-
-\item{plot_variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}.}
 
 \item{display_progress}{Logical. Show a progress bar during plot creation if set to \code{TRUE}. Defaults to \code{TRUE}.}
 }

@@ -4,14 +4,14 @@
 \alias{data_exclude_features}
 \title{Exclude features from the dataset}
 \usage{
-data_exclude_features(data = NULL, features_exlude, overwrite)
+data_exclude_features(data = NULL, features_exlude, replace_existing)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
 \item{features_exlude}{Vector of feature IDs (case-sensitive) to exclude from the dataset}
 
-\item{overwrite}{If \code{TRUE} then existing valid_feature flags will be overwritten, otherwise appended}
+\item{replace_existing}{If \code{TRUE} then existing valid_feature flags will be overwritten, otherwise appended}
 }
 \value{
 \code{MidarExperiment} object

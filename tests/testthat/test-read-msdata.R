@@ -225,22 +225,22 @@ testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT 
 # Test parse_plain_csv
 
 testthat::test_that("Parses plain csv file with metadata with correct column names and autodetecting analysis_id", {
-  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", use_metadata = TRUE)
+  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", include_metadata = TRUE)
   expect_identical(names(d), c("run_seq_num","analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_equal(mean(d$feature_conc[d$batch_id == 1 & d$feature_id == "Analyte-1"]), 1004.61572)
 })
 
-testthat::test_that("Returns error when plain csv file with columns containing text is read, when use_metadata = FALSE", {
-  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", use_metadata = FALSE), regexp = "ll columns with feature values must be numeric")
+testthat::test_that("Returns error when plain csv file with columns containing text is read, when include_metadata = FALSE", {
+  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", include_metadata = FALSE), regexp = "ll columns with feature values must be numeric")
 })
 
 testthat::test_that("Returns error when plain csv file with analysis_id_col set that does not exist", {
-  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", use_metadata = TRUE),
+  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", include_metadata = TRUE),
                regexp = "No column with the name `sample_id` found in the data file")
 })
 
 testthat::test_that("Parses plain csv file with metadata and defined analysis_id_col, with correct data types", {
-  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", use_metadata = TRUE)
+  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", include_metadata = TRUE)
   expect_identical(names(d), c("run_seq_num","analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_identical(typeof(d$analysis_id), "character")
   expect_identical(typeof(d$batch_id), "character")

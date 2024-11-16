@@ -9,7 +9,7 @@ data_import_csv(
   path,
   variable_name,
   analysis_id_col = NA,
-  use_metadata
+  include_metadata
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ data_import_csv(
 
 \item{analysis_id_col}{Column to be used as analysis_id. \code{NA} (default) used 'analysis_id' if present, or the first column if it contains unique values.}
 
-\item{use_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object.
+\item{include_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object.
 Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "run_seq_num", "precursor_mz", "product_mz", "collision_energy"}
 }
 \value{
@@ -39,6 +39,6 @@ Each feature and raw data file pair must only occur once within and across all .
 \examples{
 file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- data_import_csv(data = mexp, path = file_path, variable_name = "conc", use_metadata = TRUE)
+mexp <- data_import_csv(data = mexp, path = file_path, variable_name = "conc", include_metadata = TRUE)
 mexp
 }

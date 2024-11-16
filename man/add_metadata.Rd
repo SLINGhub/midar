@@ -4,14 +4,14 @@
 \alias{add_metadata}
 \title{Add metadata an MidarExperiment object}
 \usage{
-add_metadata(data = NULL, metadata, excl_unannotated_analyses = FALSE)
+add_metadata(data = NULL, metadata, exclude_unmatched_analyses = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
 \item{metadata}{List of tibbles or data.frames containing analysis, feature, istd, response curve tables}
 
-\item{excl_unannotated_analyses}{Exclude analyses (samples) that have no matching metadata}
+\item{exclude_unmatched_analyses}{Exclude analyses (samples) that have no matching metadata}
 }
 \value{
 metadata list

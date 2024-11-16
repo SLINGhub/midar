@@ -48,7 +48,7 @@ mexp <- MidarExperiment()
 # Load data and metadata
 mexp <- midar::data_import_mrmkit(data = mexp, 
                                   path = file_path, 
-                                  use_metadata = TRUE)
+                                  include_metadata = TRUE)
 
 # # Normalize and quantitate each feature by internal standards
 # mexp <- calc_normalize_by_istd(mexp)
@@ -60,8 +60,8 @@ mexp <- midar::data_import_mrmkit(data = mexp,
 # mexp <- qc_apply_feature_filter(
 #   data = mexp, 
 #   missing.normintensity.spl.prop.max = 0.2,
-#   cv.conc.bqc.max = 30,
-#   signalblank.median.pblk.min = 3,
+#   max.cv.conc.bqc = 30,
+#   min.min.min.min.signalblank.median.spl.pblk = 3,
 #   qualifier.include = TRUE, 
 #   istd.include = FALSE
 #)

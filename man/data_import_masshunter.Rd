@@ -2,12 +2,12 @@
 % Please edit documentation in R/data-import.R
 \name{data_import_masshunter}
 \alias{data_import_masshunter}
-\title{Imports an Agilent MassHunter Quant CSV file}
+\title{Imports Agilent MassHunter Quantitative Analysis CSV files}
 \usage{
 data_import_masshunter(
   data = NULL,
   path,
-  use_metadata,
+  include_metadata,
   file_format = "csv",
   expand_qualifier_names = TRUE,
   silent = FALSE
@@ -16,30 +16,27 @@ data_import_masshunter(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{path}{One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.}
+\item{path}{One or more file paths, or a directory path (in which case all matching files will be imported)}
 
-\item{use_metadata}{Extract and add metadata from the analysis result file}
+\item{include_metadata}{Logical, whether to extract and add metadata from the analysis result file}
 
-\item{file_format}{File format of the MassHunter export. One of "csv", "xls"}
+\item{expand_qualifier_names}{Logical, whether to add the quantifier name in front of the qualifier name (the latter only has the m/z transition values)}
 
-\item{expand_qualifier_names}{Add quantifier name in front of qualifier name, as the latter only has the mz transitions values}
-
-\item{silent}{Suppress most notifications}
+\item{silent}{Logical, whether to suppress most notifications}
 }
 \value{
-MidarExperiment object
+MidarExperiment object with the imported data
 }
 \description{
-Imports .csv file(s) exported from \verb{Agilent MassHunter (MH) Quantitative Analysis} containing peak integration results.
-Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
-Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the \code{MidarExperiment} object for downstream analyses.
+Imports .csv files exported from Agilent MassHunter Quantitative Analysis software, containing peak integration results.
+The input files must have anlyses (samples) in rows, features/compounds in columns, and either peak areas, peak heights, or response as the values.
+Additional columns, such as retention time (RT), full-width at half-maximum (FWHM), precursor m/z (PrecursorMZ), and collision energy (CE), will also be imported and made available in the \code{MidarExperiment} object for downstream analyses.
 
-When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+When a directory path is provided, all matching .csv files in that directory will be imported and merged into a single dataset. This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
+Each unique combination of feature and raw data file must only occur once across all source data files. Duplicate combinations will result in an error.
 }
 \examples{
-file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- data_import_masshunter(data = mexp, path = file_path, use_metadata = TRUE)
-mexp
+mexp <- data_import_masshunter(data = mexp, input_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar"), include_metadata = TRUE)
+mexp <- data_import_masshunter(data = mexp, input_path = "/path/to/directory/with/masshunter/files", include_metadata = TRUE)
 }

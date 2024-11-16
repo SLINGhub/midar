@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-runorder.R
 \name{qc_plot_runscatter}
 \alias{qc_plot_runscatter}
-\title{RunScatter plot}
+\title{Create a Run Scatter Plot to Visualize Analyte Distributions}
 \usage{
 qc_plot_runscatter(
   data = NULL,
@@ -51,87 +51,97 @@ qc_plot_runscatter(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{variable}{Variable to plot}
+\item{variable}{Variable to plot, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'}
 
-\item{filter_data}{Use QC-filtered data, based on criteria set via \code{qc_apply_feature_filter()}}
+\item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{qc_apply_feature_filter()}}
 
-\item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
+\item{qc_types}{QC types to be shown. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
 
-\item{include_qualifier}{Include qualifier features. Default is \code{TRUE}.}
+\item{include_qualifier}{Logical, whether to include qualifier features}
 
-\item{include_feature_filter}{Select features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+\item{include_feature_filter}{Regex pattern to select features by feature_id. \code{NA} or \code{""} ignores the filter.}
 
-\item{exclude_feature_filter}{Exclude features with feature_id matching the given string. By default a \code{regex} string. \code{NA}, \code{""} ignores the filter.}
+\item{exclude_feature_filter}{Regex pattern to exclude features by feature_id. \code{NA} or \code{""} ignores the filter.}
 
-\item{plot_range_indices}{A numeric vector of length two, specifying the start and end indices of the sequence to be plotted. If \code{NA} is provided, all samples will be plotted. These indices correspond to the order in which the samples were measured. For example, \code{c(1, 10)} will plot the data from the first to the tenth sample in the sequence. Ensure the indices are within the valid range of the dataset.}
+\item{plot_range_indices}{Numeric vector of length 2, specifying the start and end indices of the sequence to be plotted. \code{NA} plots all samples.}
 
-\item{output_pdf}{save as PDF}
+\item{output_pdf}{Logical, whether to save the plot as a PDF file}
 
-\item{path}{file name of PDF}
+\item{path}{File name for the PDF output}
 
-\item{log_scale}{Use log10 scale for the y axis}
+\item{log_scale}{Logical, whether to use a log10 scale for the y-axis}
 
-\item{cap_outliers}{Cap upper outliers, based on MAD fences of SPL and QC samples, see \code{cap_spl_k_mad} and \code{cap_qc_k_mad}. Useful to cap extreme values distorting the plot.}
+\item{cap_outliers}{Logical, whether to cap upper outliers based on MAD fences of SPL and QC samples}
 
-\item{cap_qc_k_mad}{k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.}
+\item{cap_qc_k_mad}{Numeric, k * MAD (median absolute deviation) for outlier capping of QC samples}
 
-\item{cap_spl_k_mad}{k * MAD (median absolute deviation) for outlier capping of SPL samples. Default is 4.}
+\item{cap_spl_k_mad}{Numeric, k * MAD (median absolute deviation) for outlier capping of SPL samples}
 
-\item{cap_top_n_values}{Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (\code{NA}) or \code{0} ignores the filter.}
+\item{cap_top_n_values}{Numeric, cap the top n values regardless of MAD fences. \code{NA} or \code{0} ignores this filter.}
 
-\item{show_batches}{Show batches}
+\item{show_batches}{Logical, whether to show batch separators in the plot}
 
-\item{show_control_limits}{Show mean line of the given QC types. NA (default) ignores the median line.}
+\item{show_control_limits}{Logical, whether to show the mean line for the specified QC types. \code{NA} ignores the mean line.}
 
-\item{set_limits_n_sd}{Show  /- n x SD lines of the QC types defined via \code{show_median}. \code{NA} (default) ignores the SD lines.}
+\item{set_limits_n_sd}{Numeric, show +/- n x SD lines for the QC types defined in \code{show_control_limits}. \code{NA} ignores the SD lines.}
 
-\item{limits_batchwise}{Calculate mean and SD line per batch. Default is \code{FALSE}.}
+\item{limits_batchwise}{Logical, whether to calculate the mean and SD lines per batch}
 
-\item{limits_linecolor}{Color of mean and SD lines}
+\item{limits_linecolor}{Color of the mean and SD lines}
 
-\item{limits_linewidth}{Width of mean and SD lines}
+\item{limits_linewidth}{Width of the mean and SD lines}
 
-\item{batches_as_shades}{Show batches as shades}
+\item{batches_as_shades}{Logical, whether to show batches as shaded areas instead of line separators}
 
-\item{batch_line_color}{batch separator color}
+\item{batch_line_color}{Color of the batch separator lines}
 
-\item{batch_shading_color}{batch shade color}
+\item{batch_shading_color}{Color of the batch shaded areas}
 
-\item{cols_page}{columns per page}
+\item{cols_page}{Number of columns per page}
 
-\item{rows_page}{rows per page}
+\item{rows_page}{Number of rows per page}
 
-\item{base_font_size}{base font size of plot}
+\item{base_font_size}{Base font size for the plot}
 
-\item{annot_scale}{scale factor of text elements}
+\item{annot_scale}{Scale factor for text elements}
 
-\item{show_trend}{Show drift correction. TODO: Add more details}
+\item{show_trend}{Logical, whether to show a drift correction trend line}
 
-\item{trend_linecolor}{Color of tend line}
+\item{trend_linecolor}{Color of the trend line}
 
-\item{fit_qc_type}{QC type used for smoothing  TODO: Add more detail}
+\item{fit_qc_type}{QC type used for smoothing the trend line}
 
-\item{page_orientation}{Landscape/Portrait}
+\item{page_orientation}{Page orientation, "LANDSCAPE" or "PORTRAIT"}
 
-\item{point_transparency}{Alpha of points}
+\item{point_transparency}{Alpha transparency of the data points}
 
-\item{point_size}{point size}
+\item{point_size}{Size of the data points}
 
-\item{point_border_width}{point stroke width}
+\item{point_border_width}{Width of the data point borders}
 
-\item{specific_page}{Show/save specific page number. Default is \code{NA}, which plots all pages.}
+\item{specific_page}{Integer, show/save a specific page number. \code{NA} plots/saves all pages.}
 
-\item{y_label_text}{Overwrite y label with this text}
+\item{y_label_text}{Override the default y-axis label text}
 
-\item{return_plots}{return list with plots}
+\item{return_plots}{Logical, whether to return the list of ggplot objects}
 
-\item{show_gridlines}{show x and y major gridlines}
+\item{show_gridlines}{Logical, whether to show major x and y gridlines}
 
-\item{show_progress}{show progress bar}
+\item{show_progress}{Logical, whether to show a progress bar}
 }
 \value{
-A list of ggplot2 plots or NULL
+A list of ggplot2 plots, or \code{NULL} if \code{return_plots = FALSE}
 }
 \description{
-RunScatter plot
+The run scatter plot allows you to visualize the sequence of measurements and distribution of QC (sample) types across the analysis run sequence.
+This can be useful for identifying trends, outliers, or other patterns in the data.
+
+The function provides a range of options for customizing the plot, such as:
+\itemize{
+\item Filtering the data (e.g., by QC type, feature ID)
+\item Applying outlier capping
+\item Displaying batch information and control limits
+\item Showing trend lines for drift correction
+\item Controlling the layout and appearance of the plot
+}
 }
