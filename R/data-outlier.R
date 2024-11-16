@@ -73,8 +73,7 @@ analysis_outlier_detection <- function(data = NULL,
         #outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
       )
 
-    # data@has_outliers_tech <- TRUE
-    # data@analyses_excluded <- TRUE
+    # data@analyses_excluded <- GET LIST
     # data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_seq_num < 0) # Todo: check if (still neeeded)
   }
   cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
