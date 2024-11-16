@@ -92,7 +92,9 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
            .by = grp,
             norm_intensity_cv_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) * 100,
             norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) * 100,
-            norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100
+            norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+            norm_intensity_cv_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE)  * 100,
+            norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE)  * 100,
           )
        d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_norm_int, by = grp)
 
@@ -113,10 +115,14 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
              conc_cv_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)  * 100,
              conc_cv_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE)  * 100,
              conc_cv_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE)  * 100,
-             conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-             conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
-             conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
-             conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"])
+             conc_dratio_sd_bqc_conc = sd(.data$feature_conc[.data$qc_type == "BQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_sd_tqc_conc = sd(.data$feature_conc[.data$qc_type == "TQC"]) / sd(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_sd_bqc_normint = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"]) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
+             conc_dratio_sd_tqc_normint = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"]) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
+             conc_dratio_mad_bqc_conc = mad(.data$feature_conc[.data$qc_type == "BQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_mad_tqc_conc = mad(.data$feature_conc[.data$qc_type == "TQC"]) / mad(.data$feature_conc[.data$qc_type == "SPL"]),
+             conc_dratio_mad_bqc_normint = mad(.data$feature_norm_intensity[.data$qc_type == "BQC"]) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"]),
+             conc_dratio_mad_tqc_normint = mad(.data$feature_norm_intensity[.data$qc_type == "TQC"]) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"])
       )
         d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_conc, by = grp)
      }
@@ -126,7 +132,6 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
       d_stats_var_final <- d_stats_var_final |>
         summarise(across(-ends_with("_id"), ~ median(.x, na.rm = TRUE)), .by= "feature_id")
     }
-
     # Convert to lazy_dt to data.frame
      d_stats_var_final <-  as.data.frame(d_stats_var_final)
 
@@ -237,121 +242,127 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
   }
   d_stats
 }
-
-
-#' Filter dataset according to QC and other criteria
+#' Feature Filtering Based on Quality Control Criteria
+#'
 #' @description
-#' Filter dataset according to QC parameter criteria, remove features that are internal standards (ISTDs) or not annotated as quantifier (optional).
-#' Exclude features and analyses that were annotated as not valid in the metadata (valid_feature, valid_analysis).
+#' Filters a dataset based on quality control (QC) criteria, including intensity,
+#' coefficient of variation (CV), signal-to-blank ratios, D-ratio, response curve properties,
+#' and proportion of missing values. Criteria apply to different QC types (BQC, TQC) and
+#' measurement variables (concentration, intensity, and normalized intensity).
 #'
-#' Missing qc parameter values, e.g. no mean BQC intensity, because no BQC values present in the data, are handled as following:
-#' - If a filter is applied (e.g. `intensity.min.bqc.min`) but qc value is NA then this feature will be excluded.
-#' - If a filter is no applied then no matter if qc value is defined or NA, no filtering will be applied
-#'
-#' Note: When `istd.include` is TRUE, then `signalblank.median.sblk.min` and `signalblank.median.sblk.min` are ignored for ISTDs, because these blanks are defined as containing ISTDs.
-#'
-#' @param data MidarExperiment object
-#' @param overwrite Add/change previously defined qc filters or define a new set of filters. Default is `FALSE`.
-#' @param batch_medians Use median of batch-wise derived QC values. Default is FALSE.
-#' @param qualifier.include Include qualifier features
-#' @param istd.include Include Internal Standards (ISTD). If set to FALSE, meaning ISTDs will be included, then `min_signal_blank_ratio` is ignored, because the the S/B is based on Processed Blanks (PBLK) that contain ISTDs.
-#
-#' @param missing.intensity.spl.prop.max NA Proportion of missing raw intensities
-#' @param missing.norm_intensity.spl.prop.max NA Proportion of missing normalized intensities
-#' @param missing.conc.spl.prop.max NA Proportion of missing final concentrations
-#' @param outlier.technical.exlude Remove samples classified as outliers
-#' @param intensity.min.bqc.min Minimum median feature intensity of BQC
-#' @param intensity.min.tqc.min Minimum median feature intensity of TQC
-#' @param intensity.min.spl.min Minimum median feature intensity of study samples (SPL)
-#' @param intensity.median.bqc.min Minimum median feature intensity of BQC
-#' @param intensity.median.tqc.min Minimum median feature intensity of TQC
-#' @param intensity.median.spl.min Minimum median feature intensity of study samples (SPL)
-#' @param intensity.max.spl.min Minimum maximun feature intensity oof study samples (SPL)
-#' @param cv.conc.bqc.max = Maximum %CV of BQC
-#' @param cv.conc.tqc.max Maximum %CV of TQC
-#' @param cv.intensity.bqc.min Maximum %CV of BQC
-#' @param cv.intensity.tqc.min Maximum %CV of TQC
-
-#' @param dratio.conc.bqc.sd.max D-ratio defined as CV_BQC/CV_SPL, based on sd
-#' @param dratio.conc.tqc.sd.max D-ratio defined as CV_TQC/CV_SPL, based on sd
-#' @param dratio.conc.bqc.mad.max D-ratio defined as CV_BQC/CV_SPL, based on mad
-#' @param dratio.conc.tqc.mad.max D-ratio defined as CV_TQC/CV_SPL, based on mad
-#' @param signalblank.median.pblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Process Blank (PBLK)
-#' @param signalblank.median.ublk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Unprocessed Blank (UBLK)
-#' @param signalblank.median.sblk.min = Signal-to-Blank ratio. Calculated from the median of study samples and the median of the Solvent Blank (SBLK)
-
-#' @param response.curve.id A single value or vector specifying the identifiers or indices of the response curves to be used for filtering. This can be either numeric indices or text identifiers.
-#' @param response.curve.summary A string indicating how to summarize the metrics of multiple selected curves, if applicable. Must be either 'mean', 'median', 'best', or 'worst'.
-#' @param response.rsquare.min The minimum acceptable R squared value for the response curve(s). Refer to the details section for more information.
-#' @param response.slope.min The minimum normalized slope for the response curve(s). Refer to the details section for further explanation.
-#' @param response.slope.max The maximum normalized slope for the response curve(s). Refer to the details section for additional details.
-#' @param response.yintersect.max The maximum allowable normalized y0 intercept for the response curve(s).
-
-#' @param features_to_keep A vector specifying the features that should be retained, regardless of whether they meet the specified quality control filtering criteria.
-
 #' @details
+#' This function implements filtering criteria based on quality control (QC) samples
+#' and additional analytical parameters, following recommendations outlined by
+#' Broadhurst et al. (2018). The implemented criteria evaluate data quality through
+#' analysis of QC samples, blanks, and study samples.
 #'
-#' Response curves
+#' @references
+#' Broadhurst, D., Goodacre, R., Reinke, S. N., Kuligowski, J., Wilson, I. D.,
+#' Lewis, M. R., & Dunn, W. B. (2018). Guidelines and considerations for the use
+#' of system suitability and quality control samples in mass spectrometry assays
+#' applied in clinical studies. *Metabolomics*, 14(6), 72.
+#' \doi{10.1007/s11306-018-1367-3}
 #'
-#' A normalized slope of 1 indicates a proportional relationship between the response and the sample amount. Negative slopes reflect an inverse relationship, where the response decreases as the sample amount increases.
-#' The normalized y-intercept represents the value of the response when the sample amount is zero. A value of 1 corresponds to the maximum measured response on the curve.
+#' @param data MidarExperiment object.
+#' @param replace_existing Logical. If `TRUE`, replaces any existing filters; if `FALSE`, adds new filters on top of existing ones. Default is `TRUE`.
+#' @param batch_medians Logical. If `TRUE`, uses batch-wise median QC values for filtering. Default is `FALSE`.
+#' @param qualifier.include Logical. If `TRUE`, includes qualifier features in the filtering process. Default is `FALSE`.
+#' @param istd.include Logical. If `TRUE`, includes internal standards (ISTDs) in the filtering process. Default is `FALSE`.
+#' @param features.to.keep A vector of feature identifiers to retain, even if they do not meet the filtering criteria.
+#' @param max.prop.missing.intensity.spl Maximum proportion of missing intensity values among study samples (SPL). Default is `NA`.
+#' @param max.prop.missing.normintensity.spl Maximum proportion of missing normalized intensity values among study samples (SPL). Default is `NA`.
+#' @param max.prop.missing.conc.spl Maximum proportion of missing concentration values among study samples (SPL). Default is `NA`.
+#' @param min.intensity.lowest.bqc Minimum intensity of the lowest BQC sample. Default is `NA`.
+#' @param min.intensity.lowest.tqc Minimum intensity of the lowest TQC sample. Default is `NA`.
+#' @param min.intensity.lowest.spl Minimum intensity of the lowest study sample (SPL). Default is `NA`.
+#' @param min.intensity.median.bqc Minimum median intensity of BQC samples. Default is `NA`.
+#' @param min.intensity.median.tqc Minimum median intensity of TQC samples. Default is `NA`.
+#' @param min.intensity.median.spl Minimum median intensity of study samples (SPL). Default is `NA`.
+#' @param min.intensity.highest.spl Minimum intensity of the highest intensity study sample (SPL). Default is `NA`.
+#' @param min.signalblank.median.spl.pblk Minimum signal-to-blank ratio for SPL samples and PBLK. Default is `NA`.
+#' @param min.signalblank.median.spl.ublk Minimum signal-to-blank ratio for SPL samples and UBLK. Default is `NA`.
+#' @param min.signalblank.median.spl.sblk Minimum signal-to-blank ratio for SPL samples and SBLK. Default is `NA`.
+#' @param max.cv.intensity.bqc Maximum CV for intensity in BQC samples. Default is `NA`.
+#' @param max.cv.intensity.tqc Maximum CV for intensity in TQC samples. Default is `NA`.
+#' @param max.cv.normintensity.bqc Maximum CV for normalized intensity in BQC samples. Default is `NA`.
+#' @param max.cv.normintensity.tqc Maximum CV for normalized intensity in TQC samples. Default is `NA`.
+#' @param max.cv.conc.bqc Maximum CV for concentration in BQC samples. Default is `NA`.
+#' @param max.cv.conc.tqc Maximum CV for concentration in TQC samples. Default is `NA`.
+#' @param response.curves.select Select specific response curves by ID. Default is `NA`.
+#' @param response.curves.summary Define the method to summarize multiple response curves. Default is `NA`.
+#' @param min.rsquare.response Minimum R-squared value for the response curves. Default is `NA`.
+#' @param min.slope.response Minimum slope for the response curve. Default is `NA`.
+#' @param max.slope.response Maximum slope for the response curve. Default is `NA`.
+#' @param max.yintercept.response Maximum y-intercept of the response curve. Default is `NA`.
+#' @param max.dratio.sd.bqc Maximum allowed D-ratio (SD of BQC / SD of SPL) using standard deviation for BQC samples. Default is `NA`.
+#' @param max.dratio.sd.tqc Maximum allowed D-ratio (SD of TQC / SD of SPL) using standard deviation for TQC samples. Default is `NA`.
+#' @param max.dratio.mad.bqc Maximum allowed D-ratio (MAD of BQC / MAD of SPL) using mean absolute deviation for BQC samples. Default is `NA`.
+#' @param max.dratio.mad.tqc Maximum allowed D-ratio (MAD of TQC / MAD of SPL) using mean absolute deviation for TQC samples. Default is `NA`.
+#' @param max.dratio.sd.normint.bqc Maximum allowed D-ratio (SD of normalized intensity in BQC / SD of SPL) using standard deviation. Default is `NA`.
+#' @param max.dratio.sd.normint.tqc Maximum allowed D-ratio (SD of normalized intensity in TQC / SD of SPL) using standard deviation. Default is `NA`.
+#' @param max.dratio.mad.normint.bqc Maximum allowed D-ratio (MAD of normalized intensity in BQC / MAD of SPL) using mean absolute deviation. Default is `NA`.
+#' @param max.dratio.mad.normint.tqc Maximum allowed D-ratio (MAD of normalized intensity in TQC / MAD of SPL) using mean absolute deviation. Default is `NA`.
 #'
-#' @return MidarExperiment object
-#' @export
+#' @return The input MidarExperiment object with the feature filtering criteria applied.
 
-# TODO: Reporting of qc filters applied on NA data (currently returns FALSE= Exclude when qc value is NA)
-## TODO:  Handle feature with all being NA in SPL or QC or all.
+#' @export
 qc_apply_feature_filter <- function(data = NULL,
-                            overwrite = TRUE,
-                            batch_medians = FALSE,
-                            qualifier.include = FALSE,
-                            istd.include = FALSE,
-                            missing.intensity.spl.prop.max  = NA,
-                            missing.norm_intensity.spl.prop.max  = NA,
-                            missing.conc.spl.prop.max  = NA,
-                            intensity.min.bqc.min = NA,
-                            intensity.min.tqc.min = NA,
-                            intensity.min.spl.min = NA,
-                            intensity.median.bqc.min = NA,
-                            intensity.median.tqc.min = NA,
-                            intensity.median.spl.min = NA,
-                            intensity.max.spl.min = NA,
-                            signalblank.median.pblk.min = NA,
-                            signalblank.median.ublk.min = NA,
-                            signalblank.median.sblk.min = NA,
-                            cv.conc.bqc.max = NA,
-                            cv.conc.tqc.max = NA,
-                            cv.intensity.bqc.min = NA,
-                            cv.intensity.tqc.min = NA,
-                            dratio.conc.bqc.sd.max = NA,
-                            dratio.conc.tqc.sd.max = NA,
-                            dratio.conc.bqc.mad.max = NA,
-                            dratio.conc.tqc.mad.max = NA,
-                            response.curve.id = NA,
-                            response.curve.summary = NA,
-                            response.rsquare.min = NA,
-                            response.slope.min = NA,
-                            response.slope.max = NA,
-                            response.yintersect.max = NA,
-                            outlier.technical.exlude = FALSE,
-                            features_to_keep = NULL) {
+                                    replace_existing = TRUE,
+                                    batch_medians = FALSE,
+                                    qualifier.include = FALSE,
+                                    istd.include = FALSE,
+                                    features.to.keep = NULL,
+                                    max.prop.missing.intensity.spl = NA,
+                                    max.prop.missing.normintensity.spl = NA,
+                                    max.prop.missing.conc.spl = NA,
+                                    min.intensity.lowest.bqc = NA,
+                                    min.intensity.lowest.tqc = NA,
+                                    min.intensity.lowest.spl = NA,
+                                    min.intensity.median.bqc = NA,
+                                    min.intensity.median.tqc = NA,
+                                    min.intensity.median.spl = NA,
+                                    min.intensity.highest.spl = NA,
+                                    min.signalblank.median.spl.pblk = NA,
+                                    min.signalblank.median.spl.ublk = NA,
+                                    min.signalblank.median.spl.sblk = NA,
+                                    max.cv.intensity.bqc = NA,
+                                    max.cv.intensity.tqc = NA,
+                                    max.cv.normintensity.bqc = NA,
+                                    max.cv.normintensity.tqc = NA,
+                                    max.cv.conc.bqc = NA,
+                                    max.cv.conc.tqc = NA,
+                                    response.curves.select = NA,
+                                    response.curves.summary = NA,
+                                    min.rsquare.response = NA,
+                                    min.slope.response = NA,
+                                    max.slope.response = NA,
+                                    max.yintercept.response = NA,
+                                    max.dratio.sd.conc.bqc = NA,
+                                    max.dratio.sd.conc.tqc = NA,
+                                    max.dratio.mad.conc.bqc = NA,
+                                    max.dratio.mad.conc.tqc = NA,
+                                    max.dratio.sd.normint.bqc = NA,
+                                    max.dratio.sd.normint.tqc = NA,
+                                    max.dratio.mad.normint.bqc = NA,
+                                    max.dratio.mad.normint.tqc = NA) {
+
 
   check_data(data)
    # Check if RQC curve ID is defined when r2 is set
-  if (all(is.na(response.curve.id))) {
-    if(!is.na(response.rsquare.min) | !is.na(response.slope.min) | !is.na(response.slope.max) |!is.na(response.yintersect.max) | !is.na(response.curve.summary))
-      cli::cli_abort(cli::col_red("No response curves selected. Please set the curves using `response.curve.id`, or remove `response.___` arguments to proceed without response filters."))
+  if (all(is.na(response.curves.select))) {
+    if(!is.na(min.rsquare.response) | !is.na(min.slope.response) | !is.na(max.slope.response) |!is.na(max.yintercept.response) | !is.na(response.curves.summary))
+      cli::cli_abort(cli::col_red("No response curves selected. Please set the curves using `response.curves.select`, or remove `response.___` arguments to proceed without response filters."))
   } else {
-    if(is.na(response.rsquare.min) & is.na(response.slope.min) & is.na(response.slope.max) & is.na(response.yintersect.max)) {
-      cli::cli_abort(cli::col_red("No response filters were defined. Please set the appropriate `response.___` arguments, remove `response.curve.id`, or set it to NA."))
+    if(is.na(min.rsquare.response) & is.na(min.slope.response) & is.na(max.slope.response) & is.na(max.yintercept.response)) {
+      cli::cli_abort(cli::col_red("No response filters were defined. Please set the appropriate `response.___` arguments, remove `response.curves.select`, or set it to NA."))
     } else {
-      if (length(unique(response.curve.id)) > 1){
-        if(is.na(response.curve.summary)){
-          cli::cli_abort(cli::col_red("Please define `response.curve.summary` to define how the results from different curves should be summarized for filtered, Must be either o either 'mean', 'median', 'best' or 'worst'."))
+      if (length(unique(response.curves.select)) > 1){
+        if(is.na(response.curves.summary)){
+          cli::cli_abort(cli::col_red("Please define `response.curves.summary` to define how the results from different curves should be summarized for filtered, Must be either o either 'mean', 'median', 'best' or 'worst'."))
         } else {
-          rlang::arg_match(response.curve.summary, c("mean", "median", "best", "worst"))
+          rlang::arg_match(response.curves.summary, c("mean", "median", "best", "worst"))
           if (nrow(data@annot_responsecurves) == 0)
-            cli::cli_abort(cli::col_red("No response curves are defined in the metadata. Please either remove `response.curve.id` and any response filters, or reprocess with updated metadata"))
+            cli::cli_abort(cli::col_red("No response curves are defined in the metadata. Please either remove `response.curves.select` and any response filters, or reprocess with updated metadata"))
         }
       }
     }
@@ -374,49 +385,52 @@ qc_apply_feature_filter <- function(data = NULL,
                          with_linearity = resp_criteria_defined)
 
 
-  # Check if feature_ids defind with features_to_keep are present in the dataset
-  if (!is.null(features_to_keep)) {
-    keepers_not_defined <- setdiff(features_to_keep, unique(data@dataset$feature_id))
+  # Check if feature_ids defind with features.to.keep are present in the dataset
+  if (!is.null(features.to.keep)) {
+    keepers_not_defined <- setdiff(features.to.keep, unique(data@dataset$feature_id))
     txt <- glue::glue_collapse(keepers_not_defined, sep = ", ", last = ", and ")
-    if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following features defined via `features_to_keep` are not present in this dataset: {txt}"))
+    if (length(keepers_not_defined) > 0) cli::cli_abort(glue::glue("Following features defined via `features.to.keep` are not present in this dataset: {txt}"))
   }
 
   # Save QC filter criteria to MidarExperiment object
-  # TODO: fix some of the param below ie. features_to_keep
+  # TODO: fix some of the param below ie. features.to.keep
 
   # Store the QC filter criteria in MidarExperiment object
   data@parameters_processing <- data@parameters_processing |>
     mutate(
-      outlier.technical.exlude = outlier.technical.exlude,
-      missing.intensity.spl.prop.max  = missing.intensity.spl.prop.max,
-      missing.norm_intensity.spl.prop.max  = missing.norm_intensity.spl.prop.max,
-      missing.conc.spl.prop.max  = missing.conc.spl.prop.max,
-      intensity.min.bqc.min = intensity.min.bqc.min,
-      intensity.min.tqc.min = intensity.min.tqc.min,
-      intensity.min.spl.min = intensity.min.spl.min,
-      intensity.median.bqc.min = intensity.median.bqc.min,
-      intensity.median.tqc.min = intensity.median.tqc.min,
-      intensity.median.spl.min = intensity.median.spl.min,
-      intensity.max.spl.min = intensity.max.spl.min,
-      cv.conc.bqc.max = cv.conc.bqc.max,
-      cv.conc.tqc.max = cv.conc.tqc.max,
-      cv.intensity.bqc.min = cv.intensity.bqc.min,
-      cv.intensity.tqc.min = cv.intensity.tqc.min,
-      dratio.conc.bqc.sd.max = dratio.conc.bqc.sd.max,
-      dratio.conc.tqc.sd.max = dratio.conc.tqc.sd.max,
-      dratio.conc.bqc.mad.max = dratio.conc.bqc.mad.max,
-      dratio.conc.tqc.mad.max = dratio.conc.tqc.mad.max,
-      signalblank.median.pblk.min = signalblank.median.pblk.min,
-      signalblank.median.ublk.min = signalblank.median.ublk.min,
-      signalblank.median.sblk.min = signalblank.median.sblk.min,
-      response.curve.id_used_for_filt = list(response.curve.id),
-      response.rsquare.min = response.rsquare.min,
-      response.slope.min = response.slope.min,
-      response.slope.max = response.slope.max,
-      response.yintersect.max = response.yintersect.max,
+      max.prop.missing.intensity.spl  = max.prop.missing.intensity.spl,
+      max.prop.missing.normintensity.spl  = max.prop.missing.normintensity.spl,
+      max.prop.missing.conc.spl  = max.prop.missing.conc.spl,
+      min.intensity.lowest.bqc = min.intensity.lowest.bqc,
+      min.intensity.lowest.tqc = min.intensity.lowest.tqc,
+      min.intensity.lowest.spl = min.intensity.lowest.spl,
+      min.intensity.median.bqc = min.intensity.median.bqc,
+      min.intensity.median.tqc = min.intensity.median.tqc,
+      min.intensity.median.spl = min.intensity.median.spl,
+      min.intensity.highest.spl = min.intensity.highest.spl,
+      max.cv.conc.bqc = max.cv.conc.bqc,
+      max.cv.conc.tqc = max.cv.conc.tqc,
+      max.cv.intensity.bqc = max.cv.intensity.bqc,
+      max.cv.intensity.tqc = max.cv.intensity.tqc,
+      max.cv.normintensity.bqc = max.cv.normintensity.bqc,
+      max.cv.normintensity.tqc = max.cv.normintensity.tqc,
+      max.dratio.sd.conc.bqc = max.dratio.sd.conc.bqc,
+      max.dratio.sd.conc.tqc = max.dratio.sd.conc.tqc,
+      max.dratio.mad.conc.bqc = max.dratio.mad.conc.bqc,
+      max.dratio.mad.conc.tqc = max.dratio.mad.conc.tqc,
+      max.dratio.sd.normint.bqc = max.dratio.sd.normint.bqc,
+      max.dratio.sd.normint.tqc = max.dratio.sd.normint.tqc,
+      min.signalblank.median.spl.pblk = min.signalblank.median.spl.pblk,
+      min.signalblank.median.spl.ublk = min.signalblank.median.spl.ublk,
+      min.signalblank.median.spl.sblk = min.signalblank.median.spl.sblk,
+      response.curves.select_used_for_filt = list(response.curves.select),
+      min.rsquare.response = min.rsquare.response,
+      min.slope.response = min.slope.response,
+      max.slope.response = max.slope.response,
+      max.yintercept.response = max.yintercept.response,
       qualifier.include = qualifier.include,
       istd.include = istd.include,
-      features_to_keep = NA
+      features.to.keep = NA
     )
 
   metrics_qc_local <- data_local@metrics_qc
@@ -425,39 +439,49 @@ qc_apply_feature_filter <- function(data = NULL,
     #rowwise() |>  #TODO make it vevtorized
     mutate(
       pass_lod = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "intensity_min_BQC", intensity.min.bqc.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_min_TQC", intensity.min.tqc.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_min_SPL", intensity.min.spl.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_median_BQC", intensity.median.bqc.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_median_TQC", intensity.median.tqc.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_median_SPL", intensity.median.spl.min, ">"),
-        comp_val(dplyr::cur_data(), "intensity_max_SPL", intensity.max.spl.min, ">")),
+        list(comp_val(dplyr::cur_data(), "intensity_min_BQC", min.intensity.lowest.bqc, ">"),
+        comp_val(dplyr::cur_data(), "intensity_min_TQC", min.intensity.lowest.tqc, ">"),
+        comp_val(dplyr::cur_data(), "intensity_min_SPL", min.intensity.lowest.spl, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_BQC", min.intensity.median.bqc, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_TQC", min.intensity.median.tqc, ">"),
+        comp_val(dplyr::cur_data(), "intensity_median_SPL", min.intensity.median.spl, ">"),
+        comp_val(dplyr::cur_data(), "intensity_max_SPL", min.intensity.highest.spl, ">")),
         .operator = "AND"),
 
       pass_sb = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "sb_ratio_pblk", signalblank.median.pblk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(dplyr::cur_data(), "sb_ratio_ublk", signalblank.median.ublk.min, ">") | .data$is_istd & !istd.include,
-        comp_val(dplyr::cur_data(), "sb_ratio_sblk", signalblank.median.sblk.min, ">")),
+        list(comp_val(dplyr::cur_data(), "sb_ratio_pblk", min.signalblank.median.spl.pblk, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "sb_ratio_ublk", min.signalblank.median.spl.ublk, ">") | .data$is_istd & !istd.include,
+        comp_val(dplyr::cur_data(), "sb_ratio_sblk", min.signalblank.median.spl.sblk, ">")),
         .operator = "AND"),
 
       pass_cva = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "conc_cv_BQC", cv.conc.bqc.max, "<"),
-        comp_val(dplyr::cur_data(), "conc_cv_TQC", cv.conc.tqc.max, "<"),
-        comp_val(dplyr::cur_data(), "intensity_cv_BQC",  cv.intensity.bqc.min, "<"),
-        comp_val(dplyr::cur_data(), "intensity_cv_TQC", cv.intensity.tqc.min, "<")),
+        list(
+        comp_val(dplyr::cur_data(), "conc_cv_BQC", max.cv.conc.bqc, "<"),
+        comp_val(dplyr::cur_data(), "conc_cv_TQC", max.cv.conc.tqc, "<"),
+        comp_val(dplyr::cur_data(), "norm_intensity_cv_BQC",  max.cv.normintensity.bqc, "<"),
+        comp_val(dplyr::cur_data(), "norm_intensity_cv_TQC", max.cv.normintensity.tqc, "<"),
+        comp_val(dplyr::cur_data(), "intensity_cv_BQC",  max.cv.intensity.bqc, "<"),
+        comp_val(dplyr::cur_data(), "intensity_cv_TQC", max.cv.intensity.tqc, "<")
+        ),
         .operator = "AND"),
 
       pass_dratio = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "conc_dratio_sd_bqc", dratio.conc.bqc.sd.max, "<"),
-          comp_val( dplyr::cur_data(), "conc_dratio_sd_tqc", dratio.conc.tqc.sd.max, "<"),
-          comp_val( dplyr::cur_data(), "conc_dratio_mad_bqc", dratio.conc.bqc.mad.max, "<"),
-          comp_val( dplyr::cur_data(), "conc_dratio_mad_tqc", dratio.conc.tqc.mad.max, "<")),
+        list(
+          comp_val(dplyr::cur_data(), "conc_dratio_sd_bqc_conc", max.dratio.sd.conc.bqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_sd_tqc_conc", max.dratio.sd.conc.tqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_bqc", max.dratio.mad.conc.bqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_tqc", max.dratio.mad.conc.tqc, "<"),
+          comp_val(dplyr::cur_data(), "conc_dratio_sd_bqc_normint", max.dratio.sd.normint.bqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_sd_tqc_normint", max.dratio.sd.normint.tqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_bqc_normint", max.dratio.mad.normint.bqc, "<"),
+          comp_val( dplyr::cur_data(), "conc_dratio_mad_tqc_normint", max.dratio.mad.normint.tqc, "<")
+          ),
         .operator = "AND"),
 
       pass_missingval = comp_lgl_vec(
-        list(comp_val(dplyr::cur_data(), "missing_intensity_prop_spl", missing.intensity.spl.prop.max, "<="),
-        comp_val(dplyr::cur_data(), "missing_norm_intensity_prop_spl", missing.norm_intensity.spl.prop.max, "<="),
-        comp_val(dplyr::cur_data(), "missing_conc_prop_spl", missing.conc.spl.prop.max, "<=")),
+        list(comp_val(dplyr::cur_data(), "missing_intensity_prop_spl", max.prop.missing.intensity.spl, "<="),
+        comp_val(dplyr::cur_data(), "missing_norm_intensity_prop_spl", max.prop.missing.normintensity.spl, "<="),
+        comp_val(dplyr::cur_data(), "missing_conc_prop_spl", max.prop.missing.conc.spl, "<=")),
         .operator = "AND")
     )
   ##tictoc::toc()
@@ -466,51 +490,51 @@ qc_apply_feature_filter <- function(data = NULL,
 
   if (resp_criteria_defined){
     #browser()
-    if (is.numeric(response.curve.id)) {
+    if (is.numeric(response.curves.select)) {
 
       rqc_r2_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "r2_rqc"))]
-      rqc_r2_col <-  rqc_r2_col_names[response.curve.id]
+      rqc_r2_col <-  rqc_r2_col_names[response.curves.select]
       rqc_slope_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "slopenorm_rqc"))]
-      rqc_slope_col <-  rqc_slope_col_names[response.curve.id]
+      rqc_slope_col <-  rqc_slope_col_names[response.curves.select]
       rqc_y0_col_names <- names(metrics_qc_local)[which(stringr::str_detect(names(metrics_qc_local), "y0norm_rqc"))]
-      rqc_y0_col <-  rqc_y0_col_names[response.curve.id]
+      rqc_y0_col <-  rqc_y0_col_names[response.curves.select]
 
-      if (any(is.na(rqc_r2_col))) cli::cli_abort(cli::col_red("The specified RQC curve index exceeds the available range. There are only {length(rqc_r2_col_names)} RQC curves in the dataset. Please adjust the indices set via `response.curve.id`"))
+      if (any(is.na(rqc_r2_col))) cli::cli_abort(cli::col_red("The specified RQC curve index exceeds the available range. There are only {length(rqc_r2_col_names)} RQC curves in the dataset. Please adjust the indices set via `response.curves.select`"))
 
-    } else if(is.character(response.curve.id)){
-        rqc_r2_col <- paste0("r2_rqc_", response.curve.id)
-        rqc_slope_col <- paste0("slopenorm_rqc_", response.curve.id)
-        rqc_y0_col <- paste0("y0norm_rqc_", response.curve.id)
-        missing_curves <- response.curve.id[!(rqc_r2_col %in% names(metrics_qc_local))]
+    } else if(is.character(response.curves.select)){
+        rqc_r2_col <- paste0("r2_rqc_", response.curves.select)
+        rqc_slope_col <- paste0("slopenorm_rqc_", response.curves.select)
+        rqc_y0_col <- paste0("y0norm_rqc_", response.curves.select)
+        missing_curves <- response.curves.select[!(rqc_r2_col %in% names(metrics_qc_local))]
         if (length(missing_curves) > 0) {
           cli::cli_abort(cli::col_red("The following response curves are not defined in the metadata: {paste(missing_curves, collapse=', ')}. Please adjust the curve ids or ensure correct identifiers."))
         }
     } else {
-      cli::cli_abort(cli::col_red("The `response.curve.id` must be specified as either numeric indices or identifiers provided as strings, corresponding to the RQC curve(s)."))
+      cli::cli_abort(cli::col_red("The `response.curves.select` must be specified as either numeric indices or identifiers provided as strings, corresponding to the RQC curve(s)."))
     }
 
     # Summarize metrics across curves (columns) based on specified criteria
 
-    # Determine the function to apply based on response.curve.summary
+    # Determine the function to apply based on response.curves.summary
     fun_r2 <- case_match(
-      response.curve.summary,
+      response.curves.summary,
       "worst" ~ "safe_min",
       "best" ~ "safe_max",
-      .default = response.curve.summary
+      .default = response.curves.summary
     )
 
     fun_slope <- case_match(
-      response.curve.summary,
+      response.curves.summary,
       c("worst") ~ "safe_min",
       c("best") ~ "safe_max",
-      .default = response.curve.summary
+      .default = response.curves.summary
     )
 
     fun_y0 <- case_match(
-      response.curve.summary,
+      response.curves.summary,
       c("worst") ~ "safe_max",
       c("best") ~ "safe_min",
-      .default = response.curve.summary
+      .default = response.curves.summary
     )
 
     # Calculate summary metrics using purrr::pmap_dbl
@@ -532,11 +556,11 @@ qc_apply_feature_filter <- function(data = NULL,
       metrics_qc_local <- metrics_qc_local |>
         mutate(
           pass_linearity = if_else(
-            !is.na(rqc_r2__sum__) | (!is.na(response.slope.min) & !is.na(response.slope.max) & !is.na(response.yintersect.max)),
-            (rqc_r2__sum__ > response.rsquare.min | is.na(response.rsquare.min)) &
-              (rqc_slope__sum__ > response.slope.min | is.na(response.slope.min)) &
-              (rqc_slope__sum__ <= response.slope.max | is.na(response.slope.max)) &
-              (rqc_y0__sum__ < response.yintersect.max | is.na(response.yintersect.max)),
+            !is.na(rqc_r2__sum__) | (!is.na(min.slope.response) & !is.na(max.slope.response) & !is.na(max.yintercept.response)),
+            (rqc_r2__sum__ > min.rsquare.response | is.na(min.rsquare.response)) &
+              (rqc_slope__sum__ > min.slope.response | is.na(min.slope.response)) &
+              (rqc_slope__sum__ <= max.slope.response | is.na(max.slope.response)) &
+              (rqc_y0__sum__ < max.yintercept.response | is.na(max.yintercept.response)),
             NA
           )
         )
@@ -546,7 +570,7 @@ qc_apply_feature_filter <- function(data = NULL,
 
   # Check if filter has been previously set and if it should be overwritten
   #browser()
-  if(!overwrite & nrow(data@metrics_qc) > 0){
+  if(!replace_existing & nrow(data@metrics_qc) > 0){
     metrics_old <- data@metrics_qc |>
       select(
         any_of(c(
@@ -600,7 +624,7 @@ qc_apply_feature_filter <- function(data = NULL,
               (is.na(.data$valid_feature) | .data$valid_feature)
           ) |
           (
-            .data$feature_id %in% features_to_keep
+            .data$feature_id %in% features.to.keep
           )
       )
 
@@ -617,7 +641,7 @@ qc_apply_feature_filter <- function(data = NULL,
     n_filt_quant <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass))
     n_filt_qual <- nrow(d_metrics_temp |>  filter(.data$in_data, !.data$is_quantifier, .data$qc_pass))
 
-    if(!overwrite & nrow(data@metrics_qc) > 0){
+    if(!replace_existing & nrow(data@metrics_qc) > 0){
       n_filt_quant_before <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass_before))
       n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_quantifier, .data$qc_pass_before))
       qc_pass_prev <- sum(d_metrics_temp$qc_pass_before, na.rm = TRUE)
@@ -630,7 +654,7 @@ qc_apply_feature_filter <- function(data = NULL,
       n_filt_quant <- nrow(d_filt |>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier))
       n_filt_qual <- nrow(d_filt |>  filter(.data$in_data, !.data$is_istd, !.data$is_quantifier))
 
-      if(!overwrite & nrow(data@metrics_qc) > 0){
+      if(!replace_existing & nrow(data@metrics_qc) > 0){
         n_filt_quant_before <- nrow(d_metrics_temp|>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier, .data$qc_pass_before))
         n_filt_qual_before <- nrow(d_metrics_temp |>  filter(.data$in_data,!.data$is_istd, !.data$is_quantifier, .data$qc_pass_before))
       }
@@ -639,13 +663,13 @@ qc_apply_feature_filter <- function(data = NULL,
     qc_pass_now <- sum(metrics_qc_local$qc_pass, na.rm = TRUE)
 
   if(qualifier.include){
-    if(!overwrite & nrow(data@metrics_qc) > 0){
+    if(!replace_existing & nrow(data@metrics_qc) > 0){
 
       cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
     } else
       cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier and {n_filt_qual} of {n_all_qual} qualifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier and {n_istd_qual} qualifier ISTD features)")))
   } else {
-    if(!overwrite & nrow(data@metrics_qc) > 0){
+    if(!replace_existing & nrow(data@metrics_qc) > 0){
       cli::cli_alert_success(cli::col_green(glue::glue("\rQC filter criteria were added to existing: {n_filt_quant} (before {n_filt_quant_before}) of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)")))
     } else {
       cli::cli_alert_success(cli::col_green((glue::glue("\rNew QC filter criteria were defined: {n_filt_quant} of {n_all_quant} quantifier features meet QC criteria ({if_else(!istd.include, 'excluding the', 'including the')} {n_istd_quant} quantifier ISTD features)."))))
@@ -659,8 +683,7 @@ qc_apply_feature_filter <- function(data = NULL,
 
 
   data@dataset_filtered <- data@dataset |>
-    dplyr::right_join(metrics_qc_local |> filter(.data$qc_pass) |> dplyr::select("feature_id"), by = "feature_id") #|>
-    #filter( !(.data$outlier_technical & outlier.technical.exlude)) #TODO
+    dplyr::right_join(d_filt |> filter(.data$qc_pass) |> dplyr::select("feature_id"), by = "feature_id")
 
   data
 }

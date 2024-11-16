@@ -57,7 +57,7 @@ qc_plot_responsecurves_page <- function(dataset,
         trim_blank = FALSE
       ) +
       geom_point(size = point_size) +
-      xlab(x_axis_title) +
+      labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
       theme_light(base_size = font_base_size) +
       theme(
         strip.text = element_text(size = font_base_size * scaling_factor, face = "bold"),
@@ -74,7 +74,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @param data A `MidarExperiment` object containing the dataset with sample amounts and detector signals. Required.
 #' @param use_filtered_data Logical. Indicates whether to use quality control (QC) filtered data (`TRUE`) or the raw data (`FALSE`). Defaults to `FALSE`.
 #' @param output_pdf Logical. If `TRUE`, saves the generated plots as a PDF file. Defaults to `FALSE`.
-#' @param plot_variable The variable name to plot on the y-axis, usually a measure of intensity. Defaults to `"intensity"`.
+#' @param variable The variable name to plot on the y-axis, usually a measure of intensity. Defaults to `"intensity"`.
 #' @param include_feature_filter A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.
 #' @param exclude_feature_filter A regex pattern to filter and exclude features that match the criteria. If omitted, no features are excluded.
 #' @param max_regression_value The maximum x value (analyzed amount) for which the regression line is fitted. Defaults to `NA`, considering all data points.
@@ -112,7 +112,7 @@ qc_plot_responsecurves <- function(data = NULL,
                                 return_plots = FALSE) {
   check_data(data)
   variable_strip <- str_remove(variable, "feature_")
-  rlang::arg_match(variable_strip, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable_strip, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
   variable_sym = rlang::sym(variable)
   check_var_in_dataset(data@dataset, variable)

@@ -1,11 +1,22 @@
-#' Plot summary of feature QC filtering per class
+#' Plot QC Filtering Summary by Feature Class
+#'
+#' This function provides a summary of feature QC filtering based on class,
+#' showing the number of features that passed or failed various quality control criteria.
+#' It visualizes the hierarchical filtering process for different feature classes.
+#' Features are classified as failing a given criterion (e.g., `CV`) only after passing all
+#' the hierarchically lower filters (e.g., `S/B` ratio and `LOD`).
+#'
 #' @param data MidarExperiment object
-#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
-#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
-# #' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
-#' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
-#' @param font_base_size font size of plots
-#' @return ggplot2 object
+#' @param include_qualifier Whether to include qualifier features in the plot. Default is `FALSE`. Qualifier features are those that may not be included in the final analysis but are still retained for reference.
+#' @param include_istd Whether to include internal standard features in the plot. Default is `FALSE`. Internal standards are used for calibration purposes in mass spectrometry experiments.
+#' @param user_defined_keeper Whether to retain user-specified features that were not selected by the QC filters. Default is `FALSE`. If `TRUE`, the user-defined features are kept even if they fail QC.
+#' @param font_base_size The base font size for the plot. Default is `8`.
+#'
+#' @return A `ggplot2` object showing the feature QC filtering summary by class.
+#'
+#' @seealso
+#' \code{\link{qc_plot_summary_overall}} for an overall summary plot
+
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
@@ -100,18 +111,30 @@ qc_plot_summary_classes <- function(data = NULL, include_qualifier = FALSE, incl
     ) # Legend key size
 }
 
-#' Plot summary of feature QC filtering
+
+
+#' Plot Overall QC Filtering Summary
+#'
+#' This function generates a summary of the feature QC filtering process, visualizing the number of features that passed or failed the various QC criteria.
+#' It includes a Venn diagram showing the features excluded due to different filtering criteria such as signal-to-blank ratios, CV thresholds, and linearity.
+#' The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters.
+#'
 #' @param data MidarExperiment object
-# #' @param use_batches How batches should be used, either across batches (ignoring batches), plot batch individually, or summarize batches (median)
-#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
-#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
-#' @param with_venn_diag Include Venn diagram of features failing S/B, CVa, and linearity
-#' @param user_defined_keeper Include user-defined feature inclusion list, even they did not pass QC filtering
-#' @param font_base_size font size of plots
-#' @return ggplot2 object
+#' @param include_qualifier Whether to include qualifier features in the plot. Default is `FALSE`.
+#' @param include_istd Whether to include internal standard features in the plot. Default is `FALSE`.
+#' @param with_venn_diag Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is `TRUE`.
+#' @param user_defined_keeper Whether to retain user-specified features that were not selected by the QC filters. Default is `FALSE`.
+#' @param font_base_size The base font size for the plot. Default is `8`.
+#'
+#' @return A `ggplot2` object showing the feature QC filtering summary with or without a Venn diagram.
+#'
+#' @details
+#' The QC filtering process follows a hierarchical structure, where features are first evaluated against lower-level filters such as signal-to-blank ratios and limit of detection (LOD).
+#' Only features that pass these basic criteria are then subjected to higher-level filters like the coefficient of variation (CV) or linear regression results.
+#' A feature will only fail a higher-level filter (such as `CV` or `R-squared`) if it has passed all previous lower-level filters.
+#' This ensures that features are evaluated progressively, starting from fundamental quality checks up to more stringent filtering criteria.
+#'
 #' @export
-
-
 
 qc_plot_summary <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
   check_data(data)

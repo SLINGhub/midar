@@ -1,34 +1,39 @@
-#' RunSequence plot
+#' Run Sequence Plot to Visualize Analysis Design and Timelines
+#'
+#' @description
+#' The run sequence plot provides an overview of the analysis design and timelines, which can be useful for subsequent processing steps. The plot illustrates the batch structure, the quality control (QC) samples included with their respective positions, and additional information regarding the date, duration, and run time of the analysis.
+#'
+#' Setting `show_timestamp = TRUE` allows you to check for any interruptions in the analysis timeline.
 #'
 #' @param data MidarExperiment object
-#' @param qc_types QC types to be shown, `NA` displays all available QC/Sample types. Can be a vector with QC types or a string with regex pattern.
-#' @param show_batches Show batches
-#' @param show_timestamp Use acquisition time stamp as x-axis
-#' @param add_info_title Add title with experiment title and analysis date and times
-#' @param single_row Show all qc types in a single row
-#' @param batches_as_shades Show batches as shades
-#' @param batch_line_color batch separator color
-#' @param batch_shading_color batch shade color
-#' @param scale_factor Overall plot scale factor
-#' @param show_outlier Should samples defined as outlier as separate row
-#' @param segment_thickness Linewidth of the segments
-#' @param base_font_size base font size
-#' @return ggplot object
+#' @param qc_types QC types to be shown. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
+#' @param show_batches Logical, whether to show batch separators in the plot
+#' @param show_timestamp Logical, whether to use the acquisition timestamp as the x-axis instead of the run sequence number
+#' @param add_info_title Logical, whether to add a title with the experiment title, analysis date, and analysis times
+#' @param single_row Logical, whether to show all QC types in a single row
+#' @param batches_as_shades Logical, whether to show batches as shaded areas instead of line separators
+#' @param batch_line_color Color of the batch separator lines
+#' @param batch_shading_color Color of the batch shaded areas
+#' @param scale_factor Numeric, overall plot scale factor
+# #' @param show_excluded Logical, whether to show excluded analyses in a separate row
+#' @param segment_width Numeric, line width of the segments
+#' @param base_font_size Numeric, base font size for the plot
+#' @return A ggplot object representing the run sequence plot
 #' @export
-
 qc_plot_runsequence <- function(data = NULL,
-                             qc_types = NA,
-                             show_batches = TRUE,
-                             show_timestamp = FALSE,
-                             add_info_title = TRUE,
-                             single_row = FALSE,
-                             segment_thickness = 0.5,
-                             batches_as_shades = FALSE,
-                             batch_line_color = "#b6f0c5",
-                             batch_shading_color = "grey85",
-                             scale_factor = 1,
-                             show_outlier = TRUE,
-                             base_font_size = 8) {
+                                qc_types = NA,
+                                show_batches = TRUE,
+                                show_timestamp = FALSE,
+                                add_info_title = TRUE,
+                                single_row = FALSE,
+                                segment_width = 0.5,
+                                batches_as_shades = FALSE,
+                                batch_line_color = "#b6f0c5",
+                                batch_shading_color = "grey85",
+                                scale_factor = 1,
+                                #show_excluded = TRUE,
+                                base_font_size = 8) {
+
 
   check_data(data)
 
@@ -120,7 +125,7 @@ qc_plot_runsequence <- function(data = NULL,
       x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       y = -1, yend = 1
-    ), size = segment_thickness) +
+    ), size = segment_width) +
       scale_y_continuous(breaks = NULL)  # Hide y-axis breaks
   } else {
     p <- p + geom_segment(aes(
@@ -128,7 +133,7 @@ qc_plot_runsequence <- function(data = NULL,
       xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       y = as.integer(.data$qc_type) - 0.4,
       yend = as.integer(.data$qc_type) + 0.4
-    ), size = segment_thickness)
+    ), size = segment_width)
 
     # Position sample counts outside the y-axis
     p <- p +
@@ -158,60 +163,60 @@ qc_plot_runsequence <- function(data = NULL,
   p
 }
 
-
-
-
-
-#' RunScatter plot
+#' Create a Run Scatter Plot to Visualize Analyte Distributions
+#'
+#' @description
+#' The run scatter plot allows you to visualize the sequence of measurements and distribution of QC (sample) types across the analysis run sequence.
+#' This can be useful for identifying trends, outliers, or other patterns in the data.
+#'
+#' The function provides a range of options for customizing the plot, such as:
+#' - Filtering the data (e.g., by QC type, feature ID)
+#' - Applying outlier capping
+#' - Displaying batch information and control limits
+#' - Showing trend lines for drift correction
+#' - Controlling the layout and appearance of the plot
 #'
 #' @param data MidarExperiment object
-#' @param variable Variable to plot
-#' @param filter_data Use QC-filtered data, based on criteria set via `qc_apply_feature_filter()`
-#' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
-#' @param include_qualifier Include qualifier features. Default is `TRUE`.
-#' @param include_feature_filter Select features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
-#' @param exclude_feature_filter Exclude features with feature_id matching the given string. By default a `regex` string. `NA`, `""` ignores the filter.
-#' @param plot_range_indices A numeric vector of length two, specifying the start and end indices of the sequence to be plotted. If `NA` is provided, all samples will be plotted. These indices correspond to the order in which the samples were measured. For example, `c(1, 10)` will plot the data from the first to the tenth sample in the sequence. Ensure the indices are within the valid range of the dataset.
-#' @param output_pdf save as PDF
-#' @param path file name of PDF
-#' @param log_scale Use log10 scale for the y axis
-#' @param cap_outliers Cap upper outliers, based on MAD fences of SPL and QC samples, see `cap_spl_k_mad` and `cap_qc_k_mad`. Useful to cap extreme values distorting the plot.
-#' @param cap_spl_k_mad k * MAD (median absolute deviation) for outlier capping of SPL samples. Default is 4.
-#' @param cap_qc_k_mad k * MAD (median absolute deviation) for outlier capping of BQC and/or TQC samples. Default is 4.
-#' @param cap_top_n_values Cap top n values, irrespective of the IQR fence. This is useful to remove single or few extreme values. Default (`NA`) or `0` ignores the filter.
-#' @param show_batches Show batches
-#' @param show_control_limits Show mean line of the given QC types. NA (default) ignores the median line.
-#' @param set_limits_n_sd Show  /- n x SD lines of the QC types defined via `show_median`. `NA` (default) ignores the SD lines.
-#' @param limits_batchwise Calculate mean and SD line per batch. Default is `FALSE`.
-#' @param limits_linecolor Color of mean and SD lines
-#' @param limits_linewidth Width of mean and SD lines
-#' @param batches_as_shades Show batches as shades
-#' @param batch_line_color batch separator color
-#' @param batch_shading_color batch shade color
-#' @param show_trend Show drift correction. TODO: Add more details
-#' @param trend_linecolor Color of tend line
-#' @param fit_qc_type QC type used for smoothing  TODO: Add more detail
-#' @param cols_page columns per page
-#' @param rows_page rows per page
-#' @param base_font_size base font size of plot
-#' @param annot_scale scale factor of text elements
-#' @param page_orientation Landscape/Portrait
-# #' @param show_trend_samples Fit trend line for study samples, if `show_trend` is TRUE. Default is FALSE.
-# #' @param trend_samples_function Function used for drift correction. Default 'loess'. TODO: Add more detail
-# #' @param trend_samples_color Color of drift line
-# #' @param show_before_after_smooth Show before/after correction
-# #' @param plot_other_qc Plot all QCs in addition to `fit_qc_type`
-#' @param point_transparency Alpha of points
-#' @param point_size point size
-#' @param specific_page Show/save specific page number. Default is `NA`, which plots all pages.
-#' @param y_label_text Overwrite y label with this text
-#' @param point_border_width point stroke width
-#' @param return_plots return list with plots
-#' @param show_gridlines show x and y major gridlines
-#' @param show_progress show progress bar
-# #' @param silent suppress messages
-#' @return A list of ggplot2 plots or NULL
-
+#' @param variable Variable to plot, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'
+#' @param filter_data Logical, whether to use QC-filtered data based on criteria set via `qc_apply_feature_filter()`
+#' @param qc_types QC types to be shown. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
+#' @param include_qualifier Logical, whether to include qualifier features
+#' @param include_feature_filter Regex pattern to select features by feature_id. `NA` or `""` ignores the filter.
+#' @param exclude_feature_filter Regex pattern to exclude features by feature_id. `NA` or `""` ignores the filter.
+#' @param plot_range_indices Numeric vector of length 2, specifying the start and end indices of the sequence to be plotted. `NA` plots all samples.
+#' @param output_pdf Logical, whether to save the plot as a PDF file
+#' @param path File name for the PDF output
+#' @param log_scale Logical, whether to use a log10 scale for the y-axis
+#' @param cap_outliers Logical, whether to cap upper outliers based on MAD fences of SPL and QC samples
+#' @param cap_spl_k_mad Numeric, k * MAD (median absolute deviation) for outlier capping of SPL samples
+#' @param cap_qc_k_mad Numeric, k * MAD (median absolute deviation) for outlier capping of QC samples
+#' @param cap_top_n_values Numeric, cap the top n values regardless of MAD fences. `NA` or `0` ignores this filter.
+#' @param show_batches Logical, whether to show batch separators in the plot
+#' @param show_control_limits Logical, whether to show the mean line for the specified QC types. `NA` ignores the mean line.
+#' @param set_limits_n_sd Numeric, show +/- n x SD lines for the QC types defined in `show_control_limits`. `NA` ignores the SD lines.
+#' @param limits_batchwise Logical, whether to calculate the mean and SD lines per batch
+#' @param limits_linecolor Color of the mean and SD lines
+#' @param limits_linewidth Width of the mean and SD lines
+#' @param batches_as_shades Logical, whether to show batches as shaded areas instead of line separators
+#' @param batch_line_color Color of the batch separator lines
+#' @param batch_shading_color Color of the batch shaded areas
+#' @param show_trend Logical, whether to show a drift correction trend line
+#' @param trend_linecolor Color of the trend line
+#' @param fit_qc_type QC type used for smoothing the trend line
+#' @param cols_page Number of columns per page
+#' @param rows_page Number of rows per page
+#' @param base_font_size Base font size for the plot
+#' @param annot_scale Scale factor for text elements
+#' @param page_orientation Page orientation, "LANDSCAPE" or "PORTRAIT"
+#' @param point_transparency Alpha transparency of the data points
+#' @param point_size Size of the data points
+#' @param point_border_width Width of the data point borders
+#' @param specific_page Integer, show/save a specific page number. `NA` plots/saves all pages.
+#' @param y_label_text Override the default y-axis label text
+#' @param return_plots Logical, whether to return the list of ggplot objects
+#' @param show_gridlines Logical, whether to show major x and y gridlines
+#' @param show_progress Logical, whether to show a progress bar
+#' @return A list of ggplot2 plots, or `NULL` if `return_plots = FALSE`
 #' @export
 
 qc_plot_runscatter <- function(data = NULL,
@@ -263,19 +268,18 @@ qc_plot_runscatter <- function(data = NULL,
   check_data(data)
   if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
 
-  if (show_trend) {
-    if(!data@is_drift_corrected)
-      cli::cli_abort("This option is only available for drift corrected datasets. Please apply `correct_drift_...()` first.")
-    if(!str_detect(variable, "conc"))
-      cli::cli_abort("This option is currently only available for concentrations. Please set `variable` to `conc` or `conc_raw`")
-  }
 
   # Check if selected variable is valid
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity", "intensity_raw", "norm_intensity_raw", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
+
+  # if (show_trend) {
+  #   if(!data@var_drift_corrected[[str_remove(variable, "_raw")]])
+  #     cli::cli_abort("This option is only available for drift corrected datasets. Please apply `correct_drift_...()` first.")
+  # }
 
   # Filter data if filter_data is TRUE
   if (filter_data) {
@@ -293,15 +297,21 @@ qc_plot_runscatter <- function(data = NULL,
     d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= plot_range_indices[1] & .data$run_seq_num <= plot_range_indices[2]) |> droplevels()
   }
 
+
+  if (!variable %in% names(data@dataset)){
+    if(str_detect(variable, "_raw"))
+      cli::cli_abort(cli::col_red("`{str_remove(variable, '_raw')}` values have not yet been drift and/or batch corrected. Please apply drift and/or batch corrections,  or choose another variable."))
+    else
+      cli::cli_abort(cli::col_red("`{variable}` values are not available. Please process accordingly or choose another variable."))
+  }
+
   d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   # Define y axis label based on if cap_outlier was selected
   y_label <- dplyr::if_else(cap_outliers,
-                            #paste0(ifelse(is.na(y_label_text), variable, y_label_text), " (capped at ", cap_spl_k_mad, "x and ", cap_qc_k_mad, "x MAD of SPL and QC, respectively)"),
-                            paste0(ifelse(is.na(y_label_text), variable, y_label_text), " (upper limit capped with MAD outlier filter) "),
-
-                                                      stringr::str_remove(variable, "feature\\_"))
+                            paste0(ifelse(is.na(y_label_text), stringr::str_remove(variable, "feature\\_"), y_label_text), " (capped by MAD outlier filter) "),
+                            stringr::str_remove(variable, "feature\\_"))
 
   # Subset data based on incl and excl argument values ----
 
@@ -507,7 +517,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   if (show_trend) {
     #browser()
-    y_var_trend <- if_else(y_var == "feature_conc_raw", "y_fit", "y_fit_after")
+    y_var_trend <- if_else(str_detect(y_var, "\\_raw"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
     p <- p +
       ggplot2::geom_line(aes_string(x = "run_seq_num", y = y_var_trend, group = "batch_id"), color = trend_linecolor, size = 1, na.rm = TRUE)
       # pkg.env$qc_type_annotation$qc_type_fillcol[fit_qc_type]
@@ -633,51 +643,40 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 
 
-
-#' RLA (Relative Log Abundance) plot
-#' @description
-#' Relative log abundance (RLA) plots show standardized analyte abundances of each sample. Standardization is done by removing the within- or across-batch median from each analyte.
-#' @param data MidarExperiment object
-#' @param rla_type_batch Must be either `within` or `across`, defining whether to use with-in or across-group RLA
-#' @param variable Variable to plot
-#' @param filter_data Use QC-filtered data
-#' @param qc_types QC type to plot. When qc_types is NA or NULL, all available QC types are plotted.
-#' @param x_axis_variable Variable used for the x axis, muste be one of: `run_seq_num`, `run_no`, `analysis_id`, or `timestamp`
-#' @param include_feature_filter Filter text to select specific features (regex string)
-#' @param exclude_feature_filter Filter text to exclude specific features (regex string)
-#' @param plot_range_indices Analysis range to plot. Format: c(start, end). Setting one of them to NA ignoresthe corresponding boundary. Default is NA, which plots all available analyses.
-#' @param min_feature_intensity Exclude features with overall median signal below this value
-#' @param y_lim Y-axis lower and upper limits as vector (default is NA). This also overwrites limits calculated by `ignore_outliers`
-#' @param ignore_outliers Exclude outlier values based on 4x MAD (median absolute deviation) fences
-#' @param show_batches Show batches
-#' @param batches_as_shades Show batches as shades
-#' @param batch_line_color batch separator color
-#' @param batch_shading_color batch shade color
-#' @param x_gridlines Show major x gridlines
-#' @param linewidth Line width used for whiskers of boxplot
-#' @param base_font_size base font size for plots (default is 8)
-#' @param relative_log_abundances Use relative log abundances (RLA). If `FALSE` just use log-transformed values (then the result is not an RLA plot)
-#' @details
-#' This plot was first introduced by De Livera et al. (2012) in the context of metabolomics and
-#' is used to visualize the relative log abundance (RLA) of each feature in each sample.
-#' The RLA is calculated by subtracting the within- or across-batch median from each feature.
-#' This normalization is useful to examine the dataset for technical effect that involve all feature in a similar manner,
-#' such as batch effects due to changes of instrument response, pipeting errors,
-#' sample spillage.
-#' As all features are normmalized, this plot is more robust to detect such effects,
-#' unlike e.g. sum abundance plots which are a biased toward the most abundant lipid species in the analysed matrix
-#' @return ggplot object
+#' Relative Log Abundance (RLA) Plot
 #'
+#' @description
+#' Relative log abundance (RLA) plots show standardized feature abundances across samples. Standardization is done by removing either the within-batch or across-batch median from each feature
+#'
+#' RLA plots are useful for visualizing technical effects that impact all features in a similar manner, such as batch effects due to changes in instrument response, pipetting errors, or sample spillage. Unlike plots of raw or normalized abundances, RLA plots are more robust to these types of effects.
+#'
+#' @param data MidarExperiment
+#' @param rla_type_batch Character, must be either "within" or "across", defining whether to use within-batch or across-batch RLA
+#' @param variable Variable to plot, must be one of "intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm".
+#' @param filter_data Logical, whether to use QC-filtered data
+#' @param qc_types QC type(s) to plot. Can be a vector of QC types or `NA`/`NULL` to plot all available QC types.
+#' @param x_axis_variable Character, variable to use for the x-axis. Must be one of: "run_seq_num", "run_no", "analysis_id", or "timestamp"
+#' @param include_feature_filter Regex pattern to select specific features
+#' @param exclude_feature_filter Regex pattern to exclude specific features
+#' @param plot_range_indices Numeric vector of length 2, specifying the start and end indices of the sequence to be plotted. `NA` plots all samples.
+#' @param min_feature_intensity Numeric, exclude features with overall median signal below this value
+#' @param y_lim Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is `NA`, which uses limits calculated based on `ignore_outliers`.
+#' @param ignore_outliers Logical, whether to exclude outlier values based on 4x MAD (median absolute deviation) fences
+#' @param show_batches Logical, whether to show batch separators in the plot
+#' @param batches_as_shades Logical, whether to show batches as shaded areas instead of line separators
+#' @param batch_line_color Character, color of the batch separator lines
+#' @param batch_shading_color Character, color of the batch shaded areas
+#' @param x_gridlines Logical, whether to show major x-axis gridlines
+#' @param linewidth Numeric, line width used for whiskers of the boxplot
+#' @param base_font_size Numeric, base font size for the plot
+#' @param relative_log_abundances Logical, whether to use relative log abundances (RLA) or just log-transformed values
+#' @return A ggplot object representing the RLA plot
 #' @references
 #' De Livera et al. (2012) Normalizing and integrating metabolomics data. Analytical Chemistry 10768-10776
 #' [DOI: 10.1021/ac302748b](https://doi.org/10.1021/ac302748b)
-#' @references
 #' De Livera et al. (2015) Statistical Methods for Handling Unwanted Variation in Metabolomics Data. Analytical Chemistry 87(7):3606-3615
 #' [DOI: 10.1021/ac502439y](https://doi.org/10.1021/ac502439y)
-#'
 #' @export
-#'
-
 
 # TODO: Add minor ticks to x-axis
 qc_plot_rla_boxplot <- function(
@@ -719,7 +718,7 @@ qc_plot_rla_boxplot <- function(
   # Filter data if filter_data is TRUE
   if (filter_data) {
     d_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
+    if (!data@is_filtered) cli::cli_abort(cli::col_red("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first."))
   } else {
     d_filt <- data@dataset |> dplyr::ungroup()
   }
@@ -823,7 +822,7 @@ qc_plot_rla_boxplot <- function(
 
   if (relative_log_abundances) {
     p <- p + geom_hline(yintercept = 0, colour = "#5fe3f5", linetype = "longdash", size = 0.5) +
-      ylab(bquote(bold("Rel. " ~ log[2] ~ .(variable))))
+      ylab(bquote(bold(log[2] ~ "( relative" ~ .(stringr::str_remove(variable, "feature\\_")) ~ ")")))
   }
   ylim = c(NA, NA)
   xlim = c(NA, NA)

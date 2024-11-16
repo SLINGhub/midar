@@ -1,24 +1,36 @@
-#' PCA plot for QC
-#' @param data MidarExperiment object
-#' @param variable Which variable to use for the PCA. Must be any of "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm".
+#' PCA Plot for Quality Control
+#' @description Generates a Principal Component Analysis (PCA) plot for visualizing QC samples, with options for filtering, transformations, and customizable visual elements.
+#' @param data MidarExperiment object containing the QC data
+#' @param variable Variable to use for PCA analysis. Must be one of: "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"
 #' @param filter_data Use all (default) or qc-filtered data
-#' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is `c(1,2)`
-#' @param qc_types qc types to plot. Default is `c("SPL", "BQC", "TQC", "NIST", "LTR")`
-#' @param label_k_mad Show analysis_id label for points outside k * mad of any of two defined PCA dimensions. Default is `3`. Set to `NULL` to supress labels.
-#' @param log_transform log-transform data before calculating PCA. Default is `TRUE`
-#' @param remove_istds Exlude ISTD features. Default is `TRUE`
-#' @param min_median_signal Minimum median signal across all samples from all selected qc types. `NA` (default) will not filter any features based on signal.
-#' @param point_size size of points. Default is `2`
-#' @param point_alpha transparency of points
-#' @param ellipse_alpha transparency of ellipse fill
-#' @param font_base_size Base font size for plot text elements
-#' @param hide_label_text Hide shared text (case-senstive) in labels. If it results in non-unique analysis_id's then an error will be raised.
-#'
-#' @return ggplot2 object
+#' @param pca_dim PCA dimensions to plot as a vector of length 2. Default is c(1,2)
+#' @param qc_types QC types to include in the plot. Default is c("SPL", "BQC", "TQC", "NIST", "LTR")
+#' @param label_mad_threshold Show analysis_id label for points outside k * MAD of the selected PCA dimensions. Default is 3. Set NULL to suppress labels
+#' @param log_transform Whether to log-transform data before PCA. Default is TRUE
+#' @param exclude_istds Whether to exclude internal standards. Default is TRUE
+#' @param min_median_signal Minimum median signal across all samples from selected QC types. NA (default) will not filter any features
+#' @param point_size Size of plot points. Default is 2
+#' @param point_alpha Transparency of plot points (0-1). Default is 0.7
+#' @param ellipse_alpha Transparency of ellipse fill (0-1). Default is 0.8
+#' @param font_base_size Base font size for plot text elements. Default is 8
+#' @param hide_shared_label_text Hide shared text (case-sensitive) in labels. If resulting in non-unique analysis_id's, an error will be raised
+#' @return A ggplot2 object
 #' @export
-qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
-                        label_k_mad = 3, log_transform = TRUE, remove_istds = TRUE, min_median_signal = NA, point_size = 2, point_alpha = 0.7,
-                        ellipse_alpha = 0.8, font_base_size = 8, hide_label_text = NA) {
+
+qc_plot_pca <- function(data = NULL,
+                        variable,
+                        filter_data,
+                        pca_dim = c(1,2),
+                        qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
+                        label_mad_threshold = 3,
+                        log_transform = TRUE,
+                        exclude_istds = TRUE,
+                        min_median_signal = NA,
+                        point_size = 2,
+                        point_alpha = 0.7,
+                        ellipse_alpha = 0.8,
+                        font_base_size = 8,
+                        hide_text_from_labels = NA) {
 
   check_data(data)
   variable <- str_remove(variable, "feature_")
@@ -40,7 +52,7 @@ qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc
   PCy <- rlang::sym(paste0(".fittedPC", pca_dim[2]))
 
   # TODO: (IS as criteria for ISTD.. dangerous...
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
+  if (exclude_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_wide <- d_wide |>
     filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
@@ -70,7 +82,6 @@ qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc
     dplyr::distinct() |>
     dplyr::right_join(d_clean |> dplyr::select("analysis_id") |> distinct(), by = c("analysis_id"))
 
-
   m_raw <- d_clean |>
     tibble::column_to_rownames("analysis_id") |>
     as.matrix()
@@ -91,9 +102,9 @@ qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc
 
 
 
-  if (!is.null(label_k_mad) & !is.na(label_k_mad)) {
-   d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + label_k_mad * mad(!!PCx)) |
-                                      abs(!!PCy) > (median(!!PCy) + label_k_mad * mad(!!PCy)))
+  if (!is.null(label_mad_threshold) & !is.na(label_mad_threshold)) {
+   d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + label_mad_threshold * mad(!!PCx)) |
+                                      abs(!!PCy) > (median(!!PCy) + label_mad_threshold * mad(!!PCy)))
    }
 
 
@@ -101,10 +112,10 @@ qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc
     select("analysis_id":stringr::str_c(".fittedPC", max(pca_dim))) |>
     left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
 
-  if (!is.na(hide_label_text)) {
-    pca_annot <- pca_annot |> mutate(analysis_id_outlier = str_remove(.data$analysis_id_outlier, hide_label_text))
+  if (!is.na(hide_text_from_labels)) {
+    pca_annot <- pca_annot |> mutate(analysis_id_outlier = str_remove(.data$analysis_id_outlier, hide_text_from_labels))
     if(any(duplicated(pca_annot$analysis_id_outlier, incomparables=NA)))
-      cli_abort(cli::col_red("Hiding text defined with `hide_label_text` would result in non-unique labels. Please modify or set to `NA` to show labels."))
+      cli_abort(cli::col_red("Hiding text defined with `hide_text_from_labels` would result in non-unique labels. Please modify or set to `NA` to show labels."))
   }
 
   p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", pca_dim[1]),
@@ -143,7 +154,7 @@ qc_plot_pca <- function(data = NULL, variable, filter_data, pca_dim = c(1,2), qc
   p
 }
 
-plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", remove_istds = TRUE, sliding = FALSE, ncol = 3,
+plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", exclude_istds = TRUE, sliding = FALSE, ncol = 3,
                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
   check_data(data)
   if(use_filter_data)
@@ -155,7 +166,7 @@ plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filte
     d_wide <- data@dataset
 
   # TODO: (IS as criteria for ISTD.. dangerous...
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
+  if (exclude_istds) d_wide <- d_wide |> filter(!.data$is_istd, !str_detect(.data$feature_id, "\\(IS\\)| ISTD")) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_wide <- d_wide |>
     filter(.data$qc_type %in% qc_types, .data$is_quantifier) |>
@@ -293,11 +304,11 @@ plot_pca_loading_coord <- function(data = NULL, variable, log_transform, dim_x, 
   p
 }
 
-plot_pca_loading <- function(data = NULL, variable, log_transform, pc_dimensions, top_n, remove_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
+plot_pca_loading <- function(data = NULL, variable, log_transform, pc_dimensions, top_n, exclude_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
   check_data(data)
   d_wide <- data@dataset_filtered |> filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
 
-  if (remove_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
+  if (exclude_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
 
   d_filt <- d_wide |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }}) |>
