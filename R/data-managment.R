@@ -57,13 +57,43 @@ get_analysis_interruptions <- function(data, break_mins){
     return(NA)
 }
 
+
+# sets the is_normalized flag, if FALSE remove normalized intensities and conc if availalble from the dataset
+change_is_normalized <- function(data, is_normalized, with_message = TRUE){
+  if(data@is_istd_normalized & !is_normalized) {
+    data@dataset <- data@dataset |>
+      select(-any_of(c("feature_norm_intensity", "feature_norm_intensity_raw")))
+
+    if(data@is_quantitated){
+      data <- change_is_quantitated(data, FALSE, FALSE)
+      if(with_message)
+        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations are no longer valid. Please reprocess the data."))
+    } else {
+      if(with_message)
+        cli_alert_info(cli::col_yellow("Normalized intensities is no longer valid. Please reprocess data."))
+    }
+  }
+  data@is_istd_normalized <- is_normalized
+  data
+}
+
+change_is_quantitated <- function(data, is_quantitated, with_message = TRUE){
+  if(data@is_quantitated & !is_quantitated) {
+    data@dataset <- data@dataset |> select(-any_of(c("feature_conc", "feature_raw_conc")))
+    if(with_message) cli_alert_info(cli::col_yellow("Concentrations not valid anymore. Please reprocess data."))
+  }
+  data@is_quantitated <- is_quantitated
+  data
+}
+
 check_var_in_dataset <- function(table, variable) {
-  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort("Concentrations not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL)
-  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort("Area is not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
-  if(variable == "response" & !"response" %in% names(table)) cli_abort("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
-  if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL)
-  if(variable == "height" & !"height" %in% names(table)) cli_abort("Heights not available, please choose another variable.", show = "none", parent = NULL, call= NULL)
-  if(variable == "conc_raw" & !"conc_raw" %in% names(table)) cli_abort("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL)
+
+  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort(cli::col_red("Area is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "response" & !"response" %in% names(table)) cli_abort(cli::col_red("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort(cli::col_red("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "height" & !"height" %in% names(table)) cli_abort(cli::col_red("Heights not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "conc_raw" & !"conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
 }
 
 #' @title Get the start and end analysis numbers of specified batches
@@ -123,7 +153,7 @@ get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_mrmkit(mexp, path = file_path, use_metadata = TRUE)
+#' mexp <- data_import_mrmkit(mexp, path = file_path, include_metadata = TRUE)
 #' mexp <- set_analysis_order(mexp, "timestamp")
 
 #' @export
@@ -233,8 +263,8 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
   data@is_isotope_corr <- FALSE
   #data@is_istd_normalized <- FALSE
   #data@is_quantitated <- FALSE
-  data@is_drift_corrected <- FALSE
-  data@is_batch_corrected <- FALSE
+  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
+  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
   data@is_filtered <- FALSE
 
 
@@ -249,7 +279,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
     arrange(.data$run_seq_num)
 
   # TODOTODO: DECIDE WHEN WHERE TO RUN THIS
-  # check_integrity(data, excl_unannotated_analyses = excl_unannotated_analyses)
+  # check_integrity(data, exclude_unmatched_analyses = exclude_unmatched_analyses)
 
   data
 }
@@ -308,21 +338,30 @@ data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FAL
 }
 
 
-#'  @title Exclude analyses from the dataset
-#' @param data MidarExperiment object
-#' @param analyses_exlude Vector of analysis IDs (case-sensitive) to exclude from the dataset.
-#' @param overwrite If `TRUE` then existing valid_analysis flags will be overwritten, otherwise appended
-#' @return `MidarExperiment` object
+#' @title Exclude Analyses from the Dataset
+#'
+#' @description
+#' This function excludes specified analyses from a `MidarExperiment` object, either by
+#' marking them as invalid for downstream processing or by overwriting the current analysis flags.
+#' The function also handles the case where no analyses are specified, allowing the option to reset the exclusions.
+#'
+#' @param data A `MidarExperiment` object
+#' @param analyses_to_exclude A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
+#' If this is `NA` or an empty vector, the exclusion behavior will be handled as per the `replace_existing` flag.
+#' @param replace_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
+#' the exclusions will be appended, preserving any existing valid analyses.
+#'
+#' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-data_exclude_analyses <- function(data = NULL, analyses_exlude, overwrite ){
+data_exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
   check_data(data)
   if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
-    if(!overwrite){
-      cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `overwrite = TRUE`."))
+    if(!replace_existing){
+      cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
       cli::cli_alert_info(cli::col_green("Exclusions were removed and all analyses are now included for subsequent steps. Please reprocess data."))
-      data@analyses_excluded <- FALSE
+      data@analyses_excluded <- NA
       data@annot_analyses <- data@annot_analyses |> mutate(valid_analysis = TRUE)
       data <- link_data_metadata(data)
       return(data)
@@ -331,16 +370,16 @@ data_exclude_analyses <- function(data = NULL, analyses_exlude, overwrite ){
   if (any(!c(analyses_exlude) %in% data@annot_analyses$analysis_id) > 0) {
     cli_abort(cli::col_red("One or more provided `analysis id`s to exclude are not present. Please check the analysis metadata."))
   }
-  if(!overwrite){
+  if(!replace_existing){
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude) & .data$valid_analysis)
     cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were now excluded for downstream processing. Please reprocess data."))
-    data@analyses_excluded <- TRUE
+    data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude))
     cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
-    data@analyses_excluded <- TRUE
+    data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
     }
 
   data <- link_data_metadata(data)
@@ -353,7 +392,7 @@ data_exclude_analyses <- function(data = NULL, analyses_exlude, overwrite ){
 #' @title Get the annotated or the originally imported analytical data
 #' @param data MidarExperiment object
 #' @param original Boolean indicating whether to return the original imported data (`TRUE`) or the annotated data (`FALSE`)
-#' @param overwrite If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
+#' @param replace_existing If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
 #' @return A tibble with the analytical data in the long format
 #' @export
 
@@ -369,16 +408,16 @@ data_get_analyticaldata <- function(data = NULL, original = FALSE){
 #' @title Exclude features from the dataset
 #' @param data MidarExperiment object
 #' @param features_exlude Vector of feature IDs (case-sensitive) to exclude from the dataset
-#' @param overwrite If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
+#' @param replace_existing If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
 #' @return `MidarExperiment` object
 #' @export
 
-data_exclude_features <- function(data = NULL, features_exlude, overwrite ){
+data_exclude_features <- function(data = NULL, features_exlude, replace_existing ){
   check_data(data)
 
   if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
-    if(!overwrite){
-      cli_abort(cli::col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `overwrite = TRUE`."))
+    if(!replace_existing){
+      cli_abort(cli::col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
       cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
       return(data)
@@ -387,7 +426,7 @@ data_exclude_features <- function(data = NULL, features_exlude, overwrite ){
   if (any(!c(features_exlude) %in% data@annot_features$feature_id) > 0) {
     cli_abort(cli::col_red("One or more provided `feature id`s to exclude are not present. Please check the feature metadata."))
   }
-  if(!overwrite){
+  if(!replace_existing){
     data@annot_features <- data@annot_features |>
       mutate(valid_feature = !(.data$feature_id %in% features_exlude) & .data$valid_feature)
     cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were now excluded for downstream processing. Please reprocess data."))
