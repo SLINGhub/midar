@@ -1,68 +1,63 @@
-#' @title Imports an Agilent MassHunter Quant CSV file
+
+#' @title Imports Agilent MassHunter Quantitative Analysis CSV files
 #' @description
-#' Imports .csv file(s) exported from `Agilent MassHunter (MH) Quantitative Analysis` containing peak integration results.
-#' Samples must be in rows, features/compounds in columns and must contain either peak areas, peak heights or intensities.
-#' Additional columns, such as RT (retention time), FWHM, PrecursorMZ, and CE will be imported and will available from the `MidarExperiment` object for downstream analyses.
+#' Imports .csv files exported from Agilent MassHunter Quantitative Analysis software, containing peak integration results.
+#' The input files must have anlyses (samples) in rows, features/compounds in columns, and either peak areas, peak heights, or response as the values.
+#' Additional columns, such as retention time (RT), full-width at half-maximum (FWHM), precursor m/z (PrecursorMZ), and collision energy (CE), will also be imported and made available in the `MidarExperiment` object for downstream analyses.
 #'
-#' When a path to a folder is provided, all .csv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-#' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+#' When a directory path is provided, all matching .csv files in that directory will be imported and merged into a single dataset. This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
+#' Each unique combination of feature and raw data file must only occur once across all source data files. Duplicate combinations will result in an error.
 #'
 #' @param data MidarExperiment object
-#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
-#' @param file_format File format of the MassHunter export. One of "csv", "xls"
-#' @param use_metadata Extract and add metadata from the analysis result file
-#' @param expand_qualifier_names Add quantifier name in front of qualifier name, as the latter only has the mz transitions values
-#' @param silent Suppress most notifications
-
-#' @return MidarExperiment object
+#' @param path One or more file paths, or a directory path (in which case all matching files will be imported)
+#' @param include_metadata Logical, whether to extract and add metadata from the analysis result file
+#' @param expand_qualifier_names Logical, whether to add the quantifier name in front of the qualifier name (the latter only has the m/z transition values)
+#' @param silent Logical, whether to suppress most notifications
+#' @return MidarExperiment object with the imported data
 #' @examples
-#' file_path <- system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_masshunter(data = mexp, path = file_path, use_metadata = TRUE)
-#' mexp
-
+#' mexp <- data_import_masshunter(data = mexp, input_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar"), include_metadata = TRUE)
+#' mexp <- data_import_masshunter(data = mexp, input_path = "/path/to/directory/with/masshunter/files", include_metadata = TRUE)
 #' @export
 
-data_import_masshunter <- function(data = NULL, path, use_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
+data_import_masshunter <- function(data = NULL, path, include_metadata, file_format = "csv", expand_qualifier_names = TRUE, silent = FALSE) {
   check_data(data)
   if (file_format == "csv") {
     data <- data_import_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
     data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
-    if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "sample_type")
+    if (include_metadata) data <- metadata_import_fromdata(data, qc_type_column_name = "sample_type")
     data
   } else {
     cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
   }
 }
-
-
 #' @title Imports MRMkit peak integration results
 #' @description
-#' Imports .tsv file(s) generated from `MRMkit` containing peak integration results.
-#' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
-#' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
+#' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak integration results.
+#' The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other parameters.
+#' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and made available in the `MidarExperiment` object for downstream analyses.
 #'
-#' When a path to a folder is provided, all .tsv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-#' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+#' When a directory path is provided, all matching files in that directory will be imported and merged into a single dataset.
+#' This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
+#' Each unique combination of feature and raw data file must only occur once across all source data files.
+#' Duplicate combinations will result in an error.
 #'
 #' @param data MidarExperiment object
-#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
-#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
-#' @param silent Suppress most notifications
-#' @return MidarExperiment object
+#' @param input_path One or more file paths, or a directory path (in which case all matching files will be imported)
+#' @param import_metadata Logical, whether to import additional metadata columns (e.g., `batch_id`, `qc_type`)
+#' @param silent Logical, whether to suppress most notifications
+#' @return MidarExperiment object with the imported data
 #' @examples
-#' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_mrmkit(data = mexp, path = file_path, use_metadata = TRUE)
-#' mexp
-
+#' mexp <- data_import_mrmkit(data = mexp, input_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar"), import_metadata = TRUE)
+#' mexp <- data_import_mrmkit(data = mexp, input_path = "/path/to/directory/with/mrmkit/files", import_metadata = TRUE)
 #' @export
-data_import_mrmkit <- function(data = NULL, path, use_metadata, silent = FALSE) {
+data_import_mrmkit <- function(data = NULL, path, include_metadata, silent = FALSE) {
   check_data(data)
   data <- data_import_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
   data <- data_set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
 
-  if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "sample_type")
+  if (include_metadata) data <- metadata_import_fromdata(data, qc_type_column_name = "sample_type")
   data
 }
 
@@ -80,22 +75,22 @@ data_import_mrmkit <- function(data = NULL, path, use_metadata, silent = FALSE) 
 #' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
 #' @param variable_name Variable type representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
 #' @param analysis_id_col Column to be used as analysis_id. `NA` (default) used 'analysis_id' if present, or the first column if it contains unique values.
-#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
+#' @param include_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
 #' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "run_seq_num", "precursor_mz", "product_mz", "collision_energy"
 # #' @param silent Suppress notifications
 #' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_csv(data = mexp, path = file_path, variable_name = "conc", use_metadata = TRUE)
+#' mexp <- data_import_csv(data = mexp, path = file_path, variable_name = "conc", include_metadata = TRUE)
 #' mexp
 #' @export
 
-data_import_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, use_metadata) {
+data_import_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, include_metadata) {
   check_data(data)
-  data <- data_import_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, use_metadata)
+  data <- data_import_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, include_metadata)
   data <- data_set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height", "feature_conc")
-  if (use_metadata) data <- metadata_import_fromdata(data, qc_type_field = "qc_type")
+  if (include_metadata) data <- metadata_import_fromdata(data, qc_type_column_name = "qc_type")
 
   data
 }
@@ -147,9 +142,9 @@ data_import_main <- function(data = NULL, path, import_function, file_ext, silen
 
 
 
-  # TODO: excl_unannotated_analyses below
+  # TODO: exclude_unmatched_analyses below
 
-  check_integrity(data, excl_unannotated_analyses = FALSE)
+  check_integrity(data, exclude_unmatched_analyses = FALSE)
   # stopifnot(methods::validObject(data))
 
   if (!silent) {
@@ -513,10 +508,10 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @param file File name and path of a plain long-format CSV file
 #' @param variable_name Name of the variable representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
 #' @param analysis_id_col Column to be used as analysis_id
-#' @param use_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
+#' @param include_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
 #' @return A tibble in the long format
 #' @export
- parse_plain_csv <- function(file, variable_name, analysis_id_col = NA, use_metadata) {
+ parse_plain_csv <- function(file, variable_name, analysis_id_col = NA, include_metadata) {
 
   if(fs::path_ext(file) != "csv") cli::cli_abort("Only csv files are currently supported.")
 
@@ -526,7 +521,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   variable_name_sym = rlang::sym(variable_name)
 
 
-  if(use_metadata){
+  if(include_metadata){
     analysis_metadata_cols <- c(
       "qc_type",
       "batch_id",
@@ -560,7 +555,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     }
   }
 
-  if(use_metadata){
+  if(include_metadata){
     analysis_metadata_cols <- c(
       "qc_type",
       "batch_id",
@@ -585,8 +580,8 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   analysis_cols <- setdiff(names(d), c(val_cols))
 
   if(!all(purrr::map_lgl(d[val_cols], is.numeric))) {
-    if(use_metadata)
-      cli::cli_abort("All columns with feature values must be numeric. Check your data, or if metadata is present, set `use_metadata = TRUE`.")
+    if(include_metadata)
+      cli::cli_abort("All columns with feature values must be numeric. Check your data, or if metadata is present, set `include_metadata = TRUE`.")
     else
       cli::cli_abort("All columns with feature values must be numeric. Check your data, and metadata column names, see `??data_import_plain`")
   }
