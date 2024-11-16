@@ -66,15 +66,15 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity") {
 
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
 
-  if (data@is_isotope_corr & (c("feature_intensity_raw") %in% names(data@dataset))) {
-    cli_alert_info(glue::glue("Data is already interference-corrected. Correction will be reapplied to raw intensities."))
+  if (data@is_isotope_corr & (c("feature_intensity_orig") %in% names(data@dataset))) {
+    cli_alert_info(glue::glue("Data is already interference-corrected. Corrections will be reapplied to raw intensities."))
     data@dataset <- data@dataset |>
       mutate(
-        feature_intensity = .data$feature_intensity_raw,
+        feature_intensity = .data$feature_intensity_orig,
         interference_corrected = FALSE)
   } else {
       data@dataset <- data@dataset |>
-        mutate(feature_intensity_raw = .data$feature_intensity,
+        mutate(feature_intensity_orig = .data$feature_intensity,
                interference_corrected = FALSE,
                .before = "feature_intensity")
   }
@@ -91,7 +91,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity") {
     arrange(desc(.data$interference_feature_id)) |>
     group_by(.data$analysis_id, .data$interference_group) |>
     mutate(
-      corr_intensity = if_else(!.data$is_interfering & !is.na(.data$interference_feature_id), .data$feature_intensity_raw - .data$feature_intensity_raw[.data$is_interfering] * .data$interference_proportion, NA_real_),
+      corr_intensity = if_else(!.data$is_interfering & !is.na(.data$interference_feature_id), .data$feature_intensity_orig - .data$feature_intensity_orig[.data$is_interfering] * .data$interference_proportion, NA_real_),
       interference_corrected_temp = TRUE
     ) |>
     filter(!.data$is_interfering) |>
@@ -101,15 +101,14 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity") {
     data@dataset <- data@dataset |>
     left_join(d_corrected_features, by = c("analysis_id", "feature_id")) |>
     mutate(interference_corrected = dplyr::coalesce(.data$interference_corrected, .data$interference_corrected_temp)) |>
-    mutate(feature_intensity = if_else(.data$interference_corrected, .data$corr_intensity, .data$feature_intensity_raw)) |>
+    mutate(feature_intensity = if_else(.data$interference_corrected, .data$corr_intensity, .data$feature_intensity_orig)) |>
     select(-"corr_intensity", -"interference_corrected_temp")
 
   data@is_isotope_corr <- TRUE
   data@status_processing <- "Isotope-corrected raw data"
-  data@is_istd_normalized <- FALSE
-  data@is_quantitated <- FALSE
-  data@is_drift_corrected <- FALSE
-  data@is_batch_corrected <- FALSE
+  data <- change_is_normalized(data, FALSE)
+  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
+  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
