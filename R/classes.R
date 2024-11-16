@@ -25,22 +25,16 @@
 #' @slot status_processing Status within the data processing workflow
 #' @slot is_istd_normalized Flag if data has been ISTD normalized
 #' @slot is_quantitated Flag if data has been quantitated using ISTD and sample amount
-#' @slot is_drift_corrected Flag if data has been drift corrected
-#' @slot is_batch_corrected Flag if data has been batch corrected
 #' @slot is_filtered Flag if data has been filtered based on QC parameters
 #' @slot is_isotope_corr Flag if one or more features have been isotope corrected
 #' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
 #' @slot analyses_excluded Flag if outliers were excluded in the QC-filtered dataset
-#'
+#' @slot var_drift_corrected List indicating which variables are drift corrected
+#' @slot var_batch_corrected List indicating which variables are batch corrected
+
 #' @include midar-global-definitions.R
 #' @export
-#' @examples
-#'
-#' myexp <- MidarExperiment(title = "my_experiment")
-#' print(myexp)
 
-
-#' @importFrom methods setClass
 setClass("MidarExperiment",
   slots = c(
     title = "character",
@@ -60,12 +54,12 @@ setClass("MidarExperiment",
     status_processing = "character",
     is_istd_normalized = "logical",
     is_quantitated = "logical",
-    is_drift_corrected = "logical",
-    is_batch_corrected = "logical",
     is_filtered = "logical",
     has_outliers_tech = "logical",
     is_isotope_corr = "logical",
-    analyses_excluded = "logical"
+    analyses_excluded = "vector",
+    var_drift_corrected = "vector",
+    var_batch_corrected = "vector"
   ),
   prototype = list(
     title = "",
@@ -86,11 +80,11 @@ setClass("MidarExperiment",
     is_isotope_corr = FALSE,
     is_istd_normalized = FALSE,
     is_quantitated = FALSE,
-    is_drift_corrected = FALSE,
-    is_batch_corrected = FALSE,
+    var_drift_corrected = c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE),
+    var_batch_corrected = c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE),
     is_filtered = FALSE,
     has_outliers_tech = FALSE,
-    analyses_excluded = FALSE
+    analyses_excluded = NA
   )
 )
 
@@ -129,25 +123,27 @@ setGeneric("analysis_type<-", function(x, value) standardGeneric("analysis_type<
 #' Get `analysis_type`
 #' @param x MidarExperiment object
 #' @return A character string
+#' @export
 setMethod("analysis_type", "MidarExperiment", function(x) x@analysis_type)
 
 #' Set `analysis_type`
 #' @param x MidarExperiment object
 #' @param value Analysis type, one of "lipidomics", "metabolomics, "quantitative"
+#' @export
 setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
   x@analysis_type <- value
   x
 })
 
 # TODODO: ALIGN WITH ASSERTION and DEFINE WHERE WHEN TO RUN THIS
-check_integrity <- function(data = NULL, excl_unannotated_analyses) {
+check_integrity <- function(data = NULL, exclude_unmatched_analyses) {
   check_data(data)
   if (nrow(data@dataset_orig) > 0 & nrow(data@annot_analyses) > 0) {
     d_xy <- length(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id))
     d_yx <- length(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()))
     if (d_xy > 0) {
       if (d_xy == length(data@dataset_orig$analysis_id |> unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
-      if (!excl_unannotated_analyses) {
+      if (!exclude_unmatched_analyses) {
         # if (d_xy < 50) {
         #   writeLines(glue::glue(""))
         #   cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses/samples: {paste0(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id), collapse = ", ")}"))
@@ -196,7 +192,7 @@ setMethod(
   signature = c("MidarExperiment"),
   definition = function(x, name) {
     # check for other struct slots
-    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized")
+    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized", "var_drift_corrected", "var_batch_corrected")
     if (!name %in% valid) cli::cli_abort('"', name, '" is not valid for this object: ', class(x)[1])
     methods::slot(x, name)
   }
@@ -237,9 +233,9 @@ setMethod("show", "MidarExperiment", function(object) {
 
   cli::cli_h2("Annotated Raw Data")
   cli::cli_ul(id = "A")
-  cli::cli_li("Samples: {nrow(unique(object@dataset$analysis_id))}")
+  cli::cli_li("Analyses: {length(unique(object@dataset$analysis_id))}")
   cli::cli_li("Features: {length(unique(object@dataset$feature_id))}")
-  cli::cli_li("Intensity Variable: {object@feature_intensity_var}")
+  cli::cli_li("Raw signal used for processing: `{object@feature_intensity_var}`")
   cli::cli_end(id = "A")
 
   cli::cli_h2("Metadata")
@@ -256,13 +252,28 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("Isotope corrected: {get_status_flag(object@is_isotope_corr)}")
   cli::cli_li("ISTD normalized: {get_status_flag(object@is_istd_normalized)}")
   cli::cli_li("ISTD quantitated: {get_status_flag(object@is_quantitated)}")
-  cli::cli_li("Drift corrected:  {get_status_flag(object@is_drift_corrected)}")
-  cli::cli_li("Batch corrected:  {get_status_flag(object@is_batch_corrected)}")
-  cli::cli_li("Feature QC-filtered:  {get_status_flag(object@is_filtered)}")
-  cli::cli_end(id = "C")
 
+  get_corr_var <- function(vars) {
+    vars_names <- names(vars)
+    if (length(vars_names) == 0)
+      return(cli::col_red(cli::symbol$cross))  # Red cross if the vector is empty
+    else
+      return(glue("`", stringr::str_flatten_comma(vars_names, last = " and ", na.rm = TRUE), "`"))
+  }
+
+
+  cli::cli_li("Drift corrected variables:  {get_corr_var(object@var_drift_corrected[object@var_drift_corrected])}")
+  cli::cli_li("Batch corrected variables:  {get_corr_var(object@var_batch_corrected[object@var_batch_corrected])}")
+  cli::cli_li("Feature filtering applied:  {get_status_flag(object@is_filtered)}")
+  cli::cli_end(id = "C")
   cli::cli_h2("Exclusion of Analyses and Features")
   cli::cli_ul(id = "D")
-  cli::cli_li("One or more analyses manually excluded: {get_status_flag(object@analyses_excluded)}")
+
+  if (length(object@analyses_excluded) == 0)
+    str <- cli::col_red(cli::symbol$cross)  # Red cross if the vector is empty
+  else
+    str <- glue::glue_collapse(object@analyses_excluded, sep = ", ", width = 80, last = ", and ")
+
+  cli::cli_li("Analyses manually excluded (`analysis_id`): {col_red(str)}")
   cli::cli_end(id = "D")
 })

@@ -39,7 +39,7 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
   # Check if data is already ISTD normalized
   if ("feature_norm_intensity" %in% names(data@dataset)) {
-    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::col_yellow("Overwriting previously normalized feature intensities."))
+    if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::col_yellow("Replacing previously normalized feature intensities."))
     data@dataset <- data@dataset |> select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))  #TODO fields
   }
 
@@ -96,10 +96,8 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
   # Update status
   data@status_processing <- "ISTD-normalized ata"
-  data@is_istd_normalized <- TRUE
-  data@is_quantitated <- FALSE
-  data@is_drift_corrected <- FALSE
-  data@is_batch_corrected <- FALSE
+  data <- change_is_normalized(data, TRUE)
+  data <- change_is_quantitated(data, FALSE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
   data
@@ -160,14 +158,11 @@ calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore
 
   if ("feature_conc" %in% names(data@dataset)) {
     data@dataset <- data@dataset |> select(-dplyr::any_of(c("pmol_total", "feature_conc")))
-    cli::cli_alert_warning(cli::col_yellow("Overwriting previously calculated concentrations."))
+    cli::cli_alert_warning(cli::col_yellow("Replacing previously calculated concentrations."))
   }
   # Add calculated concentrations to dataset table
   data@dataset <- data@dataset |>
     dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
-
-  # Copy of the raw concentrations (after normalization and quantitation)
-  data@dataset$feature_conc_raw <- data@dataset$feature_conc
 
   n_features <- length(unique(d_temp$feature_id))
   n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
@@ -181,10 +176,9 @@ calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore
   cli::cli_alert_info("Concentrations are given in {conc_unit}.")
 
   data@status_processing <- "ISTD-quantitated data"
-  data@is_istd_normalized <- TRUE
-  data@is_quantitated <- TRUE
-  data@is_drift_corrected <- FALSE
-  data@is_batch_corrected <- FALSE
+
+  data <- change_is_normalized(data, TRUE)
+  data <- change_is_quantitated(data, TRUE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
