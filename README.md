@@ -45,8 +45,8 @@ myexp <- calc_quantify_by_istd(myexp)
 # Filter features according to QC criteria
 mexp <- qc_apply_feature_filter(
   data = mexp, 
-  cv.conc.bqc.max = 30,
-  signalblank.median.pblk.min = 3,
+  max.cv.conc.bqc = 30,
+  min.min.min.min.signalblank.median.spl.pblk = 3,
 )
 
 # Export concentration data
