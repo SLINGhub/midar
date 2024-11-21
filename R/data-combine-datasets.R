@@ -25,7 +25,7 @@ combine_experiments <- function(..., ordered_by_runsequence) {
   mexp@annot_analyses <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_analyses) |>
     dplyr::distinct() |>
     mutate(run_seq_num = dplyr::row_number())
-  mexp@annot_istd <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_istd) |> dplyr::distinct()
+  mexp@annot_istds <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_istds) |> dplyr::distinct()
   mexp@annot_features <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_features) |> dplyr::distinct()
   # ToDo: Combine batch and curve id to give unique curve id over the combined experiment
   mexp@annot_responsecurves <- purrr::map_dfr(.x = exp_list, .f = \(x) x@annot_responsecurves) |> dplyr::distinct()
@@ -46,7 +46,8 @@ combine_experiments <- function(..., ordered_by_runsequence) {
     ) |>
     dplyr::ungroup() |>
     dplyr::arrange(.data$id_batch_start) |>
-    dplyr::mutate(batch_no = dplyr::row_number()) |>
-    dplyr::bind_rows(pkg.env$table_templates$annot_batch_info_template)
+    dplyr::mutate(batch_no = dplyr::row_number())
+
+  # mexp@annot_batches <- dplyr::bind_rows(pkg.env$table_templates$annot_batch_info_template,mexp@annot_batches)
   mexp
 }
