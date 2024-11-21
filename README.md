@@ -34,23 +34,23 @@ library(midar)
 myexp <- MidarExperiment()
 
 # Load data and available metadata
-myexp <- data_import_mrmkit(myexp, path = "data.tsv")
-myexp <- metadata_import_midarxlm(myexp, path = "metadata.csv")
+myexp <- import_data_mrmkit(myexp, path = "data.tsv")
+myexp <- import_metadata_midarxlm(myexp, path = "metadata.csv")
 
 
 # Normalize and quantitate each feature by internal standards
-myexp <- calc_normalize_by_istd(myexp)
-myexp <- calc_quantify_by_istd(myexp)
+myexp <- normalize_by_istd(myexp)
+myexp <- quantify_by_istd(myexp)
 
 # Filter features according to QC criteria
-mexp <- qc_apply_feature_filter(
+mexp <- filter_features_qc(
   data = mexp, 
   max.cv.conc.bqc = 30,
   min.min.min.min.signalblank.median.spl.pblk = 3,
 )
 
 # Export concentration data
-myexp <- report_write_csv(
+myexp <- save_dataset_csv(
   myexp, 
   path = "mydata.csv", 
   variable = "norm_intensity", 
