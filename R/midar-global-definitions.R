@@ -18,25 +18,30 @@ pkg.env$table_templates <- list(
     "acquisition_time_stamp" = as.Date(character()),
     "qc_type" = factor(),
     "batch_id" = character(),
+    "specimen" = character(),
+    "sample_id" = character(),
+    "replicate_no" = integer(),
     "feature_id" = character(),
     "feature_class" = character(),
+    "feature_label" = character(),
     "is_istd" = logical(),
+    "is_quantifier" = logical(),
     "feature_intensity" = numeric()
 
   ),
   annot_analyses_template = tibble::tibble(
+    "run_seq_num" = integer(),
     "analysis_id" = character(),
     "sample_id" = character(),
     "qc_type" = factor(),
-    "replicate_no" = integer(),
     "batch_id" = character(),
+    "replicate_no" = integer(),
     "specimen" = character(),
     "sample_amount" = numeric(),
     "sample_amount_unit" = character(),
     "istd_volume" = numeric(),
     "valid_analysis" = logical(),
-    "outlier_technical" = logical(),
-    "outlier_technical_note" = character(),
+    "annot_order_num" = integer(),
     "remarks" = character()
   ),
   annot_features_template = tibble::tibble(
@@ -52,7 +57,7 @@ pkg.env$table_templates <- list(
     "interference_proportion" = numeric(),
     "remarks" = character()
   ),
-  annot_istd_template = tibble::tibble(
+  annot_istds_template = tibble::tibble(
     "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
     "istd_conc_nmolar" = numeric()
