@@ -15,12 +15,12 @@
 #' @return A `ggplot2` object showing the feature QC filtering summary by class.
 #'
 #' @seealso
-#' \code{\link{qc_plot_summary_overall}} for an overall summary plot
+#' \code{\link{plot_summary_overall}} for an overall summary plot
 
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-qc_plot_summary_classes <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
+plot_qc_summary_by_class <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
   check_data(data)
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 
@@ -28,7 +28,7 @@ qc_plot_summary_classes <- function(data = NULL, include_qualifier = FALSE, incl
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!data@is_filtered)
-    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `qc_apply_feature_filter()` first."))
+    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>
@@ -136,14 +136,14 @@ qc_plot_summary_classes <- function(data = NULL, include_qualifier = FALSE, incl
 #'
 #' @export
 
-qc_plot_summary <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
+plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
   check_data(data)
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!data@is_filtered)
-    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `qc_apply_feature_filter()` first."))
+    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>

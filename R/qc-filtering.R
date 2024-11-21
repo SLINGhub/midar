@@ -306,7 +306,7 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
 #' @return The input MidarExperiment object with the feature filtering criteria applied.
 
 #' @export
-qc_apply_feature_filter <- function(data = NULL,
+filter_features_qc <- function(data = NULL,
                                     replace_existing = TRUE,
                                     batch_medians = FALSE,
                                     qualifier.include = FALSE,

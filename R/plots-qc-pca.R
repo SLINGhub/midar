@@ -17,7 +17,7 @@
 #' @return A ggplot2 object
 #' @export
 
-qc_plot_pca <- function(data = NULL,
+plot_pca <- function(data = NULL,
                         variable,
                         filter_data,
                         pca_dim = c(1,2),
@@ -42,7 +42,7 @@ qc_plot_pca <- function(data = NULL,
   # Filter data if filter_data is TRUE
   if (filter_data) {
     d_wide <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `filter_features_qc` first.")
   } else {
     d_wide <- data@dataset |> dplyr::ungroup()
   }

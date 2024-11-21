@@ -17,7 +17,7 @@
 #' @export
 
 
-qc_plot_normalization_cv <- function(data = NULL,
+plot_cv_normalization <- function(data = NULL,
                            filter_data,
                            qc_type,
                            var_before = c("intensity"),
@@ -44,7 +44,7 @@ qc_plot_normalization_cv <- function(data = NULL,
   x_variable <- stringr::str_c(var_before, "_cv_", qc_type)
   y_variable <- stringr::str_c(var_after, "_cv_", qc_type)
 
-  qc_plot_x_vs_y(data = data,
+  plot_x_vs_y(data = data,
                              filter_data = filter_data,
                              x_variable = x_variable,
                              y_variable = y_variable,
@@ -78,7 +78,7 @@ qc_plot_normalization_cv <- function(data = NULL,
 #' @export
 
 
-qc_plot_x_vs_y <- function(data = NULL,
+plot_x_vs_y <- function(data = NULL,
                         filter_data,
                         x_variable,
                         y_variable,

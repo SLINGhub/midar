@@ -20,7 +20,7 @@
 #' @param base_font_size Numeric, base font size for the plot
 #' @return A ggplot object representing the run sequence plot
 #' @export
-qc_plot_runsequence <- function(data = NULL,
+plot_runsequence <- function(data = NULL,
                                 qc_types = NA,
                                 show_batches = TRUE,
                                 show_timestamp = FALSE,
@@ -178,7 +178,7 @@ qc_plot_runsequence <- function(data = NULL,
 #'
 #' @param data MidarExperiment object
 #' @param variable Variable to plot, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'
-#' @param filter_data Logical, whether to use QC-filtered data based on criteria set via `qc_apply_feature_filter()`
+#' @param filter_data Logical, whether to use QC-filtered data based on criteria set via `filter_features_qc()`
 #' @param qc_types QC types to be shown. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
 #' @param include_qualifier Logical, whether to include qualifier features
 #' @param include_feature_filter Regex pattern to select features by feature_id. `NA` or `""` ignores the filter.
@@ -219,7 +219,7 @@ qc_plot_runsequence <- function(data = NULL,
 #' @return A list of ggplot2 plots, or `NULL` if `return_plots = FALSE`
 #' @export
 
-qc_plot_runscatter <- function(data = NULL,
+plot_runscatter <- function(data = NULL,
                             variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
                             filter_data = FALSE,
                             qc_types = NA,
@@ -284,7 +284,7 @@ qc_plot_runscatter <- function(data = NULL,
   # Filter data if filter_data is TRUE
   if (filter_data) {
     d_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `filter_features_qc` first.")
   } else {
     d_filt <- data@dataset |> dplyr::ungroup()
   }
@@ -679,7 +679,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #' @export
 
 # TODO: Add minor ticks to x-axis
-qc_plot_rla_boxplot <- function(
+plot_rla_boxplot <- function(
                                 data = NULL,
                                 rla_type_batch = c("within", "across"),
                                 variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
@@ -718,7 +718,7 @@ qc_plot_rla_boxplot <- function(
   # Filter data if filter_data is TRUE
   if (filter_data) {
     d_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort(cli::col_red("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first."))
+    if (!data@is_filtered) cli::cli_abort(cli::col_red("Data has not been qc filtered, or has changed. Please run `filter_features_qc` first."))
   } else {
     d_filt <- data@dataset |> dplyr::ungroup()
   }

@@ -1,5 +1,5 @@
 # Define function to plot 1 page
-qc_plot_responsecurves_page <- function(dataset,
+plot_responsecurves_page <- function(dataset,
                                      output_pdf,
                                      response_variable,
                                      max_regression_value,
@@ -92,7 +92,7 @@ qc_plot_responsecurves_page <- function(dataset,
 #' @return If `return_plots` is `TRUE`, a list of `ggplot2` objects is returned. Otherwise, the function may return a plot output and/or save a PDF, depending on the `output_pdf` parameter.
 
 #' @export
-qc_plot_responsecurves <- function(data = NULL,
+plot_responsecurves <- function(data = NULL,
                                 variable = "intensity",
                                 filter_data = FALSE,
                                 output_pdf = FALSE,
@@ -124,7 +124,7 @@ qc_plot_responsecurves <- function(data = NULL,
   # Filter data if filter_data is TRUE
   if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `qc_apply_feature_filter` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `filter_features_qc` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
@@ -191,7 +191,7 @@ qc_plot_responsecurves <- function(data = NULL,
   for (i in page_range) {
 
 
-    p <-  qc_plot_responsecurves_page(
+    p <-  plot_responsecurves_page(
         dataset = d_rqc,
         output_pdf = output_pdf,
         response_variable = variable,
