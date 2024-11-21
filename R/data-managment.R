@@ -144,74 +144,143 @@ get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
 }
 
 
+
+
 #' @title Set the analysis order
 #' @description
-#' Sets the analysis order (sequence), based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
+#' Sets the analysis order (sequence), based on either (i) analysis timestamp if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
 #' @param data MidarExperiment object
-#' @param analysis_sequence Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
+#' @param order_by Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- data_import_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+#' mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
 #' mexp <- set_analysis_order(mexp, "timestamp")
 
-#' @export
-
-#c("timestamp", "resultfile", "metadata")
-set_analysis_order <- function(data = NULL, analysis_sequence = "default"){
+#' Internal function to set analysis order in metadata
+#'
+#' @param data A MidarExperiment object
+#' @param order_by Character string specifying ordering method
+#' @noRd
+set_analysis_order_analysismetadata <- function(data = NULL,
+                                                order_by = "default") {
+  # Validate inputs
   check_data(data)
+  order_by <- rlang::arg_match(
+    arg = order_by,
+    values = c("timestamp", "resultfile", "metadata", "default"),
+    multiple = FALSE
+  )
 
-  analysis_sequence <- rlang::arg_match(arg = analysis_sequence, c("timestamp", "resultfile", "metadata", "default"), multiple = FALSE)
-
+  # Extract relevant columns from original dataset
   d_temp <- data@dataset_orig |>
-    select("analysis_id", any_of("acquisition_time_stamp")) |>
-    distinct()
+    dplyr::select("analysis_id", dplyr::any_of(c("run_seq_num", "acquisition_time_stamp"))) |>
+    dplyr::distinct()
 
-  if (analysis_sequence == "default"){
-    if ("acquisition_time_stamp" %in% names(d_temp))
-        analysis_sequence <- "timestamp"
-    else {
-      analysis_sequence <- "resultfile"
-      cli::cli_alert_info(cli::col_grey(glue::glue("Analysis order was based on sequence of analysis results, as no timestamps were found. Use `set_analysis_order` to define alternative analysis orders.")))
-    }
-  }
-
-  if (analysis_sequence %in% c("timestamp")) {
-    if("acquisition_time_stamp" %in% names(d_temp)){
-      d_temp <- d_temp |>
-        arrange(.data$acquisition_time_stamp) |>
-        mutate(run_seq_num = row_number()) |>
-        select(-"acquisition_time_stamp")
-
-      data@annot_analyses <- data@annot_analyses |>
-        inner_join(d_temp,  by = "analysis_id")
+  # Handle default ordering logic
+  if (order_by == "default") {
+    order_by <- if (!all(is.na(d_temp$acquisition_time_stamp))) {
+      "timestamp"
     } else {
-      cli::cli_abort(call. = FALSE, "No acquisition timestamp field present in analysis results, please set parameter `analysis_sequence` to `resultfile` or `metadata`.")
+      cli::cli_alert_info(
+        cli::col_grey(
+          "Analysis order was based on sequence of analysis results, as no timestamps were found.
+           Use `set_analysis_order` to define alternative analysis orders."
+        )
+      )
+      "resultfile"
     }
-  } else if (analysis_sequence == "resultfile") {
-    d_temp <- d_temp |> mutate(run_seq_num = row_number())
-    data@annot_analyses <- data@annot_analyses |>
-      inner_join(d_temp,  by = "analysis_id")
-  } else if (analysis_sequence == "metadata") {
-      data@annot_analyses <- data@annot_analyses |>  mutate(run_seq_num = row_number())
   }
+
+  # Apply ordering based on specified method
+  data@annot_analyses <- data@annot_analyses |>
+    select(-"run_seq_num")
+
+  data@annot_analyses <- switch(
+    order_by,
+    "timestamp" = {
+      if (all(is.na(d_temp$acquisition_time_stamp))) {
+        cli::cli_abort(col_red(
+          "Acquisition timestamps are not present in analysis results.
+           Please set argument `order_by` to either `resultfile` or `metadata`."),
+          call. = FALSE
+        )
+      }
+      data@annot_analyses |>
+      dplyr::inner_join(
+          d_temp |>
+          dplyr::arrange(.data$acquisition_time_stamp) |>
+          dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1) |>
+          dplyr::select(-"acquisition_time_stamp"),
+          by = "analysis_id") |>
+          relocate(run_seq_num, .before = 1)
+    },
+    "resultfile" = {
+      data@annot_analyses |>
+        dplyr::inner_join(
+          d_temp |>
+            dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1),
+        by = "analysis_id") |>
+        relocate(run_seq_num, .before = 1)
+    },
+    "metadata" = {
+      data@annot_analyses |>
+        dplyr::mutate(run_seq_num = .data$annot_order_num, .before = 1)
+    }
+  )
+
+  # Clean up final dataset
+  data@annot_analyses <- data@annot_analyses |>
+    dplyr::select(-dplyr::any_of("acquisition_time_stamp"))
+
+  data
+}
+
+#' Set Analysis Order
+#' @description
+#' Determines the sequence of analyses using either instrument timestamps,
+#' the order in the imported raw data file, or the order defined in the Analysis metadata.
+#' Note: After changing the analysis order, all post processing steps must be rerun.
+#'
+#' @param data A `MidarExperiment` object
+#' @param order_by Character string specifying the ordering method.
+#'   Must be one of "timestamp" (requires timestamp data in imported results),
+#'   "resultfile" (uses order from imported data file), or
+#'   "metadata" (uses order from analysis metadata)
+#' @return An updated `MidarExperiment` object with ordered analyses
+#' @export
+#'
+#' @examples
+#' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+#' mexp <- MidarExperiment()
+#' mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+#'
+#' # Order by timestamp (if available)
+#' mexp <- set_analysis_order(mexp, "timestamp")
+#'
+#' # Order by metadata definition
+#' mexp <- set_analysis_order(mexp, "metadata")
+
+
+set_analysis_order <- function(data = NULL, order_by =  c("timestamp", "resultfile", "metadata")){
+  check_data(data)
+  order_by <- rlang::arg_match(arg = order_by, c("timestamp", "resultfile", "metadata"), multiple = FALSE)
+  data <- set_analysis_order_analysismetadata(data, order_by)
+  data <- link_data_metadata(data)
+
+  cli::cli_alert_success(cli::col_green("Analysis order set to {.val {order_by}}"))
+
+  if (data@is_isotope_corr | data@is_filtered | data@is_istd_normalized | data@is_quantitated | any(data@var_batch_corrected) | any(data@var_drift_corrected))
+  cli::cli_alert_info(col_yellow(c(
+    "All data processing has been reset. ",
+    "i" = "Please rerun processing steps"
+  )))
   data
 }
 
 
-# # ##### TODO TODO =====================
-# d_dataset <- data@dataset_orig |>
-#   dplyr::inner_join(
-#     data@annot_analyses |>
-#       dplyr::select("run_seq_num", "analysis_id", "qc_type", "specimen", "sample_id", "replicate_no", "valid_analysis", "batch_id"),
-#     by = c("analysis_id")) |>
-#   dplyr::inner_join(
-#     metadata$annot_features |>
-#       filter(.data$valid_feature) |>
-#       dplyr::select(dplyr::any_of(c("feature_id", "feature_id", "feature_class", "istd_feature_id", "quant_istd_feature_id", "is_istd", "feature_id", "is_quantifier", "valid_feature", "table_templates", "interference_feature_id", "interference_proportion"))),
-#     by = c("feature_id"), keep = FALSE
-#   )
+
 
 
 
@@ -222,43 +291,58 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
   check_data(data)
   data@dataset <- data@dataset_orig |>
     select(
+      "run_seq_num",
       "analysis_id",
       "acquisition_time_stamp",
       "feature_id",
       starts_with("method_"),
       starts_with("feature_")
-    ) |>
+    )
+
+  if (nrow(data@annot_analyses) > 0) {
+  data@dataset <- data@dataset |>
+    select(-any_of("run_seq_num")) |>
     inner_join(data@annot_analyses, by = "analysis_id") |>
-    inner_join(data@annot_features, by = "feature_id") |>
-    filter(.data$valid_analysis, .data$valid_feature) |>
-    select(
+    filter(.data$valid_analysis)
+  }
+
+  if (nrow(data@annot_features) > 0) {
+    data@dataset <- data@dataset |>
+      inner_join(data@annot_features, by = "feature_id") |>
+      filter(.data$valid_feature)
+  }
+
+  data@dataset <- dplyr::bind_rows(pkg.env$table_templates$dataset_template, data@dataset)
+  data@dataset <- data@dataset |>
+    select(any_of(c(
       "run_seq_num",
       "analysis_id",
       "acquisition_time_stamp",
       "qc_type",
       "batch_id",
+      "sample_id",
+      "replicate_no",
       "feature_id",
       "feature_class",
       "is_istd",
       "is_quantifier",
+      "specimen")),
       starts_with("method_"),
-      starts_with("feature_")
-    )
+      starts_with("feature_"),
+    ) |>
+    relocate("feature_intensity", .after = last_col()) |>
+    relocate("feature_label", .after = "feature_class") |>
+    relocate("sample_id", .after = "batch_id") |>
+    relocate("specimen", .before = "feature_id") |>
+    relocate("replicate_no", .after = "sample_id")
 
-   if(minimal_info)
+  if(minimal_info)
     data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int_"))
 
-  data@dataset <- data@dataset |>
-    dplyr::bind_rows(pkg.env$table_templates$dataset_template)
+
 
   data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
 
-
-  # NOTE: To adjust
-    # mutate(
-    #   corrected_interference = FALSE,
-    #   outlier_technical = FALSE
-    # )
 
   data@is_isotope_corr <- FALSE
   #data@is_istd_normalized <- FALSE
@@ -273,13 +357,9 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
   # Arrange run_seq_num and then by feature_id, as they appear in the metadata
-  # TODO:  check if as intended
   data@dataset <- data@dataset |>
     dplyr::arrange(match(.data$feature_id, data@annot_features$feature_id)) |>
     arrange(.data$run_seq_num)
-
-  # TODOTODO: DECIDE WHEN WHERE TO RUN THIS
-  # check_integrity(data, exclude_unmatched_analyses = exclude_unmatched_analyses)
 
   data
 }
@@ -290,14 +370,18 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 #' values (i.e., normalization)
 #' @param data MidarExperiment object
 #' @param variable_name Feature variable to be used as default feature intensity for downstream processing.
-#' @param auto_select If `TRUE` then the first available of these will be used as default: "feature_intensity", "feature_response", "feature_area", "feature_height".
+#' @param auto_select If `TRUE` then the first available of these will be used as default: "intensity", "response", "area", "height".
 #' @param warnings Suppress warnings
 #' @param ... Feature variables to best search for one-by-one when `auto-detect = TRUE`
 #' @return MidarExperiment object
 #' @export
 
-data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, warnings = TRUE, ...){
+set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, warnings = TRUE, ...){
   check_data(data)
+
+  variable_strip <- str_remove(variable_name, "feature_")
+  #rlang::arg_match(variable_strip, c("area", "height", "conc"))
+  variable_name <- stringr::str_c("feature_", variable_strip)
 
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
@@ -305,19 +389,19 @@ data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FAL
     idx <- which(!is.na(id_all))[1]
     if (!is.na(idx)) {
       data@feature_intensity_var = var_list[idx]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default feature intensity. Modify with {.fn data_set_intensity_var}."))
+      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default feature intensity. Modify with {.fn set_intensity_var}."))
       variable_name <- var_list[idx]
       } else {
-      cli_alert_warning(text = cli::col_yellow("No typical feature intensity variable found in the data. Use {.fn data_set_intensity_var} to set it.}}."))
+      cli_alert_warning(text = cli::col_yellow("No typical feature intensity variable found in the data. Use {.fn set_intensity_var} to set it.}}."))
       return(data)
       }
   } else {
     #TODO: Double check behavior if there a feature_intensity in the raw data file
     if (! variable_name %in% names(data@dataset_orig))
-      cli_abort(c("x" = "{.var variable_name} is not present in the raw data."))
+      cli_abort(c("x" = "{.var variable_strip} is not present in the raw data."))
 
     if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height"))
-      if(warnings) cli_alert_warning(text = "{.var {variable_name}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
+      if(warnings) cli_alert_warning(text = "{.var {variable_strip}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
   }
   data@feature_intensity_var <- variable_name
 
@@ -328,7 +412,8 @@ data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FAL
       cli_alert_info(cli::col_yellow("New feature intensity variable defined, please reprocess data."))
     } else
     {
-      cli_alert_success(cli::col_green("`{variable_name}` was set as default feature intensity variable for downstream processing."))
+      cli::cli_alert_success(cli::col_green("Default feature intensity variable set to {.val {variable_strip}}"))
+
     }
     data <- link_data_metadata(data)
   }
@@ -354,7 +439,7 @@ data_set_intensity_var <- function(data = NULL, variable_name, auto_select = FAL
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-data_exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
+exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
   check_data(data)
   if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
     if(!replace_existing){
