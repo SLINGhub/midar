@@ -129,7 +129,6 @@ fun_gaussiankernel_old <- function(tbl, reference_qc_types, ...) {
 #' @param ... Additional parameters forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
 fun_loess <- function(tbl, reference_qc_types,...) {
-  #tbl <- tbl |> filter(!.data$outlier_technical)
   arg <- list(...)
   surface <- ifelse(arg$extrapolate, "direct", "interpolate")
 
@@ -482,7 +481,7 @@ corr_drift_fun <- function(data = NULL,
 #' @param location_smooth Location parameter smoothing
 #' @param scale_smooth Scale parameter smoothing
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.
-#' @param recalc_trend_after Recalculate trends after smoothing, used for plotting (e.g., in `qc_plot_runscatter()`)
+#' @param recalc_trend_after Recalculate trends after smoothing, used for plotting (e.g., in `plot_runscatter()`)
 #' @param ignore_istd Do not apply corrections to ISTDs
 #' @param conditional_correction Apply drift correction to all species if `TRUE`, or only when sample CV after smoothing changes below a threshold defined via `cv_ratio_threshold`
 #' @param cv_ratio_threshold Only used when `conditional_correction = TRUE`. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
@@ -627,7 +626,7 @@ correct_drift_loess <- function(data = NULL,
 #' @param ... Additional parameters that can be passed to the batch correction
 #'   function.
 #' @return A MidarExperiment object containing the corrected data.
-#' @seealso qc_plot_runscatter for visualizing the correction before and after.
+#' @seealso plot_runscatter for visualizing the correction before and after.
 #' @export
 correct_batch_centering <- function(data = NULL,
                                     variable,
