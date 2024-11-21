@@ -57,7 +57,7 @@ setting `include_metadata = TRUE`.
 myexp <- midar::MidarExperiment(title = "sPerfect")
 
 data_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
-myexp <- data_import_mrmkit(data = myexp, path = data_path, include_metadata = TRUE)
+myexp <- import_data_mrmkit(data = myexp, path = data_path, include_metadata = TRUE)
 ```
 
 ## 2. A glimpse on the imported MRMkit results
@@ -98,7 +98,7 @@ date, duration, and run time of the analysis.
 </details>
 
 ```{r runsequence}
-qc_plot_runsequence(
+plot_runsequence(
   myexp, 
   qc_types = NA, 
   show_batches = TRUE, 
@@ -127,7 +127,7 @@ intensities in all samples and sample types.
 
 ```{r runscatter}
 #| message: true
-qc_plot_runscatter(
+plot_runscatter(
   data = myexp,
   variable = "intensity",
   qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
@@ -167,8 +167,9 @@ metadata by working through these warnings, or proceed using
 
 ```{r import-metadat}
 file_path <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar")
-myexp <- midar::metadata_import_midarxlm(myexp, path = file_path, ignore_warnings = TRUE)
-
+myexp <- import_metadata_midarxlm(myexp, path = file_path, ignore_warnings = TRUE)
+myexp <- set_analysis_order(myexp, order_by = "timestamp")
+myexp <- set_intensity_var(myexp, variable_name = "area")
 
 ```
 
@@ -197,7 +198,7 @@ instrument sensitivity changes.
 </details>
 
 ```{r rla-plot}
-midar::qc_plot_rla_boxplot(
+midar::plot_rla_boxplot(
   data = myexp,
   rla_type_batch = c("within"),
   variable = "intensity",
@@ -230,7 +231,7 @@ technical outliers, and differences between the sample types.
 </details>
 
 ```{r pca-before}
-qc_plot_pca(
+plot_pca(
   data = myexp, 
   variable = "feature_intensity", 
   filter_data = FALSE,
@@ -246,7 +247,7 @@ qc_plot_pca(
 
 Based on the above RLA and PCA plots, we flagged a technical outlier and
 decided to remove it from all downstream processing via the function
-`data_exclude_analyses()`.
+`exclude_analyses()`.
 
 <details>
 
@@ -259,10 +260,10 @@ decided to remove it from all downstream processing via the function
 
 ```{r outlier-removal}
  # Exclude the sample from the processing
-myexp <- data_exclude_analyses(myexp, analyses_exlude = c("Longit_batch6_51"), replace_existing  = TRUE)
+myexp <- exclude_analyses(myexp, analyses_exlude = c("Longit_batch6_51"), replace_existing  = TRUE)
 
 # Replot the PCA
-qc_plot_pca(
+plot_pca(
   data = myexp, 
   variable = "intensity", 
   filter_data = FALSE,
@@ -301,10 +302,10 @@ injection volume series at the start and end of this analysis as a QC.
 
 ```{r responsecurves}
 # Exclude very low abundant features
-myexp <- midar::qc_apply_feature_filter(myexp, min.intensity.median.spl = 200)
+myexp <- midar::filter_features_qc(myexp, min.intensity.median.spl = 200)
 
 #Plot the curves
-qc_plot_responsecurves(
+plot_responsecurves(
   data = myexp, 
   variable = "intensity", 
   filter_data = TRUE, 
@@ -357,8 +358,8 @@ concentration of the ISTDs in this solution, and the sample volume.
 </details>
 
 ```{r normalization}
-myexp <- midar::calc_normalize_by_istd(myexp)
-myexp <- midar::calc_quantify_by_istd(myexp)
+myexp <- midar::normalize_by_istd(myexp)
+myexp <- midar::quantify_by_istd(myexp)
 
 ```
 
@@ -389,8 +390,8 @@ variability of QC and samples before and after normalization.
 </details>
 
 ```{r norm-effects}
-myexp <- qc_apply_feature_filter(myexp, min.intensity.median.spl = 1000)
-qc_plot_normalization_cv(
+myexp <- filter_features_qc(myexp, min.intensity.median.spl = 1000)
+plot_cv_normalization(
   data = myexp, 
   filter_data = FALSE, 
   qc_type = "SPL", 
@@ -432,7 +433,7 @@ that wraps the plot with many parameters preset.
 # Define a wrapper function
 
 my_trend_plot <- function(variable, feature){
-  qc_plot_runscatter(
+  plot_runscatter(
     data = myexp,
     variable = variable,
     qc_types = c("BQC", "TQC", "SPL"),
@@ -518,13 +519,13 @@ using ChatGPT to generate more complex regex-based filters).
 
 Explore the effect of setting `cap_outliers` to `TRUE`or `FALSE`. Run
 `?runscatter` in the console or press `F2` on the function name to see
-all available options for `qc_plot_runscatter()`.
+all available options for `plot_runscatter()`.
 
 </details>
 
 ```{r saving-runscatter}
 #| eval: false
-qc_plot_runscatter(
+plot_runscatter(
   data = myexp,
   variable = "conc",
   qc_types = c("BQC", "TQC", "SPL"),
@@ -545,11 +546,11 @@ qc_plot_runscatter(
 
 Finally, we apply a set of filters to exclude features that don't meet
 specific QC criteria. The available criteria can be seen by pressing
-`TAB` after the first open bracket of `qc_apply_feature_filter()`
-function, or by to viewing the help page. by running
-`?qc_apply_feature_filter` in the console. The filter function can be
-applied multiple times, either overwriting or amending
-(`replace_existing = FALSE`) previously set filters.
+`TAB` after the first open bracket of `filter_features_qc()` function,
+or by to viewing the help page. by running `?filter_features_qc` in the
+console. The filter function can be applied multiple times, either
+overwriting or amending (`replace_existing = FALSE`) previously set
+filters.
 
 <details>
 
@@ -563,7 +564,7 @@ applied multiple times, either overwriting or amending
 
 ```{r qc-filter}
 
-myexp <- qc_apply_feature_filter(
+myexp <- filter_features_qc(
   data = myexp, 
   replace_existing = TRUE,
   batch_medians = TRUE,
@@ -605,7 +606,7 @@ and `LOD`).
 </details>
 
 ```{r qc-summary-1}
-midar::qc_plot_summary_classes(myexp, include_qualifier = FALSE)
+midar::plot_summary_classes(myexp, include_qualifier = FALSE)
 ```
 
 The following plot provides a further summary of the feature filtering
@@ -626,7 +627,7 @@ particular filtering criterion.
 </details>
 
 ```{r qc-summary-2}
-midar::qc_plot_summary(myexp, include_qualifier = FALSE)
+midar::plot_summary(myexp, include_qualifier = FALSE)
 ```
 
 ## 18. Saving a report with data, metadata and processing details
@@ -646,7 +647,7 @@ steps.
 </details>
 
 ```{r save-report}
-midar::report_write_xlsx(myexp, path = "./output/myexp-midar_report.xlsx")
+midar::save_report_xlsx(myexp, path = "./output/myexp-midar_report.xlsx")
 ```
 
 You can also save specific data subsets as a clean flat, wide CSV file.
@@ -663,7 +664,7 @@ presented in the next part of this workshop!
 </details>
 
 ```{r save-csv}
-midar::report_write_csv(
+midar::save_dataset_csv(
   data = myexp, 
   path = "./output/sperfect_filt_uM.csv",
   variable = "conc", 

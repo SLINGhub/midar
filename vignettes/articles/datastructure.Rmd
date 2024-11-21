@@ -63,7 +63,7 @@ categories, each divided into tables (data.frames).
 |---------------------------|---------------------------|---------------------------|
 | Analyses Annotation | `annot_analyses` | Details sample categories, amounts, dilutions, processing batches, and other relevant information. |
 | Features Annotation | `annot_features` | Describes internal standards for normalization, response factors, feature classification, and specifies quantifiers and internal standards. |
-| Internal Standard | `annot_istd` | Concentrations of internal standards added to samples. |
+| Internal Standard | `annot_istds` | Concentrations of internal standards added to samples. |
 | Batches | `annot_batches` | Specifies the boundaries (start and end) for each defined batch. |
 | Response Curves | `annot_responsecurves` | Defines response curves, detailing sample amounts across different steps. |
 | Calibration Curves | `annot_standards` | Defines concentrations of unlabelled and labelled standards in calibration curves and other quality control materials. |

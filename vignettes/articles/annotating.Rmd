@@ -47,8 +47,8 @@ Most `MiDAR` functions take an MidarExperiment object as input. Functions that p
 ```{r}
 myexp <- MidarExperiment()
 myexp <- data_load_example(myexp, 1)
-myexp <- calc_normalize_by_istd(myexp)
-myexp <- report_write_csv(myexp, 
+myexp <- normalize_by_istd(myexp)
+myexp <- save_dataset_csv(myexp, 
                           "mydata.csv", 
                           variable = "norm_intensity", 
                           filter_data = FALSE)
@@ -60,8 +60,8 @@ You can also use `MidarExperiment` objects in an R pipe chain. This allows you t
 myexp <- myexp |> 
   MidarExperiment() |>
   data_load_example(1) |>
-  calc_normalize_by_istd() |>
-  report_write_csv(myexp, 
+  normalize_by_istd() |>
+  save_dataset_csv(myexp, 
                    "mydata.csv", 
                    variable = "norm_intensity", 
                    filter_data = FALSE)

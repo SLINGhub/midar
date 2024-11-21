@@ -34,9 +34,9 @@ Following formats are currently supported:
 
 | Source | MiDAR function | Details | File |
 |------------------|------------------|------------------|------------------|
-| Agilent MassHunter | `data_import_massshunter()` | Flat and nested tables from MassHunter Quant. | .csv |
-| MRMkit | `data_import_mrmkit()` | Long format output format | .tsv |
-| Plain wide CSV | `data_import_table()` | Samples/analyses as rows and features as columns. Can contain columns specific sample annotations. | .csv |
+| Agilent MassHunter | `import_data_massshunter()` | Flat and nested tables from MassHunter Quant. | .csv |
+| MRMkit | `import_data_mrmkit()` | Long format output format | .tsv |
+| Plain wide CSV | `import_data_table()` | Samples/analyses as rows and features as columns. Can contain columns specific sample annotations. | .csv |
 
 ### Metadata within analytical results
 
@@ -67,7 +67,7 @@ integrated in different raw data processing batches.
 library(midar)
 filepath <- system.file("extdata/sPerfect_MRMkit.tsv", package = "midar")
 myexp <- MidarExperiment()
-myexp <- data_import_mrmkit(myexp, filepath, include_metadata = TRUE)
+myexp <- import_data_mrmkit(myexp, filepath, include_metadata = TRUE)
 
 ```
 
@@ -77,7 +77,7 @@ myexp <- data_import_mrmkit(myexp, filepath, include_metadata = TRUE)
 filepath <- system.file("extdata/Example_MHQuant_1.csv", package = "midar")
 myexp <- MidarExperiment()
 
-myexp <- data_import_masshunter(myexp, filepath, include_metadata = TRUE)
+myexp <- import_data_masshunter(myexp, filepath, include_metadata = TRUE)
 ```
 
 ### Plain CSV files
