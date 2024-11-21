@@ -60,8 +60,8 @@ testthat::test_that("Parses nested MH Quant .csv without the 'outlier' column", 
   expect_equal(ncol(d), 12)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "analysis_id")
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 71)
 })
 
 testthat::test_that("Parses nested MH Quant .csv without the 'outlier' and 'quant message' column", {
@@ -69,8 +69,8 @@ testthat::test_that("Parses nested MH Quant .csv without the 'outlier' and 'quan
   expect_equal(ncol(d), 12)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "analysis_id")
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 71)
 })
 
 testthat::test_that("Returns error parsing corrupted nested MH Quant .csv with 'outlier'/'quant message' columns removed including header 'Samples'", {
@@ -87,8 +87,8 @@ testthat::test_that("Parses nested MH Quant .csv file containing QUALIFIER peak 
     )
   expect_equal(ncol(d), 18)
   expect_equal(nrow(d), 1040)
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 51)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 51)
   expect_equal(d |> filter(integration_qualifier) |> pull(feature_id) |> dplyr::first(), "S1P d16:1 [M>60] [QUAL 408.3 -> 113.0]")
   expect_equal(sum(d$integration_qualifier[d$file_run_seq_num == 1]), 8)
 })
@@ -98,8 +98,8 @@ testthat::test_that("Parses nested MH Quant .csv without Quant Message Summary",
   expect_equal(ncol(d), 12)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "analysis_id")
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 71)
 })
 
 testthat::test_that("Parses nested MH Quant .csv without acquistion time stamp", {
@@ -107,8 +107,8 @@ testthat::test_that("Parses nested MH Quant .csv without acquistion time stamp",
   expect_false(c("acquisition_time_stamp") %in% names(d))
   expect_equal(ncol(d), 11)
   expect_equal(nrow(d), 1040)
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 71)
 })
 
 testthat::test_that("Returns a defined error when reading nested MH Quant .csv containg a 'Quantitation Message' is imported", {
@@ -137,54 +137,54 @@ testthat::test_that("Parses nested MH Quant .csv file that has am empty first ro
   expect_equal(ncol(d), 18)
   expect_equal(nrow(d), 1040)
   expect_equal(names(d)[1], "analysis_id")
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_equal(d[1, "feature_area", drop = TRUE], 51)
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 51)
 })
 
 
 testthat::test_that("Parses nested MH Quant .csv file exported from German Windows system with comma as decimal point", {
   d <- parse_masshunter_csv(testthat::test_path("17_Testdata_Lipidomics_GermanSystem.csv"))
-  expect_equal(d[1, "feature_rt", drop = TRUE], 9.754)
-  expect_equal(d[1, "feature_fwhm", drop = TRUE], 0.056)
+  expect_equal(d[[1, "feature_rt"]], 9.754)
+  expect_equal(d[[1, "feature_fwhm"]], 0.056)
 })
 
 testthat::test_that("Parses nested MH Quant .csv file in UTF-8 format with different languages/characters", {
   d <- parse_masshunter_csv(testthat::test_path("18_Testdata_Lipidomics_MultiLanguageCharactersSamplenamesFeatures.csv"))
-  expect_equal(d[1, "feature_rt", drop = TRUE], 9.754)
-  expect_equal(d[1, "feature_id", drop = TRUE], "谷氨酰胺")
-  expect_equal(d[2, "feature_id", drop = TRUE], "글루타민")
-  expect_equal(d[3, "feature_id", drop = TRUE], "Glutaminsäure")
-  expect_equal(d[4, "feature_id", drop = TRUE], "குளுட்டமின்")
-  expect_equal(d[1, "raw_data_filename", drop = TRUE], "Über_Schöner_Blank")
-  expect_equal(d[300, "raw_data_filename", drop = TRUE], "空白的")
-  expect_equal(d[600, "raw_data_filename", drop = TRUE], "공백2")
-  expect_equal(d[900, "raw_data_filename", drop = TRUE], "空白")
-  expect_equal(d[1200, "raw_data_filename", drop = TRUE], "வெற்று")
+  expect_equal(d[[1, "feature_rt"]], 9.754)
+  expect_equal(d[[1, "feature_id"]], "谷氨酰胺")
+  expect_equal(d[2, "feature_id"]], "글루타민")
+  expect_equal(d[3, "feature_id"]], "Glutaminsäure")
+  expect_equal(d[4, "feature_id"]], "குளுட்டமின்")
+  expect_equal(d[[1, "raw_data_filename"]], "Über_Schöner_Blank")
+  expect_equal(d[300, "raw_data_filename"]], "空白的")
+  expect_equal(d[600, "raw_data_filename"]], "공백2")
+  expect_equal(d[900, "raw_data_filename"]], "空白")
+  expect_equal(d[[1200, "raw_data_filename"]], "வெற்று")
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT and peak RT and multiple Qualifier per analyte", {
   d <- parse_masshunter_csv(testthat::test_path("19_Testdata_MHQuant_MultipleQUAL_with_expectedRT.csv"), expand_qualifier_names = TRUE)
-  expect_equal(d[1, "feature_rt", drop = TRUE], 6.649)
-  expect_equal(d[1, "method_target_rt", drop = TRUE], 7.200)
+  expect_equal(d[[1, "feature_rt"]], 6.649)
+  expect_equal(d[[1, "method_target_rt"]], 7.200)
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with special characters (e.g. !@#$%^) in feature names", {
   d <- parse_masshunter_csv(testthat::test_path("20_Testdata_MHQuant_withSpecialCharsInFeatures.csv"), expand_qualifier_names = TRUE)
-  expect_equal(d[1, "feature_rt", drop = TRUE], 6.649)
-  expect_equal(d[1, "method_target_rt", drop = TRUE], 7.200)
-  expect_equal(d[3, "feature_id", drop = TRUE], "Analyte 2* 14:0")
-  expect_equal(d[5, "feature_id", drop = TRUE], "Analyte 2~%^$# 14:0 (d5)")
-  expect_match(d[10, "feature_id", drop = TRUE], "Analyte 3 16\\:0-_=\\+\\\\/~!@ \\[QUAL 317\\.3 -> 299\\.3\\]")
-  expect_match(d[13, "feature_id", drop = TRUE], "Analyte 4 \\?><,\\.\`\\:\"\\}\\{\\[\\]18:0 \\[QUAL 331\\.3 -> 331\\.3\\]")
+  expect_equal(d[[1, "feature_rt"]], 6.649)
+  expect_equal(d[[1, "method_target_rt"]], 7.200)
+  expect_equal(d[3, "feature_id"]], "Analyte 2* 14:0")
+  expect_equal(d[5, "feature_id"]], "Analyte 2~%^$# 14:0 (d5)")
+  expect_match(d[[10, "feature_id"]], "Analyte 3 16\\:0-_=\\+\\\\/~!@ \\[QUAL 317\\.3 -> 299\\.3\\]")
+  expect_match(d[[13, "feature_id"]], "Analyte 4 \\?><,\\.\`\\:\"\\}\\{\\[\\]18:0 \\[QUAL 331\\.3 -> 331\\.3\\]")
 })
 
 
 testthat::test_that("Parses nested MH Quant .csv with . \ | in feature names", {
   d <- parse_masshunter_csv(testthat::test_path("21_Testdata_MHQuant_with_dots_InFeatures.csv"), expand_qualifier_names = TRUE)
-  expect_equal(d[1, "feature_rt", drop = TRUE], 3.422)
-  expect_match(d[3, "feature_id", drop = TRUE], "S1P d17\\.1\\|S1P d17\\.2 \\[M>113\\]")
-  expect_match(d[4, "feature_id", drop = TRUE], "S1P d17\\.1\\\\S1P d17:2 \\[M>60\\]")
-  expect_match(d[5, "feature_id", drop = TRUE], "S1P d18\\.0/S1P 18:1 \\[M>113\\]")
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_match(d[3, "feature_id"]], "S1P d17\\.1\\|S1P d17\\.2 \\[M>113\\]")
+  expect_match(d[4, "feature_id"]], "S1P d17\\.1\\\\S1P d17:2 \\[M>60\\]")
+  expect_match(d[5, "feature_id"]], "S1P d18\\.0/S1P 18:1 \\[M>113\\]")
 })
 
 # testthat::test_that("Parses nested MH Quant .csv file and matches saved copy", {
@@ -195,9 +195,9 @@ testthat::test_that("Parses nested MH Quant .csv with . \ | in feature names", {
 
 testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT and peak RT and multiple Qualifier per analyte", {
   d <- read_data_table(testthat::test_path("001_Generic_Results_1.csv"), value_type = "area")
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
-  expect_equal(d[1, "feature_id", drop = TRUE], "S1P d16:1 [M>113]")
-  expect_equal(d[1, "analysis_id", drop = TRUE], "006_EBLK_Extracted Blank+ISTD01")
+  expect_equal(d[[1, "feature_area"]], 71)
+  expect_equal(d[[1, "feature_id"]], "S1P d16:1 [M>113]")
+  expect_equal(d[[1, "analysis_id"]], "006_EBLK_Extracted Blank+ISTD01")
 })
 
 testthat::test_that("Test mult", {
@@ -208,9 +208,9 @@ testthat::test_that("Test mult", {
 
 testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT and peak RT and multiple Qualifier per analyte", {
   d <- read_data_table(testthat::test_path("001_Generic_Results_1.xlsx"), value_type = "area", sheet = "Sheet1")
-  expect_equal(d[1, "feature_area", drop = TRUE], 71)
-  expect_equal(d[1, "feature_id", drop = TRUE], "S1P d16:1 [M>113]")
-  expect_equal(d[1, "analysis_id", drop = TRUE], "006_EBLK_Extracted Blank+ISTD01")
+  expect_equal(d[[1, "feature_area"]], 71)
+  expect_equal(d[[1, "feature_id"]], "S1P d16:1 [M>113]")
+  expect_equal(d[[1, "analysis_id"]], "006_EBLK_Extracted Blank+ISTD01")
 })
 
 testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT and peak RT and multiple Qualifier per analyte", {
