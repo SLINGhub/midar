@@ -16,7 +16,7 @@
 #' @slot dataset_filtered Processed analysis data. Required fields:
 #' @slot annot_analyses Annotation of analyses/runs
 #' @slot annot_features Annotation of measured features.
-#' @slot annot_istd Annotation of Internal Standard concs.
+#' @slot annot_istds Annotation of Internal Standard concs.
 #' @slot annot_responsecurves Annotation of  Response curves (RQC). Required fields
 #' @slot annot_studysamples Annotation of study samples. Required fields:
 #' @slot annot_batches Annotation of batches. Required fields:
@@ -45,7 +45,7 @@ setClass("MidarExperiment",
     dataset_filtered = "tbl_df",
     annot_analyses = "tbl_df",
     annot_features = "tbl_df",
-    annot_istd = "tbl_df",
+    annot_istds = "tbl_df",
     annot_responsecurves = "tbl_df",
     annot_studysamples = "tbl_df",
     annot_batches = "tbl_df",
@@ -70,7 +70,7 @@ setClass("MidarExperiment",
     dataset_filtered = pkg.env$table_templates$annot_analyses_template,
     annot_analyses = pkg.env$table_templates$annot_analyses_template,
     annot_features = pkg.env$table_templates$annot_features_template,
-    annot_istd = pkg.env$table_templates$annot_istd_template,
+    annot_istds = pkg.env$table_templates$annot_istds_template,
     annot_responsecurves = pkg.env$table_templates$annot_responsecurves_template,
     annot_studysamples = tibble::tibble(),
     annot_batches = tibble::tibble(),
@@ -136,14 +136,14 @@ setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
 })
 
 # TODODO: ALIGN WITH ASSERTION and DEFINE WHERE WHEN TO RUN THIS
-check_integrity <- function(data = NULL, exclude_unmatched_analyses) {
+check_integrity <- function(data = NULL, excl_unmatched_analyses) {
   check_data(data)
   if (nrow(data@dataset_orig) > 0 & nrow(data@annot_analyses) > 0) {
     d_xy <- length(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id))
     d_yx <- length(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()))
     if (d_xy > 0) {
       if (d_xy == length(data@dataset_orig$analysis_id |> unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
-      if (!exclude_unmatched_analyses) {
+      if (!excl_unmatched_analyses) {
         # if (d_xy < 50) {
         #   writeLines(glue::glue(""))
         #   cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses/samples: {paste0(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id), collapse = ", ")}"))
@@ -192,7 +192,7 @@ setMethod(
   signature = c("MidarExperiment"),
   definition = function(x, name) {
     # check for other struct slots
-    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istd", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized", "var_drift_corrected", "var_batch_corrected")
+    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istds", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized", "var_drift_corrected", "var_batch_corrected")
     if (!name %in% valid) cli::cli_abort('"', name, '" is not valid for this object: ', class(x)[1])
     methods::slot(x, name)
   }
@@ -242,7 +242,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_ul(id ="B")
   cli::cli_li("Sample annotation: {.strong {get_status_flag(nrow(object@annot_analyses) > 0)}}")
   cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
-  cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istd) > 0)}}")
+  cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istds) > 0)}}")
   cli::cli_li("Response curve annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
   cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
   cli::cli_end(id ="B")
