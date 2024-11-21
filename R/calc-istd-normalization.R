@@ -28,7 +28,7 @@ get_conc_unit <- function(sample_amount_unit) {
 #' @export
 
 # TODO: interference correction not done here
-calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
+normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
   check_data(data)
 
@@ -114,14 +114,14 @@ calc_normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 #' @param ignore_unused_istds Ignore ISTDs with missing concentrations that are not used in any feature quantitation. Default: `FALSE`.
 #' @return MidarExperiment object
 #' @export
-calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
+quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unused_istds = TRUE) {
 
   check_data(data)
 
-  if (nrow(data@annot_istd) < 1) cli::cli_abort("ISTD concentrations are missing...please import ISTD metadata first.")
-  if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'calc_normalize_by_istd' first.")
+  if (nrow(data@annot_istds) < 1) cli::cli_abort("ISTD concentrations are missing...please import ISTD metadata first.")
+  if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs first to be ISTD normalized. Please run 'normalize_by_istd' first.")
 
-  istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+  istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istds$quant_istd_feature_id)
   istds <- data@annot_features |> filter(.data$is_istd) |> pull(.data$feature_id)
   unused_istds <- setdiff(istds, data@annot_features |> filter(!.data$is_istd) |> pull(.data$quant_istd_feature_id) |> unique())
 
@@ -150,7 +150,7 @@ calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore
     select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
     dplyr::left_join(data@annot_analyses |> dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) |>
     dplyr::left_join(data@annot_features |> dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) |>
-    dplyr::left_join(data@annot_istd, by = c("quant_istd_feature_id"))
+    dplyr::left_join(data@annot_istds, by = c("quant_istd_feature_id"))
 
   # Calculate concentrations
   d_temp <- d_temp |> mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
@@ -165,7 +165,7 @@ calc_quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore
     dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
 
   n_features <- length(unique(d_temp$feature_id))
-  n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istd$quant_istd_feature_id)
+  n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istds$quant_istd_feature_id)
 
   n_features_with_conc <- d_temp |> filter(!.data$is_istd, .data$quant_istd_feature_id %in% n_istd_with_conc) |> select(.data$feature_id) |> distinct() |> nrow()
   n_istd <- length(unique(d_temp$quant_istd_feature_id)) - length(istd_no_conc)
