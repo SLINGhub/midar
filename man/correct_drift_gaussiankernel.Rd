@@ -48,7 +48,7 @@ correct_drift_gaussiankernel(
 
 \item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.}
 
-\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{qc_plot_runscatter()})}
+\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{plot_runscatter()})}
 
 \item{conditional_correction}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{cv_ratio_threshold}}
 

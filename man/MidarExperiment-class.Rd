@@ -27,7 +27,7 @@ It also includes processing results, details of the applied processing steps, an
 
 \item{\code{annot_features}}{Annotation of measured features.}
 
-\item{\code{annot_istd}}{Annotation of Internal Standard concs.}
+\item{\code{annot_istds}}{Annotation of Internal Standard concs.}
 
 \item{\code{annot_responsecurves}}{Annotation of  Response curves (RQC). Required fields}
 

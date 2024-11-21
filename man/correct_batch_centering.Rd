@@ -54,5 +54,5 @@ The correction can be applied on top of previous
 corrections or  replace all previous batch corrections.
 }
 \seealso{
-qc_plot_runscatter for visualizing the correction before and after.
+plot_runscatter for visualizing the correction before and after.
 }

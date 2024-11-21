@@ -4,12 +4,12 @@
 \alias{set_analysis_order}
 \title{Set the analysis order}
 \usage{
-set_analysis_order(data = NULL, analysis_sequence = "default")
+set_analysis_order(data = NULL, order_by = "default")
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{analysis_sequence}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
+\item{order_by}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
 }
 \value{
 MidarExperiment object
@@ -20,6 +20,6 @@ Sets the analysis order (sequence), based on either (i) analysis timestamp, if a
 \examples{
 file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- data_import_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
 mexp <- set_analysis_order(mexp, "timestamp")
 }
