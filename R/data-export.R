@@ -10,7 +10,7 @@
 
 
 # TODO: filtering of names containing "(IS"
-report_write_xlsx <- function(data = NULL, path) {
+save_report_xlsx <- function(data = NULL, path) {
   check_data(data)
 
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
@@ -94,7 +94,7 @@ report_write_xlsx <- function(data = NULL, path) {
     "Norm_Intensity_FullDataset" = d_norm_intensity_wide,
     "SampleMetadata" = data@annot_analyses,
     "FeatureMetadata" = data@annot_features,
-    "InternalStandards" = data@annot_istd,
+    "InternalStandards" = data@annot_istds,
     "BatchInfo" = data@annot_batches
   )
 
@@ -122,13 +122,13 @@ report_write_xlsx <- function(data = NULL, path) {
 #' @param data MidarExperiment object
 #' @param path File name with path of exported CSV fil
 #' @param variable Variable to be exported
-#' @param filter_data Use QC-filtered data, based on criteria set via `qc_apply_feature_filter()`. Overwrites `include_qualifier` and `include_istd`.
+#' @param filter_data Use QC-filtered data, based on criteria set via `filter_features_qc()`. Overwrites `include_qualifier` and `include_istd`.
 #' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
 #' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
 #' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
 #' @param add_qctype Add the QC type as column
 #' @export
-report_write_csv <- function(data = NULL,
+save_dataset_csv <- function(data = NULL,
                              path,
                              variable = c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"),
                              filter_data,
@@ -163,7 +163,7 @@ report_write_csv <- function(data = NULL,
   # Filter data if filter_data is TRUE
   if (filter_data) {
     dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered. Please apply `qc_apply_feature_filter` first.")
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered. Please apply `filter_features_qc` first.")
   } else {
     dat_filt <- data@dataset |> dplyr::ungroup()
   }
