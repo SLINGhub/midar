@@ -13,7 +13,7 @@
 #' @param point_alpha Transparency of plot points (0-1). Default is 0.7
 #' @param ellipse_alpha Transparency of ellipse fill (0-1). Default is 0.8
 #' @param font_base_size Base font size for plot text elements. Default is 8
-#' @param hide_shared_label_text Hide shared text (case-sensitive) in labels. If resulting in non-unique analysis_id's, an error will be raised
+#' @param hide_text_from_labels Hide shared text (case-sensitive) in labels. If resulting in non-unique analysis_id's, an error will be raised
 #' @return A ggplot2 object
 #' @export
 

@@ -48,7 +48,7 @@ mexp <- MidarExperiment()
 # Load data and metadata
 mexp <- midar::import_data_mrmkit(data = mexp, 
                                   path = file_path, 
-                                  include_metadata = TRUE)
+                                  import_metadata = TRUE)
 
 # # Normalize and quantitate each feature by internal standards
 # mexp <- normalize_by_istd(mexp)

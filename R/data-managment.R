@@ -155,7 +155,7 @@ get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+#' mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
 #' mexp <- set_analysis_order(mexp, "timestamp")
 
 #' Internal function to set analysis order in metadata
@@ -214,7 +214,7 @@ set_analysis_order_analysismetadata <- function(data = NULL,
           dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1) |>
           dplyr::select(-"acquisition_time_stamp"),
           by = "analysis_id") |>
-          relocate(run_seq_num, .before = 1)
+          relocate("run_seq_num", .before = 1)
     },
     "resultfile" = {
       data@annot_analyses |>
@@ -222,11 +222,11 @@ set_analysis_order_analysismetadata <- function(data = NULL,
           d_temp |>
             dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1),
         by = "analysis_id") |>
-        relocate(run_seq_num, .before = 1)
+        relocate("run_seq_num", .before = 1)
     },
     "metadata" = {
       data@annot_analyses |>
-        dplyr::mutate(run_seq_num = .data$annot_order_num, .before = 1)
+        dplyr::mutate("run_seq_num" = .data$annot_order_num, .before = 1)
     }
   )
 
@@ -254,7 +254,7 @@ set_analysis_order_analysismetadata <- function(data = NULL,
 #' @examples
 #' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 #' mexp <- MidarExperiment()
-#' mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+#' mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
 #'
 #' # Order by timestamp (if available)
 #' mexp <- set_analysis_order(mexp, "timestamp")
@@ -330,7 +330,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
       starts_with("method_"),
       starts_with("feature_"),
     ) |>
-    relocate("feature_intensity", .after = last_col()) |>
+    relocate("feature_intensity", .after = dplyr::last_col()) |>
     relocate("feature_label", .after = "feature_class") |>
     relocate("sample_id", .after = "batch_id") |>
     relocate("specimen", .before = "feature_id") |>
@@ -439,9 +439,9 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
+exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing ){
   check_data(data)
-  if (all(is.na(analyses_exlude)) | length(analyses_exlude) == 0) {
+  if (all(is.na(analyses_to_exclude)) | length(analyses_to_exclude) == 0) {
     if(!replace_existing){
       cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
@@ -452,17 +452,17 @@ exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
       return(data)
       }
   }
-  if (any(!c(analyses_exlude) %in% data@annot_analyses$analysis_id) > 0) {
+  if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id) > 0) {
     cli_abort(cli::col_red("One or more provided `analysis id`s to exclude are not present. Please check the analysis metadata."))
   }
   if(!replace_existing){
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude) & .data$valid_analysis)
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses_to_exclude) & .data$valid_analysis)
     cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were now excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% analyses_exlude))
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses_to_exclude))
     cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
     }
@@ -477,11 +477,10 @@ exclude_analyses <- function(data = NULL, analyses_exlude, replace_existing ){
 #' @title Get the annotated or the originally imported analytical data
 #' @param data MidarExperiment object
 #' @param original Boolean indicating whether to return the original imported data (`TRUE`) or the annotated data (`FALSE`)
-#' @param replace_existing If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
 #' @return A tibble with the analytical data in the long format
 #' @export
 
-data_get_analyticaldata <- function(data = NULL, original = FALSE){
+get_analyticaldata <- function(data = NULL, original = FALSE){
   check_data(data)
   if (original) {
     return(data@dataset_orig)
@@ -497,7 +496,7 @@ data_get_analyticaldata <- function(data = NULL, original = FALSE){
 #' @return `MidarExperiment` object
 #' @export
 
-data_exclude_features <- function(data = NULL, features_exlude, replace_existing ){
+exclude_features <- function(data = NULL, features_exlude, replace_existing ){
   check_data(data)
 
   if (all(is.na(features_exlude)) | length(features_exlude) == 0) {

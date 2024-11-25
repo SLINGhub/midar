@@ -19,3 +19,12 @@ A tibble with the parse results in the long format
 \description{
 Reads and parses one Agilent MassHunter Quant CSV result file
 }
+\examples{
+file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+
+tbl <- parse_masshunter_csv(
+  path = file_path,
+  expand_qualifier_names = TRUE)
+
+head(tbl)
+}

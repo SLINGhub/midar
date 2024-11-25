@@ -1,7 +1,7 @@
 test_that("Orders analyses according to set criteria and absence/presence of timestamp", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
-                                        include_metadata = FALSE)
+                                        import_metadata = FALSE)
   mexp <- midar::import_metadata_midarxlm(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1_reorder.xlsm"),
                                           excl_unmatched_analyses = FALSE)
@@ -13,7 +13,7 @@ test_that("Orders analyses according to set criteria and absence/presence of tim
   expect_error(midar::set_analysis_order(mexp, order_by = "timestamp"), "Acquisition timestamps are not present")
 
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq.csv"),
-                                        include_metadata = FALSE)
+                                        import_metadata = FALSE)
   mexp <- midar::import_metadata_midarxlm(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1_reorder.xlsm"),
                                           excl_unmatched_analyses = FALSE)

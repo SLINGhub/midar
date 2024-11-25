@@ -87,7 +87,7 @@ Functions starting with `data_get_` allow to retrieve data and metadat from `Mid
 
 ```{r, results = TRUE}
 myexp <- data_load_example(myexp, 1)
-dataset <- data_get_analyticaldata(myexp)
+dataset <- get_analyticaldata(myexp)
 
 print(dataset)
 ```

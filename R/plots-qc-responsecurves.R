@@ -72,7 +72,7 @@ plot_responsecurves_page <- function(dataset,
 #' Generates linear regression plots for each measured feature within a dataset. The function allows for customization of the plot's appearance and format, and it can filter features based on specified criteria.
 #'
 #' @param data A `MidarExperiment` object containing the dataset with sample amounts and detector signals. Required.
-#' @param use_filtered_data Logical. Indicates whether to use quality control (QC) filtered data (`TRUE`) or the raw data (`FALSE`). Defaults to `FALSE`.
+#' @param filter_data Logical. Indicates whether to use quality control (QC) filtered data (`TRUE`) or the raw data (`FALSE`). Defaults to `FALSE`.
 #' @param output_pdf Logical. If `TRUE`, saves the generated plots as a PDF file. Defaults to `FALSE`.
 #' @param variable The variable name to plot on the y-axis, usually a measure of intensity. Defaults to `"intensity"`.
 #' @param include_feature_filter A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.
@@ -88,7 +88,7 @@ plot_responsecurves_page <- function(dataset,
 #' @param page_orientation The orientation of the PDF paper, either `"LANDSCAPE"` or `"PORTRAIT"`. Defaults to `"LANDSCAPE"`.
 #' @param font_base_size The base font size for text in the plots. Defaults to 7.
 #' @param return_plots Logical. If `TRUE`, returns the plots as a list of `ggplot2` objects. Each item represents a page of plots. Defaults to `FALSE`.
-#' @param display_progress Logical. Show a progress bar during plot creation if set to `TRUE`. Defaults to `TRUE`.
+#' @param show_progress Logical. Show a progress bar during plot creation if set to `TRUE`. Defaults to `TRUE`.
 #' @return If `return_plots` is `TRUE`, a list of `ggplot2` objects is returned. Otherwise, the function may return a plot output and/or save a PDF, depending on the `output_pdf` parameter.
 
 #' @export

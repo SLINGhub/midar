@@ -2,24 +2,37 @@
 % Please edit documentation in R/data-managment.R
 \name{set_analysis_order}
 \alias{set_analysis_order}
-\title{Set the analysis order}
+\title{Set Analysis Order}
 \usage{
-set_analysis_order(data = NULL, order_by = "default")
+set_analysis_order(
+  data = NULL,
+  order_by = c("timestamp", "resultfile", "metadata")
+)
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object}
 
-\item{order_by}{Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.}
+\item{order_by}{Character string specifying the ordering method.
+Must be one of "timestamp" (requires timestamp data in imported results),
+"resultfile" (uses order from imported data file), or
+"metadata" (uses order from analysis metadata)}
 }
 \value{
-MidarExperiment object
+An updated \code{MidarExperiment} object with ordered analyses
 }
 \description{
-Sets the analysis order (sequence), based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata
+Determines the sequence of analyses using either instrument timestamps,
+the order in the imported raw data file, or the order defined in the Analysis metadata.
+Note: After changing the analysis order, all post processing steps must be rerun.
 }
 \examples{
 file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
 mexp <- MidarExperiment()
-mexp <- import_data_mrmkit(mexp, path = file_path, include_metadata = TRUE)
+mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
+
+# Order by timestamp (if available)
 mexp <- set_analysis_order(mexp, "timestamp")
+
+# Order by metadata definition
+mexp <- set_analysis_order(mexp, "metadata")
 }

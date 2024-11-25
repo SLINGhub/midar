@@ -294,10 +294,10 @@ get_response_curve_stats <- function(data = NULL, with_staturation_stats = FALSE
 #' @param min.slope.response Minimum slope for the response curve. Default is `NA`.
 #' @param max.slope.response Maximum slope for the response curve. Default is `NA`.
 #' @param max.yintercept.response Maximum y-intercept of the response curve. Default is `NA`.
-#' @param max.dratio.sd.bqc Maximum allowed D-ratio (SD of BQC / SD of SPL) using standard deviation for BQC samples. Default is `NA`.
-#' @param max.dratio.sd.tqc Maximum allowed D-ratio (SD of TQC / SD of SPL) using standard deviation for TQC samples. Default is `NA`.
-#' @param max.dratio.mad.bqc Maximum allowed D-ratio (MAD of BQC / MAD of SPL) using mean absolute deviation for BQC samples. Default is `NA`.
-#' @param max.dratio.mad.tqc Maximum allowed D-ratio (MAD of TQC / MAD of SPL) using mean absolute deviation for TQC samples. Default is `NA`.
+#' @param max.dratio.sd.conc.bqc Maximum allowed D-ratio (SD of BQC / SD of SPL) using standard deviation for BQC samples. Default is `NA`.
+#' @param max.dratio.sd.conc.tqc Maximum allowed D-ratio (SD of TQC / SD of SPL) using standard deviation for TQC samples. Default is `NA`.
+#' @param max.dratio.mad.conc.bqc Maximum allowed D-ratio (MAD of BQC / MAD of SPL) using mean absolute deviation for BQC samples. Default is `NA`.
+#' @param max.dratio.mad.conc.tqc Maximum allowed D-ratio (MAD of TQC / MAD of SPL) using mean absolute deviation for TQC samples. Default is `NA`.
 #' @param max.dratio.sd.normint.bqc Maximum allowed D-ratio (SD of normalized intensity in BQC / SD of SPL) using standard deviation. Default is `NA`.
 #' @param max.dratio.sd.normint.tqc Maximum allowed D-ratio (SD of normalized intensity in TQC / SD of SPL) using standard deviation. Default is `NA`.
 #' @param max.dratio.mad.normint.bqc Maximum allowed D-ratio (MAD of normalized intensity in BQC / MAD of SPL) using mean absolute deviation. Default is `NA`.
@@ -556,11 +556,11 @@ filter_features_qc <- function(data = NULL,
       metrics_qc_local <- metrics_qc_local |>
         mutate(
           pass_linearity = if_else(
-            !is.na(rqc_r2__sum__) | (!is.na(min.slope.response) & !is.na(max.slope.response) & !is.na(max.yintercept.response)),
-            (rqc_r2__sum__ > min.rsquare.response | is.na(min.rsquare.response)) &
-              (rqc_slope__sum__ > min.slope.response | is.na(min.slope.response)) &
-              (rqc_slope__sum__ <= max.slope.response | is.na(max.slope.response)) &
-              (rqc_y0__sum__ < max.yintercept.response | is.na(max.yintercept.response)),
+            !is.na(.data$rqc_r2__sum__) | (!is.na(min.slope.response) & !is.na(max.slope.response) & !is.na(max.yintercept.response)),
+            (.data$rqc_r2__sum__ > min.rsquare.response | is.na(min.rsquare.response)) &
+              (.data$rqc_slope__sum__ > min.slope.response | is.na(min.slope.response)) &
+              (.data$rqc_slope__sum__ <= max.slope.response | is.na(max.slope.response)) &
+              (.data$rqc_y0__sum__ < max.yintercept.response | is.na(max.yintercept.response)),
             NA
           )
         )

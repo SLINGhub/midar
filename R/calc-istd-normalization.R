@@ -34,13 +34,13 @@ normalize_by_istd <- function(data = NULL, error_missing_info = TRUE) {
 
   if (nrow(data@annot_features) < 1) cli::cli_abort("No feature metadata available. Please add matching feature metadata.")
   if (any(!is.na(data@annot_features$interference_feature_id) & !data@is_isotope_corr))
-    cli::cli_alert_warning(cli::col_yellow("Interfering feature intensities defined in metadata, but no interference correction was applied. Use `correct_interferences()` to correct."))
+    cli::cli_alert_warning(cli::col_yellow("Interfering features defined in metadata, but no correction was applied. Use `correct_interferences()` to correct."))
 
 
   # Check if data is already ISTD normalized
   if ("feature_norm_intensity" %in% names(data@dataset)) {
     if (!all(is.na(data@dataset$feature_norm_intensity))) cli::cli_alert_warning(cli::col_yellow("Replacing previously normalized feature intensities."))
-    data@dataset <- data@dataset |> select(-dplyr::any_of(c("feature_norm_intensity", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))  #TODO fields
+    data@dataset <- data@dataset |> select(-dplyr::any_of(c("feature_norm_intensity", "feature_pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ")))  #TODO fields
   }
 
 
@@ -147,27 +147,27 @@ quantify_by_istd <- function(data = NULL, error_missing_info = TRUE, ignore_unus
 
   # Add ISTD concentrations and sample amouts to temporary dataset
   d_temp <- data@dataset |>
-    select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
+    select(!any_of(c("sample_amount", "sample_amount_unit", "istd_volume", "feature_pmol_total", "feature_conc", "CONC_DRIFT_ADJ", "CONC_ADJ"))) |>
     dplyr::left_join(data@annot_analyses |> dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) |>
     dplyr::left_join(data@annot_features |> dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) |>
     dplyr::left_join(data@annot_istds, by = c("quant_istd_feature_id"))
 
   # Calculate concentrations
-  d_temp <- d_temp |> mutate(pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
-  d_temp <- d_temp |> mutate(feature_conc = .data$pmol_total / .data$sample_amount)
+  d_temp <- d_temp |> mutate(feature_pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
+  d_temp <- d_temp |> mutate(feature_conc = .data$feature_pmol_total / .data$sample_amount)
 
   if ("feature_conc" %in% names(data@dataset)) {
-    data@dataset <- data@dataset |> select(-dplyr::any_of(c("pmol_total", "feature_conc")))
+    data@dataset <- data@dataset |> select(-dplyr::any_of(c("feature_pmol_total", "feature_conc")))
     cli::cli_alert_warning(cli::col_yellow("Replacing previously calculated concentrations."))
   }
   # Add calculated concentrations to dataset table
   data@dataset <- data@dataset |>
-    dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
+    dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "feature_pmol_total", "feature_conc"), by = c("analysis_id", "feature_id"))
 
   n_features <- length(unique(d_temp$feature_id))
   n_istd_with_conc <- intersect(data@annot_features$quant_istd_feature_id, data@annot_istds$quant_istd_feature_id)
 
-  n_features_with_conc <- d_temp |> filter(!.data$is_istd, .data$quant_istd_feature_id %in% n_istd_with_conc) |> select(.data$feature_id) |> distinct() |> nrow()
+  n_features_with_conc <- d_temp |> filter(!.data$is_istd, .data$quant_istd_feature_id %in% n_istd_with_conc) |> select("feature_id") |> distinct() |> nrow()
   n_istd <- length(unique(d_temp$quant_istd_feature_id)) - length(istd_no_conc)
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)

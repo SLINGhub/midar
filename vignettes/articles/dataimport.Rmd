@@ -45,7 +45,7 @@ annotations, these can be imported as metadata in the `MidarExperiment`
 object as well. The imported metadata is checked for integrity and
 consistency (see TODO) and then added to the annotation tables within
 the `MidarExperiment`. To include available metadata, set the argument
-`include_metadata = TRUE`.
+`import_metadata = TRUE`.
 
 ### Importing and merging multiple files
 
@@ -67,7 +67,7 @@ integrated in different raw data processing batches.
 library(midar)
 filepath <- system.file("extdata/sPerfect_MRMkit.tsv", package = "midar")
 myexp <- MidarExperiment()
-myexp <- import_data_mrmkit(myexp, filepath, include_metadata = TRUE)
+myexp <- import_data_mrmkit(myexp, filepath, import_metadata = TRUE)
 
 ```
 
@@ -77,7 +77,7 @@ myexp <- import_data_mrmkit(myexp, filepath, include_metadata = TRUE)
 filepath <- system.file("extdata/Example_MHQuant_1.csv", package = "midar")
 myexp <- MidarExperiment()
 
-myexp <- import_data_masshunter(myexp, filepath, include_metadata = TRUE)
+myexp <- import_data_masshunter(myexp, filepath, import_metadata = TRUE)
 ```
 
 ### Plain CSV files

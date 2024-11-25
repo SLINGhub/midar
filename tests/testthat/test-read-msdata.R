@@ -152,13 +152,13 @@ testthat::test_that("Parses nested MH Quant .csv file in UTF-8 format with diffe
   d <- parse_masshunter_csv(testthat::test_path("18_Testdata_Lipidomics_MultiLanguageCharactersSamplenamesFeatures.csv"))
   expect_equal(d[[1, "feature_rt"]], 9.754)
   expect_equal(d[[1, "feature_id"]], "谷氨酰胺")
-  expect_equal(d[2, "feature_id"]], "글루타민")
-  expect_equal(d[3, "feature_id"]], "Glutaminsäure")
-  expect_equal(d[4, "feature_id"]], "குளுட்டமின்")
+  expect_equal(d[[2, "feature_id"]], "글루타민")
+  expect_equal(d[[3, "feature_id"]], "Glutaminsäure")
+  expect_equal(d[[4, "feature_id"]], "குளுட்டமின்")
   expect_equal(d[[1, "raw_data_filename"]], "Über_Schöner_Blank")
-  expect_equal(d[300, "raw_data_filename"]], "空白的")
-  expect_equal(d[600, "raw_data_filename"]], "공백2")
-  expect_equal(d[900, "raw_data_filename"]], "空白")
+  expect_equal(d[[300, "raw_data_filename"]], "空白的")
+  expect_equal(d[[600, "raw_data_filename"]], "공백2")
+  expect_equal(d[[900, "raw_data_filename"]], "空白")
   expect_equal(d[[1200, "raw_data_filename"]], "வெற்று")
 })
 
@@ -172,8 +172,8 @@ testthat::test_that("Parses nested MH Quant .csv file with special characters (e
   d <- parse_masshunter_csv(testthat::test_path("20_Testdata_MHQuant_withSpecialCharsInFeatures.csv"), expand_qualifier_names = TRUE)
   expect_equal(d[[1, "feature_rt"]], 6.649)
   expect_equal(d[[1, "method_target_rt"]], 7.200)
-  expect_equal(d[3, "feature_id"]], "Analyte 2* 14:0")
-  expect_equal(d[5, "feature_id"]], "Analyte 2~%^$# 14:0 (d5)")
+  expect_equal(d[[3, "feature_id"]], "Analyte 2* 14:0")
+  expect_equal(d[[5, "feature_id"]], "Analyte 2~%^$# 14:0 (d5)")
   expect_match(d[[10, "feature_id"]], "Analyte 3 16\\:0-_=\\+\\\\/~!@ \\[QUAL 317\\.3 -> 299\\.3\\]")
   expect_match(d[[13, "feature_id"]], "Analyte 4 \\?><,\\.\`\\:\"\\}\\{\\[\\]18:0 \\[QUAL 331\\.3 -> 331\\.3\\]")
 })
@@ -182,9 +182,9 @@ testthat::test_that("Parses nested MH Quant .csv file with special characters (e
 testthat::test_that("Parses nested MH Quant .csv with . \ | in feature names", {
   d <- parse_masshunter_csv(testthat::test_path("21_Testdata_MHQuant_with_dots_InFeatures.csv"), expand_qualifier_names = TRUE)
   expect_equal(d[[1, "feature_rt"]], 3.422)
-  expect_match(d[3, "feature_id"]], "S1P d17\\.1\\|S1P d17\\.2 \\[M>113\\]")
-  expect_match(d[4, "feature_id"]], "S1P d17\\.1\\\\S1P d17:2 \\[M>60\\]")
-  expect_match(d[5, "feature_id"]], "S1P d18\\.0/S1P 18:1 \\[M>113\\]")
+  expect_match(d[[3, "feature_id"]], "S1P d17\\.1\\|S1P d17\\.2 \\[M>113\\]")
+  expect_match(d[[4, "feature_id"]], "S1P d17\\.1\\\\S1P d17:2 \\[M>60\\]")
+  expect_match(d[[5, "feature_id"]], "S1P d18\\.0/S1P 18:1 \\[M>113\\]")
 })
 
 # testthat::test_that("Parses nested MH Quant .csv file and matches saved copy", {
@@ -225,26 +225,51 @@ testthat::test_that("Parses nested MH Quant .csv file with target (expected) RT 
 # Test parse_plain_csv
 
 testthat::test_that("Parses plain csv file with metadata with correct column names and autodetecting analysis_id", {
-  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", include_metadata = TRUE)
-  expect_identical(names(d), c("run_seq_num","analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
+  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = TRUE)
+  expect_identical(names(d), c("analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_equal(mean(d$feature_conc[d$batch_id == 1 & d$feature_id == "Analyte-1"]), 1004.61572)
 })
 
-testthat::test_that("Returns error when plain csv file with columns containing text is read, when include_metadata = FALSE", {
-  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", include_metadata = FALSE), regexp = "ll columns with feature values must be numeric")
+testthat::test_that("Returns error when plain csv file with columns containing text is read, when import_metadata = FALSE", {
+  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = FALSE), regexp = "ll columns with feature values must be numeric")
 })
 
 testthat::test_that("Returns error when plain csv file with analysis_id_col set that does not exist", {
-  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", include_metadata = TRUE),
+  expect_error(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE),
                regexp = "No column with the name `sample_id` found in the data file")
 })
 
 testthat::test_that("Parses plain csv file with metadata and defined analysis_id_col, with correct data types", {
-  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", include_metadata = TRUE)
-  expect_identical(names(d), c("run_seq_num","analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
+  d <- parse_plain_csv(testthat::test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE)
+  expect_identical(names(d), c("analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_identical(typeof(d$analysis_id), "character")
   expect_identical(typeof(d$batch_id), "character")
   expect_identical(typeof(d$feature_conc), "double")
 })
 
+testthat::test_that("Imports plain csv file with metadata parsing the numbers to 'analysis_id_col', with correct data types and metadata", {
+  path <- testthat::test_path("testdata/plain_wide_dataset.csv")
+
+  mexp <- MidarExperiment()
+  mexp <- import_data_csv(data = mexp,
+                          path = path,
+                          variable_name = "conc",
+                          import_metadata = TRUE)
+
+  expect_in(c("analysis_id", "batch_id", "replicate_no", "is_istd", "feature_conc"), names(mexp@dataset))
+  expect_equal(mexp@dataset[[111,"feature_conc"]], 897.39956)
+  expect_equal(mexp@dataset[[50,"qc_type"]], "BQC")
+  expect_equal(mexp@dataset[[255,"run_seq_num"]], 51L)
+ expect_equal(mexp@annot_analyses[[11,"analysis_id"]], "11")
+ expect_equal(mexp@annot_analyses[[10,"qc_type"]], "BQC")
+ expect_equal(mexp@annot_features[[2,"feature_id"]], "S1P 18:2;O2")
+ expect_type(mexp@dataset$is_istd, "logical")
+ expect_type(mexp@dataset$batch_id, "character")
+
+ })
+
+#' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
+#'
+
+#' mexp
 

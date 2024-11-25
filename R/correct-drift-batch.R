@@ -765,7 +765,7 @@ correct_batch_centering <- function(data = NULL,
   # Return data
 
   data@dataset <- data@dataset |>
-    left_join(d_res |> select(-y, -"y_fit_after"),
+    left_join(d_res |> select(-"y", -"y_fit_after"),
               by = c("analysis_id", "feature_id", "qc_type", "batch_id")) |>
     mutate(!!variable_sym := .data$y_adjusted,
            !!variable_fit_sym := .data[[variable_fit]],

@@ -15,12 +15,12 @@
 #' @return A `ggplot2` object showing the feature QC filtering summary by class.
 #'
 #' @seealso
-#' \code{\link{plot_summary_overall}} for an overall summary plot
+#' \code{\link{plot_qc_summary_overall}} for an overall summary plot
 
 #' @export
 
 # TODO: handling of features with (many) missing values, in SPL, in QC
-plot_qc_summary_by_class <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
+plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
   check_data(data)
   if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
 

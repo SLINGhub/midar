@@ -7,24 +7,25 @@
 
 import_metadata_from_data<- function(data = NULL, qc_type_column_name = "qc_type") {
   check_data(data)
+
   # get analysis metadata
    annot_analyses <- data@dataset_orig |>
     dplyr::select("analysis_id", dplyr::any_of(c(qc_type_column_name, "batch_id"))) |>
     dplyr::distinct() |>
-    dplyr::rename(any_of(c(qc_type = qc_type_column_name)))
+    dplyr::rename(any_of(c(qc_type = qc_type_column_name))) |>
+     dplyr::mutate(run_seq_num = row_number(), before = 1)
 
-   annot_analyses <- dplyr::bind_rows(pkg.env$table_templates$annot_analyses_template, annot_analyses)
+   annot_analyses <- clean_analysis_metadata(annot_analyses)
 
   # get feature metadata
 
   annot_features <- data@dataset_orig |>
-    dplyr::select("feature_id", dplyr::any_of(c("feature_class", "is_istd", "precursor_mz", "product_mz", "istd_feature_id"))) |>
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "precursor_mz", "product_mz", "istd_feature_id"))) |>
     dplyr::distinct()
-
-  annot_features <- dplyr::bind_rows(pkg.env$table_templates$annot_features_template,annot_features)
+  annot_features <- clean_feature_metadata(annot_features)
 
   # check and add metadata
-  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features))
+  metadata <- assert_metadata(data = data, metadata = list(annot_analyses = annot_analyses, annot_features = annot_features), ignore_warnings = FALSE, excl_unmatched_analyses = FALSE)
   data <- add_metadata(data = data, metadata = metadata, excl_unmatched_analyses = FALSE)
   data <- link_data_metadata(data)
 
@@ -58,8 +59,23 @@ get_metadata_batches <- function(annot_analyses){
 #' @param excl_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
 #' @return An updated `MidarExperiment` object
-#' @export
+
+#' @examples
+#' mexp <- MidarExperiment()
 #'
+#' mexp <- import_data_masshunter(
+#'   data = mexp,
+#'   path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar")
+#'   import_metadata = TRUE)
+#'
+#' mexp <- import_metadata_midarxlm(
+#'  data = mexp,
+#'  path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar")
+#'  excl_unmatched_analyses = FALSE)
+#'
+#' print(mexp)
+#'
+#' @export
 import_metadata_midarxlm <- function(data = NULL, path,  ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
   check_data(data)
 
@@ -80,13 +96,29 @@ import_metadata_midarxlm <- function(data = NULL, path,  ignore_warnings = FALSE
 #' @param excl_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
 #' @return An updated `MidarExperiment` object
+#' @examples
+#' mexp <- MidarExperiment()
+
+#' file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+#' mexp <- import_data_masshunter(
+#'   data = mexp,
+#'   path = file_path
+#'   import_metadata = FALSE)
+#'
+#' meta_path = system.file("extdata", "sperfect_metadata_analyses", package = "midar")
+#'   mexp <- import_metadata_analyses(
+#'   data = meta_path,
+#'   path = path,
+#'   excl_unmatched_analyses = TRUE)
+#'
+#' print(mexp)
 #' @export
 #'
 import_metadata_analyses <- function(data = NULL, table = NULL, path = NULL,  sheet = NULL, ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
   check_data(data)
   tbl_metadata <- get_metadata_table(table, path, sheet)
   tbl_metadata <- clean_analysis_metadata(tbl_metadata, NULL )
-  metadata  <- assert_metadata(data, metadata = list(annot_analyses = tbl_metadata), ignore_warnings = ignore_warnings, excl_unmatched_analyses = excl_unmatched_analyses)
+  metadata  <- assert_metadata(data, metadata = list(annot_analyses = tbl_metadata), ignore_warnings, excl_unmatched_analyses)
   data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = excl_unmatched_analyses)
   data <- link_data_metadata(data)
   data
@@ -108,8 +140,8 @@ import_metadata_features <- function(data = NULL, table = NULL, path = NULL,  sh
   check_data(data)
   tbl_metadata <- get_metadata_table(table, path, sheet)
   tbl_metadata <- clean_feature_metadata(tbl_metadata, NULL )
-  metadata  <- assert_metadata(data, metadata = list(annot_features = tbl_metadata), ignore_warnings = ignore_warnings, excl_unmatched_analyses = FALSE)
-  data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = excl_unmatched_analyses)
+  metadata  <- assert_metadata(data, metadata = list(annot_features = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
+  data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = FALSE)
   data <- link_data_metadata(data)
   data
 }
@@ -131,8 +163,8 @@ import_metadata_istds <- function(data = NULL, table = NULL, path = NULL,  sheet
   check_data(data)
   tbl_metadata <- get_metadata_table(table, path, sheet)
   tbl_metadata <- clean_istd_metadata(tbl_metadata, NULL )
-  metadata  <- assert_metadata(data, metadata = list(annot_istds = tbl_metadata), excl_unmatched_analyses = FALSE, ignore_warnings = ignore_warnings)
-  data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = excl_unmatched_analyses)
+  metadata  <- assert_metadata(data, metadata = list(annot_istds = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
+  data  <- add_metadata(data, metadata = metadata)
   data <- link_data_metadata(data)
   data
 }
@@ -147,7 +179,7 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
     mutate(Field = paste0(str_extract(unlist(.data$message), "(?<=\\').+?(?=\\')")) ) |>
     tidyr::separate(col = "description", into = c("Type", "Issue", "Table", "TargetField"), sep = ";", remove = TRUE) |>
     filter(.data$Type != "DX") |>
-    mutate(Field = if_else(Field == "NA", TargetField, Field)) |>
+    mutate(Field = if_else(.data$Field == "NA", .data$TargetField, .data$Field)) |>
     select("Type", "Table", Column = "Field", "Issue", Count = "num.violations") |> ungroup()
 
   res$Count <- res$Count |> unlist()
@@ -162,7 +194,6 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   t3 <- get_assert_summary_table(attr(data$annot_istds, "assertr_errors"))
   t4 <- get_assert_summary_table(attr(data$annot_responsecurves, "assertr_errors"))
 
-  # Ensure ignore_warnings only applies to the current metadata import
   if(!is.null(t1)) t1 <- t1 |> mutate(ignore_warn_flag = attr(data$annot_analyses, "ignore_warnings"))
   if(!is.null(t2)) t2 <- t2 |> mutate(ignore_warn_flag = attr(data$annot_features, "ignore_warnings"))
   if(!is.null(t3)) t3 <- t3 |> mutate(ignore_warn_flag = attr(data$annot_istds, "ignore_warnings"))
@@ -175,18 +206,23 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   else
     t_all <- t_all |> arrange("Type", "Table", "Count")
 
+  # Ensure ignore_warnings only applies to the current metadata import
+  if(!is.null(t1)) {
+    t1 <- t1 |> mutate(ignore_warn_flag = attr(data$annot_analyses, "ignore_warnings"))
+    if(attr(data$annot_analyses, "excl_unmatched_analyses") & "Analyses without metadata" %in% t_all$Issue)
+      t_all$Type[t_all$Issue == "Analyses without metadata"] <- "N"
 
-  if(attr(data$annot_analyses, "excl_unmatched_analyses") & "Analyses without metadata" %in% t_all$Issue)
-    t_all$Type[t_all$Issue == "Analyses without metadata"] <- "N"
-
-  if ("Analyses without metadata" %in% (t_all |> filter(Type == "W") |> pull(.data$Issue))  & !ignore_warnings)
-    if ("annot_analyses" %in% names(metadata_new))
+    if ("Analyses without metadata" %in% (t_all |> filter(.data$Type == "W") |> pull(.data$Issue))  & !ignore_warnings)
+      if ("annot_analyses" %in% names(metadata_new))
         cli::cli_abort(message = cli::col_red("Not all analyses listed in metadata are present in the data. Please check data or set `excl_unmatched_analyses = TRUE`"), trace = NULL, call = caller_env())
+  }
 
 
   #else
   #cli::cli_alert_warning(text = cli::col_yellow("Ignoring metadata warnings (as 'ignore_warnings' was set to TRUE)"))
-  t_all_print <- t_all |> select(-"ignore_warn_flag")
+  t_all_print <- t_all |>
+    mutate(Type = if_else(.data$Type == "W" & .data$ignore_warn_flag, "W*", .data$Type)) |>
+    select(-"ignore_warn_flag")
   if(any(t_all$Type == "D")){
     cli::cli_alert_warning(text = cli::col_red(glue::glue("Metadata is invalid with following defects:")))
     print(as_assertr_tibble(t_all_print))
@@ -200,7 +236,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     print(as_assertr_tibble(t_all_print))
   }
 
-  if (!ignore_warnings & any(t_all |> filter(!ignore_warn_flag) |>  pull(.data$Type) == "W"))
+  if (!ignore_warnings & any(t_all |> filter(!.data$ignore_warn_flag) |>  pull(.data$Type) == "W"))
     cli::cli_abort(message = cli::col_red("Please check warnings in corresponding metadata. Use `ignore_warnings`= TRUE to ignore warnings."), trace = NULL, call = caller_env())
 
 }
@@ -218,7 +254,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
 # Verify/assert metadata consistency with analysis data
 
 #TODO: align with metadata assertions and when it is check_integrity called
- assert_metadata <- function(data = NULL, metadata, ignore_warnings, excl_unmatched_analyses) {
+ assert_metadata <- function(data = NULL, metadata, ignore_warnings, excl_unmatched_analyses ) {
    check_data(data)
    #TODO: NOTE to check for multiple missing columns defects, first each column will be check
    # for presence and error is raised for reporting, then a defect is raised to
@@ -338,7 +374,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "curve_id")), obligatory=TRUE, description = "E;Missing value(s);Response Curves;analysis_id|curve_id") |>
       assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Response Curves;analysis_id") |>
-      assertr::verify(check_groupwise_identical_ids(metadata$annot_responsecurves , group_col = curve_id, id_col = analyzed_amount_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Response Curves;analyzed_amount_unit") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_responsecurves , group_col = .data$curve_id, id_col = .data$analyzed_amount_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Response Curves;analyzed_amount_unit") |>
       #assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "W;Analyses of QC type 'RQC' not defined;Response Curves;analysis_id") |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analyzed_amount")), description = "W;Missing value(s);Response Curves;analyzed_amount")
     if(!is.null(data)){
@@ -523,6 +559,12 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   if("new_feature_name" %in% names(d_features))
     d_features <- d_features |> rename("feature_label" = "new_feature_name")
 
+  if("quantifier" %in% names(d_features))
+    d_features <- d_features |> rename("is_quantifier" = "quantifier")
+
+  if("valid_integration" %in% names(d_features))
+    d_features <- d_features |> rename("valid_feature" = "valid_integration")
+
   metadata$annot_features <- clean_feature_metadata(d_features, "Features (Analytes)")
 
 
@@ -634,7 +676,7 @@ get_metadata_table <- function(dataset = NULL, path = NULL, sheet = NULL) {
                                skip_hidden_cols = FALSE,
                                convert = TRUE,
                                col_names = TRUE) |>
-        mutate(across(where(is.character), str_trim)) |>
+        mutate(dplyr::across(where(is.character), str_trim)) |>
         as_tibble() |>
         filter(!if_all(everything(), is.na))
 
@@ -656,6 +698,9 @@ clean_analysis_metadata <- function(d_analyses, source_text = NULL) {
 
   # Fill missing columns
   d_analyses <- d_analyses |> add_missing_column(col_name = "batch_id", init_value = 1, make_lowercase = FALSE)
+  d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount", init_value = NA_real_, make_lowercase = FALSE)
+  d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount_unit", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = TRUE)
+  d_analyses <- d_analyses |> add_missing_column(col_name = "istd_volume", init_value = NA_real_, make_lowercase = FALSE, all_na_replace = TRUE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "valid_analysis", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "replicate_no", init_value = 1L, make_lowercase = FALSE, all_na_replace = TRUE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "specimen", init_value = NA_character_, make_lowercase = FALSE)
@@ -664,7 +709,7 @@ clean_analysis_metadata <- function(d_analyses, source_text = NULL) {
   d_analyses <- d_analyses |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
   d_analyses <- d_analyses |>
-    select(
+    dplyr::select(
       "analysis_id",
       "qc_type",
       "sample_amount",
@@ -722,6 +767,8 @@ clean_feature_metadata <- function(d_features, source_text) {
   d_features <- d_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "is_quantifier", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
+  d_features <- d_features |> add_missing_column(col_name = "istd_feature_id", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "quant_istd_feature_id", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
@@ -736,13 +783,13 @@ clean_feature_metadata <- function(d_features, source_text) {
       feature_class = stringr::str_squish(.data$feature_class),
       istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
-      is_quantifier = as.logical(case_match(tolower(.data$quantifier),
+      is_quantifier = as.logical(case_match(tolower(.data$is_quantifier),
                                             "yes" ~ TRUE,
                                             "no"~ FALSE,
                                             "true" ~ TRUE,
                                             "false" ~ FALSE,
                                             .default = NA)),
-      valid_feature = as.logical(case_match(tolower(.data$valid_integration),
+      valid_feature = as.logical(case_match(tolower(.data$valid_feature),
                                             "yes" ~ TRUE,
                                             "no"~ FALSE,
                                             "true" ~ TRUE,

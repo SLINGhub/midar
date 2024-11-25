@@ -48,9 +48,9 @@ reference:
   - set_analysis_order
   - get_batch_boundaries
   - exclude_analyses
-  - data_exclude_features
+  - exclude_features
   - combine_experiments
-  - data_get_analyticaldata
+  - get_analyticaldata
   - set_intensity_var
 - title: Analysis data import
   description: |

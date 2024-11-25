@@ -9,3 +9,4 @@
 ^\.testing$
 ^vignettes/articles$
 ^codecov\.yml$
+.travis.yml

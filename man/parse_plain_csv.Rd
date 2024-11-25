@@ -4,20 +4,31 @@
 \alias{parse_plain_csv}
 \title{Reads a long CSV file with Feature Intensities}
 \usage{
-parse_plain_csv(file, variable_name, analysis_id_col = NA, include_metadata)
+parse_plain_csv(path, variable_name, analysis_id_col = NA, import_metadata)
 }
 \arguments{
-\item{file}{File name and path of a plain long-format CSV file}
+\item{path}{path name and path of a plain long-format CSV file}
 
 \item{variable_name}{Name of the variable representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")}
 
 \item{analysis_id_col}{Column to be used as analysis_id}
 
-\item{include_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
+\item{import_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
 }
 \value{
 A tibble in the long format
 }
 \description{
 Reads a long CSV file with Feature Intensities
+}
+\examples{
+file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
+
+tbl <- parse_plain_csv(
+ path = file_path,
+ variable_name = "conc",
+ analysis_id_col = "analysis_id"m
+ import_metadata = TRUE)
+
+head(tbl)
 }

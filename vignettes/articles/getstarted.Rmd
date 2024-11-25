@@ -41,7 +41,7 @@ of the integrated peaks (features) in all the processed raw data files.
 In addition, the MRMkit result file also contains peak retention times
 and widths, as well as metadata extracted from the mzML files, such as
 acquisition time stamp and m/z values. We import these metadata by
-setting `include_metadata = TRUE`.
+setting `import_metadata = TRUE`.
 
 <details>
 
@@ -57,7 +57,7 @@ setting `include_metadata = TRUE`.
 myexp <- midar::MidarExperiment(title = "sPerfect")
 
 data_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
-myexp <- import_data_mrmkit(data = myexp, path = data_path, include_metadata = TRUE)
+myexp <- import_data_mrmkit(data = myexp, path = data_path, import_metadata = TRUE)
 ```
 
 ## 2. A glimpse on the imported MRMkit results

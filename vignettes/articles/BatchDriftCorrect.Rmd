@@ -34,7 +34,7 @@ myexp <- import_data_csv(
   data = midar::MidarExperiment(),
   path = "batch_effect-simdata-u1000-sd100_7batches.csv", 
   variable_name = "conc", 
-  include_metadata = TRUE)
+  import_metadata = TRUE)
 ```
 
 ## Batch-Centering
@@ -90,7 +90,7 @@ myexp <- midar::MidarExperiment(title = "batch-effects")
 myexp <- import_data_csv(data = myexp, 
                           path = "drift_batch_effect-simdata-u1000-sd100_7batches.csv", 
                           variable_name = "conc", 
-                          include_metadata = TRUE)
+                          import_metadata = TRUE)
 
 # Within-batch drift correction (smoothing) based on study samples
 myexp <- midar::correct_drift_gaussiankernel(myexp,

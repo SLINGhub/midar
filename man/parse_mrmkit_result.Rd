@@ -17,3 +17,12 @@ A tibble in the long format
 \description{
 Parses MRMkit peak integration results into a tibble
 }
+\examples{
+
+file_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar"),
+
+tbl <- parse_mrmkit_result(
+  path = file_path)
+
+head(tbl)
+}

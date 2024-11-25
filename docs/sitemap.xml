@@ -45,8 +45,8 @@
 <url><loc>https://slinghub.github.io/midar/reference/correct_interferences.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/cv_log.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/exclude_analyses.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/data_exclude_features.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/data_get_analyticaldata.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/exclude_features.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/get_analyticaldata.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_masshunter.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_mrmkit.html</loc></url>

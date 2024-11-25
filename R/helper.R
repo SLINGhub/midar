@@ -14,10 +14,9 @@ safe_max <- function(x, na.rm = FALSE) {
 
 # checks if all values of a specific column are identicval in a grouped
 check_groupwise_identical_ids <- function(data, group_col, id_col) {
-
   data |>
     summarise(all_identical = dplyr::n_distinct({{id_col}}) == 1, .by = {{group_col}}) |>
-    pull(all_identical) |> all()
+    pull(.data$all_identical) |> all()
 }
 
 # Used for qc filtering ####
