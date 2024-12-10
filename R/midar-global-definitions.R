@@ -67,6 +67,13 @@ pkg.env$table_templates <- list(
     "curve_id" = character(),
     "analyzed_amount" = numeric()
   ),
+  annot_calibcurves_template = tibble::tibble(
+    "analysis_id" = character(),
+    "curve_id" = character(),
+    "feature_id" = character(),
+    "concentration" = numeric(),
+    "concentration_unit" = character()
+  ),
   annot_batch_info_template = tibble::tibble(
     "batch_id" = character(),
     "batch_no" = numeric(),

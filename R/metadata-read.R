@@ -87,7 +87,7 @@ import_metadata_midarxlm <- function(data = NULL, path,  ignore_warnings = FALSE
 }
 
 #' @title Import analysis metadata
-#' @description Imports analysis metadata (annotation) from a preloaded data frame or tibble via the `data` argument,  or from data from a file (CSV or Excel) via the `path` argument.
+#' @description Imports analysis metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
 #' The analysis metadata must contain following columns: `analysis_id` and `qc_type`. Additional analysis metadata columns are described under details below.
 #' @param data A `MidarExperiment` object
 #' @param table A data frame or tibble with analysis (sample) metadata. If `path` is also provided, an error will be raised.
@@ -148,11 +148,11 @@ import_metadata_features <- function(data = NULL, table = NULL, path = NULL,  sh
 
 
 #' @title Import Internal Standards (ISTD) metadata
-#' @description Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the `data` argument,  or from data from a file (CSV or Excel) via the `path` argument.
+#' @description Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
 #' The analysis metadata must contain following columns: `istd_feature_id` and `istd_conc_nmolar`.
 #' @param data A `MidarExperiment` object
 #' @param table A data frame or tibble with analysis (sample) metadata. If `path` is also provided, an error will be raised.
-#' @param path A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If `sample_metadata` is also provided, an error will be raised.
+#' @param path A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If `table` is also provided, an error will be raised.
 #' @param sheet Defines the sheet name in case an Excel file is provided.
 # #' @param excl_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
@@ -169,6 +169,27 @@ import_metadata_istds <- function(data = NULL, table = NULL, path = NULL,  sheet
   data
 }
 
+
+#' @title Import Calibration Curve metadata
+#' @description Imports calibration curve metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
+#' The analysis metadata must contain following columns: `analysis_id`, `curve_id`, `feature_id`, `concentration`, and `concentration_unit`.
+#' @param data A `MidarExperiment` object
+#' @param table A data frame or tibble with calibration curve metadata. If `path` is also provided, an error will be raised.
+#' @param path A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If `table` is also provided, an error will be raised.
+#' @param sheet Defines the sheet name in case an Excel file is provided.
+#' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
+#' @return An updated `MidarExperiment` object
+#' @export
+#'
+import_metadata_calibcurves<- function(data = NULL, table = NULL, path = NULL,  sheet = NULL, ignore_warnings = FALSE) {
+  check_data(data)
+  tbl_metadata <- get_metadata_table(table, path, sheet)
+  tbl_metadata <- clean_calibcurves_metadata(tbl_metadata, NULL )
+  metadata  <- assert_metadata(data, metadata = list(annot_istds = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
+  data  <- add_metadata(data, metadata = metadata)
+  data <- link_data_metadata(data)
+  data
+}
 
 get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
   if (is.null(list_of_errors)) return(NULL)
@@ -390,12 +411,42 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   }
 
 
+  # CALIBRATION CURVE METADATA ====================
+
+  if (!is.null(metadata$annot_calibcurves) && nrow(metadata$annot_calibcurves) > 0){
+    ## Check for data defects ----
+    metadata$annot_calibcurves <- metadata$annot_calibcurves |>
+      assertr::verify(assertr::has_all_names("analysis_id", "curve_id", "feature_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
+
+    ## Check data integrity ----
+    ### TODO: check for qc_type RQC
+    metadata$annot_calibcurves <- metadata$annot_calibcurves |>
+      assertr::chain_start(store_success = FALSE) |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "curve_id")), obligatory=TRUE, description = "E;Missing value(s);Calibration Curves;analysis_id|curve_id") |>
+      assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Calibration Curves;analysis_id") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_calibcurves , group_col = .data$curve_id, id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);Calibration Curves;analyzed_amount")
+    if(!is.null(data)){
+      metadata$annot_calibcurves <- metadata$annot_calibcurves |>
+        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "E;Analysis not present in analysis data;Calibration Curves;analysis_id")
+      metadata$annot_calibcurves <- metadata$annot_calibcurves |>
+        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "E;Feature not present in analysis data;Calibration Curves;feature_id")
+    }
+    metadata$annot_calibcurves <- metadata$annot_calibcurves |> assertr::chain_end(error_fun = assertr::error_append)
+
+    if("annot_calibcurves" %in% names(metadata_new)) {
+      attr(metadata$annot_calibcurves, "ignore_warnings") <- ignore_warnings
+    }
+
+  }
+
 
   # retrieve vom data if available and if not provide as metadata (for single annot adding)
   if(is.null(metadata_new$annot_analyses)) metadata$annot_analyses <- data@annot_analyses
   if(is.null(metadata_new$annot_features)) metadata$annot_features <- data@annot_features
   if(is.null(metadata_new$annot_istds)) metadata$annot_istds <- data@annot_istds
   if(is.null(metadata_new$annot_responsecurves)) metadata$annot_responsecurves <- data@annot_responsecurves
+  if(is.null(metadata_new$annot_calibcurves)) metadata$annot_calibcurves <- data@annot_calibcurves
 
   print_assertion_summary(data = metadata, metadata_new = metadata_new, data_label = "Response Curves",assert_type = "defect", ignore_warnings = ignore_warnings, excl_unmatched_analyses = excl_unmatched_analyses)
 
@@ -467,7 +518,18 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
 
     # Get info for cli output
     n_match <- intersect(data@dataset_orig$analysis_id, data@annot_responsecurves$analysis_id) |> length()
-    cli_alert_success(col_green(glue::glue("Response Curve metadata associated with {n_match} analyses.")))
+    cli_alert_success(col_green(glue::glue("Response curve metadata associated with {n_match} analyses.")))
+  }
+
+  # CALIBRATION CURVE METADATA ====================
+  if (!is.null(metadata$annot_calibcurves) & nrow(metadata$annot_calibcurves) > 0){
+    # Add template table structure
+    data@annot_calibcurves <- metadata$annot_calibcurves
+
+    # Get info for cli output
+    n_match_analyses <- intersect(data@dataset_orig$analysis_id, data@annot_calibcurves$analysis_id) |> length()
+    n_match_features <- intersect(data@dataset_orig$feature_id, data@annot_calibcurves$feature_id) |> length()
+    cli_alert_success(col_green(glue::glue("Calibration curve metadata associated with {n_match_analyses} analyses and {n_match_features} features.")))
   }
 
 
@@ -623,6 +685,24 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   }
 
   metadata$annot_responsecurves <- clean_response_metadata(d_rqc, "Response Curves")
+
+  # CALIBRATION CURVE annotation -------------------------
+
+  d_cal <- openxlsx2::wb_to_df(file = w_xlm,
+                               sheet = "Calibration Curves",
+                               skip_empty_rows = FALSE,
+                               skip_empty_cols = FALSE,
+                               skip_hidden_rows = FALSE,
+                               skip_hidden_cols = FALSE,
+                               col_names = TRUE) |>
+    mutate(across(where(is.character), str_trim)) |>
+    as_tibble() |>
+    filter(!if_all(everything(), is.na))
+
+  names(d_cal) <- tolower(names(d_cal))
+
+  metadata$annot_calibcurves <- clean_calibcurves_metadata(d_cal, "Calibration Curves")
+
 
   # FINALIZE METADATA-------------------------
   metadata
@@ -886,3 +966,31 @@ clean_response_metadata <- function(d_rqc, source_text) {
                             d_rqc)
   d_rqc
 }
+
+clean_calibcurves_metadata <- function(d_cal, source_text) {
+  if(!all(c("analysis_id", "curve_id", "feature_id", "concentration", "concentration_unit") %in% names(d_cal))){
+    cli::cli_abort(cli::col_red("Calibration curves metadata must have following columns: `analysis_id`, `curve_id`, `feature_id`, `concentration` and `concentration_unit`. Please check the input data. "))
+  }
+
+  d_cal <- d_cal |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
+
+  d_cal <- d_cal |>
+    dplyr::mutate(
+      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+      analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
+      curve_id = stringr::str_squish(as.character(.data$curve_id)),
+      concentration_unit = stringr::str_squish(.data$concentration_unit)
+    ) |>
+    dplyr::select(
+      "analysis_id",
+      "curve_id",
+      "feature_id",
+      "concentration",
+      "concentration_unit",
+      "remarks"
+    )
+  d_cal <- dplyr::bind_rows(pkg.env$table_templates$annot_responsecurves_template,
+                            d_cal)
+  d_cal
+}
+

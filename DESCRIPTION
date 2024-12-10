@@ -87,6 +87,7 @@ Collate:
     'plots-qc-filtering.R'
     'plots-qc-pca.R'
     'plots-qc-responsecurves.R'
+    'plots-calibcurves.R'
     'plots-qc-runorder.R'
     'qc-filtering.R'
     'tibble-classes.R'

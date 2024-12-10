@@ -17,7 +17,8 @@
 #' @slot annot_analyses Annotation of analyses/runs
 #' @slot annot_features Annotation of measured features.
 #' @slot annot_istds Annotation of Internal Standard concs.
-#' @slot annot_responsecurves Annotation of  Response curves (RQC). Required fields
+#' @slot annot_responsecurves Annotation of response curves (RQC). Required fields
+#' @slot annot_calibcurves Annotation of calibration curves. Required fields
 #' @slot annot_studysamples Annotation of study samples. Required fields:
 #' @slot annot_batches Annotation of batches. Required fields:
 #' @slot metrics_qc QC information for each measured feature
@@ -47,6 +48,7 @@ setClass("MidarExperiment",
     annot_features = "tbl_df",
     annot_istds = "tbl_df",
     annot_responsecurves = "tbl_df",
+    annot_calibcurves = "tbl_df",
     annot_studysamples = "tbl_df",
     annot_batches = "tbl_df",
     metrics_qc = "tbl_df",
@@ -72,6 +74,7 @@ setClass("MidarExperiment",
     annot_features = pkg.env$table_templates$annot_features_template,
     annot_istds = pkg.env$table_templates$annot_istds_template,
     annot_responsecurves = pkg.env$table_templates$annot_responsecurves_template,
+    annot_calibcurves = pkg.env$table_templates$annot_calibcurves_template,
     annot_studysamples = tibble::tibble(),
     annot_batches = tibble::tibble(),
     metrics_qc = tibble::tibble(),
@@ -244,6 +247,7 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
   cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istds) > 0)}}")
   cli::cli_li("Response curve annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
+  cli::cli_li("Calibration curve annotation:  {.strong {get_status_flag(nrow(object@annot_calibcurves) > 0)}}")
   cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
   cli::cli_end(id ="B")
 
