@@ -55,6 +55,8 @@ pkg.env$table_templates <- list(
     "response_factor" = numeric(),
     "interference_feature_id" = character(),
     "interference_proportion" = numeric(),
+    "curve_fit_method" = character(),
+    "fit_weighting" = character(),
     "remarks" = character()
   ),
   annot_istds_template = tibble::tibble(
@@ -67,9 +69,8 @@ pkg.env$table_templates <- list(
     "curve_id" = character(),
     "analyzed_amount" = numeric()
   ),
-  annot_calibcurves_template = tibble::tibble(
-    "analysis_id" = character(),
-    "curve_id" = character(),
+  annot_qcconcentrations_template = tibble::tibble(
+    "sample_id" = character(),
     "feature_id" = character(),
     "concentration" = numeric(),
     "concentration_unit" = character()

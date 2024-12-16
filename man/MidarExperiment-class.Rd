@@ -31,7 +31,7 @@ It also includes processing results, details of the applied processing steps, an
 
 \item{\code{annot_responsecurves}}{Annotation of response curves (RQC). Required fields}
 
-\item{\code{annot_calibcurves}}{Annotation of calibration curves. Required fields}
+\item{\code{annot_qcconcentrations}}{Annotation of calibration curves. Required fields}
 
 \item{\code{annot_studysamples}}{Annotation of study samples. Required fields:}
 

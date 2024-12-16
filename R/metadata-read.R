@@ -181,10 +181,10 @@ import_metadata_istds <- function(data = NULL, table = NULL, path = NULL,  sheet
 #' @return An updated `MidarExperiment` object
 #' @export
 #'
-import_metadata_calibcurves<- function(data = NULL, table = NULL, path = NULL,  sheet = NULL, ignore_warnings = FALSE) {
+import_metadata_qcconcentrations <- function(data = NULL, table = NULL, path = NULL,  sheet = NULL, ignore_warnings = FALSE) {
   check_data(data)
   tbl_metadata <- get_metadata_table(table, path, sheet)
-  tbl_metadata <- clean_calibcurves_metadata(tbl_metadata, NULL )
+  tbl_metadata <- clean_qcconc_metadata(tbl_metadata, NULL )
   metadata  <- assert_metadata(data, metadata = list(annot_istds = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
   data  <- add_metadata(data, metadata = metadata)
   data <- link_data_metadata(data)
@@ -337,8 +337,10 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=FALSE, description = "E;Missing value(s);Features") |>
       assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
-      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id")
-
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
+      assertr::assert(assertr::in_set(NA, "linear", "quadratic"), curve_fit_method, description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
+      assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), fit_weighting, description = "E; Must be NA, '1/x' or '1/x^2';Features;fit_weighting")
       #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
       #assertr::assert(\(x) {any(metadata$annot_istds$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istds)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
       #assertr::verify(unique(interference_feature_id) %in% feature_id, description = "Interfering feature(s) not defined under 'feature_id';Features")
@@ -411,31 +413,31 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   }
 
 
-  # CALIBRATION CURVE METADATA ====================
+  # QC CONCENTRATION METADATA ====================
 
-  if (!is.null(metadata$annot_calibcurves) && nrow(metadata$annot_calibcurves) > 0){
+  if (!is.null(metadata$annot_qcconcentrations) && nrow(metadata$annot_qcconcentrations) > 0){
     ## Check for data defects ----
-    metadata$annot_calibcurves <- metadata$annot_calibcurves |>
-      assertr::verify(assertr::has_all_names("analysis_id", "curve_id", "feature_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
+    metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
+      assertr::verify(assertr::has_all_names("sample_id", "feature_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
 
     ## Check data integrity ----
     ### TODO: check for qc_type RQC
-    metadata$annot_calibcurves <- metadata$annot_calibcurves |>
+    metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "curve_id")), obligatory=TRUE, description = "E;Missing value(s);Calibration Curves;analysis_id|curve_id") |>
-      assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Calibration Curves;analysis_id") |>
-      assertr::verify(check_groupwise_identical_ids(metadata$annot_calibcurves , group_col = .data$curve_id, id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);Calibration Curves;analyzed_amount")
+      assertr::assert(\(x){not_na(x)}, any_of(c("sample_id")), obligatory=TRUE, description = "E;Missing value(s);QC concentrations;sample_id") |>
+      assertr::verify(all(assertr::is_uniq(.data$sample_id)), obligatory=TRUE, description = "E;Duplicated sample IDs;QC concentrations;sample_id") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_qcconcentrations , group_col = .data$curve_id, id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);QC concentrations;analyzed_amount")
     if(!is.null(data)){
-      metadata$annot_calibcurves <- metadata$annot_calibcurves |>
-        assertr::verify((.data$analysis_id %in% unique(data@dataset_orig$analysis_id)), description = "E;Analysis not present in analysis data;Calibration Curves;analysis_id")
-      metadata$annot_calibcurves <- metadata$annot_calibcurves |>
-        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "E;Feature not present in analysis data;Calibration Curves;feature_id")
+      metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
+        assertr::verify((.data$analysis_id %in% unique(data@annot_analyses$sample_id)), description = "E;Samples not present in analysis data;QC concentrations;sample_id")
+      metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
+        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "E;Feature not present in analysis data;QC concentrations;feature_id")
     }
-    metadata$annot_calibcurves <- metadata$annot_calibcurves |> assertr::chain_end(error_fun = assertr::error_append)
+    metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |> assertr::chain_end(error_fun = assertr::error_append)
 
-    if("annot_calibcurves" %in% names(metadata_new)) {
-      attr(metadata$annot_calibcurves, "ignore_warnings") <- ignore_warnings
+    if("annot_qcconcentrations" %in% names(metadata_new)) {
+      attr(metadata$annot_qcconcentrations, "ignore_warnings") <- ignore_warnings
     }
 
   }
@@ -446,7 +448,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   if(is.null(metadata_new$annot_features)) metadata$annot_features <- data@annot_features
   if(is.null(metadata_new$annot_istds)) metadata$annot_istds <- data@annot_istds
   if(is.null(metadata_new$annot_responsecurves)) metadata$annot_responsecurves <- data@annot_responsecurves
-  if(is.null(metadata_new$annot_calibcurves)) metadata$annot_calibcurves <- data@annot_calibcurves
+  if(is.null(metadata_new$annot_qcconcentrations)) metadata$annot_qcconcentrations <- data@annot_qcconcentrations
 
   print_assertion_summary(data = metadata, metadata_new = metadata_new, data_label = "Response Curves",assert_type = "defect", ignore_warnings = ignore_warnings, excl_unmatched_analyses = excl_unmatched_analyses)
 
@@ -521,15 +523,16 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
     cli_alert_success(col_green(glue::glue("Response curve metadata associated with {n_match} analyses.")))
   }
 
-  # CALIBRATION CURVE METADATA ====================
-  if (!is.null(metadata$annot_calibcurves) & nrow(metadata$annot_calibcurves) > 0){
+  # QC CONCENTRATION METADATA ====================
+  if (!is.null(metadata$annot_qcconcentrations) & nrow(metadata$annot_qcconcentrations) > 0){
     # Add template table structure
-    data@annot_calibcurves <- metadata$annot_calibcurves
+    data@annot_qcconcentrations <- metadata$annot_qcconcentrations
 
     # Get info for cli output
-    n_match_analyses <- intersect(data@dataset_orig$analysis_id, data@annot_calibcurves$analysis_id) |> length()
-    n_match_features <- intersect(data@dataset_orig$feature_id, data@annot_calibcurves$feature_id) |> length()
-    cli_alert_success(col_green(glue::glue("Calibration curve metadata associated with {n_match_analyses} analyses and {n_match_features} features.")))
+    # TODOTODO: use dataset instead annot to get samples ids actually in the dataset and not just in metadata
+    n_match_samples <- intersect(data@dataset$sample_id, data@annot_qcconcentrations$sample_id) |> length()
+    n_match_features <- intersect(data@dataset_orig$feature_id, data@annot_qcconcentrations$feature_id) |> length()
+    cli_alert_success(col_green(glue::glue("QC concentration metadata associated with {n_match_samples} QC samples and {n_match_features} features.")))
   }
 
 
@@ -686,10 +689,10 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   metadata$annot_responsecurves <- clean_response_metadata(d_rqc, "Response Curves")
 
-  # CALIBRATION CURVE annotation -------------------------
+  # QC CONCENTRATION annotation -------------------------
 
   d_cal <- openxlsx2::wb_to_df(file = w_xlm,
-                               sheet = "Calibration Curves",
+                               sheet = "QC Concentrations",
                                skip_empty_rows = FALSE,
                                skip_empty_cols = FALSE,
                                skip_hidden_rows = FALSE,
@@ -701,7 +704,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   names(d_cal) <- tolower(names(d_cal))
 
-  metadata$annot_calibcurves <- clean_calibcurves_metadata(d_cal, "Calibration Curves")
+  metadata$annot_qcconcentrations <- clean_qcconc_metadata(d_cal, "QC concentrations")
 
 
   # FINALIZE METADATA-------------------------
@@ -853,6 +856,8 @@ clean_feature_metadata <- function(d_features, source_text) {
   d_features <- d_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "curve_fit_method", init_value = NA_character_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "fit_weighting", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
 
@@ -876,6 +881,8 @@ clean_feature_metadata <- function(d_features, source_text) {
                                             "false" ~ FALSE,
                                             .default = NA)),
       interference_feature_id = stringr::str_squish(.data$interference_feature_id),
+      curve_fit_method = stringr::str_squish(.data$curve_fit_method),
+      fit_weighting = stringr::str_squish(.data$fit_weighting),
       remarks = as.character(.data$remarks)
     ) |>
     mutate(across(where(is.character), str_trim)) |>
@@ -890,6 +897,8 @@ clean_feature_metadata <- function(d_features, source_text) {
       "valid_feature",
       "interference_feature_id",
       "interference_proportion",
+      "curve_fit_method",
+      "fit_weighting",
       "remarks"
     )
 
@@ -967,29 +976,27 @@ clean_response_metadata <- function(d_rqc, source_text) {
   d_rqc
 }
 
-clean_calibcurves_metadata <- function(d_cal, source_text) {
-  if(!all(c("analysis_id", "curve_id", "feature_id", "concentration", "concentration_unit") %in% names(d_cal))){
-    cli::cli_abort(cli::col_red("Calibration curves metadata must have following columns: `analysis_id`, `curve_id`, `feature_id`, `concentration` and `concentration_unit`. Please check the input data. "))
+clean_qcconc_metadata <- function(d_cal, source_text) {
+  if(!all(c("sample_id", "feature_id", "concentration", "concentration_unit") %in% names(d_cal))){
+    cli::cli_abort(cli::col_red("Calibration curves metadata must have following columns: `sample_id`, `feature_id`, `concentration` and `concentration_unit`. Please check the input data. "))
   }
 
   d_cal <- d_cal |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
   d_cal <- d_cal |>
     dplyr::mutate(
-      analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
-      analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
-      curve_id = stringr::str_squish(as.character(.data$curve_id)),
+      sample_id = stringr::str_remove(.data$sample_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
+      sample_id = stringr::str_squish(as.character(.data$sample_id)),
       concentration_unit = stringr::str_squish(.data$concentration_unit)
     ) |>
     dplyr::select(
-      "analysis_id",
-      "curve_id",
+      "sample_id",
       "feature_id",
       "concentration",
       "concentration_unit",
       "remarks"
     )
-  d_cal <- dplyr::bind_rows(pkg.env$table_templates$annot_responsecurves_template,
+  d_cal <- dplyr::bind_rows(pkg.env$table_templates$annot_qcconcentrations_template,
                             d_cal)
   d_cal
 }
