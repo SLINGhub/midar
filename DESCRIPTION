@@ -63,6 +63,7 @@ RoxygenNote: 7.3.2
 LazyData: true
 LazyDataCompression: xz
 Collate: 
+    'calc-calibrations.R'
     'calc-istd-normalization.R'
     'midar-global-definitions.R'
     'classes.R'
@@ -82,12 +83,12 @@ Collate:
     'metadata-access.R'
     'metadata-read.R'
     'midar-package.R'
+    'plots-calibcurves.R'
     'plots-eda.R'
     'plots-qc-cv.R'
     'plots-qc-filtering.R'
     'plots-qc-pca.R'
     'plots-qc-responsecurves.R'
-    'plots-calibcurves.R'
     'plots-qc-runorder.R'
     'qc-filtering.R'
     'tibble-classes.R'

@@ -22,6 +22,7 @@
 #' @slot annot_studysamples Annotation of study samples. Required fields:
 #' @slot annot_batches Annotation of batches. Required fields:
 #' @slot metrics_qc QC information for each measured feature
+#' @slot metrics_calibration Calibration metrics calculated from external calibration curves for each measured feature
 #' @slot parameters_processing Values of parameters used for the different processing steps
 #' @slot status_processing Status within the data processing workflow
 #' @slot is_istd_normalized Flag if data has been ISTD normalized
@@ -52,6 +53,7 @@ setClass("MidarExperiment",
     annot_studysamples = "tbl_df",
     annot_batches = "tbl_df",
     metrics_qc = "tbl_df",
+    metrics_calibration = "tbl_df",
     parameters_processing = "tbl_df",
     status_processing = "character",
     is_istd_normalized = "logical",
@@ -78,6 +80,7 @@ setClass("MidarExperiment",
     annot_studysamples = tibble::tibble(),
     annot_batches = tibble::tibble(),
     metrics_qc = tibble::tibble(),
+    metrics_calibration = tibble::tibble(),
     parameters_processing = pkg.env$table_templates$parameters_processing_template,
     status_processing = "No Data",
     is_isotope_corr = FALSE,

@@ -30,7 +30,7 @@ import_metadata_analyses(
 An updated \code{MidarExperiment} object
 }
 \description{
-Imports analysis metadata (annotation) from a preloaded data frame or tibble via the \code{data} argument,  or from data from a file (CSV or Excel) via the \code{path} argument.
+Imports analysis metadata (annotation) from a preloaded data frame or tibble via the \code{data} argument, or from data from a file (CSV or Excel) via the \code{path} argument.
 The analysis metadata must contain following columns: \code{analysis_id} and \code{qc_type}. Additional analysis metadata columns are described under details below.
 }
 \examples{

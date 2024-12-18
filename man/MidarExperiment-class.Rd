@@ -39,6 +39,8 @@ It also includes processing results, details of the applied processing steps, an
 
 \item{\code{metrics_qc}}{QC information for each measured feature}
 
+\item{\code{metrics_calibration}}{Calibration metrics calculated from external calibration curves for each measured feature}
+
 \item{\code{parameters_processing}}{Values of parameters used for the different processing steps}
 
 \item{\code{status_processing}}{Status within the data processing workflow}

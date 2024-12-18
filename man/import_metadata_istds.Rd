@@ -17,7 +17,7 @@ import_metadata_istds(
 
 \item{table}{A data frame or tibble with analysis (sample) metadata. If \code{path} is also provided, an error will be raised.}
 
-\item{path}{A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If \code{sample_metadata} is also provided, an error will be raised.}
+\item{path}{A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If \code{table} is also provided, an error will be raised.}
 
 \item{sheet}{Defines the sheet name in case an Excel file is provided.}
 
@@ -27,6 +27,6 @@ import_metadata_istds(
 An updated \code{MidarExperiment} object
 }
 \description{
-Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the \code{data} argument,  or from data from a file (CSV or Excel) via the \code{path} argument.
+Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the \code{data} argument, or from data from a file (CSV or Excel) via the \code{path} argument.
 The analysis metadata must contain following columns: \code{istd_feature_id} and \code{istd_conc_nmolar}.
 }

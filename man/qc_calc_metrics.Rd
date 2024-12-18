@@ -9,7 +9,8 @@ qc_calc_metrics(
   batch_medians,
   with_norm_intensity = TRUE,
   with_conc = TRUE,
-  with_linearity = TRUE
+  with_linearity = TRUE,
+  with_calibration = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ qc_calc_metrics(
 \item{with_conc}{Include concentration statistics of features. Default is TRUE.}
 
 \item{with_linearity}{Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.}
+
+\item{with_calibration}{Include external calibration results if available.}
 }
 \value{
 MidarExperiment object

@@ -116,6 +116,41 @@ save_report_xlsx <- function(data = NULL, path) {
 }
 
 
+#'  @export
+get_calibration_report <- function(data, qc_types, with_lod = TRUE, with_loq = TRUE, with_bias = TRUE,  with_coefficients = TRUE, with_sigma = TRUE){
+
+  d_qc_summary <- data@dataset |>
+    filter(.data$qc_type %in% qc_types, !.data$is_istd, .data$is_quantifier) |>
+    select("analysis_id", "qc_type", "sample_id", "feature_id", "feature_conc") |>
+    left_join(data@annot_qcconcentrations |> select("sample_id", "feature_id", target_concentration = "concentration"), by = c("sample_id", "feature_id")) |>
+    relocate(.data$target_concentration, .after = .data$feature_id) |>
+    mutate(
+      bias_perc = (.data$feature_conc - .data$target_concentration) / .data$target_concentration * 100
+    ) |>
+    summarise(
+      n = dplyr::n(),
+      conc_target = mean(.data$target_concentration, na.rm = FALSE),
+      conc_mean = mean(.data$feature_conc, na.rm = TRUE),
+      conc_sd = sd(.data$feature_conc, na.rm = TRUE),
+      bias_perc_mean = mean(.data$bias_perc, na.rm = TRUE),
+      bias_perc_sd = sd(.data$bias_perc, na.rm = TRUE),
+      cv_intra = .data$conc_sd / .data$conc_mean * 100,
+      .by = c("sample_id", "qc_type", "feature_id")) |>
+    select("feature_id", "qc_type", "bias_perc_mean", "bias_perc_sd", "cv_intra") |>
+    pivot_wider(names_from = "qc_type", values_from = c("bias_perc_mean", "bias_perc_sd", "cv_intra"),
+                names_sort = TRUE, names_glue = "{qc_type}_{.value}")
+
+
+  d_qc_summary <- d_qc_summary |> select(order(colnames(d_qc_summary))) |>
+    relocate(.data$feature_id, .before  = 1) |>
+    left_join(data@metrics_calibration |> select("feature_id", model = "fit_model", weighting = "weighting", r2 = "r2_cal_1", Cal_A_nM = "lowest_cal_cal_1", LoD_nM = "lod_cal_1", LoQ_nM = "loq_cal_1"), by = c("feature_id"))
+
+  d_qc_summary |>
+    arrange(.data$feature_id)
+}
+
+
+
 
 #' Export any parameter to a wide-format table
 #'

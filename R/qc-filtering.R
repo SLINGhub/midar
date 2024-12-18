@@ -8,9 +8,10 @@
 #' @param with_norm_intensity Include normalized intensity statistics of features. Default is TRUE.
 #' @param with_conc Include concentration statistics of features. Default is TRUE.
 #' @param with_linearity Include linearity statistics of response curves. This will increase the calculation time. Default is TRUE.
+#' @param with_calibration Include external calibration results if available.
 #' @return MidarExperiment object
 #' @export
-qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE ) {
+qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TRUE, with_conc = TRUE, with_linearity = TRUE, with_calibration = TRUE) {
   check_data(data)
    # TODO: remove later when fixed
   if (tolower(data@analysis_type) == "lipidomics") data <- lipidomics_get_lipid_class_names(data)
@@ -150,11 +151,19 @@ qc_calc_metrics <- function(data = NULL, batch_medians, with_norm_intensity = TR
       left_join(d_stats_var_final, by = "feature_id") |>
       relocate("feature_id", "feature_class", "in_data", "valid_feature", "is_quantifier", "precursor_mz", "product_mz", "collision_energy")
 
-  if (with_linearity & "RQC" %in% data@dataset$qc_type) {
-    d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
-    data@metrics_qc <- data@metrics_qc |>
-      dplyr::left_join(d_rqc_stats, by = "feature_id")
-  }
+    if (with_calibration & nrow(data@metrics_calibration) > 0) {
+      data@metrics_qc <- data@metrics_qc |>
+        dplyr::left_join(data@metrics_calibration, by = "feature_id")
+    }
+
+    if (with_linearity & "RQC" %in% data@dataset$qc_type) {
+      d_rqc_stats <- get_response_curve_stats(data,  with_staturation_stats = FALSE, limit_to_rqc = TRUE)
+      data@metrics_qc <- data@metrics_qc |>
+        dplyr::left_join(d_rqc_stats, by = "feature_id")
+    }
+
+
+
 
   data
 }
