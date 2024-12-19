@@ -89,7 +89,7 @@ pkg.env$table_templates <- list(
 
 pkg.env$qc_type_annotation <- list(
   qc_type_levels = c(
-    "SBLK", "TBLK", "UBLK", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
+    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC", "CAL", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
     "LTR", "PBLK", "SPL", "SST", "MBLK"
   ),
   qc_type_col = c(
@@ -99,6 +99,10 @@ pkg.env$qc_type_annotation <- list(
     "BQC" = "#db0202",
     "TQC" = "#1854f9",
     "PQC" = "#f99f18",
+    "LQC" = "#c47b0c",
+    "MQC" = "#c47b0c",
+    "HQC" = "#c47b0c",
+    "CAL" = "#04c9a9",
     "RQC" = "#96a4ff",
     "EQC" = "#513c3c",
     "NIST" = "#002e6b",
@@ -115,6 +119,10 @@ pkg.env$qc_type_annotation <- list(
     "BQC" = "#db0202",
     "TQC" = "#1854f9",
     "PQC" = "#f99f18",
+    "LQC" = "#ffba19",
+    "MQC" = "#ffba19",
+    "HQC" = "#ffba19",
+    "CAL" = "#43e0c7",
     "RQC" = "#688ff9",
     "EQC" = "NA",
     "NIST" = "#cce2ff",
@@ -130,7 +138,11 @@ pkg.env$qc_type_annotation <- list(
     "UBLK" = 23,
     "BQC" = 16,
     "TQC" = 25,
-    "PQC" = 25,
+    "PQC" = 23,
+    "LQC" = 25,
+    "MQC" = 23,
+    "HQC" = 24,
+    "CAL" = 21,
     "RQC" = 6,
     "EQC" = 24,
     "NIST" = 23,
