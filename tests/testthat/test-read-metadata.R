@@ -8,7 +8,7 @@ test_that("Imports/associates data and metadata, orders analyses by dataset (tim
   )
   expect_equal(mexp@dataset[[1, "analysis_id"]], "020_SPL_S001")
   expect_equal(dim(mexp@annot_analyses),c(65, 13))
-  expect_equal(dim(mexp@annot_features),c(16, 12))
+  expect_equal(dim(mexp@annot_features),c(16, 15))
   expect_equal(dim(mexp@annot_istds),c(2, 4))
   expect_equal(dim(mexp@annot_responsecurves),c(12, 5))
   expect_equal(dim(mexp@annot_batches),c(1, 4))

@@ -116,8 +116,17 @@ save_report_xlsx <- function(data = NULL, path) {
 }
 
 
-#'  @export
-get_calibration_report <- function(data, qc_types, with_lod = TRUE, with_loq = TRUE, with_bias = TRUE,  with_coefficients = TRUE, with_sigma = TRUE){
+#' Get a calibration regression results
+#'
+#' @param data MidarExperiment object
+#' @param qc_types QC types to be included in the results, aside of CAL. Default is all QC types.
+#' @param with_lod Include the limit of detection (LoD) in the results
+#' @param with_loq Include the limit of quantification (LoQ) in the results
+#' @param with_bias Include the bias in the results
+#' @param with_coefficients Include the regression coefficients in the results
+#' @param with_sigma Include the residual standard error in the results
+#' @export
+get_calibration_results <- function(data, qc_types, with_lod = TRUE, with_loq = TRUE, with_bias = TRUE,  with_coefficients = TRUE, with_sigma = TRUE){
 
   d_qc_summary <- data@dataset |>
     filter(.data$qc_type %in% qc_types, !.data$is_istd, .data$is_quantifier) |>

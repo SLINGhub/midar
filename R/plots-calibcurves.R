@@ -4,9 +4,10 @@
 #'
 #' @param data A `MidarExperiment` object .
 #' @param variable The variable name to plot on the y-axis, usually a measure of intensity. Defaults to `"intensity"`
-#' @param fit_method_default Default regression fit method , must be either "linear" or "quadratic". If `overwrite_fit_settings = TRUE`, it will overwrite fit method defined in feature metadata (column `curve_fit_method`).
-#' @param fit_weighting_default Default regression point weighting method, must be either "none", "1/x", "1/x^2". If `overwrite_fit_settings = TRUE`, it will overwite method defined in feature metadata (column `fit_weighting`).
-#' @param overwrite_fit_settings Overwrite curve_fit_method and fit_weighting defined in feature metadata. If FALSE, then fit_method_default and fit_weighting_default will be applied only if not defined in the metadata.
+#' @param overwrite_metadata A logical value (`TRUE` or `FALSE`). If `TRUE`, the function will ignore any fit method and weighting settings defined in the metadata and use the provided `fit_method` and `fit_weighting` values for all analytes.
+#' @param fit_method A character string specifying the default regression fit method to use for the calibration curve. Must be one of `"linear"` or `"quadratic"`. This method will be applied if no specific fit method is defined for a feature in the metadata.
+#' @param fit_weighting A character string specifying the default weighting method for the regression points in the calibration curve. Must be one of `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no specific weighting method is defined for a feature in the metadata.
+#' @param log_axes Logical. If `TRUE`, the x and y axes are displayed in logarithmic scale. Defaults to `FALSE`.
 #' @param filter_data Logical. Indicates whether to use quality control (QC) filtered data (`TRUE`) or the raw data (`FALSE`). Defaults to `FALSE`.
 #' @param output_pdf Logical. If `TRUE`, saves the generated plots as a PDF file. Defaults to `FALSE`.
 #' @param include_feature_filter A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.
@@ -28,9 +29,9 @@
 #' @export
 plot_calibrationcurves <- function(data = NULL,
                                    variable = "intensity",
-                                   fit_method_default = c("linear", "quadratic"),
-                                   fit_weighting_default = c(NA, "none", "1/x", "1/x^2"),
-                                   overwrite_fit_settings,
+                                   overwrite_metadata = FALSE,
+                                   fit_method = c("linear", "quadratic"),
+                                   fit_weighting = c(NA, "none", "1/x", "1/x^2"),
                                    log_axes = FALSE,
                                    filter_data = FALSE,
                                    output_pdf = FALSE,
@@ -53,9 +54,9 @@ plot_calibrationcurves <- function(data = NULL,
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable_strip)
   variable_sym = rlang::sym(variable)
-  rlang::arg_match(fit_method_default, c(NA, "linear", "quadratic"))
-  rlang::arg_match(fit_weighting_default, c(NA, "none", "1/x", "1/x^2"))
-  #rlang::arg_match(overwrite_fit_settings, c("TRUE", "FALSE"))
+  rlang::arg_match(fit_method, c(NA, "linear", "quadratic"))
+  rlang::arg_match(fit_weighting, c(NA, "none", "1/x", "1/x^2"))
+  #rlang::arg_match(overwrite_metadata, c("TRUE", "FALSE"))
   check_var_in_dataset(data@dataset, variable)
 
 
@@ -96,17 +97,18 @@ plot_calibrationcurves <- function(data = NULL,
     dplyr::select(tidyselect::any_of(
       c("analysis_id", "sample_id", "qc_type", "feature_id", variable)
     )) |>
-    filter(str_detect(qc_type, "CAL|[MLH]QC|^QC")) |>
+    filter(str_detect(.data$qc_type, "CAL|[MLH]QC|^QC")) |>
     dplyr::right_join(data@annot_qcconcentrations, by = c("sample_id" = "sample_id", "feature_id" = "feature_id"))
 
   d_calib$curve_id = 1
 
 
   d_calib <-  d_calib |>
-    left_join(data@annot_features |> select("feature_id", "curve_fit_method", "fit_weighting"), by = "feature_id")
+    left_join(data@annot_features |> select("feature_id", "curve_fit_method", "curve_fit_weighting"), by = "feature_id")
 
-  d_calib <- d_calib |> mutate(curve_fit_method = ifelse(is.na(.data$curve_fit_method) | overwrite_fit_settings, fit_method_default, .data$curve_fit_method),
-                               fit_weighting = ifelse(is.na(.data$fit_weighting) | overwrite_fit_settings, fit_weighting_default, .data$fit_weighting))
+
+  d_calib <- d_calib |> mutate(curve_fit_method = ifelse(is.na(.data$curve_fit_method) | overwrite_metadata, fit_method, .data$curve_fit_method),
+                               fit_weighting = ifelse(is.na(.data$curve_fit_weighting) | overwrite_metadata, fit_weighting, .data$curve_fit_weighting))
 
 
 
@@ -149,6 +151,7 @@ plot_calibrationcurves <- function(data = NULL,
 
 
     p <-  plot_calibcurves_page(
+      data = data,
       dataset = d_calib,
       output_pdf = output_pdf,
       response_variable = variable,
@@ -162,9 +165,10 @@ plot_calibrationcurves <- function(data = NULL,
       scaling_factor = scaling_factor,
       font_base_size = font_base_size,
       x_axis_title = x_axis_unit,
-      fit_method_default = fit_method_default,
-      fit_weighting_default = fit_weighting_default,
-      log_axes = log_axes
+      fit_method = fit_method,
+      fit_weighting = fit_weighting,
+      log_axes = log_axes,
+      overwrite_metadata = overwrite_metadata
     )
     plot(p)
     dev.flush()
@@ -191,7 +195,8 @@ plot_calibrationcurves <- function(data = NULL,
 
 
 # Define function to plot 1 page
-plot_calibcurves_page <- function(dataset,
+plot_calibcurves_page <- function(data,
+                                  dataset,
                                      output_pdf,
                                      response_variable,
                                      max_regression_value,
@@ -204,9 +209,10 @@ plot_calibcurves_page <- function(dataset,
                                      scaling_factor,
                                      font_base_size,
                                      x_axis_title,
-                                  fit_method_default,
-                                  fit_weighting_default,
-                                  log_axes
+                                  fit_method,
+                                  fit_weighting,
+                                  log_axes,
+                                  overwrite_metadata
                                   ) {
   plot_var <- rlang::sym(response_variable)
   dataset$curve_id <- as.character(dataset$curve_id)
@@ -220,75 +226,107 @@ plot_calibcurves_page <- function(dataset,
     dplyr::arrange(.data$feature_id, .data$curve_id) |>
     dplyr::slice(row_start:row_end)
 
-  dat_subset <- dat_subset |> mutate(qc_type_cat = if_else(str_detect(qc_type, "CAL"), "CAL", "QC"))
+  dat_subset <- dat_subset |> mutate(qc_type_cat = if_else(str_detect(.data$qc_type, "CAL"), "CAL", "QC"))
 
-  dat_subset <- dat_subset |>
-    mutate(weight = case_when(
-      fit_weighting_default == "none" ~ 1,
-      fit_weighting_default == "1/x" ~ 1 / concentration,
-      fit_weighting_default == "1/x^2" ~ 1 / concentration^2,
-      fit_weighting_default == "1/sqrt(x)" ~ 1 / sqrt(concentration),
-      TRUE ~ NA_real_  # Default case to handle any unexpected values
-    ))
+  data <- calc_calibration_results(data = data,
+                                   overwrite_metadata = overwrite_metadata,
+                                   fit_method = fit_method,
+                                   fit_weighting = fit_weighting,
+                                   include_fit_object = TRUE)
 
-
-  reg_formula <- ifelse(fit_method_default == "linear", "y ~ x", "y ~ x + I(x^2)")
+  d_calib_stats <- data@metrics_calibration
 
 
-  p <- ggplot(
-      data = dat_subset,
-      aes(
-        x = .data$concentration,
-        y = !!plot_var,
-        color = .data$qc_type_cat,
-        shape = .data$qc_type
-      )
-    ) +
-      ggpmisc::stat_poly_line(
-        data = subset(dat_subset, dat_subset$concentration <= max_regression_value & qc_type == "CAL"),
+
+ get_predictions <- function(stats){
+
+    fit <- stats$fit_cal_1[[1]]
+    conc_orig <- model.matrix(fit)[,2]
+    concs <- seq(min(conc_orig), max(conc_orig), length.out = 100)
+    predictions <- predict(fit, newdata = data.frame(concentration = concs), interval = "confidence")
+    prediction_data <- tibble(
+      feature_id = stats$feature_id,
+      curve_id = "1",
+      concentration = concs,
+      y_pred = predictions[, "fit"],
+      lwr = predictions[, "lwr"],
+      upr = predictions[, "upr"]
+    )
+    prediction_data
+ }
+
+
+ d_calib_stats_grp <- d_calib_stats |>
+   dplyr::semi_join(dat_subset , by = c("feature_id")) |>
+   dplyr::group_split(.data$feature_id) #TODO .data$curve_id
+
+ d_pred <- map(d_calib_stats_grp, function(x) get_predictions(x)) |> bind_rows()
+
+ d_pred <- d_pred |>
+   dplyr::arrange(.data$feature_id, .data$curve_id)
+
+
+    p <- ggplot(
+        data = dat_subset,
         aes(
           x = .data$concentration,
           y = !!plot_var,
-          color = .data$curve_id,
-          weight = .data$weight
+          color = .data$qc_type,
+          shape = .data$qc_type
+        )
+      ) +
+      ggplot2::geom_line(data = d_pred,
+                aes(x = .data$concentration,
+                    y = .data$y_pred,
+                    shape = "CAL"),
+                color = "#4575b4",
+                fill = "#4575b4",
+                linewidth = 1, inherit.aes = TRUE) +
+      # # Confidence interval
+      ggplot2::geom_ribbon(data = d_pred,
+                  aes(x = .data$concentration, ymin = .data$lwr, ymax = .data$upr, shape = "CAL"),
+                  fill = "#91bfdb", alpha = 0.25, inherit.aes = FALSE) +
 
-        ),
-        formula = rlang::parse_expr(reg_formula),
-        se = TRUE,
-        na.rm = TRUE, size = line_width * scaling_factor, inherit.aes = FALSE
-      ) +
-      ggpmisc::stat_poly_eq(
-        data = subset(dat_subset, dat_subset$concentration <= max_regression_value & qc_type == "CAL"),
-        aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
-        size = 2 * scaling_factor, rr.digits = 3, vstep = .1
-      ) +
-      #color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
-      scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
-      scale_y_continuous(limits = c(0, NA)) +
-      scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
-      ggh4x::facet_wrap2(
-        vars(.data$feature_id),
-        scales = "free",
-        nrow = rows_page,
-        ncol = cols_page,
-        trim_blank = FALSE
-      ) +
-      geom_point(size = point_size) +
-      labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
-      theme_light(base_size = font_base_size) +
-      theme(
-        strip.text = element_text(size = font_base_size * scaling_factor, face = "bold"),
-        strip.background = element_rect(size = 0.0001, fill = "#496875")
-      )
+        #color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
+        scale_color_manual(values = c("CAL" ="#254f6e", "HQC" = "#f27507", "LQC" = "#f27507")) +
+        scale_fill_manual(values = c("CAL" ="white", "HQC" = "#f5c969", "LQC" = "#f5c969")) +
+        scale_shape_manual(values = c("CAL" = 21, "HQC" = 24, "LQC" = 25)) +
+        scale_y_continuous(limits = c(0, NA)) +
+        scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
+        ggh4x::facet_wrap2(
+          vars(.data$feature_id),
+          scales = "free",
+          nrow = rows_page,
+          ncol = cols_page,
+          trim_blank = FALSE
+        ) +
+        geom_point(aes(fill = .data$qc_type), size = point_size) +
 
-  if(log_axes){
+        labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
+        theme_light(base_size = font_base_size) +
+        theme(
+          strip.text = element_text(size = font_base_size * scaling_factor, face = "bold"),
+          strip.background = element_rect(size = 0.0001, fill = "#496875"),
+          panel.grid.major = element_line(color = "grey70", size = 0.2, linetype = "dotted"),  # Light and dotted major gridlines
+          panel.grid.minor = element_line(color = "grey90", size = 0.1, linetype = "dotted")   # Lighter minor gridlines
+
+           )
+
+
+    if(log_axes){
+      p <- p +
+        scale_x_continuous(trans = "log10") +
+        scale_y_continuous(trans = "log10")
+    }
+
     p <- p +
-    scale_x_continuous(trans = "log10") +
-    scale_y_continuous(trans = "log10")
-  }
+      ggplot2::geom_text(data = d_calib_stats,
+                aes(x = 0, y = Inf, label = paste0(stringr::str_to_title(.data$fit_model), "\nR^2 = ", round(.data$r2_cal_1, 4))),
+                inherit.aes = FALSE,
+                hjust = 0, vjust = 1.3, size = 2, color = "grey36", fontface = "italic", parse = TRUE)
+
 
   p
 }
 
 
-#

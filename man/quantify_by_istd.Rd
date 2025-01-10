@@ -2,27 +2,30 @@
 % Please edit documentation in R/calc-istd-normalization.R
 \name{quantify_by_istd}
 \alias{quantify_by_istd}
-\title{Calculate analyte concentrations}
+\title{Calculate Analyte Concentrations Based on Internal Standards}
 \usage{
-quantify_by_istd(
-  data = NULL,
-  error_missing_info = TRUE,
-  ignore_unused_istds = TRUE
-)
+quantify_by_istd(data = NULL, error_missing_annotation = TRUE)
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object}
 
-\item{error_missing_info}{Raise error when 1 or more ISTD concentratios and sample/ISTD amounts are missing. Default: \code{TRUE}.}
-
-\item{ignore_unused_istds}{Ignore ISTDs with missing concentrations that are not used in any feature quantitation. Default: \code{FALSE}.}
+\item{error_missing_annotation}{If \code{TRUE}, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
+If \code{FALSE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
 }
 \value{
-MidarExperiment object
+A \code{MidarExperiment} object with the calculated analyte concentrations added to the
+\code{dataset} table in the \code{feature_conc} column.
 }
 \description{
-Calculation is based on ISTD-normalized intensities and corresponding
-sample and spiked-in ISTD amounts. The determined concentration unit is based
-on the \code{sample_amount_unit} provided in the analysis metadata.
-If the spiked-in ISTD concentrations are missing, the concentrations of the
+Analyte concentrations are calculated based on ISTD-normalized intensities
+and the corresponding spiked-in ISTD amount, normalized by the sample amount
+(single-point calibration approach). The concentration unit is determined
+from the \code{sample_amount_unit} field in the analysis metadata of the \code{MidarExperiment} object.
+}
+\details{
+The calculated concentrations are added to the \code{dataset} table as a new column
+named \code{feature_conc}.
+}
+\seealso{
+\code{\link[=quantify_by_calibration]{quantify_by_calibration()}} for calculating concentrations based on external calibration curves.
 }

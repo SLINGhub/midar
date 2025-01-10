@@ -27,7 +27,7 @@ file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
 tbl <- parse_plain_csv(
  path = file_path,
  variable_name = "conc",
- analysis_id_col = "analysis_id"m
+ analysis_id_col = "analysis_id",
  import_metadata = TRUE)
 
 head(tbl)

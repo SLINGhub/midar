@@ -17,7 +17,7 @@
 #' @examples
 #' mexp <- MidarExperiment()
 
-#' file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+#' file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 #'
 #' mexp <- import_data_masshunter(
 #'   data = mexp,
@@ -60,7 +60,7 @@ import_data_masshunter <- function(data = NULL, path, import_metadata, expand_qu
 #' @examples
 #' mexp <- MidarExperiment()
 #'
-#' file_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+#' file_path = system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 #'
 #' mexp <- import_data_mrmkit(
 #'   data = mexp,
@@ -202,7 +202,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 #' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` transition names of quantifier will be added to qualifier names
 #' @return A tibble with the parse results in the long format
 #' @examples
-#' file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+#' file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 #'
 #' tbl <- parse_masshunter_csv(
 #'   path = file_path,
@@ -470,10 +470,9 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 #' @return A tibble in the long format
 #' @examples
 #'
-#' file_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar"),
+#' file_path = system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 #'
-#' tbl <- parse_mrmkit_result(
-#'   path = file_path)
+#' tbl <- parse_mrmkit_result(path = file_path)
 #'
 #' head(tbl)
 #' @export
@@ -566,7 +565,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' tbl <- parse_plain_csv(
 #'  path = file_path,
 #'  variable_name = "conc",
-#'  analysis_id_col = "analysis_id"m
+#'  analysis_id_col = "analysis_id",
 #'  import_metadata = TRUE)
 #'
 #' head(tbl)

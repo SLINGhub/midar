@@ -31,7 +31,7 @@ Duplicate combinations will result in an error.
 \examples{
 mexp <- MidarExperiment()
 
-file_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+file_path = system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 
 mexp <- import_data_mrmkit(
   data = mexp,

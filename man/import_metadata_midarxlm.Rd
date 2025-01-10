@@ -31,12 +31,12 @@ mexp <- MidarExperiment()
 
 mexp <- import_data_masshunter(
   data = mexp,
-  path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar")
+  path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar"),
   import_metadata = TRUE)
 
 mexp <- import_metadata_midarxlm(
  data = mexp,
- path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar")
+ path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar"),
  excl_unmatched_analyses = FALSE)
 
 print(mexp)

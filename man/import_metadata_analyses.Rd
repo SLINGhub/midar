@@ -35,16 +35,17 @@ The analysis metadata must contain following columns: \code{analysis_id} and \co
 }
 \examples{
 mexp <- MidarExperiment()
-file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 mexp <- import_data_masshunter(
   data = mexp,
-  path = file_path
+  path = file_path,
   import_metadata = FALSE)
 
-meta_path = system.file("extdata", "sperfect_metadata_analyses", package = "midar")
-  mexp <- import_metadata_analyses(
-  data = meta_path,
-  path = path,
+meta_path = system.file("extdata", "MHQuant_demo_metadata_analyses.csv", package = "midar")
+
+mexp <- import_metadata_analyses(
+  data = mexp,
+  path = meta_path,
   excl_unmatched_analyses = TRUE)
 
 print(mexp)

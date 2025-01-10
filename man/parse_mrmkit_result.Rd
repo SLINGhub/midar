@@ -19,10 +19,9 @@ Parses MRMkit peak integration results into a tibble
 }
 \examples{
 
-file_path = system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar"),
+file_path = system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 
-tbl <- parse_mrmkit_result(
-  path = file_path)
+tbl <- parse_mrmkit_result(path = file_path)
 
 head(tbl)
 }

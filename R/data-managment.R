@@ -20,6 +20,14 @@ get_feature_count <- function(data, isistd = NULL, isquantifier = NULL) {
   d |> select("feature_id") |> distinct() |> nrow()
 }
 
+get_featurelist <- function(data, isistd = NULL, isquantifier = NULL) {
+  d <- data@dataset
+  if (!is.null(isistd)) d <- d |> filter(.data$is_istd == isistd)
+  if (!is.null(isquantifier)) d <- d |> filter(.data$is_quantifier == isquantifier)
+
+  d |> select("feature_id") |> distinct() |> pull(.data$feature_id)
+}
+
 
 get_analyis_start <- function(data){
   if (check_data_present(data))
@@ -153,7 +161,7 @@ get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
 #' @param order_by Must by any of: "timestamp", "resultfile" or "metadata". Defines how the analysis order is determined. Default is "timestamp", when not available the sequence in the analysis results are used.
 #' @return MidarExperiment object
 #' @examples
-#' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+#' file_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 #' mexp <- MidarExperiment()
 #' mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
 #' mexp <- set_analysis_order(mexp, "timestamp")
@@ -252,7 +260,7 @@ set_analysis_order_analysismetadata <- function(data = NULL,
 #' @export
 #'
 #' @examples
-#' file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+#' file_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 #' mexp <- MidarExperiment()
 #' mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
 #'

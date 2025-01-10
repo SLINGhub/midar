@@ -110,6 +110,11 @@ plot_responsecurves <- function(data = NULL,
                                 font_base_size = 7,
                                 show_progress = TRUE,
                                 return_plots = FALSE) {
+
+  if (!requireNamespace("ggpmisc", quietly = TRUE)) {
+    cli_abort("Please install 'ggplot2' to use this function via `install.packages('ggplot2')`.")
+  }
+
   check_data(data)
   variable_strip <- str_remove(variable, "feature_")
   rlang::arg_match(variable_strip, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))

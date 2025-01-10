@@ -7,9 +7,9 @@
 plot_calibrationcurves(
   data = NULL,
   variable = "intensity",
-  fit_method_default = c("linear", "quadratic"),
-  fit_weighting_default = c(NA, "none", "1/x", "1/x^2"),
-  overwrite_fit_settings,
+  overwrite_metadata = FALSE,
+  fit_method = c("linear", "quadratic"),
+  fit_weighting = c(NA, "none", "1/x", "1/x^2"),
   log_axes = FALSE,
   filter_data = FALSE,
   output_pdf = FALSE,
@@ -34,11 +34,13 @@ plot_calibrationcurves(
 
 \item{variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}}
 
-\item{fit_method_default}{Default regression fit method , must be either "linear" or "quadratic". If \code{overwrite_fit_settings = TRUE}, it will overwrite fit method defined in feature metadata (column \code{curve_fit_method}).}
+\item{overwrite_metadata}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE}, the function will ignore any fit method and weighting settings defined in the metadata and use the provided \code{fit_method} and \code{fit_weighting} values for all analytes.}
 
-\item{fit_weighting_default}{Default regression point weighting method, must be either "none", "1/x", "1/x^2". If \code{overwrite_fit_settings = TRUE}, it will overwite method defined in feature metadata (column \code{fit_weighting}).}
+\item{fit_method}{A character string specifying the default regression fit method to use for the calibration curve. Must be one of \code{"linear"} or \code{"quadratic"}. This method will be applied if no specific fit method is defined for a feature in the metadata.}
 
-\item{overwrite_fit_settings}{Overwrite curve_fit_method and fit_weighting defined in feature metadata. If FALSE, then fit_method_default and fit_weighting_default will be applied only if not defined in the metadata.}
+\item{fit_weighting}{A character string specifying the default weighting method for the regression points in the calibration curve. Must be one of \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no specific weighting method is defined for a feature in the metadata.}
+
+\item{log_axes}{Logical. If \code{TRUE}, the x and y axes are displayed in logarithmic scale. Defaults to \code{FALSE}.}
 
 \item{filter_data}{Logical. Indicates whether to use quality control (QC) filtered data (\code{TRUE}) or the raw data (\code{FALSE}). Defaults to \code{FALSE}.}
 

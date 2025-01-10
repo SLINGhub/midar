@@ -216,6 +216,9 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
 
   # prevent creating log file
   if(with_venn_diag) {
+
+
+
     d_qc_venn <- d_qc
 
     sb_failed <- d_qc_venn$feature_id[!replace_na(d_qc_venn$na_in_all, TRUE) & replace_na(d_qc_venn$pass_lod, TRUE) & !replace_na(d_qc_venn$pass_sb, TRUE)]

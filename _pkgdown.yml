@@ -131,7 +131,7 @@ reference:
   description: |
     Example datasets for testing and demonstration.
   contents:
-  - dataset_plasma_lipidomics
+  - lipidomics_dataset
   - data_load_example
 - title: Helper functions
   description: |

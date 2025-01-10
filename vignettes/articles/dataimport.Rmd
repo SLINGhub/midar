@@ -65,16 +65,15 @@ integrated in different raw data processing batches.
 
 ```{r}
 library(midar)
-filepath <- system.file("extdata/sPerfect_MRMkit.tsv", package = "midar")
+filepath <- system.file("extdata/MRMkit_demo.tsv", package = "midar")
 myexp <- MidarExperiment()
 myexp <- import_data_mrmkit(myexp, filepath, import_metadata = TRUE)
-
 ```
 
 ### Agilent MassHunter Quantitative
 
 ```{r}
-filepath <- system.file("extdata/Example_MHQuant_1.csv", package = "midar")
+filepath <- system.file("extdata/MHQuant_demo", package = "midar")
 myexp <- MidarExperiment()
 
 myexp <- import_data_masshunter(myexp, filepath, import_metadata = TRUE)

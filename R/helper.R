@@ -140,3 +140,24 @@ flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
 cv <- function(x, ...){
   sd(x, ...)/mean(x, ...)
 }
+
+
+#' get_conc_unit
+#'
+#' @param sample_amount_unit MidarExperiment object
+#' @return string with feature_conc unit
+#' @noRd
+
+get_conc_unit <- function(sample_amount_unit) {
+  units <- tolower(unique(sample_amount_unit))
+
+  if (length(units) > 1) {
+    conc_unit <- "pmol/sample amount unit (multiple units)"
+  } else if (units == "ul" | units == "\U003BCl") {
+    conc_unit <- "\U003BCmol/L"
+  } else {
+    conc_unit <- glue::glue("pmol/{units}")
+  }
+  conc_unit
+}
+

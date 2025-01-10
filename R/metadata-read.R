@@ -65,12 +65,12 @@ get_metadata_batches <- function(annot_analyses){
 #'
 #' mexp <- import_data_masshunter(
 #'   data = mexp,
-#'   path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar")
+#'   path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar"),
 #'   import_metadata = TRUE)
 #'
 #' mexp <- import_metadata_midarxlm(
 #'  data = mexp,
-#'  path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar")
+#'  path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar"),
 #'  excl_unmatched_analyses = FALSE)
 #'
 #' print(mexp)
@@ -99,16 +99,17 @@ import_metadata_midarxlm <- function(data = NULL, path,  ignore_warnings = FALSE
 #' @examples
 #' mexp <- MidarExperiment()
 
-#' file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+#' file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 #' mexp <- import_data_masshunter(
 #'   data = mexp,
-#'   path = file_path
+#'   path = file_path,
 #'   import_metadata = FALSE)
 #'
-#' meta_path = system.file("extdata", "sperfect_metadata_analyses", package = "midar")
-#'   mexp <- import_metadata_analyses(
-#'   data = meta_path,
-#'   path = path,
+#' meta_path = system.file("extdata", "MHQuant_demo_metadata_analyses.csv", package = "midar")
+#'
+#' mexp <- import_metadata_analyses(
+#'   data = mexp,
+#'   path = meta_path,
 #'   excl_unmatched_analyses = TRUE)
 #'
 #' print(mexp)
@@ -339,8 +340,8 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
-      assertr::assert(assertr::in_set(NA, "linear", "quadratic"), curve_fit_method, description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
-      assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), fit_weighting, description = "E; Must be NA, '1/x' or '1/x^2';Features;fit_weighting")
+      assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_method", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
+      assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting")
       #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
       #assertr::assert(\(x) {any(metadata$annot_istds$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istds)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
       #assertr::verify(unique(interference_feature_id) %in% feature_id, description = "Interfering feature(s) not defined under 'feature_id';Features")
@@ -397,7 +398,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "curve_id")), obligatory=TRUE, description = "E;Missing value(s);Response Curves;analysis_id|curve_id") |>
       assertr::verify(all(assertr::is_uniq(.data$analysis_id)), obligatory=TRUE, description = "E;Duplicated analysis IDs;Response Curves;analysis_id") |>
-      assertr::verify(check_groupwise_identical_ids(metadata$annot_responsecurves , group_col = .data$curve_id, id_col = .data$analyzed_amount_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Response Curves;analyzed_amount_unit") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_responsecurves , group_col = "curve_id", id_col = "analyzed_amount_unit"), obligatory=FALSE, description = "W;Units not identical in at least one group;Response Curves;analyzed_amount_unit") |>
       #assertr::verify((data@annot_analyses |> filter(qc_type == "RQC") |> pull(analysis_id) %in% analysis_id), description = "W;Analyses of QC type 'RQC' not defined;Response Curves;analysis_id") |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analyzed_amount")), description = "W;Missing value(s);Response Curves;analyzed_amount")
     if(!is.null(data)){
@@ -691,20 +692,26 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   # QC CONCENTRATION annotation -------------------------
 
-  d_cal <- openxlsx2::wb_to_df(file = w_xlm,
-                               sheet = "QC Concentrations",
-                               skip_empty_rows = FALSE,
-                               skip_empty_cols = FALSE,
-                               skip_hidden_rows = FALSE,
-                               skip_hidden_cols = FALSE,
-                               col_names = TRUE) |>
-    mutate(across(where(is.character), str_trim)) |>
-    as_tibble() |>
-    filter(!if_all(everything(), is.na))
+  if ("QC Concentrations" %in% openxlsx2::wb_get_sheet_names((w_xlm))) {
+    d_cal <- openxlsx2::wb_to_df(file = w_xlm,
+                                 sheet = "QC Concentrations",
+                                 skip_empty_rows = FALSE,
+                                 skip_empty_cols = FALSE,
+                                 skip_hidden_rows = FALSE,
+                                 skip_hidden_cols = FALSE,
+                                 col_names = TRUE)
+      d_cal <- d_cal |>
+      mutate(across(where(is.character), str_trim)) |>
+      as_tibble() |>
+      filter(!if_all(everything(), is.na))
 
-  names(d_cal) <- tolower(names(d_cal))
+    names(d_cal) <- tolower(names(d_cal))
 
-  metadata$annot_qcconcentrations <- clean_qcconc_metadata(d_cal, "QC concentrations")
+    metadata$annot_qcconcentrations <- clean_qcconc_metadata(d_cal, "QC concentrations")
+  } else {
+    metadata$annot_qcconcentrations <- NULL
+  }
+
 
 
   # FINALIZE METADATA-------------------------
@@ -857,7 +864,7 @@ clean_feature_metadata <- function(d_features, source_text) {
   d_features <- d_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "curve_fit_method", init_value = NA_character_, make_lowercase = FALSE)
-  d_features <- d_features |> add_missing_column(col_name = "fit_weighting", init_value = NA_character_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "curve_fit_weighting", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
 
@@ -882,7 +889,7 @@ clean_feature_metadata <- function(d_features, source_text) {
                                             .default = NA)),
       interference_feature_id = stringr::str_squish(.data$interference_feature_id),
       curve_fit_method = stringr::str_squish(.data$curve_fit_method),
-      fit_weighting = stringr::str_squish(.data$fit_weighting),
+      curve_fit_weighting = stringr::str_squish(.data$curve_fit_weighting),
       remarks = as.character(.data$remarks)
     ) |>
     mutate(across(where(is.character), str_trim)) |>
@@ -898,7 +905,7 @@ clean_feature_metadata <- function(d_features, source_text) {
       "interference_feature_id",
       "interference_proportion",
       "curve_fit_method",
-      "fit_weighting",
+      "curve_fit_weighting",
       "remarks"
     )
 

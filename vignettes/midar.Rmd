@@ -40,7 +40,7 @@ Below is example of a simple data processing workflow, starting with the peak in
 
 
 # Get paths of example files included with this package
-file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+file_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 
 # Create a MidarExperiment object (S4)
 mexp <- MidarExperiment()
@@ -48,7 +48,7 @@ mexp <- MidarExperiment()
 # Load data and metadata
 mexp <- midar::import_data_mrmkit(data = mexp, 
                                   path = file_path, 
-                                  import_metadata = TRUE)
+                                  import_metadata = FALSE)
 
 # # Normalize and quantitate each feature by internal standards
 # mexp <- normalize_by_istd(mexp)

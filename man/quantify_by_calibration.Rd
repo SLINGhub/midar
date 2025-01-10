@@ -6,32 +6,43 @@
 \usage{
 quantify_by_calibration(
   data = NULL,
-  overwrite_metadata_fit = FALSE,
+  overwrite_metadata = FALSE,
   fit_method = c("linear", "quadratic"),
-  fit_weighting = c(NA, "none", "1/x", "1/x^2"),
-  missing_error = TRUE,
-  ignore_istd = FALSE
+  fit_weighting = c("none", "1/x", "1/x^2"),
+  error_failed_calibration = TRUE,
+  error_missing_annotation = TRUE
 )
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{overwrite_metadata_fit}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE}, the function will ignore any fit method and weighting settings defined in the metadata and use the \code{fit_method} and \code{fit_weighting} values for all analytes.}
+\item{overwrite_metadata}{If \code{TRUE},  any fit method and weighting settings defined in the metadata will be ignored and instead the \code{fit_method} and \code{fit_weighting} are used for all features}
 
 \item{fit_method}{A character string indicating the default regression fit method to use for the calibration curve. Must be one of \code{"linear"} or \code{"quadratic"}. This method will be used if no specific fit method is defined for a feature in the metadata.}
 
 \item{fit_weighting}{A character string indicating the default weighting method for the regression points in the calibration curve. Must be one of \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. If no specific weighting method is defined for a feature in the metadata, this method will be used.}
 
-\item{missing_error}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE}, an error will be raised if one or more ISTD concentrations and sample/ISTD amounts are missing. Default is \code{TRUE}.}
+\item{error_failed_calibration}{If \code{TRUE}, an error will be raised if the calibration curve fitting failed for any feature. If \code{FALSE}, failed calibration curve fitting will be ignored, and resulting feature concentration will be \code{NA}.}
 
-\item{ignore_istd}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE}, ISTD values with missing concentrations that are not used in any feature quantification will be ignored. Default is \code{FALSE}.}
+\item{error_missing_annotation}{Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
+If \code{FALSE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
 }
 \value{
-A modified \code{MidarExperiment} object with updated concentration values for the analytes, based on the calibration curve calculations.
+A modified \code{MidarExperiment} object with updated concentration values.
 }
 \description{
-Concentrations are determined using ISTD-normalized intensities and external calibration curves. The determined concentration unit is based on values defined in the column \code{concentration_unit} of the qc_concentration metadata.
+Concentrations of all features in all analyses are determined using ISTD-normalized intensities and corresponding external calibration curves.
+Calibration curves are calculated for each feature based on calibration sample concentrations defined in the \code{qc_concentrations} metadata.
+The regression fit model (linear or quadratic) and the weighting method (either "none", "1/x", or "1/x^2") can be defined globally via
+the arguments \code{fit_method} and \code{fit_weighting} for all features, if \code{overwrite_metadata} is \code{TRUE}.
+Alternatively, the model and weighting can be defined individually for each feature in the \code{feature} metadata (columns \code{curve_fit_method} and \code{fit_weighting}).
+If these details are missing in the metadata, the default values provided via \code{fit_method} and \code{fit_weighting} will be used.
 }
 \details{
-The fit model (e.g., linear or quadratic) and the weighting method (e.g., none, 1/x, 1/x^2) used for the calibration curve can either be defined for each analyte in the metadata, or, if missing, the default values provided as arguments will be used.
+The concentrations are added to the \code{dataset} table as \code{feature_conc} column. The results of the regression and the calculated LoD and LoQ values are stored in the \code{metrics_calibration} table of the returned \code{MidarExperiment} object.
+}
+\seealso{
+\code{\link[=calc_calibration_results]{calc_calibration_results()}} for calculating the calibration curve results including LoD and LoQ.
+
+\code{\link[=quantify_by_istd]{quantify_by_istd()}} for calculation of concentrations based on spiked-in internal standard concentration.
 }

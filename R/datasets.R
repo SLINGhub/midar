@@ -1,6 +1,6 @@
 #' Plasma Lipidomics Peak Areas Dataset
 #'
-#' This a reporocessed dataset containing raw peak areas and analytical metadata
+#' This is an demo dataset used for examples in this of from reporocessed dataset containing raw peak areas and analytical metadata
 #' of 499 analyses with 503 features from a plasma lipidomics analysis
 #' published in Tan et al, ATVB, 2022. The dataset is used to demonstrate
 #'
@@ -13,4 +13,4 @@
 #'   \item{annot_batches}{A tibble with batch annotations.}
 #'   ...
 #' }
-"dataset_plasma_lipidomics"
+"lipidomics_dataset"

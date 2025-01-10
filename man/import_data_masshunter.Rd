@@ -36,7 +36,7 @@ Each unique combination of feature and raw data file must only occur once across
 }
 \examples{
 mexp <- MidarExperiment()
-file_path = system.file("extdata", "Example_MHQuant_1.csv", package = "midar")
+file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 
 mexp <- import_data_masshunter(
   data = mexp,

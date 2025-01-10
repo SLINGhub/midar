@@ -56,7 +56,7 @@ setting `import_metadata = TRUE`.
 ```{r load-rawdata}
 myexp <- midar::MidarExperiment(title = "sPerfect")
 
-data_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+data_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 myexp <- import_data_mrmkit(data = myexp, path = data_path, import_metadata = TRUE)
 ```
 
@@ -247,7 +247,7 @@ plot_pca(
 
 Based on the above RLA and PCA plots, we flagged a technical outlier and
 decided to remove it from all downstream processing via the function
-`exclude_analyses()`.
+`analyses_to_exclude()`.
 
 <details>
 
@@ -260,7 +260,7 @@ decided to remove it from all downstream processing via the function
 
 ```{r outlier-removal}
  # Exclude the sample from the processing
-myexp <- exclude_analyses(myexp, analyses_exlude = c("Longit_batch6_51"), replace_existing  = TRUE)
+myexp <- analyses_to_exclude(myexp, analyses_to_exclude = analyses_to_exlude = c("Longit_batch6_51"), replace_existing  = TRUE)
 
 # Replot the PCA
 plot_pca(

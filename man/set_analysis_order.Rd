@@ -26,7 +26,7 @@ the order in the imported raw data file, or the order defined in the Analysis me
 Note: After changing the analysis order, all post processing steps must be rerun.
 }
 \examples{
-file_path <- system.file("extdata", "sPerfect_MRMkit.tsv", package = "midar")
+file_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
 mexp <- MidarExperiment()
 mexp <- import_data_mrmkit(mexp, path = file_path, import_metadata = TRUE)
 

@@ -2,18 +2,22 @@
 % Please edit documentation in R/calc-istd-normalization.R
 \name{normalize_by_istd}
 \alias{normalize_by_istd}
-\title{Normalize Intensities with corresponding ISTD Intensities}
+\title{Normalize Feature Intensities Using Internal Standards}
 \usage{
-normalize_by_istd(data = NULL, error_missing_info = TRUE)
+normalize_by_istd(data = NULL, error_missing_annotation = TRUE)
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object.}
 
-\item{error_missing_info}{Raise error when ISTD is not defined for 1 or more features (excluding ISTD themselves) . Default: \code{TRUE}.}
+\item{error_missing_annotation}{If \code{TRUE}, the function
+will raise an error when an ISTD is not defined for one or more features (excluding the ISTDs themselves).
+If \code{FALSE}, features with missing ISTD annotations will have NA values in the normalized intensities.}
 }
 \value{
-MidarExperiment object
+A \code{MidarExperiment} object with normalized feature intensities
 }
 \description{
-Normalize Intensities with corresponding ISTD Intensities
+Normalize feature intensities by dividing them by the intensities
+of the corresponding internal standards (ISTDs). Each feature
+must have a defined internal standard (ISTD) in the \code{feature} metadata.
 }

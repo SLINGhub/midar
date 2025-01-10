@@ -15,7 +15,7 @@
 data_load_example <- function(data = NULL, dataset = 1){
 
   if(dataset != 1) stop("Only dataset 1 is currently available")
-  data <- dataset_plasma_lipidomics
+  data <- lipidomics_dataset
   check_data(data)
   data
 }
