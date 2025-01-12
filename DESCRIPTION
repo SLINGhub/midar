@@ -13,7 +13,6 @@ BugReports: https://github.com/SLINGhub/midar/issues
 Depends:
     R (>= 4.1.0)
 Imports: 
-    ggplot2 (>= 3.5.0),
     assertr,
     broom,
     cli,
@@ -36,13 +35,14 @@ Imports:
     openxlsx2,
     patchwork,
     ggrepel,
-    ggh4x
+    ggh4x,
+    ggplot2 (>= 3.5.0),
 Suggests: 
-    ggpmisc,
     ggvenn,
     ggbeeswarm,
     ggsignif,
     ggforce,
+    ggpmisc,
     covr,
     lancer,
     knitr,
@@ -51,6 +51,7 @@ Suggests:
     MASS,
     KernSmooth,
     rmarkdown,
+    bibtex,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr

@@ -24,31 +24,31 @@ plot_responsecurves_page <- function(dataset,
     dplyr::arrange(.data$feature_id, .data$curve_id) |>
     dplyr::slice(row_start:row_end)
 
-  p <- ggplot(
+  p <-  ggplot2::ggplot(
       data = dat_subset,
-      aes(
+      ggplot2::aes(
         x = .data$analyzed_amount,
         y = !!plot_var,
         color = .data$curve_id
       )
     ) +
-      ggpmisc::stat_poly_line(
-        data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
-        aes(
-          x = .data$analyzed_amount,
-          y = !!plot_var,
-          color = .data$curve_id
-        ),
-        se = FALSE, na.rm = TRUE, size = line_width * scaling_factor, inherit.aes = FALSE
-      ) +
-      ggpmisc::stat_poly_eq(
-        aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
-        size = 2 * scaling_factor, rr.digits = 3, vstep = .1
-      ) +
+      # ggpmisc::stat_poly_line(
+      #   data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
+      #   ggplot2::aes(
+      #     x = .data$analyzed_amount,
+      #     y = !!plot_var,
+      #     color = .data$curve_id
+      #   ),
+      #   se = FALSE, na.rm = TRUE, size = line_width * scaling_factor, inherit.aes = FALSE
+      # ) +
+      # ggpmisc::stat_poly_eq(
+      #   aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
+      #   size = 2 * scaling_factor, rr.digits = 3, vstep = .1
+      # ) +
       # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
-      scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
-      scale_y_continuous(limits = c(0, NA)) +
-      scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
+      ggplot2::scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
+      ggplot2::scale_y_continuous(limits = c(0, NA)) +
+      ggplot2::scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
       ggh4x::facet_wrap2(
         vars(.data$feature_id),
         scales = "free",
@@ -56,10 +56,10 @@ plot_responsecurves_page <- function(dataset,
         ncol = cols_page,
         trim_blank = FALSE
       ) +
-      geom_point(size = point_size) +
-      labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
-      theme_light(base_size = font_base_size) +
-      theme(
+    ggplot2::geom_point(size = point_size) +
+    ggplot2::labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
+    ggplot2::theme_light(base_size = font_base_size) +
+    ggplot2::theme(
         strip.text = element_text(size = font_base_size * scaling_factor, face = "bold"),
         strip.background = element_rect(size = 0.0001, fill = "#496875")
       )

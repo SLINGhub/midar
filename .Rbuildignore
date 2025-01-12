@@ -7,6 +7,6 @@
 ^pkgdown$
 ^\.github$
 ^\.testing$
-^vignettes/articles$
 ^codecov\.yml$
 .travis.yml
+^raw-data$

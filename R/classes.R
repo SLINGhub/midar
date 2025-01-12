@@ -246,12 +246,12 @@ setMethod("show", "MidarExperiment", function(object) {
 
   cli::cli_h2("Metadata")
   cli::cli_ul(id ="B")
-  cli::cli_li("Sample annotation: {.strong {get_status_flag(nrow(object@annot_analyses) > 0)}}")
-  cli::cli_li("Feature annotation: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
-  cli::cli_li("Internal standard annotation: {.strong {get_status_flag(nrow(object@annot_istds) > 0)}}")
-  cli::cli_li("Response curve annotation:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
-  cli::cli_li("Calibration curve annotation:  {.strong {get_status_flag(nrow(object@annot_qcconcentrations) > 0)}}")
-  cli::cli_li("Study samples annotation:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
+  cli::cli_li("Analyses/samples: {.strong {get_status_flag(nrow(object@annot_analyses) > 0)}}")
+  cli::cli_li("Features/analytes: {.strong {get_status_flag(nrow(object@annot_features) > 0)}}")
+  cli::cli_li("Internal standards: {.strong {get_status_flag(nrow(object@annot_istds) > 0)}}")
+  cli::cli_li("Response curves:  {.strong {get_status_flag(nrow(object@annot_responsecurves) > 0)}}")
+  cli::cli_li("Calibrants/QC concentrations:  {.strong {get_status_flag(nrow(object@annot_qcconcentrations) > 0)}}")
+  cli::cli_li("Study samples:  {.strong {get_status_flag(nrow(object@annot_studysamples) > 0)}}")
   cli::cli_end(id ="B")
 
   cli::cli_h2("Processing Status")

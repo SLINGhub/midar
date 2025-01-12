@@ -2,7 +2,7 @@
 % Please edit documentation in R/metadata-read.R
 \name{import_metadata_qcconcentrations}
 \alias{import_metadata_qcconcentrations}
-\title{Import Calibration Curve metadata}
+\title{Import calibration curves metadata}
 \usage{
 import_metadata_qcconcentrations(
   data = NULL,

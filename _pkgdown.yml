@@ -72,21 +72,29 @@ reference:
   contents:
   - import_metadata_midarxlm
   - import_metadata_from_data
+  - import_metadata_analyses
+  - import_metadata_features
+  - import_metadata_istds
+  - import_metadata_responsecurves
+  - import_metadata_qcconcentrations
   - metadata_responsecurves
   - assert_metadata
   - add_metadata
-- title: Lipidomics
+- title: External Calibration
   description: |
-    Functions specific to lipidomics data processing and analysis.
-  contents: lipidomics_get_lipid_class_names
-- title: Data Processing
+    External calibration curves
+  contents:
+  - plot_calibrationcurves
+  - calc_calibration_results
+  - get_calibration_results
+- title: Normalization and Quantification
   description: |
     Data processing, including normalization for internal standards, sample amounts,
     and quantification based on internal standards and external calibration curves.
   contents:
   - normalize_by_istd
   - quantify_by_istd
-  - get_response_curve_stats
+  - quantify_by_calibration
 - title: Data Correction and Adjustments
   description: |
     Further processing that includes drift correction, batch correction, and
@@ -105,8 +113,8 @@ reference:
   contents:
   - qc_calc_metrics
   - filter_features_qc
-  - plot_summary_classes
-  - plot_summary
+  - plot_qc_summary_byclass
+  - plot_qc_summary_overall
 - title: Quality Control Plots
   description: |
     Plots to visualize run order effects, sample type characteristics,
@@ -117,9 +125,14 @@ reference:
   - plot_runscatter
   - plot_rla_boxplot
   - plot_pca
-  - plot_responsecurves
   - plot_cv_normalization
   - plot_x_vs_y
+- title: Response Curves
+  description: |
+    Functions to calculate and visualize response curves
+  contents:
+  - plot_responsecurves
+  - get_response_curve_stats
 - title: Data Reporting and Sharing
   description: |
     The datasets and the processing steps can be exported to different formats.
@@ -127,6 +140,10 @@ reference:
   - save_report_xlsx
   - save_dataset_csv
   - report_write_qc_metrics
+- title: Lipidomics
+  description: |
+    Functions specific to lipidomics data processing and analysis.
+  contents: lipidomics_get_lipid_class_names
 - title: Datasets
   description: |
     Example datasets for testing and demonstration.

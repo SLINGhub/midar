@@ -171,7 +171,28 @@ import_metadata_istds <- function(data = NULL, table = NULL, path = NULL,  sheet
 }
 
 
-#' @title Import Calibration Curve metadata
+#' @title Import response curves metadata
+#' @description Imports response curve metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
+#' The analysis metadata must contain following columns: `analysis_id`, `curve_id`, `analyzed_amount` and `analyzed_amount_unit`.
+#' @param data A `MidarExperiment` object
+#' @param table A data frame or tibble with response curve metadata. If `path` is also provided, an error will be raised.
+#' @param path A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If `table` is also provided, an error will be raised.
+#' @param sheet Defines the sheet name in case an Excel file is provided.
+#' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
+#' @return An updated `MidarExperiment` object
+#' @export
+#'
+import_metadata_responsecurves <- function(data = NULL, table = NULL, path = NULL,  sheet = NULL, ignore_warnings = FALSE) {
+  check_data(data)
+  tbl_metadata <- get_metadata_table(table, path, sheet)
+  tbl_metadata <- clean_response_metadata(tbl_metadata, NULL )
+  metadata  <- assert_metadata(data, metadata = list(annot_responsecurves = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
+  data  <- add_metadata(data, metadata = metadata)
+  data <- link_data_metadata(data)
+  data
+}
+
+#' @title Import calibration curves metadata
 #' @description Imports calibration curve metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
 #' The analysis metadata must contain following columns: `analysis_id`, `curve_id`, `feature_id`, `concentration`, and `concentration_unit`.
 #' @param data A `MidarExperiment` object
@@ -186,11 +207,15 @@ import_metadata_qcconcentrations <- function(data = NULL, table = NULL, path = N
   check_data(data)
   tbl_metadata <- get_metadata_table(table, path, sheet)
   tbl_metadata <- clean_qcconc_metadata(tbl_metadata, NULL )
-  metadata  <- assert_metadata(data, metadata = list(annot_istds = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
+  metadata  <- assert_metadata(data, metadata = list(annot_qconcentrations = tbl_metadata), ignore_warnings, excl_unmatched_analyses = FALSE)
   data  <- add_metadata(data, metadata = metadata)
   data <- link_data_metadata(data)
   data
 }
+
+
+
+
 
 get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
   if (is.null(list_of_errors)) return(NULL)

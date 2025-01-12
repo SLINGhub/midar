@@ -56,7 +56,7 @@ setting `import_metadata = TRUE`.
 ```{r load-rawdata}
 myexp <- midar::MidarExperiment(title = "sPerfect")
 
-data_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
+data_path <- "datasets/sPerfect_MRMkit.tsv"
 myexp <- import_data_mrmkit(data = myexp, path = data_path, import_metadata = TRUE)
 ```
 
@@ -166,7 +166,8 @@ metadata by working through these warnings, or proceed using
 </details>
 
 ```{r import-metadat}
-file_path <- system.file("extdata", "Example_Metadata_1.xlsm", package = "midar")
+
+file_path <- "datasets/sPerfect_Metadata.xlsm"
 myexp <- import_metadata_midarxlm(myexp, path = file_path, ignore_warnings = TRUE)
 myexp <- set_analysis_order(myexp, order_by = "timestamp")
 myexp <- set_intensity_var(myexp, variable_name = "area")
@@ -260,19 +261,19 @@ decided to remove it from all downstream processing via the function
 
 ```{r outlier-removal}
  # Exclude the sample from the processing
-myexp <- analyses_to_exclude(myexp, analyses_to_exclude = analyses_to_exlude = c("Longit_batch6_51"), replace_existing  = TRUE)
+myexp <- exclude_analyses(myexp, analyses_to_exclude = c("Longit_batch6_51"), replace_existing  = TRUE)
 
 # Replot the PCA
 plot_pca(
-  data = myexp, 
-  variable = "intensity", 
+  data = myexp,
+  variable = "intensity",
   filter_data = FALSE,
   pca_dim = c(1,2),
-  label_mad_threshold = 3, 
+  label_mad_threshold = 3,
   qc_types = c("SPL", "BQC", "NIST", "TQC"),
-  log_transform = TRUE,  
-  point_size = 2, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3, 
-  exclude_istds = TRUE, 
+  log_transform = TRUE,
+  point_size = 2, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
+  exclude_istds = TRUE,
   hide_text_from_labels = NA)
 ```
 
@@ -306,12 +307,12 @@ myexp <- midar::filter_features_qc(myexp, min.intensity.median.spl = 200)
 
 #Plot the curves
 plot_responsecurves(
-  data = myexp, 
-  variable = "intensity", 
-  filter_data = TRUE, 
-  include_feature_filter = "^PC 3[0-6]", # using regular expressions    
-  output_pdf = FALSE, path = "response-curves.pdf", 
-  cols_page = 5, rows_page = 5, 
+  data = myexp,
+  variable = "intensity",
+  filter_data = TRUE,
+  include_feature_filter = "PC 3[2-7]", # here we use regular expressions
+  output_pdf = FALSE, path = "response-curves.pdf",
+  cols_page = 5, rows_page = 4,
 )
 ```
 
@@ -606,7 +607,7 @@ and `LOD`).
 </details>
 
 ```{r qc-summary-1}
-midar::plot_summary_classes(myexp, include_qualifier = FALSE)
+midar::plot_qc_summary_byclass(myexp, include_qualifier = FALSE)
 ```
 
 The following plot provides a further summary of the feature filtering
@@ -627,7 +628,7 @@ particular filtering criterion.
 </details>
 
 ```{r qc-summary-2}
-midar::plot_summary(myexp, include_qualifier = FALSE)
+midar::plot_qc_summary_overall(myexp, include_qualifier = FALSE)
 ```
 
 ## 18. Saving a report with data, metadata and processing details

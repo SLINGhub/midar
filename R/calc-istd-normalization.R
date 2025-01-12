@@ -118,17 +118,6 @@ quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
   if (nrow(data@annot_istds) < 1) cli::cli_abort("ISTD concentrations are missing...please import ISTD metadata first.")
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs to be ISTD normalized, please run 'normalize_by_istd' first.")
 
-  istd_no_conc <- setdiff( data@annot_features$quant_istd_feature_id, data@annot_istds$quant_istd_feature_id)
-  istds <- data@annot_features |> filter(.data$is_istd) |> pull(.data$feature_id)
-
-  # Check if ISTD concentrations in spiked-in mix  are defined for all ISTDs
-  if (length(istd_no_conc) > 0){
-    if(!error_missing_annotation) {
-      cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing, calculated concentrations of affected features will be `NA`."))
-    } else {
-      cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `error_missing_annotation = FALSE`."))
-    }
-  }
 
   # Check if sample and ISTD amounts are defined for all analyses
   samples_no_amounts <- data@annot_analyses |>
@@ -148,6 +137,19 @@ quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
     dplyr::left_join(data@annot_analyses |> dplyr::select("analysis_id", "sample_amount", "istd_volume"), by = c("analysis_id")) |>
     dplyr::left_join(data@annot_features |> dplyr::select("feature_id", "quant_istd_feature_id", "response_factor"), by = c("feature_id")) |>
     dplyr::left_join(data@annot_istds, by = c("quant_istd_feature_id"))
+
+  istd_no_conc <- setdiff( unique(d_temp[!d_temp$is_istd,]$quant_istd_feature_id), unique(data@annot_istds$quant_istd_feature_id))
+  istds <- data@annot_features |> filter(.data$is_istd) |> pull(.data$feature_id)
+
+  # Check if ISTD concentrations in spiked-in mix  are defined for all ISTDs
+  if (length(istd_no_conc) > 0){
+    if(!error_missing_annotation) {
+      cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing, calculated concentrations of affected features will be `NA`."))
+    } else {
+      cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `error_missing_annotation = FALSE`."))
+    }
+  }
+
 
   # Calculate concentrations
   d_temp <- d_temp |> mutate(feature_pmol_total = (.data$feature_norm_intensity) * (.data$istd_volume * (.data$istd_conc_nmolar)) * .data$response_factor / 1000)
