@@ -33,7 +33,7 @@ navbar:
 reference:
 - title: MidarExperiment
   description: |
-    The MidarExperiment S4 class is the central data object in the MiDAR workflow.
+    Functions to create, access and query MidarExperiment objects, which are the central data object in the MiDAR workflow.
   contents:
   - MidarExperiment
   - MidarExperiment-class
@@ -54,9 +54,9 @@ reference:
   - set_intensity_var
 - title: Analysis data import
   description: |
-    Analytical data from different sources can be imported into MidarExperiment objects.
-    Additionally, the file parser functions used by these import functions are available
-    for direct use.
+    Functions to import analytical data from different sources into MidarExperiment objects.
+    Additionally, the file parser function used internally by these import functions are available
+    for direct use, i.e. to import different analytical data into data frames.
   contents:
   - import_data_mrmkit
   - import_data_masshunter
@@ -66,9 +66,8 @@ reference:
   - parse_plain_csv
 - title: Metadata import
   description: |
-    Metadata describing the analyses (samples), features (analytes), internal standards
-    and other relevant information can be imported from the MiDAR Excel template and
-    from CSV files.
+    Functions to import metadata describing the analyses (samples), features (analytes), internal standards
+    and other relevant information from the MiDAR Excel template or CSV files.
   contents:
   - import_metadata_midarxlm
   - import_metadata_from_data
@@ -82,23 +81,22 @@ reference:
   - add_metadata
 - title: External Calibration
   description: |
-    External calibration curves
+    Function to plot and analyze external calibration curves
   contents:
   - plot_calibrationcurves
   - calc_calibration_results
   - get_calibration_results
 - title: Normalization and Quantification
   description: |
-    Data processing, including normalization for internal standards, sample amounts,
-    and quantification based on internal standards and external calibration curves.
+    Functions to normalization by internal standards and sample amounts, to calculate analyte concentrations based
+    on internal standards amounts or external calibration curves.
   contents:
   - normalize_by_istd
   - quantify_by_istd
   - quantify_by_calibration
 - title: Data Correction and Adjustments
   description: |
-    Further processing that includes drift correction, batch correction, and
-    isotopic interference correction can be applied using a specific set of functions.
+    Function for drift and batch correction correction
   contents:
   - correct_drift_loess
   - correct_drift_gaussiankernel
@@ -106,10 +104,14 @@ reference:
   - fun_gauss.kernel.smooth
   - fun_loess
   - correct_batch_centering
+- title: Isotope correction
+  description: |
+    Functions to perform type II isotopic correction
+  contents:
   - correct_interferences
 - title: Quality Control and Filtering
   description: |
-    Calculation of QC metrics for features is used for feature filtering and reporting.
+    Functions to calculate feature QC metrics and apply QC filtering, and vizualize the filtering results.
   contents:
   - qc_calc_metrics
   - filter_features_qc
@@ -117,9 +119,7 @@ reference:
   - plot_qc_summary_overall
 - title: Quality Control Plots
   description: |
-    Plots to visualize run order effects, sample type characteristics,
-    and analytical performance share many arguments and are based on MidarExperiment
-    objects.
+    Functions to plots diverse QC visualizatios.
   contents:
   - plot_runsequence
   - plot_runscatter
@@ -135,7 +135,7 @@ reference:
   - get_response_curve_stats
 - title: Data Reporting and Sharing
   description: |
-    The datasets and the processing steps can be exported to different formats.
+    Functions to export processed and raw datasets and the processing steps in different formats.
   contents:
   - save_report_xlsx
   - save_dataset_csv

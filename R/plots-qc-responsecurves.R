@@ -26,25 +26,28 @@ plot_responsecurves_page <- function(dataset,
 
   p <-  ggplot2::ggplot(
       data = dat_subset,
+
       ggplot2::aes(
         x = .data$analyzed_amount,
         y = !!plot_var,
         color = .data$curve_id
       )
     ) +
-      # ggpmisc::stat_poly_line(
-      #   data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
-      #   ggplot2::aes(
-      #     x = .data$analyzed_amount,
-      #     y = !!plot_var,
-      #     color = .data$curve_id
-      #   ),
-      #   se = FALSE, na.rm = TRUE, size = line_width * scaling_factor, inherit.aes = FALSE
-      # ) +
-      # ggpmisc::stat_poly_eq(
-      #   aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
-      #   size = 2 * scaling_factor, rr.digits = 3, vstep = .1
-      # ) +
+        geom_smooth(
+          data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
+          method = "lm",
+          formula = y ~ x,
+          ggplot2::aes(
+            x = .data$analyzed_amount,
+            y = !!plot_var,
+            color = .data$curve_id
+          ),
+          se = FALSE, na.rm = TRUE, size = line_width * scaling_factor, inherit.aes = FALSE
+      ) +
+      ggpmisc::stat_poly_eq(
+        aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
+        size = 2 * scaling_factor, rr.digits = 3, vstep = .1
+      ) +
       # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
       ggplot2::scale_color_manual(values = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")) +
       ggplot2::scale_y_continuous(limits = c(0, NA)) +
@@ -112,7 +115,7 @@ plot_responsecurves <- function(data = NULL,
                                 return_plots = FALSE) {
 
   if (!requireNamespace("ggpmisc", quietly = TRUE)) {
-    cli_abort("Please install 'ggplot2' to use this function via `install.packages('ggplot2')`.")
+    cli_abort("Please install 'ggpmisc' to use this function via `install.packages('ggpmisc')`.")
   }
 
   check_data(data)

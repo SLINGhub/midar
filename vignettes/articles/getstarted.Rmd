@@ -310,7 +310,7 @@ plot_responsecurves(
   data = myexp,
   variable = "intensity",
   filter_data = TRUE,
-  include_feature_filter = "PC 3[2-7]", # here we use regular expressions
+  include_feature_filter = "^PC 3[0-5]", # here we use regular expressions
   output_pdf = FALSE, path = "response-curves.pdf",
   cols_page = 5, rows_page = 4,
 )

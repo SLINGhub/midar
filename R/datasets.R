@@ -1,7 +1,8 @@
-#' Plasma Lipidomics Peak Areas Dataset
+#' Plasma Lipidomics Dataset with Metadata
 #'
-#' This is an demo dataset used for examples in this of from reporocessed dataset containing raw peak areas and analytical metadata
-#' of 499 analyses with 503 features from a plasma lipidomics analysis
+#' This is an demo dataset used in function usage examples in this package.
+#' It is a small subset of a prprocessed dataset
+#' containing raw peak areas and analytical metadata from a plasma lipidomics analysis
 #' published in Tan et al, ATVB, 2022. The dataset is used to demonstrate
 #'
 #' @format A `MidarExperiment` object:
