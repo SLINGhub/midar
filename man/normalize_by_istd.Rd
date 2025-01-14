@@ -4,12 +4,12 @@
 \alias{normalize_by_istd}
 \title{Normalize Feature Intensities Using Internal Standards}
 \usage{
-normalize_by_istd(data = NULL, error_missing_annotation = TRUE)
+normalize_by_istd(data = NULL, fail_missing_annotation = TRUE)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object.}
 
-\item{error_missing_annotation}{If \code{TRUE}, the function
+\item{fail_missing_annotation}{If \code{TRUE}, the function
 will raise an error when an ISTD is not defined for one or more features (excluding the ISTDs themselves).
 If \code{FALSE}, features with missing ISTD annotations will have NA values in the normalized intensities.}
 }

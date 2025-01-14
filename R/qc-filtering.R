@@ -644,8 +644,8 @@ filter_features_qc <- function(data = NULL,
     if(!qualifier.include) d_metrics_temp <- metrics_qc_local |> filter(.data$is_quantifier)
     if(!istd.include) d_metrics_temp <- metrics_qc_local |> filter(!.data$is_istd)
 
-    n_all_quant <- get_feature_count(data, isistd = FALSE, isquantifier = TRUE)
-    n_all_qual <- get_feature_count(data, isistd = FALSE, isquantifier = FALSE)
+    n_all_quant <- get_feature_count(data, is_istd = FALSE, is_quantifier = TRUE)
+    n_all_qual <- get_feature_count(data, is_istd = FALSE, is_quantifier = FALSE)
 
     n_filt_quant <- nrow(d_metrics_temp |>  filter(.data$in_data, .data$is_quantifier, .data$qc_pass))
     n_filt_qual <- nrow(d_metrics_temp |>  filter(.data$in_data, !.data$is_quantifier, .data$qc_pass))
@@ -656,8 +656,8 @@ filter_features_qc <- function(data = NULL,
       qc_pass_prev <- sum(d_metrics_temp$qc_pass_before, na.rm = TRUE)
     }
 
-    n_istd_quant <- get_feature_count(data, isistd = TRUE, isquantifier = TRUE)
-    n_istd_qual <- get_feature_count(data, isistd = TRUE, isquantifier = FALSE)
+    n_istd_quant <- get_feature_count(data, is_istd = TRUE, is_quantifier = TRUE)
+    n_istd_qual <- get_feature_count(data, is_istd = TRUE, is_quantifier = FALSE)
 
     if (!istd.include) {
       n_filt_quant <- nrow(d_filt |>  filter(.data$in_data,!.data$is_istd, .data$is_quantifier))

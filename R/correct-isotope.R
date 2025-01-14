@@ -106,7 +106,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity") {
 
   data@is_isotope_corr <- TRUE
   data@status_processing <- "Isotope-corrected raw data"
-  data <- change_is_normalized(data, FALSE)
+  data <- update_after_normalization(data, FALSE)
   data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
   data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
   data@is_filtered <- FALSE

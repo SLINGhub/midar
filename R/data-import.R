@@ -151,29 +151,30 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 
   # VERIFY DATA, i.e. analysis_ids, feature_ids, and values are replicated ===
   ## which can be result of multiple imports of the same/overlapping data or due to parsing error
-
-  if (nrow(d_raw) > nrow(d_raw |> distinct(.data$analysis_id, .data$feature_id, .keep_all = FALSE))) {
+  n_idpairs_distinct <- d_raw |> select("analysis_id", "feature_id") |>  distinct(.keep_all = FALSE) |> nrow()
+  if (nrow(d_raw) > n_idpairs_distinct) {
     has_duplicated_id <- TRUE
-    if (nrow(d_raw) > nrow(d_raw |> distinct(.data$analysis_id, .data$feature_id, .keep_all = TRUE))) {
-      has_duplicated_id_values <- TRUE
+
+    n_idvalpairs_distinct <- d_raw |> select("analysis_id", "feature_id", any_of(c("feature_area", "feature_rt", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>  distinct(.keep_all = FALSE) |> nrow()
+
+    if (n_idvalpairs_distinct == n_idpairs_distinct ) {
+      has_duplicated_values <- TRUE
     } else {
-      has_duplicated_id_values <- FALSE
+      has_duplicated_values <- FALSE
     }
   } else {
     has_duplicated_id <- FALSE
   }
 
   if (has_duplicated_id) {
-    if (has_duplicated_id_values) {
-      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with **identical** intensity values. Please check imported dataset(s)."))
+    if (has_duplicated_values) {
+      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('identical')} feature variable values. Please check imported dataset(s)."))
     } else {
-      cli::cli_abort(glue::glue("Imported data contains replicated reportings (analysis and feature pairs) with **different intensity values. Please check imported dataset(s)."))
+      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('different')} feature variable values. Please check imported dataset(s)."))
     }
   }
 
   data@dataset_orig <- dplyr::bind_rows(pkg.env$table_templates$dataset_orig_template, d_raw)
-
-
 
   # TODO: excl_unmatched_analyses below
 
@@ -752,16 +753,6 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
 }
 
 
-#' @title internal method to read csv files
-#' @param path csv file name
-#' @return tibble table
-#' @noRd
-# TODO remove this test function
-.test_mult <- function(a, b) {
-  nms <- c(1, 2, 3)
-  n_col <- length(nms)
-  rep("numeric", n_col)
-}
 
 
 

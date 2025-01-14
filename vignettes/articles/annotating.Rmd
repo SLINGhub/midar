@@ -83,7 +83,7 @@ Use specific functions to access data and metadata stored in the `MidarExperimen
 ```{r}
 myexp <- MidarExperiment()
 myexp <- data_load_example(myexp, 1)
-print(midar::get_analyticaldata(myexp))
+print(midar::get_analyticaldata(myexp, annotated = TRUE))
 ```
 
 ### Saving and Reading MidarExperiment objects

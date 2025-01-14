@@ -154,7 +154,7 @@ plot_runsequence <- function(data = NULL,
   }
 
  if(add_info_title) {
-    p <- p + labs(title = glue::glue("{data@title} \u2014 analysis time: {get_analysis_duration(data)|> stringr::str_sub(end = -5)}  ({get_analyis_start(data)|> stringr::str_sub(end = -4)} - {get_analyis_end(data)|> stringr::str_sub(end = -4)}) \u2014 median run time: {get_run_time(data)@minute}:{get_run_time(data)@.Data} min \u2014 interruptions > 1 hour: {get_analysis_interruptions(data, 3600)}"))
+    p <- p + labs(title = glue::glue("{data@title} \u2014 analysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE)|> stringr::str_sub(end = -5)}  ({get_analyis_start(data)|> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE)|> stringr::str_sub(end = -4)}) \u2014 median run time: {get_runtime_median(data)@minute}:{get_runtime_median(data)@.Data} min \u2014 interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
   }
 
   # Color mapping

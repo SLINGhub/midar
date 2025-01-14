@@ -28,5 +28,7 @@ MidarExperiment object
 }
 \description{
 Sets the raw signal variable used for calculations starting from raw signal
-values (i.e., normalization)
+values (i.e., normalization) Note that this set variable must be part of the
+orginally imported data. Processed data variables (e.g., normalized intensities
+and concentrations) can not be set as default feature intensity variable.
 }

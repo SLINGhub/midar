@@ -14,7 +14,7 @@
 #' @param fit_method A character string indicating the default regression fit method to use for the calibration curve. Must be one of `"linear"` or `"quadratic"`. This method will be used if no specific fit method is defined for a feature in the metadata.
 #' @param fit_weighting A character string indicating the default weighting method for the regression points in the calibration curve. Must be one of `"none"`, `"1/x"`, or `"1/x^2"`. If no specific weighting method is defined for a feature in the metadata, this method will be used.
 #' @param error_failed_calibration If `TRUE`, an error will be raised if the calibration curve fitting failed for any feature. If `FALSE`, failed calibration curve fitting will be ignored, and resulting feature concentration will be `NA`.
-#' @param error_missing_annotation Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
+#' @param fail_missing_annotation Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
 #'   If `FALSE`, missing annotations will be ignored, and resulting feature concentration will be `NA`
 #' @return A modified `MidarExperiment` object with updated concentration values.
 #'
@@ -26,7 +26,7 @@ quantify_by_calibration <- function(data = NULL,
                                      fit_method = c("linear", "quadratic"),
                                      fit_weighting = c("none", "1/x", "1/x^2"),
                                      error_failed_calibration = TRUE,
-                                     error_missing_annotation = TRUE
+                                     fail_missing_annotation = TRUE
                                      ) {
 
   check_data(data)
@@ -39,23 +39,23 @@ quantify_by_calibration <- function(data = NULL,
                                    overwrite_metadata = overwrite_metadata,
                                    fit_method = fit_method,
                                    fit_weighting = fit_weighting,
-                                   error_missing_annotation = error_missing_annotation)
+                                   fail_missing_annotation = fail_missing_annotation)
   d_calib <- data@metrics_calibration
 
-  features_no_calib <- setdiff(d_calib$feature_id, get_featurelist(data, isistd = FALSE, isquantifier = TRUE))
+  features_no_calib <- setdiff(d_calib$feature_id, get_featurelist(data, is_istd = FALSE, is_quantifier = TRUE))
   # Check if calibration curve data is missing for any feature
   if (length(features_no_calib) > 0){
-    if (!error_missing_annotation) {
+    if (!fail_missing_annotation) {
       cli::cli_alert_warning(cli::col_yellow("Calibration curve results for {length(feartures_no_calib)} features missing. Calculated concentrations of affected features will be `NA`."))
     } else {
-      cli::cli_abort(cli::col_red("Calibration curve results for {length(feartures_no_calib)} features missing. Please update metadata or set `error_missing_annotation = FALSE`."))
+      cli::cli_abort(cli::col_red("Calibration curve results for {length(feartures_no_calib)} features missing. Please update metadata or set `fail_missing_annotation = FALSE`."))
     }
   }
 
   features_failed_calib <- sum(d_calib$reg_failed)
   # Check if calibration curve data is missing for any feature
   if (features_failed_calib > 0){
-    if(!error_missing_annotation) {
+    if(!fail_missing_annotation) {
       cli::cli_alert_warning(cli::col_yellow("Calibration curve fitting failed for {length(features_failed_calib)} features. Calculated concentrations of affected features will be `NA`."))
     } else {
       cli::cli_abort(cli::col_red("Calibration curve fitting failed for {length(features_failed_calib)} features. Please inspect calibration curve details, e.g. by plotting using `plot_calibrationcurves()`."))
@@ -119,7 +119,7 @@ quantify_by_calibration <- function(data = NULL,
 #' @param overwrite_metadata A logical value (`TRUE` or `FALSE`). If `TRUE`, the function will ignore any fit method and weighting settings defined in the metadata and use the provided `fit_method` and `fit_weighting` values for all analytes.
 #' @param fit_method A character string specifying the default regression fit method to use for the calibration curve. Must be one of `"linear"` or `"quadratic"`. This method will be applied if no specific fit method is defined for a feature in the metadata.
 #' @param fit_weighting A character string specifying the default weighting method for the regression points in the calibration curve. Must be one of `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no specific weighting method is defined for a feature in the metadata.
-#' @param error_missing_annotation If `TRUE`, an error will be raised if any of the following information is missing: calibration curve data, ISTD mix volume, and sample amounts for any feature.
+#' @param fail_missing_annotation If `TRUE`, an error will be raised if any of the following information is missing: calibration curve data, ISTD mix volume, and sample amounts for any feature.
 #' @param include_fit_object If `TRUE`, the function will return the full regression fit objects for each feature in the `metrics_calibration` table.
 #'
 #' @return A modified `MidarExperiment` object with an updated `metrics_calibration` table containing the calibration curve results, including concentrations, LoD, and LoQ values for each feature.
@@ -128,12 +128,12 @@ quantify_by_calibration <- function(data = NULL,
 #'
 #' @export
 
-#TODO: implement error handling  error_missing_annotation
+#TODO: implement error handling  fail_missing_annotation
 calc_calibration_results <- function(data = NULL,
                                     overwrite_metadata = FALSE,
                                     fit_method = c("linear", "quadratic"),
                                     fit_weighting = c("none", "1/x", "1/x^2"),
-                                    error_missing_annotation = TRUE,
+                                    fail_missing_annotation = TRUE,
                                     include_fit_object = FALSE
                                     ) {
 

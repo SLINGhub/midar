@@ -4,7 +4,40 @@
 check_data_present <- function(data){nrow(data@dataset_orig) > 0}
 check_dataset_present <- function(data){nrow(data@dataset) > 0}
 
+
+#' @title Get the annotated or the originally imported analytical data
+#' @param data MidarExperiment object
+#' @param annotated Boolean indicating whether to return the annotated data
+#' (`FALSE`) or the original imported data (`TRUE`)
+#' @return A tibble with the analytical data in the long format
+#' @export
+
+get_analyticaldata <- function(data = NULL, annotated ){
+  check_data(data)
+  if (!annotated) {
+    return(data@dataset_orig)
+  } else {
+    return(data@dataset)
+  }
+}
+
+
+#' Get the number of analyses in the dataset
+#'
+#' Returns the number of analyses in the dataset, with an optional
+#' filter based on `qc_types`.
+#'
+#' @param data A `MidarExperiment` object
+#' @param qc_types Defines the `qc_types` to be counted. If `NULL` or `NA`,
+#' all analyses will be counted.
+#'
+#' @return An integer with the analysis count
+#'
+#' @export
 get_analysis_count <- function(data, qc_types = NULL) {
+  if (nrow(data@dataset) == 0) {
+    return(0)
+  }
   if (is.null(qc_types))
     return(data@dataset|> select("analysis_id") |> distinct() |> nrow())
   else
@@ -12,80 +45,185 @@ get_analysis_count <- function(data, qc_types = NULL) {
              select("analysis_id") |> distinct() |> nrow())
 }
 
-get_feature_count <- function(data, isistd = NULL, isquantifier = NULL) {
+
+#' Get the number of features in the dataset
+#'
+#' Returns the number of features in the dataset, with optional
+#' filters whether counted features must be internal standard and/or quantifier.
+#'
+#' @param data A `MidarExperiment` object
+#' @param is_istd If set, then defines whether to include or exclude internal standard features. Default is `NA` means no filter for internal standards is applied.
+#' @param is_quantifier If set, then defines whether to include or exclude qualifier features. Default is `NA` means no filter for qualifier features is applied.
+#'
+#' @return An integer with the feature count
+#'
+#' @export
+get_feature_count <- function(data, is_istd = NA, is_quantifier = NA) {
+  if (nrow(data@dataset) == 0) {
+    return(0)
+  }
   d <- data@dataset
-  if (!is.null(isistd)) d <- d |> filter(.data$is_istd == isistd)
-  if (!is.null(isquantifier)) d <- d |> filter(.data$is_quantifier == isquantifier)
+  if (!is.na(is_istd)) d <- d |> filter(.data$is_istd == !!is_istd)
+  if (!is.na(is_quantifier)) d <- d |> filter(.data$is_quantifier == !!is_quantifier)
 
   d |> select("feature_id") |> distinct() |> nrow()
 }
 
-get_featurelist <- function(data, isistd = NULL, isquantifier = NULL) {
+#' Get feature IDs
+#'
+#' Returns a vector of annotated feature IDs (`feature_id`) present in the dataset
+#'
+#' @param data A `MidarExperiment` object
+#' @param is_istd If set, then defines whether to include or exclude internal standard features. Default is `NA` means no filter for internal standards is applied.
+#' @param is_quantifier If set, then defines whether to include or exclude qualifier features. Default is `NA` means no filter for qualifier features is applied.
+#'
+#' @return A character vector with `feature_id` values
+#'
+#' @export
+
+get_featurelist <- function(data, is_istd = NA, is_quantifier = NA) {
   d <- data@dataset
-  if (!is.null(isistd)) d <- d |> filter(.data$is_istd == isistd)
-  if (!is.null(isquantifier)) d <- d |> filter(.data$is_quantifier == isquantifier)
+  if (nrow(data@dataset) == 0) {
+    return(NULL)
+  }
+  if (!is.na(is_istd)) d <- d |> filter(.data$is_istd == !!is_istd)
+  if (!is.na(is_quantifier)) d <- d |> filter(.data$is_quantifier == !!is_quantifier)
 
   d |> select("feature_id") |> distinct() |> pull(.data$feature_id)
 }
 
-
+#' Get the start time of the analysis sequence
+#'
+#' Returns the start time of the analysis, corresponding to the earliest `acquisition_time_stamp` from the dataset.
+#'
+#' @param data A `MidarExperiment` object
+#' @return A `POSIXct` timestamp, or `NA_POSIXct_` if the dataset is empty.
+#'
+#' @export
 get_analyis_start <- function(data){
   if (check_data_present(data))
     return(min(data@dataset$acquisition_time_stamp))
   else
-    return(NA)
+    return(lubridate::NA_POSIXct_)
 }
 
-get_analyis_end <- function(data){
-  if (check_data_present(data))
-    return(max(data@dataset$acquisition_time_stamp))
+#' Get the end time of the analysis sequence
+#'
+#' Returns the end time of the analysis, corresponding to the last `acquisition_time_stamp` from the dataset.
+#' Note: if `estimate_analysis_end` is set to `FALSE`, the function will return
+#' the timestamp of the last analysis in the dataset, corresping to the start of
+#' the last analysis. Set `estimate_analysis_end` to `TRUE` to estimate the end
+#' time of the analysis sequence, based on the median runtime.
+#'
+#' @param data A `MidarExperiment` object
+#' @param estimate_sequence_end If `TRUE`, the function will estimate the end
+#' time of the analysis sequence based on the median runtime. `FALSE` will
+#' return to start time of last analysis in the sequence.
+#' @return A `POSIXct` timestamp, or `NA_POSIXct_` if the dataset is empty.
+#'
+#' @export
+get_analyis_end <- function(data, estimate_sequence_end){
+  if (check_data_present(data)){
+    if(estimate_sequence_end)
+      return(max(data@dataset$acquisition_time_stamp) + get_runtime_median(data))
+    else
+      return(max(data@dataset$acquisition_time_stamp))
+  }
+
   else
-    return(NA)
+    return(lubridate::NA_POSIXct_)
 }
 
-get_run_time <- function(data){
+#' Get the median run time
+#'
+#' Calculates the median run time (in seconds) based of the timestamps differences between consecutive analyses in the sequence.
+#'
+#' @param data A `MidarExperiment` object
+#' @return A `lubridate` time period object, or `NA` if the dataset is empty.
+#'
+#' @export
+
+get_runtime_median <- function(data){
   if (check_data_present(data))
     median(diff(unique(data@dataset$acquisition_time_stamp), units = "secs")) |>  lubridate::seconds_to_period()
   else
     return(NA)
 }
 
-get_analysis_duration <- function(data){
-  if (check_data_present(data))
-    difftime(max(unique(data@dataset$acquisition_time_stamp)), min(unique(data@dataset$acquisition_time_stamp)), units = "secs") |> lubridate::seconds_to_period()
-  else
+#' Get the total duration of the analysis
+#'
+#' This function returns the total duration of the analysis, which is the time difference
+#' between the timestamps of the first and last analyses in the sequence.
+#'
+#' If `estimate_sequence_end` is `TRUE`, the function will estimate the end time of the analysis sequence
+#' by adding the median runtime to the timestamp of the last analysis, instead of simply using the timestamp
+#' of the last analysis.
+#'
+#' @param data A `MidarExperiment` object
+#' @param estimate_sequence_end If `TRUE`, the function will estimate the end
+#' time of the analysis sequence based on the median runtime, added to the timestamp of the last analysis.
+#' If `FALSE`, the function will calculate the time difference between the first and last analysis timestamps
+#' without any adjustment.
+#'
+#' @export
+
+get_analysis_duration <- function(data, estimate_sequence_end){
+  if (check_data_present(data)){
+    time_end <- max(unique(data@dataset$acquisition_time_stamp))
+    if(estimate_sequence_end) time_end <- time_end + get_runtime_median(data)
+
+    difftime(time_end,
+             min(unique(data@dataset$acquisition_time_stamp)), units = "secs") |>
+      lubridate::seconds_to_period()
+  } else {
     return(NA)
+  }
+}
+
+#' Get the number of analysis breaks in the analysis
+#'
+#' Counts the number of interruptions in the analysis, where an interruption is
+#' defined as a time gap between consecutive acquisition timestamps that
+#' exceeds a given threshold (`break_duration_minutes`).
+
+#' @param data A `MidarExperiment` object
+#' @param break_duration_minutes A numeric value specifying the minimum duration
+#' (in minutes) between two consecutive analyses that qualifies as an interruption.
+#'
+#' @return An integer with the number of interruptions, or `NA_integer_` if the dataset is empty.
+#'
+#' @export
+get_analysis_breaks <- function(data, break_duration_minutes){
+  if (check_data_present(data)) {
+    if(all(is.na(unique(data@dataset$acquisition_time_stamp)))) return(NA_integer_)
+    as.integer(sum(diff(unique(data@dataset$acquisition_time_stamp), units = "secs") > break_duration_minutes * 60))
+  } else {
+    return(NA_integer_)
+  }
 }
 
 
-get_analysis_interruptions <- function(data, break_mins){
-  if (check_data_present(data))
-    sum(diff(unique(data@dataset$acquisition_time_stamp), units = "secs") > break_mins)
-  else
-    return(NA)
-}
-
-
-# sets the is_normalized flag, if FALSE remove normalized intensities and conc if availalble from the dataset
-change_is_normalized <- function(data, is_normalized, with_message = TRUE){
+# sets is_normalized flag, if FALSE remove normalized intensities and conc if availalble from the dataset
+# is_normalized defines if the data is normalized or not, which is to be set
+update_after_normalization <- function(data, is_normalized, with_message = TRUE){
   if(data@is_istd_normalized & !is_normalized) {
     data@dataset <- data@dataset |>
       select(-any_of(c("feature_norm_intensity", "feature_norm_intensity_raw")))
 
     if(data@is_quantitated){
-      data <- change_is_quantitated(data, FALSE, FALSE)
+      data <- update_after_quantitation(data, FALSE, FALSE)
       if(with_message)
-        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations are no longer valid. Please reprocess the data."))
+        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations have been invalidated. Please reprocess the data."))
     } else {
       if(with_message)
-        cli_alert_info(cli::col_yellow("Normalized intensities is no longer valid. Please reprocess data."))
+        cli_alert_info(cli::col_yellow("Normalized intensities have been invalidated. Please reprocess data."))
     }
   }
   data@is_istd_normalized <- is_normalized
   data
 }
 
-change_is_quantitated <- function(data, is_quantitated, with_message = TRUE){
+update_after_quantitation <- function(data, is_quantitated, with_message = TRUE){
   if(data@is_quantitated & !is_quantitated) {
     data@dataset <- data@dataset |> select(-any_of(c("feature_conc", "feature_raw_conc")))
     if(with_message) cli_alert_info(cli::col_yellow("Concentrations not valid anymore. Please reprocess data."))
@@ -98,10 +236,10 @@ check_var_in_dataset <- function(table, variable) {
 
   if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL))
   if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort(cli::col_red("Area is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "response" & !"response" %in% names(table)) cli_abort(cli::col_red("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_response" & !"feature_response" %in% names(table)) cli_abort(cli::col_red("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
   if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort(cli::col_red("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "height" & !"height" %in% names(table)) cli_abort(cli::col_red("Heights not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "conc_raw" & !"conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_height" & !"feature_height" %in% names(table)) cli_abort(cli::col_red("Height is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
 }
 
 #' @title Get the start and end analysis numbers of specified batches
@@ -375,7 +513,9 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 #' @title Set default variable to be used as feature raw signal value
 #' @description
 #' Sets the raw signal variable used for calculations starting from raw signal
-#' values (i.e., normalization)
+#' values (i.e., normalization) Note that this set variable must be part of the
+#' orginally imported data. Processed data variables (e.g., normalized intensities
+#' and concentrations) can not be set as default feature intensity variable.
 #' @param data MidarExperiment object
 #' @param variable_name Feature variable to be used as default feature intensity for downstream processing.
 #' @param auto_select If `TRUE` then the first available of these will be used as default: "intensity", "response", "area", "height".
@@ -386,11 +526,9 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 
 set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, warnings = TRUE, ...){
   check_data(data)
-
   variable_strip <- str_remove(variable_name, "feature_")
   #rlang::arg_match(variable_strip, c("area", "height", "conc"))
   variable_name <- stringr::str_c("feature_", variable_strip)
-
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
     id_all <- match(var_list,names(data@dataset_orig))
@@ -406,21 +544,22 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
   } else {
     #TODO: Double check behavior if there a feature_intensity in the raw data file
     if (! variable_name %in% names(data@dataset_orig))
-      cli_abort(c("x" = "{.var variable_strip} is not present in the raw data."))
+      cli_abort(c("x" = "{.var {variable_name}} is not present in the raw data."))
 
-    if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height"))
-      if(warnings) cli_alert_warning(text = "{.var {variable_strip}} is not a typically used raw signal name (i.e., area, response, intensity, height).")
-  }
+    if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height")){
+      if(warnings) cli_alert_warning(cli::col_yellow("Note: {.var {variable_strip}} is not a typically used raw signal (i.e., area, height, intensity)."))
+    }
+      }
   data@feature_intensity_var <- variable_name
 
   if (check_dataset_present(data)) {
     calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
     if (any(calc_cols %in% names(data@dataset))){
       data@dataset <- data@dataset |> select(-any_of(calc_cols))
-      cli_alert_info(cli::col_yellow("New feature intensity variable defined, please reprocess data."))
+      cli_alert_info(cli::col_yellow("New feature intensity variable (`{variable_name}`) defined, please reprocess data."))
     } else
     {
-      cli::cli_alert_success(cli::col_green("Default feature intensity variable set to {.val {variable_strip}}"))
+      cli::cli_alert_success(cli::col_green("Default feature intensity variable set to {.val {variable_name}}"))
 
     }
     data <- link_data_metadata(data)
@@ -431,18 +570,18 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 }
 
 
-#' @title Exclude Analyses from the Dataset
+#' @title Exclude analyses from the dataset
 #'
 #' @description
 #' This function excludes specified analyses from a `MidarExperiment` object, either by
-#' marking them as invalid for downstream processing or by overwriting the current analysis flags.
-#' The function also handles the case where no analyses are specified, allowing the option to reset the exclusions.
+#' marking them as invalid for downstream processing.
+#' The function also alloows to reset the exclusions.
 #'
 #' @param data A `MidarExperiment` object
 #' @param analyses_to_exclude A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
-#' If this is `NA` or an empty vector, the exclusion behavior will be handled as per the `replace_existing` flag.
+#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `replace_existing` flag.
 #' @param replace_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
-#' the exclusions will be appended, preserving any existing valid analyses.
+#' the exclusions will be appended, preserving any existing invalidated analyses.
 #'
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
@@ -451,9 +590,9 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
   check_data(data)
   if (all(is.na(analyses_to_exclude)) | length(analyses_to_exclude) == 0) {
     if(!replace_existing){
-      cli_abort(cli::col_red("No `analysis id`s provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `replace_existing = TRUE`."))
+      cli_abort(cli::col_red("No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
-      cli::cli_alert_info(cli::col_green("Exclusions were removed and all analyses are now included for subsequent steps. Please reprocess data."))
+      cli::cli_alert_info(cli::col_green("All exclusions removed, and thus all analyses are now included for subsequent steps. Please reprocess data."))
       data@analyses_excluded <- NA
       data@annot_analyses <- data@annot_analyses |> mutate(valid_analysis = TRUE)
       data <- link_data_metadata(data)
@@ -461,12 +600,12 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
       }
   }
   if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id) > 0) {
-    cli_abort(cli::col_red("One or more provided `analysis id`s to exclude are not present. Please check the analysis metadata."))
+    cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please check the analysis metadata."))
   }
   if(!replace_existing){
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses_to_exclude) & .data$valid_analysis)
-    cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were now excluded for downstream processing. Please reprocess data."))
+    cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses are now excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
@@ -482,51 +621,47 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
 
 
 
-#' @title Get the annotated or the originally imported analytical data
-#' @param data MidarExperiment object
-#' @param original Boolean indicating whether to return the original imported data (`TRUE`) or the annotated data (`FALSE`)
-#' @return A tibble with the analytical data in the long format
-#' @export
 
-get_analyticaldata <- function(data = NULL, original = FALSE){
-  check_data(data)
-  if (original) {
-    return(data@dataset_orig)
-  } else {
-    return(data@dataset)
-  }
-}
 
 #' @title Exclude features from the dataset
-#' @param data MidarExperiment object
-#' @param features_exlude Vector of feature IDs (case-sensitive) to exclude from the dataset
-#' @param replace_existing If `TRUE` then existing valid_feature flags will be overwritten, otherwise appended
-#' @return `MidarExperiment` object
+#'
+#' @description
+#' This function excludes specified features from a `MidarExperiment` object, either by
+#' marking them as invalid for downstream processing.
+#' The function also alloows to reset the exclusions.
+#'
+#' @param data A `MidarExperiment` object
+#' @param features_to_exclude A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
+#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `replace_existing` flag.
+#' @param replace_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
+#' the exclusions will be appended, preserving any existing invalidated features
+#'
+#' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_features <- function(data = NULL, features_exlude, replace_existing ){
+exclude_features <- function(data = NULL, features_to_exclude, replace_existing ){
   check_data(data)
 
-  if (all(is.na(features_exlude)) | length(features_exlude) == 0) {
+  if (all(is.na(features_to_exclude)) | length(features_to_exclude) == 0) {
     if(!replace_existing){
-      cli_abort(cli::col_red("No `feature id`s provided. To include all analyses, use `feature_ids_exlude = NA` and `replace_existing = TRUE`."))
+      cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
-      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all analyses are included. Please reprocess data."))
+      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all features are included. Please reprocess data."))
       return(data)
     }
   }
-  if (any(!c(features_exlude) %in% data@annot_features$feature_id) > 0) {
-    cli_abort(cli::col_red("One or more provided `feature id`s to exclude are not present. Please check the feature metadata."))
+  if (any(!c(features_to_exclude) %in% data@annot_features$feature_id) > 0) {
+    cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please check the feature metadata."))
   }
   if(!replace_existing){
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% features_exlude) & .data$valid_feature)
-    cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were now excluded for downstream processing. Please reprocess data."))
+      mutate(valid_feature = !(.data$feature_id %in% features_to_exclude) & .data$valid_feature)
+    cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."))
   }
   else {
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% features_exlude))
-    cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
+      mutate(valid_feature = !(.data$feature_id %in% features_to_exclude))
+    cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."))
   }
 
   data <- link_data_metadata(data)

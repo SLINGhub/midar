@@ -407,7 +407,7 @@ corr_drift_fun <- function(data = NULL,
     last = " and ", width = 160)
 
 
-  nfeat <- get_feature_count(data, isistd = FALSE)
+  nfeat <- get_feature_count(data, is_istd = FALSE)
 
   if(conditional_correction & within_batch)
     count_feature_text <- glue::glue("of at least one batch for {features_corrected}
@@ -454,9 +454,9 @@ corr_drift_fun <- function(data = NULL,
 
   # Invalidate downstream processed data
   if(variable == "feature_intensity"){
-    data <- change_is_normalized(data, FALSE)
+    data <- update_after_normalization(data, FALSE)
   } else if(variable == "feature_norm_intensity") {
-    data <- change_is_quantitated(data, FALSE)
+    data <- update_after_quantitation(data, FALSE)
   }
 
   data@status_processing <- "Drift-corrected concentrations"
@@ -746,7 +746,7 @@ correct_batch_centering <- function(data = NULL,
       cv_diff_text = format(round(.data$cv_diff_median, 1), nsmall = 1)
     )
 
-  nfeat <- get_feature_count(data, isistd = FALSE)
+  nfeat <- get_feature_count(data, is_istd = FALSE)
 
   # Print summary
   if (data@var_drift_corrected[[variable]]) {

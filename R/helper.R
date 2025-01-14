@@ -12,8 +12,10 @@ safe_max <- function(x, na.rm = FALSE) {
   if (all(is.na(x) | is.nan(x))) NA_real_ else max(x, na.rm = na.rm)
 }
 
-# checks if all values of a specific column are identicval in a grouped
+# checks if all values of a specific column are identical in a group
+# return NA if data frame has no data
 check_groupwise_identical_ids <- function(data, group_col, id_col) {
+  if(nrow(data) == 0) stop("data has no rows")
   data |>
     summarise(all_identical = dplyr::n_distinct({{id_col}}) == 1, .by = {{group_col}}) |>
     pull(.data$all_identical) |> all()
@@ -21,28 +23,46 @@ check_groupwise_identical_ids <- function(data, group_col, id_col) {
 
 # Used for qc filtering ####
 # Function to used to compare qc values with criteria and deal with NA
+
+
+#The comp_val function compares a column in a data frame to a threshold using a
+#specified operator. It handles NA values by returning NA when both are NA, FALSE
+#when the column is NA and the threshold is numeric, and applies the operator
+#(e.g., >, <, ==) when both are numeric. If the column does not exist, it returns NA.
+
 # Behaviour:
 # value is NA , threshold NA -> NA
 # value is num , threshold NA -> NA
 # value is NA , threshold is Num -> FALSE
-# value is num , threshold is num -> TRUE/FALSE
+# value is num , threshold is num -> TRUE/FAL
 
 # TODO: Add to function description,
 # TODO: make this function public for user to build own?
 
 comp_val <- function(tbl, val, threshold, operator) {
+  if(nrow(tbl) == 0) stop("tbl has no rows")
   if (!val %in% names(tbl)) return(NA)
   v_val <- tbl[[val]]
   result <- get(operator)(v_val, threshold)
 }
 
 
-# Get the result of AND/OR of boolean elements of vectors, return NA when all NA
+# performs element-wise logical operations (AND or OR) across multiple
+# logical vectors in a list. It returns a vector of the results,
+# where each element is the result of applying the specified operation to the
+# corresponding elements of the input vectors.
+# If any element is NA, the result for that position will also be NA.
+# If list is empty NULL is returned
 comp_lgl_vec <- function(lgl_list, .operator){
-  if (.operator == "AND"){
-    Reduce("&", lgl_list)
-  } else if (.operator == "OR"){
-    Reduce("|", lgl_list, )
+  if (.operator == "AND") {
+    return(Reduce("&", lgl_list))
+  } else if (.operator == "OR") {
+    return(Reduce("|", lgl_list))
+  } else if (.operator == "XOR") {
+    return(Reduce(function(x, y) xor(x, y), lgl_list))
+  } else {
+    # Return NULL for unsupported operators
+    return(NULL)
   }
 }
 
@@ -55,12 +75,18 @@ has_any_name = function(...){
   any(check_this %in% given_names)
 }
 
+
+# Add a new column to a data frame if the specified column does not exist.
+# If the column already exists, it can rename the column to
+# lowercase (if `make_lowercase = TRUE`) and replace all `NA` values with a
+# specified initial value (`init_value`) `all_na_replace = TRUE`
+
 add_missing_column <- function(data, col_name, init_value, make_lowercase, all_na_replace = FALSE) {
   if (!tolower(col_name) %in% tolower(names(data))) {
     data |> tibble::add_column({{ col_name }} := init_value)
   } else {
-    if (make_lowercase) data <- data |> dplyr::rename_with(tolower, dplyr::matches(c(col_name), ignore.case = TRUE))
-    if (all_na_replace & all(is.na(data |> pull({{col_name}}))))  data <- data |> mutate({{col_name}} := init_value)
+    if (make_lowercase) data <- data |> dplyr::rename_with(tolower, dplyr::matches(col_name, ignore.case = TRUE))
+    if (all_na_replace && all(is.na(data[[col_name]]))) data <- data |> mutate({{col_name}} := init_value)
     data
   }
 }
@@ -95,6 +121,32 @@ flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
     ungroup()
   data
 }
+
+
+cv <- function(x, ...){
+  sd(x, ...)/mean(x, ...)
+}
+
+
+#' get_conc_unit
+#'
+#' @param sample_amount_unit MidarExperiment object
+#' @return string with feature_conc unit
+#' @noRd
+
+get_conc_unit <- function(sample_amount_unit) {
+  units <- tolower(unique(sample_amount_unit))
+
+  if (length(units) > 1) {
+    conc_unit <- "pmol/sample amount unit (multiple units)"
+  } else if (units == "ul" | units == "\U003BCl") {
+    conc_unit <- "\U003BCmol/L"
+  } else {
+    conc_unit <- glue::glue("pmol/{units}")
+  }
+  conc_unit
+}
+
 
 #
 # # https://dewey.dunnington.ca/post/2018/modifying-facet-scales-in-ggplot2/
@@ -135,29 +187,4 @@ flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
 #     params = facet_super$params
 #   )
 # }
-
-
-cv <- function(x, ...){
-  sd(x, ...)/mean(x, ...)
-}
-
-
-#' get_conc_unit
-#'
-#' @param sample_amount_unit MidarExperiment object
-#' @return string with feature_conc unit
-#' @noRd
-
-get_conc_unit <- function(sample_amount_unit) {
-  units <- tolower(unique(sample_amount_unit))
-
-  if (length(units) > 1) {
-    conc_unit <- "pmol/sample amount unit (multiple units)"
-  } else if (units == "ul" | units == "\U003BCl") {
-    conc_unit <- "\U003BCmol/L"
-  } else {
-    conc_unit <- glue::glue("pmol/{units}")
-  }
-  conc_unit
-}
 

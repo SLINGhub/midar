@@ -2,7 +2,7 @@
 % Please edit documentation in R/data-managment.R
 \name{exclude_analyses}
 \alias{exclude_analyses}
-\title{Exclude Analyses from the Dataset}
+\title{Exclude analyses from the dataset}
 \usage{
 exclude_analyses(data = NULL, analyses_to_exclude, replace_existing)
 }
@@ -10,16 +10,16 @@ exclude_analyses(data = NULL, analyses_to_exclude, replace_existing)
 \item{data}{A \code{MidarExperiment} object}
 
 \item{analyses_to_exclude}{A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
-If this is \code{NA} or an empty vector, the exclusion behavior will be handled as per the \code{replace_existing} flag.}
+If this is \code{NA} or an empty vector, the exclusion behavior will be handled as set via the \code{replace_existing} flag.}
 
 \item{replace_existing}{A logical value. If \code{TRUE}, existing \code{valid_analysis} flags will be overwritten. If \code{FALSE},
-the exclusions will be appended, preserving any existing valid analyses.}
+the exclusions will be appended, preserving any existing invalidated analyses.}
 }
 \value{
 A modified \code{MidarExperiment} object with the specified analyses defined as excluded.
 }
 \description{
 This function excludes specified analyses from a \code{MidarExperiment} object, either by
-marking them as invalid for downstream processing or by overwriting the current analysis flags.
-The function also handles the case where no analyses are specified, allowing the option to reset the exclusions.
+marking them as invalid for downstream processing.
+The function also alloows to reset the exclusions.
 }

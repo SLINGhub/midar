@@ -10,7 +10,7 @@ quantify_by_calibration(
   fit_method = c("linear", "quadratic"),
   fit_weighting = c("none", "1/x", "1/x^2"),
   error_failed_calibration = TRUE,
-  error_missing_annotation = TRUE
+  fail_missing_annotation = TRUE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ quantify_by_calibration(
 
 \item{error_failed_calibration}{If \code{TRUE}, an error will be raised if the calibration curve fitting failed for any feature. If \code{FALSE}, failed calibration curve fitting will be ignored, and resulting feature concentration will be \code{NA}.}
 
-\item{error_missing_annotation}{Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
+\item{fail_missing_annotation}{Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
 If \code{FALSE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
 }
 \value{

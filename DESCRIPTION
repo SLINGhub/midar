@@ -81,7 +81,7 @@ Collate:
     'helper.R'
     'lipidomics.R'
     'metadata-access.R'
-    'metadata-read.R'
+    'metadata-import.R'
     'midar-package.R'
     'plots-calibcurves.R'
     'plots-eda.R'

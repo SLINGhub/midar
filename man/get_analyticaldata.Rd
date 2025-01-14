@@ -4,12 +4,13 @@
 \alias{get_analyticaldata}
 \title{Get the annotated or the originally imported analytical data}
 \usage{
-get_analyticaldata(data = NULL, original = FALSE)
+get_analyticaldata(data = NULL, annotated)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{original}{Boolean indicating whether to return the original imported data (\code{TRUE}) or the annotated data (\code{FALSE})}
+\item{annotated}{Boolean indicating whether to return the annotated data
+(\code{FALSE}) or the original imported data (\code{TRUE})}
 }
 \value{
 A tibble with the analytical data in the long format

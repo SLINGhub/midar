@@ -9,7 +9,7 @@ calc_calibration_results(
   overwrite_metadata = FALSE,
   fit_method = c("linear", "quadratic"),
   fit_weighting = c("none", "1/x", "1/x^2"),
-  error_missing_annotation = TRUE,
+  fail_missing_annotation = TRUE,
   include_fit_object = FALSE
 )
 }
@@ -22,7 +22,7 @@ calc_calibration_results(
 
 \item{fit_weighting}{A character string specifying the default weighting method for the regression points in the calibration curve. Must be one of \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no specific weighting method is defined for a feature in the metadata.}
 
-\item{error_missing_annotation}{If \code{TRUE}, an error will be raised if any of the following information is missing: calibration curve data, ISTD mix volume, and sample amounts for any feature.}
+\item{fail_missing_annotation}{If \code{TRUE}, an error will be raised if any of the following information is missing: calibration curve data, ISTD mix volume, and sample amounts for any feature.}
 
 \item{include_fit_object}{If \code{TRUE}, the function will return the full regression fit objects for each feature in the \code{metrics_calibration} table.}
 }

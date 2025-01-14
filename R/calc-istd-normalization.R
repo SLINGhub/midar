@@ -6,7 +6,7 @@
 #'
 
 #' @param data A `MidarExperiment` object.
-#' @param error_missing_annotation If `TRUE`, the function
+#' @param fail_missing_annotation If `TRUE`, the function
 #'   will raise an error when an ISTD is not defined for one or more features (excluding the ISTDs themselves).
 #'   If `FALSE`, features with missing ISTD annotations will have NA values in the normalized intensities.
 #'
@@ -14,7 +14,7 @@
 #'
 #' @export
 
-normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
+normalize_by_istd <- function(data = NULL, fail_missing_annotation = TRUE) {
 
   check_data(data)
 
@@ -32,16 +32,15 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 
   # Check if all ISTDs are defined as distinct feature in the feature metadata
   d_annot <- data@annot_features |> select("feature_id", "istd_feature_id")
-  all_istds <- unique(d_annot$istd_feature_id)
-
+  all_istds <- unique(na.omit(d_annot$istd_feature_id))
 
   if(!all(is.na(all_istds))){
     istd_not_defined <- setdiff(all_istds, d_annot$feature_id)
     if (length(istd_not_defined) > 0) {
-      cli::cli_abort(cli::col_red("All ISTDs must be defined as feature in the feature metadata, {nrow(istd_not_defined)} ISTD(s) were not. Please check metadata."))
+      cli::cli_abort(cli::col_red("{length(istd_not_defined)} ISTD(s) were not defined as individual feature(s). Please check feature metadata."))
     }
   } else {
-    cli::cli_abort(cli::col_red("No ISTDs defined in metadata. Please add feature metadata with ISTDs defined."))
+    cli::cli_abort(cli::col_red("No ISTDs defined in feature metadata. Please define ISTDs for each feature in feature metadata."))
   }
 
   # check if ISTDs are defined for all features (except ISTDs that are not defined for themselves)
@@ -50,10 +49,10 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
     dplyr::semi_join(data@dataset, by = c("feature_id"))
 
   if (nrow(features_no_istd) > 0) {
-    if(!error_missing_annotation)
-      cli::cli_alert_warning(cli::col_yellow("No ISTD was defined for {nrow(features_no_istd)} features, normalized intensities will be `NA` for these. "))
+    if(!fail_missing_annotation)
+      cli::cli_alert_warning(cli::col_yellow("For {nrow(features_no_istd)} feature(s) no ISTD was defined, normalized intensities will be `NA` for these features. "))
     else
-      cli::cli_abort(cli::col_red("No ISTD was defined for {nrow(features_no_istd)} features. Please ammend feature metadata or set `error_missing_annotation = FALSE`."))
+      cli::cli_abort(cli::col_red("For {nrow(features_no_istd)} feature(s) no ISTD was defined. Please ammend feature metadata or set `fail_missing_annotation = FALSE`."))
   }
 
   # Add ISTD intensities to temporary dataset
@@ -63,7 +62,13 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
   # Normalize intensities
   d_temp <- d_temp |>
     dplyr::group_by(.data$istd_feature_id, .data$analysis_id) |>
-    dplyr::mutate(feature_norm_intensity = .data$feature_intensity / .data$feature_intensity[.data$is_istd]) |>
+    dplyr::mutate(
+      feature_norm_intensity = ifelse(
+        !is.na(.data$istd_feature_id),
+        .data$feature_intensity / .data$feature_intensity[.data$is_istd],
+        NA_real_
+      )
+    ) |>
     dplyr::ungroup()
 
   # Add normalized intensities to dataset table
@@ -71,7 +76,7 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
     dplyr::inner_join(d_temp |> dplyr::select("analysis_id", "feature_id", "feature_norm_intensity"), by = c("analysis_id", "feature_id"))
 
   # Print summary
-  n_features <- length(unique(d_temp$feature_id))
+  n_features <- length(unique(d_temp$feature_id)) - nrow(features_no_istd)
 
   istds <- data@annot_features |> filter(.data$is_istd) |> pull(.data$feature_id)
   n_used_istds <- length(intersect(istds, data@annot_features |> filter(!.data$is_istd) |> pull(.data$quant_istd_feature_id) |> unique()))
@@ -82,8 +87,8 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 
   # Update status
   data@status_processing <- "ISTD-normalized ata"
-  data <- change_is_normalized(data, TRUE)
-  data <- change_is_quantitated(data, FALSE)
+  data <- update_after_normalization(data, TRUE)
+  data <- update_after_quantitation(data, FALSE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
   data
@@ -101,7 +106,7 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 #' named `feature_conc`.
 #'
 #' @param data A `MidarExperiment` object
-#' @param error_missing_annotation If `TRUE`, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
+#' @param fail_missing_annotation If `TRUE`, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
 #'   If `FALSE`, missing annotations will be ignored, and resulting feature concentration will be `NA`
 #'
 #' @return A `MidarExperiment` object with the calculated analyte concentrations added to the
@@ -111,7 +116,7 @@ normalize_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 #'
 #' @export
 
-quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
+quantify_by_istd <- function(data = NULL, fail_missing_annotation = TRUE) {
 
   check_data(data)
 
@@ -121,14 +126,14 @@ quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 
   # Check if sample and ISTD amounts are defined for all analyses
   samples_no_amounts <- data@annot_analyses |>
-    filter(.data$valid_analysis, is.na(.data$sample_amount), is.na(.data$istd_volume)) |>
+    filter(.data$valid_analysis, is.na(.data$sample_amount) | is.na(.data$istd_volume)) |>
     dplyr::semi_join(data@dataset, by = c("analysis_id"))
 
   if (nrow(samples_no_amounts) > 0) {
-    if(!error_missing_annotation)
-      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD solution amount(s) for {length(samples_no_amounts)} analyses missing, concentrations of all features for these analyses will be `NA`"))
+    if(!fail_missing_annotation)
+      cli::cli_alert_warning(cli::col_yellow("Sample and/or ISTD solution amount(s) for {nrow(samples_no_amounts)} analyses missing, concentrations of all features for these analyses will be `NA`"))
     else
-      cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {nrow(samples_no_amounts)} analyses missing. Please ammend analysis metadata or set `error_missing_annotation = FALSE`."))
+      cli::cli_abort(cli::col_red("Sample and/or ISTD amount(s) for {nrow(samples_no_amounts)} analyses missing. Please ammend analysis metadata or set `fail_missing_annotation = FALSE`."))
   }
 
   # Add ISTD concentrations and sample amouts to temporary dataset
@@ -143,10 +148,10 @@ quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 
   # Check if ISTD concentrations in spiked-in mix  are defined for all ISTDs
   if (length(istd_no_conc) > 0){
-    if(!error_missing_annotation) {
+    if(!fail_missing_annotation) {
       cli::cli_alert_warning(cli::col_yellow("Spiked-in concentrations of {length(istd_no_conc)} ISTD(s) missing, calculated concentrations of affected features will be `NA`."))
     } else {
-      cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `error_missing_annotation = FALSE`."))
+      cli::cli_abort(cli::col_red("Concentrations of {length(istd_no_conc)} ISTD(s) missing. Please ammend ISTD metadata or set `fail_missing_annotation = FALSE`."))
     }
   }
 
@@ -171,13 +176,13 @@ quantify_by_istd <- function(data = NULL, error_missing_annotation = TRUE) {
 
   conc_unit <- get_conc_unit(data@annot_analyses$sample_amount_unit)
 
-  cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated based on {n_istd} ISTDs and sample amounts of {get_analysis_count(data)} analyses."))
+  cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated based on {n_istd} ISTDs and sample amounts of {get_analysis_count(data) - nrow(samples_no_amounts)} analyses."))
   cli::cli_alert_info("Concentrations are given in {conc_unit}.")
 
   data@status_processing <- "ISTD-quantitated data"
 
-  data <- change_is_normalized(data, TRUE)
-  data <- change_is_quantitated(data, TRUE)
+  data <- update_after_normalization(data, TRUE)
+  data <- update_after_quantitation(data, TRUE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
