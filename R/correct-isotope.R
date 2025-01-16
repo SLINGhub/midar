@@ -48,16 +48,16 @@ correct_interference_manually <- function(data = NULL, variable, feature, interf
 }
 
 
-#' Substract interferences contributed by another feature
+#' Subtract interference contributed by another feature
 #'
 #' @description
 #' The interference (e.g. isotope overlap or in-source fragments) is subtracted using following formula:
-#' \deqn{Value_corrected = Value_Feature - relative_contribution * Value_InterferingFeature}
+#' \deqn{value_corrected = value_raw - value_raw_interfering_feature * proportion_interference}
 #'
 #  The interfering features an their relative contributions to the interference are defined in the feature annotation table
 #' @param data MidarExperiment object
 #' @param variable Name of Variable to be corrected. Default: `feature_intensity`.
-#' @return MidarExperiment object
+#' @return MidarExperiment object with feature intensities corrected for interferences
 #' @export
 
 correct_interferences <- function(data = NULL, variable = "feature_intensity") {
@@ -79,43 +79,71 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity") {
                .before = "feature_intensity")
   }
 
+  ############
 
-  # ToDo: check if interering feature is in the feature list
-  d_corrected_features <- data@dataset |>
-    left_join(data@annot_features |> select("feature_id", "interference_feature_id", "interference_proportion"), by = "feature_id") |>
-    mutate(
-      is_interfering = .data$feature_id %in% data@annot_features$interference_feature_id,
-      interference_group = if_else(.data$is_interfering, .data$feature_id, .data$interference_feature_id)
-    ) |>
-    filter(!is.na(.data$interference_group)) |>
-    arrange(desc(.data$interference_feature_id)) |>
-    group_by(.data$analysis_id, .data$interference_group) |>
-    mutate(
-      corr_intensity = if_else(!.data$is_interfering & !is.na(.data$interference_feature_id), .data$feature_intensity_orig - .data$feature_intensity_orig[.data$is_interfering] * .data$interference_proportion, NA_real_),
-      interference_corrected_temp = TRUE
-    ) |>
-    filter(!.data$is_interfering) |>
-    ungroup() |>
-    select("analysis_id", "feature_id", "corr_intensity", "interference_corrected_temp")
+  # Initial data processing
+  d_correct <- data@dataset |>
+    left_join(
+      data@annot_features |> select("feature_id", "interference_feature_id", "interference_proportion"),
+      by = "feature_id") |>
+    # mutate(
+    #   is_interfering = .data$feature_id %in% data@annot_features$interference_feature_id,
+    #   is_interfered = !is.na(.data$interference_feature_id)
+    # ) |>
+    select("analysis_id", "feature_id", "feature_intensity_orig", "interference_feature_id", "interference_proportion")
 
-    data@dataset <- data@dataset |>
-    left_join(d_corrected_features, by = c("analysis_id", "feature_id")) |>
-    mutate(interference_corrected = dplyr::coalesce(.data$interference_corrected, .data$interference_corrected_temp)) |>
-    mutate(feature_intensity = if_else(.data$interference_corrected, .data$corr_intensity, .data$feature_intensity_orig)) |>
-    select(-"corr_intensity", -"interference_corrected_temp")
+  features_to_correct <- d_correct |>
+    filter(!is.na(.data$interference_feature_id)) |>
+    select("feature_id", "interference_feature_id") |>
+    distinct() |>
+    arrange(rev(.data$feature_id))
+
+
+  # Function to apply correction for each feature set in features_to_correct
+  correct_feature_intensity <- function(data,features_to_correct, i) {
+    d <- data %>%
+      group_by(.data$analysis_id) |>
+      mutate(
+        raw_target = if_else(.data$feature_id == features_to_correct$feature_id[i],
+                    .data$feature_intensity_orig[.data$feature_id == features_to_correct$feature_id[i]], NA_real_),
+        raw_source = if_else(.data$feature_id == features_to_correct$feature_id[i],
+                    .data$feature_intensity_orig[.data$feature_id == features_to_correct$interference_feature_id[i]], NA_real_),
+        rel_interference = if_else(.data$feature_id == features_to_correct$feature_id[i],
+                    .data$interference_proportion[.data$feature_id == features_to_correct$feature_id[i]], NA_real_),
+        corr_intensity = if_else(.data$feature_id == features_to_correct$feature_id[i],
+                                 raw_target - raw_source * rel_interference, NA_real_)
+      ) |>
+      ungroup() |>
+      select(-"raw_target", -"raw_source", -"rel_interference") |>
+      mutate(feature_intensity_orig = if_else(!is.na(.data$corr_intensity), .data$corr_intensity, .data$feature_intensity_orig))
+    d
+  }
+
+  # Initialize corrected data with original data
+  d_corrected <- d_correct
+
+  # Apply the correction function iteratively, using the result from the previous iteration
+  for (i in 1:nrow(features_to_correct)) {
+    d_corrected <- correct_feature_intensity(d_corrected, features_to_correct, i)
+  }
+
+  ############
+
+  data@dataset <- data@dataset |>
+    left_join(d_corrected |> select("analysis_id", "feature_id", intensity_corrected  = "feature_intensity_orig"), by = c("analysis_id", "feature_id")) |>
+    mutate(interference_corrected = .data$feature_intensity != .data$intensity_corrected) |>
+    mutate(feature_intensity = .data$intensity_corrected) |>
+    select(-"intensity_corrected", -"feature_intensity_orig")
+
 
   data@is_isotope_corr <- TRUE
   data@status_processing <- "Isotope-corrected raw data"
   data <- update_after_normalization(data, FALSE)
   data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
-  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
   data@is_filtered <- FALSE
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
-  n_corr <- data@annot_features |>
-    filter(.data$valid_feature) |>
-    filter(!is.na(.data$interference_feature_id)) |>
-    nrow()
+  n_corr <- nrow(features_to_correct)
   cli_alert_success(col_green(glue::glue("Interference-correction has been applied to {n_corr} of the {get_feature_count(data)} features.")))
 
   data
