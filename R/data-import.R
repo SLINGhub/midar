@@ -178,7 +178,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 
   # TODO: excl_unmatched_analyses below
 
-  check_integrity(data, excl_unmatched_analyses = FALSE)
+  #check_integrity_analyses(data, excl_unmatched_analyses = TRUE, silent = TRUE)
   # stopifnot(methods::validObject(data))
 
   if (!silent) {

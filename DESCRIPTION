@@ -65,6 +65,7 @@ LazyDataCompression: xz
 Collate: 
     'calc-calibrations.R'
     'calc-istd-normalization.R'
+    'calc_eda.R'
     'midar-global-definitions.R'
     'classes.R'
     'correct-drift-batch.R'
@@ -77,10 +78,8 @@ Collate:
     'data-outlier.R'
     'datasets.R'
     'functions-math.R'
-    'functions-stats.R'
     'helper.R'
     'lipidomics.R'
-    'metadata-access.R'
     'metadata-import.R'
     'midar-package.R'
     'plots-calibcurves.R'

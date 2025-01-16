@@ -647,6 +647,9 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
   if("istd_feature_name" %in% names(d_features))
     d_features <- d_features |> rename("istd_feature_id" = "istd_feature_name")
 
+  if("interference_feature_name" %in% names(d_features))
+    d_features <- d_features |> rename("interference_feature_id" = "interference_feature_name")
+
   if("new_feature_name" %in% names(d_features))
     d_features <- d_features |> rename("feature_label" = "new_feature_name")
 

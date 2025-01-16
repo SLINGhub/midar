@@ -1,15 +1,11 @@
+##### UNDER REVISION #####
+# Need overhaul due to all changes made
+
 #' Combines a list of MidarExperiments into one
 #'
 #' @param ... MidarExperiment objects
 #' @param ordered_by_runsequence Boolean if list of provided MidarExperiment objects is in the run order
-#' @export
-#'
-#' @importFrom lubridate now
-#' @importFrom tibble tribble
-#' @importFrom utils packageVersion
-#'
-#'
-
+#' @noRd
 
 combine_experiments <- function(..., ordered_by_runsequence) {
   exp_list <- list(...)

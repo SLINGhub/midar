@@ -37,13 +37,6 @@ reference:
   contents:
   - MidarExperiment
   - MidarExperiment-class
-  - analysis_type,MidarExperiment-method
-  - analysis_type<-,MidarExperiment-method
-  - analysis_type<-
-  - metadata_responsecurves,MidarExperiment-method
-  - metadata_responsecurves<-,MidarExperiment-method
-  - metadata_responsecurves<-
-  - analysis_type
   - $,MidarExperiment-method
   - set_analysis_order
   - get_batch_boundaries
@@ -143,7 +136,7 @@ reference:
 - title: Lipidomics
   description: |
     Functions specific to lipidomics data processing and analysis.
-  contents: lipidomics_get_lipid_class_names
+  contents: get_lipid_class_names
 - title: Datasets
   description: |
     Example datasets for testing and demonstration.

@@ -127,3 +127,12 @@ test_that("add_missing_column works", {
   expect_equal(result$A, 1:5)
 })
 
+
+test_that("get_conc_unit works as expected", {
+  expect_equal(get_conc_unit("ul"), "\U003BCmol/L")
+  expect_equal(get_conc_unit("mL"), "pmol/mL")
+  expect_equal(get_conc_unit("L"), "pmol/L")
+  expect_equal(get_conc_unit(c("ul", "ml")), "pmol/sample amount unit (multiple units)")
+  expect_equal(get_conc_unit("mg"), "pmol/mg")
+  expect_equal(get_conc_unit("Ul"), "\U003BCmol/L")
+})

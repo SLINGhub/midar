@@ -91,46 +91,11 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase, all_n
   }
 }
 
-
-# https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
-get_mad_tails <- function(x, k) {
-  med <- median(x, na.rm = TRUE)
-  MAD <- mad(x, na.rm = TRUE)
-  upper <- med + k * MAD
-  lower <- med - k * MAD
-  if (length(x) == 1) {
-    return(x)
-  } # will deal with abnormal marks at the periphery of the plot if there is one value only
-  ## Trim upper and lower
-  up <- max(x[x < upper])
-  lo <- min(x[x > lower])
-  return(c(lo, up))
-}
-
-
-# Flag outliers, based on Tukey’s IQR fences
-flag_outlier_iqr <- function(data, include_calibdata, limit_iqr = 1.5) {
-  data <- data |>
-    group_by(.data$ceramideName, .data$SampleType) |>
-    mutate(
-      IQR_sp = IQR(.data$C_SinglePoint_mean, na.rm = TRUE),
-      Q1_sp = quantile(.data$C_SinglePoint_mean, 0.25, na.rm = TRUE),
-      Q3_sp = quantile(.data$C_SinglePoint_mean, 0.75, na.rm = TRUE),
-      Outlier_sp = !dplyr::between(.data$C_SinglePoint_mean, (.data$Q1_sp - limit_iqr * .data$IQR_sp), (.data$Q3_sp + limit_iqr * .data$IQR_sp)),
-    ) |>
-    ungroup()
-  data
-}
-
-
-cv <- function(x, ...){
-  sd(x, ...)/mean(x, ...)
-}
-
-
-#' get_conc_unit
+#' Get Concentration Unit Based on Sample Amount Unit
+#' internall analyte amount is pmol, thus when sample amount unit is uL,
+#' pmol/uL equal to umol/L
 #'
-#' @param sample_amount_unit MidarExperiment object
+#' @param sample_amount_unit string with sample amount unit
 #' @return string with feature_conc unit
 #' @noRd
 
@@ -142,7 +107,7 @@ get_conc_unit <- function(sample_amount_unit) {
   } else if (units == "ul" | units == "\U003BCl") {
     conc_unit <- "\U003BCmol/L"
   } else {
-    conc_unit <- glue::glue("pmol/{units}")
+    conc_unit <- glue::glue("pmol/{sample_amount_unit}")
   }
   conc_unit
 }

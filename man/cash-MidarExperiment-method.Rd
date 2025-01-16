@@ -2,7 +2,7 @@
 % Please edit documentation in R/classes.R
 \name{$,MidarExperiment-method}
 \alias{$,MidarExperiment-method}
-\title{Getter for specific slots of an MidarExperiments object}
+\title{Access Slots of a MidarExperiment Object via $ Syntax}
 \usage{
 \S4method{$}{MidarExperiment}(x, name)
 }
@@ -18,7 +18,8 @@ Value with a variable or a tibble
 $ syntax can be used to as a shortcut for getting specific variables and results from a MidarExperiment object
 }
 \examples{
-mexp <- MidarExperiment()
+mexp <- MidarExperiment(title = "Test Experiment", analysis_type = "lipidomics")
 mexp$analysis_type
+mexp$title
 mexp$annot_analyses
 }

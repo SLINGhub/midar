@@ -55,7 +55,9 @@ It also includes processing results, details of the applied processing steps, an
 
 \item{\code{has_outliers_tech}}{Flag if data has technical analysis/sample outliers}
 
-\item{\code{analyses_excluded}}{Flag if outliers were excluded in the QC-filtered dataset}
+\item{\code{analyses_excluded}}{Analyses excluded from processing, plots and reporting, unless explicitly requested}
+
+\item{\code{features_excluded}}{Features excluded from processing, plots and reporting, unless explicitly requested}
 
 \item{\code{var_drift_corrected}}{List indicating which variables are drift corrected}
 

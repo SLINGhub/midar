@@ -21,7 +21,10 @@ get_analyte_name <- function(transition_name) {
 
 
 
-#' Retrieve lipid name, lipid class and transition from feature names
+#' Get lipid class, species and transition names
+#'
+#' This function retrieves lipid class, species and transition names from the `feature_id` column and adds them as columns to the dataset.
+#'
 #' @param data MidarExperiment object
 #' @param use_as_feature_class Set feature_class to lipid_class
 #' @param add_transition_names add transition name and transition group, based on information in square brackets in feature_id
@@ -29,12 +32,12 @@ get_analyte_name <- function(transition_name) {
 #' @export
 
 
-lipidomics_get_lipid_class_names <- function(data = NULL, use_as_feature_class = "lipid_class", add_transition_names = FALSE) {
+get_lipid_class_names <- function(data = NULL, use_as_feature_class = "lipid_class", add_transition_names = FALSE) {
   check_data(data)
   use_as_feature_class_s <- rlang::sym(use_as_feature_class)
 
   dat <- data@dataset |>
-    select(.data$feature_id) |>
+    select("feature_id") |>
     unique()
   data@dataset <- data@dataset |> dplyr::select(!any_of(c("analyte_name", "lipid_class", "lipid_class_by_lcb", "lipid_class_base", "transition_name", "transition_group")))
 
@@ -68,7 +71,7 @@ lipidomics_get_lipid_class_names <- function(data = NULL, use_as_feature_class =
 
   data@dataset <- data@dataset |>
     dplyr::left_join(dat_temp, by = c("feature_id")) |>
-    dplyr::relocate("analyte_name", "lipid_class", "lipid_class_by_lcb", "lipid_class_base", "transition_name", "transition_group", .after = .data$feature_id) |>
+    dplyr::relocate("analyte_name", "lipid_class", "lipid_class_by_lcb", "lipid_class_base", "transition_name", "transition_group", .after = "feature_id") |>
     mutate(feature_class = !!use_as_feature_class_s) |>
     ungroup()
 

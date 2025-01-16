@@ -339,8 +339,8 @@ corr_drift_fun <- function(data = NULL,
       group_by(dplyr::pick(adj_groups)) |>
     summarise(
       any_fit_error = any(.data$fit_error, na.rm = TRUE),
-      cv_raw_spl = cv(.data$y_original[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-      cv_adj_spl = cv(.data$y_adj[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+      cv_raw_spl = cv(.data$y_original[.data$qc_type == "SPL"], na.rm = TRUE),
+      cv_adj_spl = cv(.data$y_adj[.data$qc_type == "SPL"], na.rm = TRUE) ,
       cv_change = .data$cv_adj_spl - .data$cv_raw_spl,
       drift_correct =
         !conditional_correction | (.data$cv_adj_spl / .data$cv_raw_spl) < cv_ratio_threshold)|>
@@ -733,8 +733,8 @@ correct_batch_centering <- function(data = NULL,
   d_res_sum <- d_res |>
     group_by(.data$feature_id) |>
     summarise(
-      cv_before = cv(.data$y_fit_after[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
-      cv_after = cv(.data$y[.data$qc_type == "SPL"], na.rm = TRUE) * 100,
+      cv_before = cv(.data$y_fit_after[.data$qc_type == "SPL"], na.rm = TRUE),
+      cv_after = cv(.data$y[.data$qc_type == "SPL"], na.rm = TRUE),
       cv_diff = .data$cv_after - .data$cv_before,
     ) |> ungroup() |>
     summarise(

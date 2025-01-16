@@ -119,7 +119,7 @@ plot_x_vs_y <- function(data = NULL,
 
   if (!c("feature_class") %in% names(d_qc) || all(is.na(d_qc$feature_class)))
     cli::cli_abort("This function currently only works with data where `feature_class` has been defined.
-                   Please define in metadata, or try `lipidomics_get_lipid_class_names()` to get the `feature_class`.")
+                   Please define in metadata, or try `get_lipid_class_names()` to get the `feature_class`.")
 
   # get max value for the pair for each lipid class (so that 45deg line will be shown in the square plots)
   d_qc <- d_qc |>

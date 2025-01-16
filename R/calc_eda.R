@@ -11,7 +11,7 @@
 #'
 #' @return tibble with p values, fdr and log2FC
 #' @noRd
-get_stats <- function(data, feature, grouping, group_case, group_ref, paired, min_groupsize = 3, log_transform = FALSE) {
+get_summary_stats <- function(data, feature, grouping, group_case, group_ref, paired, min_groupsize = 3, log_transform = FALSE) {
   if (min_groupsize <= 2) cli::cli_abort("group size must be >= 2 for the statistical tests")
 
   feature <- rlang::ensym(feature)
@@ -27,7 +27,7 @@ get_stats <- function(data, feature, grouping, group_case, group_ref, paired, mi
     summarise(
       grp_size_fail =
         sum(!is.na(.data$feature_conc[!!grouping == group_case])) < min_groupsize |
-          sum(!is.na(.data$feature_conc[!!grouping == group_ref])) < min_groupsize
+        sum(!is.na(.data$feature_conc[!!grouping == group_ref])) < min_groupsize
     ) |>
     filter(.data$grp_size_fail)
 

@@ -4,7 +4,7 @@
 \alias{MidarExperiment}
 \title{Constructor for the MidarExperiment object.}
 \usage{
-MidarExperiment(title = "", analysis_type = "")
+MidarExperiment(title = "", analysis_type = NA_character_)
 }
 \arguments{
 \item{title}{Title of experiment}

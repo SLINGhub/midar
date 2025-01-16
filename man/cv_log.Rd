@@ -2,23 +2,30 @@
 % Please edit documentation in R/functions-math.R
 \name{cv_log}
 \alias{cv_log}
-\title{Coefficient of variation (CV) using log-transformed data}
+\title{Percent coefficient of variation (\%CV) based on log-transformation}
 \usage{
-cv_log(x, na.rm)
+cv_log(x, na.rm = FALSE)
 }
 \arguments{
-\item{x}{a numeric vector with values that are NOT log-transformed}
+\item{x}{a numeric vector with untransformed data}
 
-\item{na.rm}{logical, if TRUE then NA values are stripped from x before computation takes place}
+\item{na.rm}{logical, if TRUE then NA values are stripped from x before
+computation takes place}
 }
 \value{
-numeric vector of length one. If x contains a zero, then NaN is returned. If x is not numeric or integer, NA_real_ is returned
+a numeric value. If x contains a zero, then NaN is returned. If x is
+not numeric, NA_real_ is returned
 }
 \description{
-Computes the coefficient of variation (CV) after log-transformation of the provided data
+Computes the percent coefficient of variation (CV) based on the log-transformation of
+the input data. This can be more robust in certain cases, especially when the
+data is not normally distributed.
 }
 \examples{
-library(midar)
 cv_log(c(5, 6, 3, 4, 5, NA), na.rm = TRUE)
 
+}
+\references{
+Canchola et al. (2017) Correct use of percent coefficient of variation (\% CV) formula for log-transformed data. MOJ Proteomics Bioinform. 2017;6(4):316‒317.
+\href{https://doi.org/10.15406/mojpb.2017.06.00200}{DOI: 10.15406/mojpb.2017.06.00200}
 }

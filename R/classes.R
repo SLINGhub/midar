@@ -30,7 +30,8 @@
 #' @slot is_filtered Flag if data has been filtered based on QC parameters
 #' @slot is_isotope_corr Flag if one or more features have been isotope corrected
 #' @slot has_outliers_tech Flag if data has technical analysis/sample outliers
-#' @slot analyses_excluded Flag if outliers were excluded in the QC-filtered dataset
+#' @slot analyses_excluded Analyses excluded from processing, plots and reporting, unless explicitly requested
+#' @slot features_excluded Features excluded from processing, plots and reporting, unless explicitly requested
 #' @slot var_drift_corrected List indicating which variables are drift corrected
 #' @slot var_batch_corrected List indicating which variables are batch corrected
 
@@ -62,6 +63,7 @@ setClass("MidarExperiment",
     has_outliers_tech = "logical",
     is_isotope_corr = "logical",
     analyses_excluded = "vector",
+    features_excluded = "vector",
     var_drift_corrected = "vector",
     var_batch_corrected = "vector"
   ),
@@ -69,9 +71,9 @@ setClass("MidarExperiment",
     title = "",
     analysis_type = "",
     feature_intensity_var = "",
-    dataset_orig = pkg.env$table_templates$annot_analyses_template,
-    dataset = pkg.env$table_templates$annot_analyses_template,
-    dataset_filtered = pkg.env$table_templates$annot_analyses_template,
+    dataset_orig = pkg.env$table_templates$dataset_orig_template,
+    dataset = pkg.env$table_templates$dataset_template,
+    dataset_filtered = pkg.env$table_templates$dataset_template,
     annot_analyses = pkg.env$table_templates$annot_analyses_template,
     annot_features = pkg.env$table_templates$annot_features_template,
     annot_istds = pkg.env$table_templates$annot_istds_template,
@@ -90,7 +92,8 @@ setClass("MidarExperiment",
     var_batch_corrected = c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE),
     is_filtered = FALSE,
     has_outliers_tech = FALSE,
-    analyses_excluded = NA
+    analyses_excluded = NA,
+    features_excluded = NA
   )
 )
 
@@ -102,74 +105,64 @@ setClass("MidarExperiment",
 #' @param analysis_type Analysis type, one of "lipidomics", "metabolomics", "externalcalib", "others"
 #' @return `MidarExperiment` object
 #' @export
-MidarExperiment <- function(title = "", analysis_type = "") {
+MidarExperiment <- function(title = "", analysis_type = NA_character_) {
+
+  valid_types <- c(NA_character_, "lipidomics", "metabolomics", "quantitative", "others")
+  if (!is.na(analysis_type) && !analysis_type %in% valid_types) {
+    cli::cli_abort(col_red("Invalid analysis type. Please choose from 'lipidomics', 'metabolomics', 'quantitative', 'others', or 'NA_character_'."))
+  }
+
   methods::new("MidarExperiment",
                title = title,
                analysis_type = analysis_type)
 
 }
 
-#' Set analysis type
-#' @description
-#' Set the analysis type, i.e. "lipidomics", "metabolomics, "quantitative"
-#' @param x MidarExperiment object
-#' @return A character string
-#' @export
-setGeneric("analysis_type", function(x) standardGeneric("analysis_type"))
-
-
-#' Get analysis type
-#' @description
-#' Get the analysis type defined for the MidarExperiment object
-#' @param x MidarExperiment object
-#' @param value Analysis type, one of "lipidomics", "metabolomics, "quantitative"
-#' @export
-setGeneric("analysis_type<-", function(x, value) standardGeneric("analysis_type<-"))
-
-#' Get `analysis_type`
-#' @param x MidarExperiment object
-#' @return A character string
-#' @export
-setMethod("analysis_type", "MidarExperiment", function(x) x@analysis_type)
-
-#' Set `analysis_type`
-#' @param x MidarExperiment object
-#' @param value Analysis type, one of "lipidomics", "metabolomics, "quantitative"
-#' @export
-setMethod("analysis_type<-", "MidarExperiment", function(x, value) {
-  x@analysis_type <- value
-  x
-})
 
 # TODODO: ALIGN WITH ASSERTION and DEFINE WHERE WHEN TO RUN THIS
-check_integrity <- function(data = NULL, excl_unmatched_analyses) {
+check_integrity_analyses <- function(data = NULL, excl_unmatched_analyses, silent, max_num_print = 10) {
   check_data(data)
   if (nrow(data@dataset_orig) > 0 & nrow(data@annot_analyses) > 0) {
     d_xy <- length(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id))
     d_yx <- length(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()))
     if (d_xy > 0) {
-      if (d_xy == length(data@dataset_orig$analysis_id |> unique())) cli::cli_abort("Error: None of the measurements/samples have matching metadata . Please check data and metadata files.")
-      if (!excl_unmatched_analyses) {
-        # if (d_xy < 50) {
-        #   writeLines(glue::glue(""))
-        #   cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses/samples: {paste0(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id), collapse = ", ")}"))
-        # } else {
-        #   cli::cli_abort(call. = FALSE, glue::glue("{d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} measurements have no matching metadata."))
-        # }
-      } else {
-        #cli_alert_warning(col_yellow(glue::glue("Note: {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} measurements without matching metadata were excluded.")))
+        if (d_xy == length(data@dataset_orig$analysis_id |> unique()))
+          if (!silent){
+            cli::cli_abort("Error: None of the measurements/samples have matching metadata. Please check data and metadata files.")
+        } else {
+          return(FALSE)
+        }
+        if (!excl_unmatched_analyses) {
+          if (!silent){
+            if (d_xy < max_num_print) {
+              writeLines(glue::glue(""))
+              cli::cli_abort(call. = FALSE, glue::glue("No metadata present for {d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses: {stringr::str_flatten_comma(unique(setdiff(data@dataset_orig$analysis_id |> unique(), data@annot_analyses$analysis_id)))}."))
+            } else {
+              cli::cli_abort(call. = FALSE, glue::glue("{d_xy} of {data@dataset_orig$analysis_id |> unique() |> length()} analyses have no matching metadata."))
+            }
+        } else {
+          return(FALSE)
+        }
+        } else {
+          return(TRUE)
       }
     } else if (d_yx > 0) {
-      if (d_yx < 50) {
-        writeLines(glue::glue("Following {d_yx} analysis/samples present in measurement data are not defined in the metadata:  {paste0(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique()), collapse = ", ")}"))
+      if (!silent){
+        if (d_yx < max_num_print) {
+          cli::cli_abort(glue::glue("Following {d_yx} analyses defined in the metadata are not present in the measurement data: {stringr::str_flatten_comma(unique(setdiff(data@annot_analyses$analysis_id, data@dataset_orig$analysis_id |> unique())))}."))
+        } else {
+          cli::cli_abort(glue::glue("{d_yx} of {data@annot_analyses$analysis_id |> unique() |> length()} analyses defined in the metadata are not present in the measurement data."))
+        }
       } else {
-        writeLines(glue::glue("{d_yx} analysis/samples present in measurement data are not defined in the metadata (too many to show)"))
+        return(FALSE)
       }
       cli::cli_abort(glue::glue(""))
     } else {
-      data@status_processing <- "DataMetadataLoaded"
-      TRUE
+      data@status_processing <- "check_integrity_analyses pass"
+      return(TRUE)
     }
+  } else {
+    return(TRUE)
   }
 }
 
@@ -181,15 +174,16 @@ get_status_flag <- function(x) {
 
 
 
-#' Getter for specific slots of an MidarExperiments object
+#' Access Slots of a MidarExperiment Object via $ Syntax
 #'
 #' $ syntax can be used to as a shortcut for getting specific variables and results from a MidarExperiment object
 #' @return Value with a variable or a tibble
 #' @param x MidarExperiment object
 #' @param name MidarExperiment slot
 #' @examples
-#' mexp <- MidarExperiment()
+#' mexp <- MidarExperiment(title = "Test Experiment", analysis_type = "lipidomics")
 #' mexp$analysis_type
+#' mexp$title
 #' mexp$annot_analyses
 #' @importFrom methods slot
 #' @export
@@ -197,9 +191,17 @@ setMethod(
   f = "$",
   signature = c("MidarExperiment"),
   definition = function(x, name) {
-    # check for other struct slots
-    valid <- c("title", "analysis_type", "dataset", "annot_analyses", "annot_features", "annot_istds", "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized", "var_drift_corrected", "var_batch_corrected")
-    if (!name %in% valid) cli::cli_abort('"', name, '" is not valid for this object: ', class(x)[1])
+    # Define valid slot names
+    valid <- c("title", "analysis_type", "dataset","dataset_orig", "annot_analyses", "annot_features", "annot_istds", "annot_responsecurves", "annot_qcconcentrations", "annot_studysamples",
+               "metrics_qc", "annot_batches", "dataset_filtered", "is_istd_normalized", "var_drift_corrected", "var_batch_corrected")
+
+    # Check for valid slot name and return value or throw error
+    if (!name %in% valid) {
+      cli::cli_abort(c(
+        "x" = "{.field {name}} is not valid for this object: {.cls {class(x)[1]}}"
+      ))
+    }
+
     methods::slot(x, name)
   }
 )
@@ -276,11 +278,19 @@ setMethod("show", "MidarExperiment", function(object) {
   cli::cli_h2("Exclusion of Analyses and Features")
   cli::cli_ul(id = "D")
 
-  if (length(object@analyses_excluded) == 0)
+  if (all(is.na(object@analyses_excluded)))
     str <- cli::col_red(cli::symbol$cross)  # Red cross if the vector is empty
   else
     str <- glue::glue_collapse(object@analyses_excluded, sep = ", ", width = 80, last = ", and ")
 
   cli::cli_li("Analyses manually excluded (`analysis_id`): {col_red(str)}")
+
+  if (all(is.na(object@features_excluded)))
+    str <- cli::col_red(cli::symbol$cross)  # Red cross if the vector is empty
+  else
+    str <- glue::glue_collapse(object@features_excluded, sep = ", ", width = 80, last = ", and ")
+
+  cli::cli_li("Features manually excluded (`feature_id`): {col_red(str)}")
+
   cli::cli_end(id = "D")
 })

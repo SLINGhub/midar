@@ -365,21 +365,32 @@ plot_runscatter <- function(data = NULL,
         dplyr::ungroup()
     }
 
+    # pmax calculates positional max of the 3 vectors ("row-wise")
+    # Inf values are replaced by NA an
+    # TODO: better document
     d_filt <- d_filt |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::mutate(
+        # calculate the threshold for different qc types by adding a scaled MAD to the median
         value_max_spl = median(.data$value[.data$qc_type=="SPL"], na.rm=T) + cap_spl_k_mad * mad(.data$value[.data$qc_type=="SPL"], na.rm=T),
         value_max_tqc = median(.data$value[.data$qc_type=="TQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="TQC"], na.rm=T),
         value_max_bqc = median(.data$value[.data$qc_type=="BQC"], na.rm=T) + cap_qc_k_mad * mad(.data$value[.data$qc_type=="BQC"], na.rm=T),
+        #Determine the maximum of the three calculated thresholds for each 'row'/item/sample.
         value_max = pmax(.data$value_max_spl, .data$value_max_tqc, .data$value_max_bqc, na.rm = TRUE),
         value_max = ifelse(is.infinite(.data$value_max), NA, .data$value_max),
+        # if 'value' exceeds 'value_max'
         value_mod = dplyr::if_else(
          .data$value > .data$value_max,
+         # find the maximum value that is less than or equal to 'value_max', unless all are NA.
           if (!all(is.na(.data$value))) {
+            # find the maximum value that is less than or equal to 'value_max'.
+            # Just setting to value_max can lead to large gaps between highest
+            # ample below the value_max treshhold and the value_max)
             max(.data$value[.data$value <= .data$value_max], na.rm = TRUE)
           } else {
             NA_real_
           },
+         # otherwise, retain original 'value'
           .data$value
         )
       ) |>
@@ -830,7 +841,7 @@ plot_rla_boxplot <- function(
   if (!all(is.na(y_lim))) {
     ylim = y_lim
   } else if(ignore_outliers) {
-    tails <- get_mad_tails(d_filt$val_res, k = 4)
+    tails <- get_mad_tails(d_filt$val_res, k = 4, na.rm = TRUE)
     ylim = tails
   }
 

@@ -1,50 +1,67 @@
+##### UNDER REVISION #####
+# Need re-consider this function and needs overhaul due to all changes made and
+
+
 #' Get list of analyses classified as technical outliers
 #'
 #' @description
-#' Retrieves IDs os analysis technical outliers, i.e, analyses with systematic differences in multiple features.
-#' This is based on SD or MAD fences from the mean or median, respectively, from the principal components of a PCA, or of the relative mean abundance (RMA)
+#' Retrieves analysis IDs of data outliers based  the principal components PCA
+#' with SD or MAD fences
 #'
 #' @param data MidarExperiment object
 #' @param variable Feature variable used for outlier detection
+#' @param filter_data Use all (default) or qc-filtered data
 #' @param qc_types QC types included in the outlier detection
 #' @param summarize_fun Function used to summarize the features, either "pca" based on PCA, or "rma" based on mean relative abundance (RMA) of all features
-#' @param outlier_detection Outlier detection method, either based on SD ("sd") or MAD ("mad")
+#' @param outlier_detection Outlier detection method, either based on "sd" or "mad"
 #' @param fence_multiplicator Multiplicator for SD or MAD, respectively.
 #' @param pca_component PCA component to be used
 #' @param log_transform Log-transform data for outlier detection
-#' @param print_outliers Print analysis_id of outliers to the console
 #' @return MidarExperiment object
-#' @noRd
+#' @export
 
 
-analysis_outlier_detection <- function(data = NULL,
-                                       variable = c("feature_intensity", "feature_norm_intensity", "feature_conc"),
+detect_outlier <- function(data = NULL,
+                                       variable ,
+                                       filter_data,
                                        qc_types = c("BQC", "TQC", "SPL"),
                                        pca_component,
                                        fence_multiplicator,
                                        summarize_fun = c("pca", "rma"),
                                        outlier_detection = c("sd", "mad"),
-                                       log_transform = TRUE,
-                                       print_outliers = TRUE) {
+                                       log_transform = TRUE) {
   check_data(data)
-  variable <- rlang::arg_match(variable)
-  summarize_fun <- rlang::arg_match(summarize_fun)
-  outlier_detection <- rlang::arg_match(outlier_detection)
 
-  variable_s <- rlang::sym(variable)
+  variable <- str_remove(variable, "feature_")
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- stringr::str_c("feature_", variable)
+  check_var_in_dataset(data@dataset, variable)
+
+  qc_types <- rlang::arg_match(qc_types, c("BQC", "TQC", "SPL"))
+  summarize_fun <- rlang::arg_match(summarize_fun, c("pca", "rma"))
+  outlier_detection <- rlang::arg_match(outlier_detection, c("sd", "mad"))
+
+  # Filter data if filter_data is TRUE
+  if (filter_data) {
+    d_sel <- data@dataset_filtered |> dplyr::ungroup()
+    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered, or has changed. Please run `filter_features_qc` first.")
+  } else {
+    d_sel <- data@dataset |> dplyr::ungroup()
+  }
+
   pc_x <- rlang::sym(paste0(".fittedPC", pca_component))
 
   if (summarize_fun == "rma") cli::cli_abort("Relative Mean Abundance has not yet been implemented. Please use 'pca'")
 
-  d_wide <- data@dataset_filtered |>
+  d_filt <- d_sel |>
     filter(.data$qc_type %in% qc_types) |>
     filter(!.data$is_istd) |>
     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
 
-  d_filt <- d_wide |>
+  d_wide <- d_filt |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
-  m_raw <- d_filt |>
+  m_raw <- d_wide |>
     tibble::column_to_rownames("analysis_id") |>
     dplyr::select(where(~ !any(is.na(.)))) |>
     as.matrix()
@@ -52,37 +69,24 @@ analysis_outlier_detection <- function(data = NULL,
   if (log_transform) m_raw <- log2(m_raw)
   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
 
-  d_metadata <- d_wide |>
+  d_metadata <- d_filt |>
     dplyr::select("analysis_id", "qc_type", "batch_id") |>
     dplyr::distinct()
   pca_annot <- pca_res |> broom::augment(d_metadata)
 
-  if (summarize_fun == "sd") {
-    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (mean(.data$.fittedPC1) + fence_multiplicator * sd(.data$.fittedPC1)) |
-      .data$.fittedPC1 < (mean(.data$.fittedPC1) - fence_multiplicator * sd(.data$.fittedPC1)))
+  if (outlier_detection == "sd") {
+    d_outlier <- pca_annot |> filter({{ pc_x }} > (mean({{ pc_x }}) + fence_multiplicator * sd({{ pc_x }})) |
+      {{ pc_x }} < (mean({{ pc_x }}) - fence_multiplicator * sd({{ pc_x }})))
   } else {
-    d_outlier <- pca_annot |> filter(.data$.fittedPC1 > (median(.data$.fittedPC1) + fence_multiplicator * mad(.data$.fittedPC1)) |
-      .data$.fittedPC1 < (median(.data$.fittedPC1) - fence_multiplicator * mad(.data$.fittedPC1)))
+    d_outlier <- pca_annot |> filter({{ pc_x }} > (median({{ pc_x }}) + fence_multiplicator * mad({{ pc_x }})) |
+      {{ pc_x }} < (median({{ pc_x }}) - fence_multiplicator * mad({{ pc_x }})))
   }
 
 
   if (nrow(d_outlier) > 0) {
-    data@dataset <- data@dataset |>
-      mutate(
-        #outlier_technical = .data$analysis_id %in% d_outlier$analysis_id,
-        #outlier_technical_note = if_else(.data$outlier_technical, glue::glue("PCA, {fence_multiplicator} x {summarize_fun}"), NA_character_)
-      )
-
-    # data@analyses_excluded <- GET LIST
-    # data@dataset_filtered <- data@dataset_filtered |> filter(.data$run_seq_num < 0) # Todo: check if (still neeeded)
+    return(d_outlier$analysis_id)
+ } else {
+    return(NULL)
   }
-  cli_alert_warning(cli::col_silver(glue::glue("{nrow(d_outlier)} analyses/samples were classified as technical outlier(s).")))
-
-  if (print_outliers) {
-    cli::cli_inform(c("i" = "Samples classified as outlier: ",  cli::col_red(glue::glue_collapse(d_outlier$analysis_id, sep = ", ", width = 380, last = ", and "))))
-  }
-
-
-  data
 }
 

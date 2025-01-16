@@ -1,3 +1,13 @@
+
+# get RDS for tests
+
+#mexp <- midar::MidarExperiment()
+#mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
+#mexp <- midar::import_metadata_midarxlm(mexp,
+#                                        path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
+#                                        excl_unmatched_analyses = FALSE
+#readr::write_rds(mexp, testthat::test_path("testdata/MHQuant_demo.rds"))
+
 mexp_empty <- MidarExperiment()
 mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
 mexp_proc <- mexp

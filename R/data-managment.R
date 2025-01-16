@@ -599,7 +599,7 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
       return(data)
       }
   }
-  if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id) > 0) {
+  if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id)) {
     cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please check the analysis metadata."))
   }
   if(!replace_existing){
@@ -647,21 +647,26 @@ exclude_features <- function(data = NULL, features_to_exclude, replace_existing 
       cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `replace_existing = TRUE`."))
     } else{
       cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all features are included. Please reprocess data."))
+      data@features_excluded <- NA
+      data@annot_features <- data@annot_features |> mutate(valid_feature = TRUE)
+      data <- link_data_metadata(data)
       return(data)
     }
   }
-  if (any(!c(features_to_exclude) %in% data@annot_features$feature_id) > 0) {
+  if (any(!c(features_to_exclude) %in% data@annot_features$feature_id)) {
     cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please check the feature metadata."))
   }
   if(!replace_existing){
     data@annot_features <- data@annot_features |>
       mutate(valid_feature = !(.data$feature_id %in% features_to_exclude) & .data$valid_feature)
     cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."))
+    data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }
   else {
     data@annot_features <- data@annot_features |>
       mutate(valid_feature = !(.data$feature_id %in% features_to_exclude))
     cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."))
+    data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }
 
   data <- link_data_metadata(data)
