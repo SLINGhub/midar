@@ -1,7 +1,7 @@
-#' Manual correction for interference contributed by another feature
+#' Manual interference correction
 #'
 #' @description
-#' The interference is substracted using following formula:
+#' The interference is subtracted using following formula:
 #' \deqn{Value_{Corrected} = Value_{Feature} - Factor_{Contribution} * Value_{Interfering Feature}}
 #'
 #' @param data MidarExperiment object
@@ -15,20 +15,24 @@
 
 #  Example:  mexp <- correct_interference_manually(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
-correct_interference_manually <- function(data = NULL, variable, feature, interfering_feature, relative_contribution, updated_feature_id = NULL) {
+correct_interference_manually <- function(data = NULL, variable, feature, interfering_feature, relative_contribution, updated_feature_id = NA) {
 
   check_data(data)
-
   variable_var <- rlang::ensym(variable)
 
-  updated_feature_id <- ifelse(is.null(updated_feature_id) | is.na(updated_feature_id), "", updated_feature_id)
+  updated_feature_id <- ifelse(is.null(updated_feature_id) | is.na(updated_feature_id), NA_character_, updated_feature_id)
 
   # Validate input
-  if (!feature %in% data@annot_features$feature_id) cli::cli_abort("Feature is not present in the dataset")
-  if (!interfering_feature %in% data@annot_features$feature_id) cli::cli_abort("Interfering feature is not present in the dataset")
-  if (!variable %in% names(data@dataset)) stop(glue::glue("Variable `{variable` is not defined in the dataset"))
-  if (relative_contribution < 0 | relative_contribution >= 1) cli::cli_abort("`relative_contribution` must be between 0 and 1")
-  if (updated_feature_id %in% data@annot_features$feature_id) cli::cli_abort("Mew fFeature name must not present already be present in the dataset")
+  if (!feature %in% data@annot_features$feature_id) cli::cli_abort(col_red("Feature is not present in the dataset"))
+  if (!interfering_feature %in% data@annot_features$feature_id) cli::cli_abort(col_red("Interfering feature is not present in the dataset"))
+  if (!variable %in% names(data@dataset)) cli::cli_abort(col_red("Variable `{variable}` is not defined in the dataset"))
+  if (is.numeric(relative_contribution) & relative_contribution < 0 ) cli::cli_abort(col_red("col_red(`relative_contribution` must be between larger than 0"))
+  if (!is.na(updated_feature_id) & updated_feature_id %in% data@annot_features$feature_id) cli::cli_abort(col_red("New feature id must not present in the dataset"))
+
+  if (!"interference_corrected" %in% names(data@dataset)) {
+    data@dataset <- data@dataset |>
+      mutate(interference_corrected = FALSE)
+  }
 
   # Correction
   data@dataset <- data@dataset |>
@@ -41,8 +45,10 @@ correct_interference_manually <- function(data = NULL, variable, feature, interf
       interference_corrected = if_else(.data$feature_id == feature, TRUE, .data$interference_corrected)
     )
 
-  data@dataset <- data@dataset |>
-    mutate(feature_id = if_else(.data$feature_id == feature & nchar(stringr::str_squish(.data$updated_feature_id)) > 0, updated_feature_id, .data$feature_id))
+  if(!is.na(updated_feature_id)) {
+    data@dataset <- data@dataset |>
+      mutate(feature_id = if_else(.data$feature_id == feature & .data$interference_corrected, updated_feature_id, .data$feature_id))
+  }
 
   data
 }

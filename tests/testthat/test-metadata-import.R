@@ -216,6 +216,8 @@ test_that("Check import of inconsitent metadata", {
                "`is_quantifier` is inconsistently defined, i.e., not for one or more features. Please")
   expect_error(mexp <- midar:::import_metadata_features(mexp, path = path, sheet = "Features_Inconsist_val"),
                "`valid_feature` is inconsistently defined, i.e., not for one or more features. Please")
+  expect_error(mexp <- midar:::import_metadata_features(mexp, path = path, sheet = "Features_inval_interf"))
+  expect_error(mexp <- midar:::import_metadata_features(mexp, path = path, sheet = "Features_miss_interf"))
 })
 
 test_that("Replacing specific undefined metadata", {
