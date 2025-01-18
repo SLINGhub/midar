@@ -89,8 +89,8 @@ pkg.env$table_templates <- list(
 
 pkg.env$qc_type_annotation <- list(
   qc_type_levels = c(
-    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC", "CAL", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
-    "LTR", "PBLK", "SPL", "SST", "MBLK"
+    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC",  "PBLK", "CAL","EQA", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
+    "LTR",  "SPL", "SST", "MBLK"
   ),
   qc_type_col = c(
     "SBLK" = "#1854f9",
@@ -107,7 +107,8 @@ pkg.env$qc_type_annotation <- list(
     "EQC" = "#513c3c",
     "NIST" = "#002e6b",
     "LTR" = "#880391",
-    "PBLK" = "#08c105",
+    "EQA" = "#880391",
+    "PBLK" = "#216651",
     "SPL" = "#8e9b9e",
     "SST" = "#bafc03",
     "MBLK" = "black"
@@ -122,12 +123,13 @@ pkg.env$qc_type_annotation <- list(
     "LQC" = "#ffba19",
     "MQC" = "#ffba19",
     "HQC" = "#ffba19",
+    "EQA" = "#de21de",
     "CAL" = "#43e0c7",
     "RQC" = "#688ff9",
     "EQC" = "NA",
     "NIST" = "#cce2ff",
     "LTR" = "#880391",
-    "PBLK" = "#08c105",
+    "PBLK" = "#e4f2c4",
     "SPL" = "NA",
     "SST" = "#aaaeaf",
     "MBLK" = "black"
@@ -142,6 +144,7 @@ pkg.env$qc_type_annotation <- list(
     "LQC" = 25,
     "MQC" = 23,
     "HQC" = 24,
+    "EQA" = 23,
     "CAL" = 21,
     "RQC" = 6,
     "EQC" = 24,

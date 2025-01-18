@@ -97,7 +97,7 @@ plot_calibrationcurves <- function(data = NULL,
     dplyr::select(tidyselect::any_of(
       c("analysis_id", "sample_id", "qc_type", "feature_id", variable)
     )) |>
-    filter(str_detect(.data$qc_type, "CAL|[MLH]QC|^QC")) |>
+    filter(str_detect(.data$qc_type, "CAL|[MLH]QC|^QC|EQA")) |>
     dplyr::right_join(data@annot_qcconcentrations, by = c("sample_id" = "sample_id", "feature_id" = "feature_id"))
 
   d_calib$curve_id = 1
@@ -264,7 +264,7 @@ plot_calibcurves_page <- function(data,
 
  d_pred <- d_pred |>
    dplyr::arrange(.data$feature_id, .data$curve_id)
-
+browser()
 
     p <- ggplot(
         data = dat_subset,
@@ -288,11 +288,11 @@ plot_calibcurves_page <- function(data,
                   fill = "#91bfdb", alpha = 0.25, inherit.aes = FALSE) +
 
         #color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
-        scale_color_manual(values = c("CAL" ="#254f6e", "HQC" = "#f27507", "LQC" = "#f27507")) +
-        scale_fill_manual(values = c("CAL" ="white", "HQC" = "#f5c969", "LQC" = "#f5c969")) +
-        scale_shape_manual(values = c("CAL" = 21, "HQC" = 24, "LQC" = 25)) +
+        scale_color_manual(values = c("CAL" ="#254f6e", "HQC" = "#f27507", "LQC" = "#f27507", "EQA" = "#880391")) +
+        scale_fill_manual(values = c("CAL" ="white", "HQC" = "#f5c969", "LQC" = "#f5c969", "EQA" = "#de21de")) +
+        scale_shape_manual(values = c("CAL" = 21, "HQC" = 24, "LQC" = 25, "EQA" = 24)) +
         scale_y_continuous(limits = c(0, NA)) +
-        scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
+        #scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
         ggh4x::facet_wrap2(
           vars(.data$feature_id),
           scales = "free",

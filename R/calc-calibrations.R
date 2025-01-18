@@ -147,6 +147,7 @@ calc_calibration_results <- function(data = NULL,
 
 
   calc_lm <- function(dt){
+
     tryCatch(
       {
         dt <- dt |>
@@ -162,7 +163,7 @@ calc_calibration_results <- function(data = NULL,
                                   "feature_norm_intensity ~ concentration",
                                   "feature_norm_intensity ~ poly(concentration, 2, raw = TRUE)")
 
-        res <- lm(formula = formula, weights = dt$weight, data = dt, na.action = na.exclude)
+        res <- lm(formula = formula, weights = weight, data = dt, na.action = na.exclude)
 
         r.squared <- summary(res)$r.squared
         sigma <- summary(res)$sigma
@@ -205,13 +206,15 @@ calc_calibration_results <- function(data = NULL,
       },
       error = function(e) {
         if(dt$fit_method[1] == "quadratic"){
-          return(list(feature_id = dt$feature_id[1], curve_id = dt$curve_id[1], fit_model =  dt$fit_method[1], weighting = dt$fit_weighting[1], lowest_cal = sort(dt$concentration[dt$concentration != 0])[1], r.squared = NA_real_ , coef_a = NA_real_, coef_b = NA_real_, coef_c = res$coefficients[[1]], sigma = NA_real_, reg_failed = TRUE, fit = list(NULL)))
+          return(list(feature_id = dt$feature_id[1], curve_id = dt$curve_id[1], fit_model =  dt$fit_method[1], weighting = dt$fit_weighting[1], lowest_cal = sort(dt$concentration[dt$concentration != 0])[1], r.squared = NA_real_ , coef_a = NA_real_, coef_b = NA_real_, coef_c = NA_real_, sigma = NA_real_, reg_failed = TRUE, fit = list(NULL)))
         } else {
           return(list(feature_id = dt$feature_id[1], curve_id = dt$curve_id[1], fit_model =  dt$fit_method[1], weighting = dt$fit_weighting[1], lowest_cal = sort(dt$concentration[dt$concentration != 0])[1], r.squared = NA_real_ , coef_a = NA_real_, coef_b = NA_real_, coef_c = NA_real_, sigma = NA_real_, reg_failed = TRUE, fit = list(NULL)))
         }
       }
     )
   }
+
+
 
   # mult_lowest_calib refert to multiplication factor of the lowest calibration
   # point used when calculate LoD and LoQ with a quadratic model
@@ -243,13 +246,13 @@ calc_calibration_results <- function(data = NULL,
   if (!overwrite_metadata) {
     d_calib <- d_calib |>
       dplyr::left_join(data@annot_features |> select("feature_id", "curve_fit_method", "curve_fit_weighting"), by = c("feature_id" = "feature_id")) |>
-      mutate(fit_method = if_else(is.na(.data$curve_fit_method), .data$fit_method, .data$curve_fit_method),
-             fit_weighting = if_else(is.na(.data$curve_fit_weighting), .data$fit_weighting, .data$curve_fit_weighting)) |>
+      mutate(fit_method = if_else(is.na(.data$curve_fit_method), fit_method, .data$curve_fit_method),
+             fit_weighting = if_else(is.na(.data$curve_fit_weighting), fit_weighting, .data$curve_fit_weighting)) |>
       select(-"curve_fit_method", -"curve_fit_weighting")
   } else {
     d_calib <- d_calib |>
-      mutate(fit_method = .data$fit_method,
-             fit_weighting = .data$fit_weighting)
+      mutate(fit_method = fit_method,
+             fit_weighting = fit_weighting)
 
   }
 

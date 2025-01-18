@@ -218,15 +218,19 @@ import_metadata_qcconcentrations <- function(data = NULL, table = NULL, path = N
 
 
 get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...) {
+
   if (is.null(list_of_errors)) return(NULL)
   res <- as_tibble(do.call(rbind, list_of_errors))
+ # browser()
   res <- res |>
+    rowwise() |>
     select("message", "description", "num.violations") |>
     mutate(message = str_replace_all(unlist(.data$message)[1], fixed('"'), "'")) |>
     mutate(Field = paste0(str_extract(unlist(.data$message), "(?<=\\').+?(?=\\')")) ) |>
     tidyr::separate(col = "description", into = c("Type", "Issue", "Table", "TargetField"), sep = ";", remove = TRUE) |>
     filter(.data$Type != "DX") |>
     mutate(Field = if_else(.data$Field == "NA", .data$TargetField, .data$Field)) |>
+    #mutate(num.violations = if_else(.data$verb == "verify", "", .data$num.violations)) |>
     select("Type", "Table", Column = "Field", "Issue", Count = "num.violations") |> ungroup()
 
   res$Count <- res$Count |> unlist()
@@ -364,12 +368,13 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
-      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
       assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_method", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
-      assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting")
-      #assertr::verify(unique(quant_istd_feature_id) %in% feature_id, description = "E;ISTD(s) not defined as feature;Features") |>
-      #assertr::assert(\(x) {any(metadata$annot_istds$quant_istd_feature_id %in% (x)) & nrow(metadata$annot_istds)>0},quant_istd_feature_id, obligatory=FALSE, description = "W;ISTD(s) not defined;ISTDs") |>
-      #assertr::verify(unique(interference_feature_id) %in% feature_id, description = "Interfering feature(s) not defined under 'feature_id';Features")
+      assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting") |>
+      assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "interference_feature_id", description = "E;Interfering feature(s) not defined as feature;Features;interference_feature_id") |>
+      assertr::verify(any(!xor(is.na(metadata$annot_features$interference_proportion), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_proportion")
+      #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_proportion")
+
+
 
     if(!is.null(data)){
       metadata$annot_features <- metadata$annot_features |>

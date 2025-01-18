@@ -290,7 +290,7 @@ plot_runscatter <- function(data = NULL,
   }
 
   if(!include_qualifier){
-    d_filt <- d_filt |> filter(!.data$is_qualifier)
+    d_filt <- d_filt |> filter(.data$is_quantifier)
   }
 
   if (!all(is.na(plot_range_indices))) {
