@@ -1,3 +1,7 @@
+library(testthat)
+library(dplyr)
+mexp_orig <- lipidomics_dataset
+
 test_that("istd-based normalization is correct and overwites previous if present", {
   mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
 
@@ -139,4 +143,50 @@ test_that("istd-based quantification handles missing info correctly", {
   testthat::expect_error(mexp_mod <- normalize_by_istd(mexp_mod,fail_missing_annotation = TRUE),
                          "For 1 feature\\(s\\) no ISTD was defined. Please ammend feature")
 
+})
+
+test_that("quantify_by_istd/normalize_by_istd fail if no istd defined", {
+  mexp <- mexp_orig
+  mexp@annot_istds <- mexp@annot_istds[-1,]
+  mexp_res <- normalize_by_istd(mexp)
+  expect_error(
+    mexp_res <- quantify_by_istd(mexp_res),
+    "Concentrations of 1 ISTD"
+    )
+})
+
+test_that("quantify_by_istd/normalize_by_istd fail if no istd defined", {
+
+  expect_error(
+    mexp_res <- quantify_by_istd(mexp_orig),
+    "Data needs to be ISTD normalized"
+  )
+})
+
+test_that("istd-based norm and quantification are correct, another test", {
+
+  mexp_orig <- lipidomics_dataset
+  mexp <- mexp_orig
+  mexp_res <- normalize_by_istd(mexp)
+  mexp_res <- quantify_by_istd(mexp_res)
+
+  # mexp_res@dataset$feature_id[100] # PC 49:8
+  # mexp_res@dataset$analysis_id[100]   #"Longit_LTR 01"
+  # mexp_res@dataset$feature_id[98] #"PC 33:1 d7 (ISTD)"
+  # mexp_res@dataset$analysis_id[98]  #"Longit_LTR 01"
+  conc_istd  = mexp_res@annot_istds$istd_conc_nmolar[4] #PC 33:1 d7 (ISTD)
+
+
+  # check/get raw areas
+  expect_equal(mexp_res@dataset$feature_intensity[100], 70530.266)
+  expect_equal(mexp_res@dataset$feature_intensity[98], 2933433.3)
+
+  # check/get raw normalzied areas
+  expect_equal(mexp_res@dataset$feature_norm_intensity[100], 70530.266/2933433.3, tolerance = 0.0000000001)
+  expect_equal(mexp_res@dataset$feature_norm_intensity[98], 1, tolerance = 0.0000000001)
+
+
+  # check/get conc
+  expect_equal(mexp_res@dataset$feature_conc[100], 70530.266/2933433.3 * 4.5 / 10 * 212.45 /1000, tolerance = 0.0000000001)
+  expect_equal(mexp_res@dataset$feature_conc[98], 1* 4.5 / 10 * 212.45 /1000, tolerance = 0.0000000001)
 })

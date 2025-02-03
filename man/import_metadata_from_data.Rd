@@ -9,11 +9,13 @@ import_metadata_from_data(data = NULL, qc_type_column_name = "qc_type")
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{qc_type_column_name}{Column name in the imported raw data representing the \code{qc_type}}
+\item{qc_type_column_name}{Column name in the imported raw data representing
+the \code{qc_type}}
 }
 \value{
 An updated \code{MidarExperiment} object
 }
 \description{
-Retrieves available metadata from the imported analysis data and associates it with the provided MidarExperiment object.
+Retrieves available metadata from the imported analysis data and
+associates it with the provided MidarExperiment object.
 }

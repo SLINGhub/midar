@@ -1,3 +1,8 @@
+library(testthat)
+library(tibble)
+library(cli)
+library(dplyr)
+
 test_that("Imports/associates data and metadata, orders analyses by dataset (timestamp missing)", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
@@ -113,7 +118,7 @@ test_that("Prepare feature metadata from given table imported from an XLSX sheet
   tbl <- get_metadata_table(path = path, sheet = "Features")
   metadata <- clean_feature_metadata(tbl)
   expect_type(metadata$response_factor, "double")
-  expect_type(metadata$interference_proportion, "double")
+  expect_type(metadata$interference_contribution, "double")
   expect_type(metadata$is_quantifier, "logical")
   expect_type(metadata$valid_feature, "logical")
   expect_equal(metadata[[1,"feature_id"]], "CE 14:0")

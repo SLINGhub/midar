@@ -53,7 +53,7 @@ A value of 1 (the default) requires the CV to improve, while a value above 1 all
 
 \item{show_progress}{Show progress bar. Default = `TRUE.}
 
-\item{...}{Parameters specific for the smoothing function}
+\item{...}{Arguments specific for the smoothing function}
 }
 \value{
 MidarExperiment object

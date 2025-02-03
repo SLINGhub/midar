@@ -1,7 +1,9 @@
 #' @title Retrieve Metadata from Imported Analysis Data
-#' @description Retrieves available metadata from the imported analysis data and associates it with the provided MidarExperiment object.
+#' @description Retrieves available metadata from the imported analysis data and
+#'   associates it with the provided MidarExperiment object.
 #' @param data A `MidarExperiment` object
-#' @param qc_type_column_name Column name in the imported raw data representing the `qc_type`
+#' @param qc_type_column_name Column name in the imported raw data representing
+#'   the `qc_type`
 #' @return An updated `MidarExperiment` object
 #'
 
@@ -234,7 +236,7 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
     select("Type", "Table", Column = "Field", "Issue", Count = "num.violations") |> ungroup()
 
   res$Count <- res$Count |> unlist()
-  as_assertr_tibble(res)
+  res
 }
 
 
@@ -264,9 +266,8 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
 
     if ("Analyses without metadata" %in% (t_all |> filter(.data$Type == "W") |> pull(.data$Issue))  & !ignore_warnings)
       if ("annot_analyses" %in% names(metadata_new))
-        cli::cli_abort(message = cli::col_red("Not all analyses listed in metadata are present in the data. Please check data or set `excl_unmatched_analyses = TRUE`"), trace = NULL, call = caller_env())
+        cli::cli_abort(message = cli::col_red("Not all analyses listed in metadata are present in the data. Please verify data or set `excl_unmatched_analyses = TRUE`"), trace = NULL, call = caller_env())
   }
-
 
   #else
   #cli::cli_alert_warning(text = cli::col_yellow("Ignoring metadata warnings (as 'ignore_warnings' was set to TRUE)"))
@@ -276,18 +277,18 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   if(any(t_all$Type == "D")){
     cli::cli_alert_warning(text = cli::col_red(glue::glue("Metadata is invalid with following defects:")))
     print(as_assertr_tibble(t_all_print))
-    cli::cli_abort(message = cli::col_yellow(" Please check corresponding metadata tables and try again."), trace = NULL, call = caller_env())
+    cli::cli_abort(message = cli::col_yellow(" Please verify corresponding metadata tables and try again."), trace = NULL, call = caller_env())
   } else if(any(t_all$Type == "E")){
     cli::cli_alert_warning(text = cli::col_red(glue::glue("Metadata has following errors{ifelse(any(t_all$Type == 'W'), ' and warnings', '')}:")))
     print(as_assertr_tibble(t_all_print))
-    cli::cli_abort(message = cli::col_yellow("Please check corresponding metadata and try again."), trace = NULL, call = caller_env())
+    cli::cli_abort(message = cli::col_yellow("Please verify corresponding metadata and try again."), trace = NULL, call = caller_env())
   } else if (any(t_all$Type == "W" | t_all$Type == "N")){
     cli::cli_alert_warning(text = cli::col_yellow(glue::glue("Metadata has following warnings and notifications:")))
     print(as_assertr_tibble(t_all_print))
   }
 
   if (!ignore_warnings & any(t_all |> filter(!.data$ignore_warn_flag) |>  pull(.data$Type) == "W"))
-    cli::cli_abort(message = cli::col_red("Please check warnings in corresponding metadata. Use `ignore_warnings`= TRUE to ignore warnings."), trace = NULL, call = caller_env())
+    cli::cli_abort(message = cli::col_red("Please verify warnings in corresponding metadata. Use `ignore_warnings`= TRUE to ignore warnings."), trace = NULL, call = caller_env())
 
 }
 
@@ -371,17 +372,15 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_method", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
       assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "interference_feature_id", description = "E;Interfering feature(s) not defined as feature;Features;interference_feature_id") |>
-      assertr::verify(any(!xor(is.na(metadata$annot_features$interference_proportion), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_proportion")
-      #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_proportion")
-
-
+      assertr::verify(any(!xor(is.na(metadata$annot_features$interference_contribution), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_contribution")
+      #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_contribution")
 
     if(!is.null(data)){
       metadata$annot_features <- metadata$annot_features |>
         assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "W;Feature(s) not in analysis data;Features;feature_id") |>
         assertr::verify((unique(data@dataset_orig$feature_id) %in% .data$feature_id), description = "W;Feature(s) without metadata;Features;feature_id")
     }
-      #assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("response_factor", "interference_proportion")), description = "W;Values 0 or negative;Features") |>
+      #assertr::assert(assertr::within_bounds(lower.bound = 0, upper.bound = Inf, include.lower = FALSE, include.upper = FALSE), any_of(c("response_factor", "interference_contribution")), description = "W;Values 0 or negative;Features") |>
       metadata$annot_features <- metadata$annot_features |> assertr::chain_end(error_fun = assertr::error_append)
 
       if("annot_features" %in% names(metadata_new)) {
@@ -576,7 +575,7 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
   data@annot_batches <- get_metadata_batches(data@annot_analyses )
 
   # FINALIZE =================
-  data@status_processing <- "Raw and metadata loaded"
+  data@status_processing <- "Raw and metadata imported and associated"
   data
 }
 
@@ -654,6 +653,9 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
 
   if("interference_feature_name" %in% names(d_features))
     d_features <- d_features |> rename("interference_feature_id" = "interference_feature_name")
+
+  if("interference_proportion" %in% names(d_features))
+    d_features <- d_features |> rename("interference_contribution" = "interference_proportion")
 
   if("new_feature_name" %in% names(d_features))
     d_features <- d_features |> rename("feature_label" = "new_feature_name")
@@ -780,7 +782,7 @@ get_metadata_table <- function(dataset = NULL, path = NULL, sheet = NULL) {
 
     if(length(file_path) > 1) cli::cli_abort("Only one file can be imported.")
 
-    if (!all(fs::file_exists(file_path))) cli::cli_abort("Files do not exist. Please check file path.")
+    if (!all(fs::file_exists(file_path))) cli::cli_abort("Files do not exist. Please verify file path.")
 
     if (fs::path_ext(file_path) == "csv") {
 
@@ -816,7 +818,7 @@ clean_analysis_metadata <- function(d_analyses) {
   names(d_analyses) <- tolower(names(d_analyses))
 
   if(!all(c("analysis_id", "qc_type") %in% names(d_analyses))){
-    cli::cli_abort(cli::col_red("Analysis (Sample) metadata must have following columns: `analysis_id` and `qc_type`. Please check the input data. "))
+    cli::cli_abort(cli::col_red("Analysis (Sample) metadata must have following columns: `analysis_id` and `qc_type`. Please verify the input data. "))
   }
 
   # Fill missing columns
@@ -868,7 +870,7 @@ clean_analysis_metadata <- function(d_analyses) {
     d_analyses$valid_analysis <- TRUE
   else
     if (any(is.na(d_analyses$valid_analysis)) & !all(is.na(d_analyses$valid_analysis))){
-        cli::cli_abort("`valid_analysis` is inconsistently defined, i.e., not for one or more analyses. Please check imported analysis metadata.")
+        cli::cli_abort("`valid_analysis` is inconsistently defined, i.e., not for one or more analyses. Please verify imported analysis metadata.")
         }
   # Add template table structure
   d_analyses <- dplyr::bind_rows(pkg.env$table_templates$annot_analyses_template, d_analyses)
@@ -878,7 +880,7 @@ clean_analysis_metadata <- function(d_analyses) {
 clean_feature_metadata <- function(d_features) {
 
   if(!all(c("feature_id") %in% names(d_features))){
-    cli::cli_abort(cli::col_red("Feature metadata must have column: `feature_id`. Please check the input data. "))
+    cli::cli_abort(cli::col_red("Feature metadata must have column: `feature_id`. Please verify the input data. "))
   }
 
   d_features <- d_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
@@ -889,7 +891,7 @@ clean_feature_metadata <- function(d_features) {
   d_features <- d_features |> add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
-  d_features <- d_features |> add_missing_column(col_name = "interference_proportion", init_value = NA_real_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "interference_contribution", init_value = NA_real_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "curve_fit_method", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "curve_fit_weighting", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
@@ -929,7 +931,7 @@ clean_feature_metadata <- function(d_features) {
       "is_quantifier",
       "valid_feature",
       "interference_feature_id",
-      "interference_proportion",
+      "interference_contribution",
       "curve_fit_method",
       "curve_fit_weighting",
       "remarks"
@@ -941,14 +943,14 @@ clean_feature_metadata <- function(d_features) {
     d_features$valid_feature <- TRUE
   else
     if (any(is.na(d_features$valid_feature)))
-      cli::cli_abort("`valid_feature` is inconsistently defined, i.e., not for one or more features. Please check imported feature metadata.")
+      cli::cli_abort("`valid_feature` is inconsistently defined, i.e., not for one or more features. Please verify imported feature metadata.")
 
   # Handle the non-mandatory field  Quantifier TODO: still needed?
   if (all(is.na(d_features$is_quantifier)))
     d_features$is_quantifier <- TRUE
   else
     if (any(is.na(d_features$is_quantifier)))
-      cli::cli_abort("`is_quantifier` is inconsistently defined, i.e., not for one or more features. Please check imported feature metadata.")
+      cli::cli_abort("`is_quantifier` is inconsistently defined, i.e., not for one or more features. Please verify imported feature metadata.")
   # Add template table structure
   d_features <- dplyr::bind_rows(pkg.env$table_templates$annot_features_template, d_features)
   d_features
@@ -957,7 +959,7 @@ clean_feature_metadata <- function(d_features) {
 clean_istd_metadata <- function(d_istds) {
 
   if(!all(c("istd_feature_id", "istd_conc_nmolar") %in% names(d_istds))){
-    cli::cli_abort(cli::col_red("ISTD metadata must have following columns: `istd_feature_id` and `istd_conc_nmolar`. Please check the input data. "))
+    cli::cli_abort(cli::col_red("ISTD metadata must have following columns: `istd_feature_id` and `istd_conc_nmolar`. Please verify the input data. "))
   }
 
   d_istds <- d_istds |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
@@ -984,7 +986,7 @@ clean_istd_metadata <- function(d_istds) {
 
 clean_response_metadata <- function(d_rqc) {
   if(!all(c("analysis_id", "curve_id", "analyzed_amount", "analyzed_amount_unit") %in% names(d_rqc))){
-    cli::cli_abort(cli::col_red("Response curves metadata must have following columns: `analysis_id`, `curve_id`, `analyzed_amount` and `analyzed_amount_unit`. Please check the input data. "))
+    cli::cli_abort(cli::col_red("Response curves metadata must have following columns: `analysis_id`, `curve_id`, `analyzed_amount` and `analyzed_amount_unit`. Please verify the input data. "))
   }
 
   d_rqc <- d_rqc |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
@@ -1010,7 +1012,7 @@ clean_response_metadata <- function(d_rqc) {
 
 clean_qcconc_metadata <- function(d_cal) {
   if(!all(c("sample_id", "feature_id", "concentration", "concentration_unit") %in% names(d_cal))){
-    cli::cli_abort(cli::col_red("QC concentration metadata must have following columns: `sample_id`, `feature_id`, `concentration` and `concentration_unit`. Please check the input data. "))
+    cli::cli_abort(cli::col_red("QC concentration metadata must have following columns: `sample_id`, `feature_id`, `concentration` and `concentration_unit`. Please verify the input data. "))
   }
 
   d_cal <- d_cal |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)

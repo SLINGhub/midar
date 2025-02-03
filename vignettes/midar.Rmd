@@ -54,7 +54,7 @@ mexp <- midar::import_data_mrmkit(data = mexp,
 # mexp <- normalize_by_istd(mexp)
 # 
 # # Get QC metrics for each feature
-# mexp <- qc_calc_metrics(mexp)
+# mexp <- calc_qc_metrics(mexp)
 # 
 # # Filter features according to QC criteria
 # mexp <- filter_features_qc(

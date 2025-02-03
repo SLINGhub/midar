@@ -4,7 +4,7 @@
 #' @author Hyung Won Choi
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param reference_qc_types QC types used for the smoothing (fit) by loess
-#' @param ... Additional parameters
+#' @param ... Additional arguments
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
 
 ### Function to clean up serial trend within a batch
@@ -92,18 +92,20 @@ fun_gauss.kernel.smooth = function(tbl, reference_qc_types, ...) {
 #' Function for Gaussian kernel-based smoothing, for use by `corr_drift_fun`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param reference_qc_types QC types used for the smoothing (fit) by loess
-#' @param ... Additional parameters forwarded to KernSmooth::locpoly
+#' @param ... Additional arguments forwarded to KernSmooth::locpoly
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
 #' @noRd
 fun_gaussiankernel_old <- function(tbl, reference_qc_types, ...) {
   arg <- list(...)
 
-  if (!requireNamespace("KernSmooth", quietly = TRUE)) {
-    stop(
-      "Package {KernSmooth} must be installed when using this function. It is available from CRAN via `install.packages()`",
-      call. = FALSE
-    )
-  }
+  # if (!requireNamespace("KernSmooth", quietly = TRUE)) {
+  #   stop(
+  #     "Package {KernSmooth} must be installed when using this function. It is available from CRAN via `install.packages()`",
+  #     call. = FALSE
+  #   )
+  # }
+
+  check_installed("KernSmooth")
 
   # browser()
   d_subset <- tbl[tbl$qc_type %in% reference_qc_types, ] |> tidyr::drop_na(.data$y)
@@ -126,7 +128,7 @@ fun_gaussiankernel_old <- function(tbl, reference_qc_types, ...) {
 #' Function for loess-based smoothing, for use by `corr_drift_fun`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
 #' @param reference_qc_types QC types used for the smoothing (fit) by loess
-#' @param ... Additional parameters forwarded to Loess
+#' @param ... Additional arguments forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
 fun_loess <- function(tbl, reference_qc_types,...) {
   arg <- list(...)
@@ -175,7 +177,7 @@ fun_loess <- function(tbl, reference_qc_types,...) {
 #' @param use_original_if_fail Determines the action when smoothing fails for a feature. If TRUE (default), the original data is used; if FALSE, the result for each analysis is NA.
 #' @param recalc_trend_after Recalculate trend post-drift correction for `plot_qc_runscatter()`. This will double calculation time.
 #' @param show_progress Show progress bar. Default = `TRUE.
-#' @param ... Parameters specific for the smoothing function
+#' @param ... Arguments specific for the smoothing function
 #' @return MidarExperiment object
 #' @export
 corr_drift_fun <- function(data = NULL,
@@ -238,7 +240,7 @@ corr_drift_fun <- function(data = NULL,
   }
 
     # Subset features
-  ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", y_original = variable)
+  ds <- data@dataset |> select("analysis_id", "qc_type", "batch_id", "feature_id", "is_istd", "y_original" = all_of(variable))
 
 
   if (!is.null(feature_list))
@@ -255,7 +257,7 @@ corr_drift_fun <- function(data = NULL,
   # call smooth function for each feature and each batch
   d_smooth_res <- ds |>
     select("analysis_id", "qc_type", "feature_id", "batch_id", "y_original", "x", "y") |>
-    group_split(pick(adj_groups))
+    group_split(across(all_of(adj_groups)))
 
   # Calculate the total number of groups and set up the progress bar
   total_groups <- length(d_smooth_res)
@@ -284,9 +286,11 @@ corr_drift_fun <- function(data = NULL,
   if(recalc_trend_after){
     if(show_progress) pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
      d_smooth_recalc <- d_smooth_res |>
-      rename(y = .data$y_predicted) |>
+      rename(y = "y_predicted") |>
       select("analysis_id", "qc_type", "feature_id", "batch_id", "x", "y") |>
-      group_split(pick(adj_groups))
+       group_by(across(all_of(adj_groups))) |>
+       group_split()
+
      d_smooth_recalc <- d_smooth_recalc |>
      purrr::map2(seq_along(d_smooth_recalc), \(x, i) {
        if(show_progress) update_progress(i)
@@ -318,7 +322,7 @@ corr_drift_fun <- function(data = NULL,
   if(is_adjusted){
     d_smooth_res <- d_smooth_res |>
       left_join(ds, by = c("analysis_id", "feature_id", "batch_id", "qc_type")) |>
-      group_by(dplyr::pick(adj_groups)) |>
+      group_by(across(all_of(adj_groups))) |>
       mutate(
         y_predicted_median = median(.data$y_predicted, na.rm = TRUE),
         y_fit = .data$y_fit,
@@ -336,7 +340,7 @@ corr_drift_fun <- function(data = NULL,
 
   # Summarize which species to apply drift correction to and assign final concentrations
   d_smooth_summary <- d_smooth_res |>
-      group_by(dplyr::pick(adj_groups)) |>
+      group_by(across(all_of(adj_groups))) |>
     summarise(
       any_fit_error = any(.data$fit_error, na.rm = TRUE),
       cv_raw_spl = cv(.data$y_original[.data$qc_type == "SPL"], na.rm = TRUE),
@@ -499,17 +503,17 @@ correct_drift_gaussiankernel <- function(data = NULL,
                                       reference_qc_types,
                                       within_batch = TRUE,
                                       replace_previous = TRUE,
-                                      kernel_size,
+                                      kernel_size = 10,
                                       outlier_filter = FALSE,
                                       outlier_ksd = 5,
                                       location_smooth = TRUE,
                                       scale_smooth = FALSE,
                                       log_transform_internal = TRUE,
-                                      recalc_trend_after = TRUE,
-                                      conditional_correction = FALSE,
-                                      feature_list = NULL,
                                       ignore_istd = TRUE,
+                                      conditional_correction = FALSE,
                                       cv_ratio_threshold = 1,
+                                      recalc_trend_after = TRUE,
+                                      feature_list = NULL,
                                       use_original_if_fail = FALSE,
                                       show_progress = TRUE
 ) {
@@ -623,7 +627,7 @@ correct_drift_loess <- function(data = NULL,
 #'   TRUE (replace).
 #' @param log_transform_internal A logical value indicating whether to
 #'   log-transform the data internally during correction. Defaults to TRUE.
-#' @param ... Additional parameters that can be passed to the batch correction
+#' @param ... Additional arguments that can be passed to the batch correction
 #'   function.
 #' @return A MidarExperiment object containing the corrected data.
 #' @seealso plot_runscatter for visualizing the correction before and after.
@@ -727,7 +731,7 @@ correct_batch_centering <- function(data = NULL,
       mutate(
         res = purrr::map(data, \(x) do.call("batch.correction", list(x, reference_qc_types, correct_location, correct_scale, ...))),
       ) |>
-      unnest(cols = c(.data$res)) |>
+      unnest(cols = c("res")) |>
       select(-"data")
 
   d_res_sum <- d_res |>

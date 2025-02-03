@@ -241,9 +241,11 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 
 plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform, dim_x, dim_y, grouping, point_size = 2, fill_alpha = 0.1, ellipse = TRUE, mark_ellipse = FALSE, show_labels = FALSE, label_size = 6, max_label_overlaps = Inf) {
 
-  if (!requireNamespace("ggforce", quietly = TRUE)) {
-    cli_abort("Please install 'ggforce' to use this function via `install.packages('ggforce')`.")
-  }
+  # if (!requireNamespace("ggforce", quietly = TRUE)) {
+  #   cli_abort("Please install 'ggforce' to use this function via `install.packages('ggforce')`.")
+  # }
+  check_installed("ggforce")
+
 
   d_wide <- data |>
     pivot_wider(names_from = "feature_id", values_from = "feature_conc")
@@ -266,11 +268,14 @@ plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform,
   pca_annot <- pca_res |> broom::augment(d_metadata)
   pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
 
-  p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", dim_x),
-    paste0(".fittedPC", dim_y),
-    color = grouping,
-    fill = grouping, label = "analysis_id"
-  )) +
+  p <- ggplot(data = pca_annot,
+              aes(
+                x = !!sym(paste0(".fittedPC", pca_dim[1])),
+                y = !!sym(paste0(".fittedPC", pca_dim[2])),
+                color = grouping,
+                fill = grouping,
+                label = "analysis_id"
+              )) +
     geom_hline(yintercept = 0, size = 0.4, color = "grey80") +
     geom_vline(xintercept = 0, size = 0.4, color = "grey80")
 
@@ -491,13 +496,17 @@ plot_dotboxplus <- function(data, d_metadata, inner_group, outer_group, contrast
 
 
 
-  if (!requireNamespace("ggbeeswarm", quietly = TRUE)) {
-    cli_abort("Please install 'ggbeeswarm' to use this function via `install.packages('ggbeeswarm')`.")
-  }
+  # if (!requireNamespace("ggbeeswarm", quietly = TRUE)) {
+  #   cli_abort("Please install 'ggbeeswarm' to use this function via `install.packages('ggbeeswarm')`.")
+  # }
+  #
+  # if (!requireNamespace("ggsignif", quietly = TRUE)) {
+  #   cli_abort("Please install 'ggsignif' to use this function via `install.packages('ggsignif')`.")
+  # }
 
-  if (!requireNamespace("ggsignif", quietly = TRUE)) {
-    cli_abort("Please install 'ggsignif' to use this function via `install.packages('ggsignif')`.")
-  }
+  check_installed("ggsignif")
+  check_installed("ggbeeswarm")
+
 
   d_long_full <- data |>
     right_join(d_metadata |> rename(analysis_id = .data$sample_id))

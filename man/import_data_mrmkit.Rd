@@ -20,8 +20,8 @@ MidarExperiment object with the imported data
 }
 \description{
 Imports tabular data files (*.tsv) generated from \code{MRMkit} containing peak integration results.
-The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other parameters.
-Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and made available in the \code{MidarExperiment} object for downstream analyses.
+The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other arguments
+Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and made available in the \code{MidarExperiment} object for downstream analyses.
 
 When a directory path is provided, all matching files in that directory will be imported and merged into a single dataset.
 This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.

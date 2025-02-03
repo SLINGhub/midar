@@ -10,17 +10,17 @@ correct_drift_gaussiankernel(
   reference_qc_types,
   within_batch = TRUE,
   replace_previous = TRUE,
-  kernel_size,
+  kernel_size = 10,
   outlier_filter = FALSE,
   outlier_ksd = 5,
   location_smooth = TRUE,
   scale_smooth = FALSE,
   log_transform_internal = TRUE,
-  recalc_trend_after = TRUE,
-  conditional_correction = FALSE,
-  feature_list = NULL,
   ignore_istd = TRUE,
+  conditional_correction = FALSE,
   cv_ratio_threshold = 1,
+  recalc_trend_after = TRUE,
+  feature_list = NULL,
   use_original_if_fail = FALSE,
   show_progress = TRUE
 )
@@ -48,16 +48,16 @@ correct_drift_gaussiankernel(
 
 \item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.}
 
-\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{plot_runscatter()})}
+\item{ignore_istd}{Do not apply corrections to ISTDs}
 
 \item{conditional_correction}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{cv_ratio_threshold}}
 
-\item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
-
-\item{ignore_istd}{Do not apply corrections to ISTDs}
-
 \item{cv_ratio_threshold}{Only used when \code{conditional_correction = TRUE}. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
 A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
+
+\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{plot_runscatter()})}
+
+\item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
 \item{use_original_if_fail}{Determines the action when smoothing fails for a feature. If TRUE (default), the original data is used; if FALSE, the result for each analysis is NA.}
 

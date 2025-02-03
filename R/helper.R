@@ -112,6 +112,149 @@ get_conc_unit <- function(sample_amount_unit) {
   conc_unit
 }
 
+#' Reorder Data Frame based on a chain of linked values in two columns.
+#'
+#' This function orders rows of a data frame based on chained relationships defined by two columns.
+#' It can also handle fully disconnected rows (i.e., rows where both `From` and `To` values
+#' are not present in other rows). The behavior for disconnected rows is controlled via the
+#' `disconnected_action` parameter.
+#'
+#' @param df A data frame containing the chain relationships.
+#' @param from_col A string specifying the column name representing the starting point of the chain.
+#' @param to_col A string specifying the column name representing the endpoint of the chain.
+#' @param include_chain_id A logical indicating whether to include a `chain_id` column in the output.
+#' @param disconnected_action A string indicating how to handle fully disconnected rows. Options are:
+#'   \describe{
+#'     \item{"exclude"}{Exclude disconnected rows from the output.}
+#'     \item{"keep"}{Keep disconnected rows in the result.}
+#'   }
+#'
+#' @return A data frame containing ordered chains with a `chain_id` column to distinguish between different chains.
+#'   If disconnected rows are included, they will have their own `chain_id`.
+#'
+#' @examples
+#' df <- data.frame(
+#'   From = c("INSPECT", "VERIFY", "START", "NULL", "NEW", "CREATE", "MID", "DIFFERENT", "OUTLIER"),
+#'   To = c("VERIFY", "PUBLISH", "MID", "NEW", "CREATE", "INSPECT", "END", "NOTSAME", "INSIDER"),
+#' stringsAsFactors = FALSE
+#' )
+#'
+#' # Order keeping disconnected rows
+#' order_chains_with_disconnected(df, "From", "To")
+#'
+#' # Ordr excluding disconnected rows
+#' order_chains_with_disconnected(df, "From", "To", "exclude")
+#'
+#' # Throw error if circular dependencies are detected
+#' tryCatch(
+#'   order_chains_with_disconnected(df, "From", "To"),
+#'   error = function(e) message("Error: ", e$message)
+#' )
+#'
+#' @export
+order_chained_columns_tbl <- function(df, from_col, to_col, include_chain_id, disconnected_action = "keep") {
+  # Match the argument for disconnected_action
+  disconnected_action <- match.arg(disconnected_action, c("keep", "exclude"))
+
+
+  if(nrow(df) == 0) stop("Data frame has no rows")
+  if(!all(c(from_col, to_col) %in% colnames(df))) stop("One or more columns are not present in the data frame.")
+
+  # Step 1: Identify connected nodes (rows that are involved in a chain)
+  df_initial <- df
+  all_from <- unique(df[[from_col]])
+  all_to <- unique(df[[to_col]])
+
+  # Find rows where From or To is not in any other row's From or To
+  unconnected_rows <- df[!(df[[from_col]] %in% all_to) & !(df[[to_col]] %in% all_from), ]
+
+  # Step 2: Exclude unconnected rows if disconnected_action is "exclude"
+  if (disconnected_action == "exclude") {
+    df <- df[!(df[[from_col]] %in% unconnected_rows[[from_col]] | df[[to_col]] %in% unconnected_rows[[to_col]]), ]
+  }
+
+  # Step 3: Identify connected rows (after filtering disconnected if needed)
+  all_from <- unique(df[[from_col]])
+  all_to <- unique(df[[to_col]])
+
+  # Step 4: Filter out disconnected rows based on the current df
+  connected_df <- df[df[[from_col]] %in% all_from | df[[to_col]] %in% all_to, ]
+
+  # Step 5: Build the chains from the connected rows only
+  chain_map <- setNames(connected_df[[to_col]], connected_df[[from_col]])
+
+  # Initialize ordered chains and visited set
+  ordered_chains <- list()
+  visited <- character(0)
+
+  # Start the chain from any From node that is not a To node
+  starts <- setdiff(connected_df[[from_col]], connected_df[[to_col]])
+
+  if(length(starts) == 0) stop("Circular dependency detected. Please verify the input data.")
+  # Traverse each chain from the starting node
+  for (start in starts) {
+    chain <- c(start)
+    current <- start
+
+    # Follow the chain from From -> To
+    while (!is.null(chain_map[current]) && !is.na(chain_map[current])) {
+      next_value <- chain_map[current]
+
+      # Check for circular dependencies
+      if (next_value %in% visited) {
+        stop("Circular dependency detected in the chain.")
+      }
+
+      chain <- c(chain, next_value)
+      visited <- union(visited, next_value)  # Mark the next node as visited
+      current <- next_value
+    }
+
+    # Add the chain to the list
+    ordered_chains[[length(ordered_chains) + 1]] <- chain
+  }
+
+  # Step 6: Convert chains into a data frame
+  connected_chains_df <- do.call(rbind, lapply(seq_along(ordered_chains), function(i) {
+    chain <- ordered_chains[[i]]
+    data.frame(
+      chain_id = i,
+      From = chain[-length(chain)],  # All except last
+      To = chain[-1],  # All except first
+      stringsAsFactors = FALSE
+    )
+  }))
+
+  names(connected_chains_df) <- c("chain_id", from_col, to_col)
+
+  if(nrow(connected_chains_df) < nrow(df)) stop("Circular dependency detected. Please verify the input data.")
+
+  # Cleanup and readd columns that were not part of the chain
+  rownames(connected_chains_df) <- NULL
+
+
+  cols_to_add <- setdiff(names(df_initial), c("chain_id", from_col, to_col))
+  connected_chains_df$order <- seq_len(nrow(connected_chains_df))
+  merged_df <- merge(connected_chains_df, df_initial[, c(from_col, to_col, cols_to_add)], by = c(from_col, to_col), all.x = TRUE)
+  merged_df <- merged_df[order(merged_df$order), ]
+  merged_df$order <- NULL
+
+  # Remove chain_id if not specified
+  if(!include_chain_id) merged_df$chain_id <- NULL
+
+  # Return final data frame
+  merged_df
+}
+
+
+
+
+
+
+
+
+
+
 
 #
 # # https://dewey.dunnington.ca/post/2018/modifying-facet-scales-in-ggplot2/

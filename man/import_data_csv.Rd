@@ -30,8 +30,8 @@ MidarExperiment object
 \description{
 Imports .csv file(s) reprensenting analysis results in a wide format with samples in rows and features in columns.
 The first column must contain the analysis identifier, subsequent columns can be metadata columns, followed by value of different features.
-The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
-Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the \code{MidarExperiment} object for downstream analyses.
+The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other arguments
+Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and will available from the \code{MidarExperiment} object for downstream analyses.
 
 When a path to a folder is provided, all .scv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.

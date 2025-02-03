@@ -22,7 +22,7 @@ plot_calibrationcurves(
   specific_page = NA,
   point_size = 1.5,
   line_width = 0.7,
-  scaling_factor = 1,
+  plot_scaling_factor = 1,
   page_orientation = "LANDSCAPE",
   font_base_size = 7,
   show_progress = TRUE,
@@ -64,7 +64,7 @@ plot_calibrationcurves(
 
 \item{line_width}{Numeric value specifying the width of regression lines. Defaults to 0.7.}
 
-\item{scaling_factor}{A universal scaling factor for fonts, symbols, and lines. Defaults to 1.}
+\item{plot_scaling_factor}{A universal scaling factor for fonts, symbols, and lines. Defaults to 1.}
 
 \item{page_orientation}{The orientation of the PDF paper, either \code{"LANDSCAPE"} or \code{"PORTRAIT"}. Defaults to \code{"LANDSCAPE"}.}
 

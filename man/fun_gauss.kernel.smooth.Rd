@@ -11,7 +11,7 @@ fun_gauss.kernel.smooth(tbl, reference_qc_types, ...)
 
 \item{reference_qc_types}{QC types used for the smoothing (fit) by loess}
 
-\item{...}{Additional parameters}
+\item{...}{Additional arguments}
 }
 \value{
 List with a \code{data.frame} containing original \code{x} and the smoothed \code{y} values, and a \code{boolean} value indicting whether the fit failed or not not.

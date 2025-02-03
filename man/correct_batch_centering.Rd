@@ -38,7 +38,7 @@ TRUE (replace).}
 \item{log_transform_internal}{A logical value indicating whether to
 log-transform the data internally during correction. Defaults to TRUE.}
 
-\item{...}{Additional parameters that can be passed to the batch correction
+\item{...}{Additional arguments that can be passed to the batch correction
 function.}
 }
 \value{

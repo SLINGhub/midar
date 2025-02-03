@@ -128,7 +128,7 @@ check_integrity_analyses <- function(data = NULL, excl_unmatched_analyses, silen
     if (d_xy > 0) {
         if (d_xy == length(data@dataset_orig$analysis_id |> unique()))
           if (!silent){
-            cli::cli_abort("Error: None of the measurements/samples have matching metadata. Please check data and metadata files.")
+            cli::cli_abort("Error: None of the measurements/samples have matching metadata. Please verify data and metadata files.")
         } else {
           return(FALSE)
         }

@@ -7,7 +7,7 @@
 filter_features_qc(
   data = NULL,
   replace_existing = TRUE,
-  batch_medians = FALSE,
+  use_batch_medians = FALSE,
   qualifier.include = FALSE,
   istd.include = FALSE,
   features.to.keep = NULL,
@@ -51,7 +51,7 @@ filter_features_qc(
 
 \item{replace_existing}{Logical. If \code{TRUE}, replaces any existing filters; if \code{FALSE}, adds new filters on top of existing ones. Default is \code{TRUE}.}
 
-\item{batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
+\item{use_batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
 
 \item{qualifier.include}{Logical. If \code{TRUE}, includes qualifier features in the filtering process. Default is \code{FALSE}.}
 

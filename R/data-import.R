@@ -44,8 +44,8 @@ import_data_masshunter <- function(data = NULL, path, import_metadata, expand_qu
 #' @title Imports MRMkit peak integration results
 #' @description
 #' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak integration results.
-#' The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other parameters.
-#' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and made available in the `MidarExperiment` object for downstream analyses.
+#' The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other arguments
+#' Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and made available in the `MidarExperiment` object for downstream analyses.
 #'
 #' When a directory path is provided, all matching files in that directory will be imported and merged into a single dataset.
 #' This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
@@ -82,8 +82,8 @@ import_data_mrmkit <- function(data = NULL, path, import_metadata, silent = FALS
 #' @description
 #' Imports .csv file(s) reprensenting analysis results in a wide format with samples in rows and features in columns.
 #' The first column must contain the analysis identifier, subsequent columns can be metadata columns, followed by value of different features.
-#' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other parameters.
-#' Additional information, such as retention time, FWHM, precursor/product MZ, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
+#' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other arguments
+#' Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
 #'
 #' When a path to a folder is provided, all .scv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
 #' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
@@ -130,8 +130,8 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
     file_paths <- fs::dir_ls(path, glob = file_ext)
   }
 
-  if (!all(fs::file_exists(file_paths))) cli::cli_abort("One or more given files do not exist. Please check file paths.")
-  if (any(duplicated(file_paths))) cli::cli_abort("One or more given files are replicated. Please check file paths.")
+  if (!all(fs::file_exists(file_paths))) cli::cli_abort("One or more given files do not exist. Please verify file paths.")
+  if (any(duplicated(file_paths))) cli::cli_abort("One or more given files are replicated. Please verify file paths.")
 
   names(file_paths) <- file_paths
   args <- list(...)
@@ -168,9 +168,9 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 
   if (has_duplicated_id) {
     if (has_duplicated_values) {
-      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('identical')} feature variable values. Please check imported dataset(s)."))
+      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('identical')} feature variable values. Please verify imported dataset(s)."))
     } else {
-      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('different')} feature variable values. Please check imported dataset(s)."))
+      cli::cli_abort(glue::glue("Imported data contains duplicated reportings (analysis and feature pairs) with {cli::style_italic('different')} feature variable values. Please verify imported dataset(s)."))
     }
   }
 
@@ -189,7 +189,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
     }
   }
 
-  data@status_processing <- "Raw Data"
+  data@status_processing <- "Raw data imported"
 
   data
 }
@@ -369,7 +369,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
 
-  # Convert types of knows parameters and fields in the data set
+  # Convert types of known parameters and fields in the data set
 
   new_numeric_colnames <- c(
     "feature_rt" = "Results_RT",

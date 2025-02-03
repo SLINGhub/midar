@@ -37,7 +37,7 @@ normalize_by_istd <- function(data = NULL, fail_missing_annotation = TRUE) {
   if(!all(is.na(all_istds))){
     istd_not_defined <- setdiff(all_istds, d_annot$feature_id)
     if (length(istd_not_defined) > 0) {
-      cli::cli_abort(cli::col_red("{length(istd_not_defined)} ISTD(s) were not defined as individual feature(s). Please check feature metadata."))
+      cli::cli_abort(cli::col_red("{length(istd_not_defined)} ISTD(s) were not defined as individual feature(s). Please verify feature metadata."))
     }
   } else {
     cli::cli_abort(cli::col_red("No ISTDs defined in feature metadata. Please define ISTDs for each feature in feature metadata."))
@@ -86,7 +86,7 @@ normalize_by_istd <- function(data = NULL, fail_missing_annotation = TRUE) {
   cli_alert_success(col_green(glue::glue("{n_features - length(istds)} features normalized with {n_used_istds} ISTDs in {get_analysis_count(data)} analyses.")))
 
   # Update status
-  data@status_processing <- "ISTD-normalized ata"
+  data@status_processing <- "ISTD-normalized data"
   data <- update_after_normalization(data, TRUE)
   data <- update_after_quantitation(data, FALSE)
   data@is_filtered <- FALSE

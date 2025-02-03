@@ -2,27 +2,32 @@
 % Please edit documentation in R/qc-filtering.R
 \name{get_response_curve_stats}
 \alias{get_response_curve_stats}
-\title{Linear regression statistics of response curves}
+\title{Linear Regression Statistics of Response Curves}
 \usage{
 get_response_curve_stats(
   data = NULL,
   with_staturation_stats = FALSE,
-  limit_to_rqc = FALSE
+  limit_to_rqc = FALSE,
+  silent_invalid_data = FALSE
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object containing the dataset and response curve annotations.}
 
-\item{with_staturation_stats}{Include statistics and classification from the \code{lancer} package.}
+\item{with_staturation_stats}{Logical, if TRUE, include additional statistics from the \code{lancer} package.
+Note: The \code{lancer} package must be installed when this argument is set to TRUE.}
 
-\item{limit_to_rqc}{If TRUE (default) then only includes RQC qc type}
+\item{limit_to_rqc}{Logical, if TRUE (default), only include rows with \code{qc_type == "RQC"}.}
+
+\item{silent_invalid_data}{Logical, if TRUE suppresses raising an error when
+required data or metadata are missing, or there is a mismatch between them.}
 }
 \value{
-Tibble with linear regression stats of all curves in a wide format
+A tibble with linear regression statistics (\code{r2}, \code{slopenorm}, \code{y0norm}) for each curve,
+or \code{NULL} if no data matches the criteria.
 }
 \description{
-Linear regression statistics of response curves
-}
-\details{
-When using \code{with_staturation_stats} then the \code{lancer} package needs to be installed
+This function calculates linear regression statistics (R-squared, slope, and intercept)
+for each response curve in the provided \code{MidarExperiment} object. Optionally, it can include
+additional statistics from the \code{lancer} package (if installed) when \code{with_staturation_stats} is set to TRUE.
 }

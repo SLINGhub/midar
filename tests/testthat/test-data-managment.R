@@ -1,18 +1,22 @@
 
 # get RDS for tests
 
-#mexp <- midar::MidarExperiment()
-#mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
-#mexp <- midar::import_metadata_midarxlm(mexp,
-#                                        path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
-#                                        excl_unmatched_analyses = FALSE
-#readr::write_rds(mexp, testthat::test_path("testdata/MHQuant_demo.rds"))
+# mexp <- midar::MidarExperiment()
+# mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv"), import_metadata = FALSE)
+# mexp <- midar::import_metadata_midarxlm(mexp,
+#                                         path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
+#                                         excl_unmatched_analyses = FALSE)
+# readr::write_rds(mexp, testthat::test_path("testdata/MHQuant_demo.rds"))
 
 mexp_empty <- MidarExperiment()
 mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
 mexp_proc <- mexp
 mexp_proc <- normalize_by_istd(mexp_proc)
 mexp_proc <- quantify_by_istd(mexp_proc)
+mexp_filt <- filter_features_qc(mexp_proc, max.cv.conc.bqc = 20, min.intensity.median.bqc = 1000)
+
+mexp2 <- lipidomics_dataset
+mexp2_filt <- filter_features_qc(mexp2, min.intensity.median.spl = 1E6)
 
 test_that("check_data_present works", {
   testthat::expect_true(check_data_present(mexp))
@@ -24,9 +28,171 @@ test_that("check_dataset_present works", {
   testthat::expect_false(check_dataset_present(mexp_empty))
 })
 
+test_that("get_dataset_subset returns filtered dataset for unfiltered data", {
+  expect_equal(nrow(mexp2@dataset), 14471)
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    qc_types = NA,
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_s3_class(result, "tbl_df")
+  expect_equal(nrow(result), 14471)
+  expect_false(all(result$is_quantifier))
+  expect_true(any(result$is_istd))
+
+  result <- get_dataset_subset(
+    data = mexp2_filt,
+    filter_data = TRUE,
+    include_qualifier = TRUE,
+    qc_types = NA,
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_equal(nrow(result), 6487)
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = FALSE,
+    qc_types = NA,
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_equal(nrow(result), 13972)
+  expect_true(all(result$is_quantifier))
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = FALSE,
+    include_istd = FALSE,
+    qc_types = NA,
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_equal(nrow(result), 9481)
+  expect_true(!any(result$is_istd))
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = c("BQC", "SPL"),
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_equal(unique(result$qc_type),c("BQC","SPL"))
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = "QC|SPL",
+    include_feature_filter = NA,
+    exclude_feature_filter = NA
+  )
+  expect_equal(unique(result$qc_type),c("RQC","TQC","BQC","SPL"))
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = NA,
+    include_feature_filter = "PC|PE|TG",
+    exclude_feature_filter =  NA
+  )
+  expect_equal(nrow(result), 9481)
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = NA,
+    include_feature_filter = "PC|PE|TG",
+    exclude_feature_filter =  "ISTD|SIM"
+  )
+  expect_equal(nrow(result),  5988)
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = NA,
+    include_feature_filter = c("PC 40:6", "PC 40:8"),
+    exclude_feature_filter =  NA
+  )
+  expect_equal(nrow(result),  998)
+
+  result <- get_dataset_subset(
+    data = mexp2,
+    filter_data = FALSE,
+    include_qualifier = TRUE,
+    include_istd = TRUE,
+    qc_types = NA,
+    include_feature_filter =  NA,
+    exclude_feature_filter = c("PC 40:6", "PC 40:8")
+  )
+  expect_equal(nrow(result),  13473)
+})
+
+test_that("get_dataset_subset handles errors in data or filters", {
+  expect_error(
+    result <- get_dataset_subset(
+      data = mexp2,
+      filter_data = TRUE),
+    "Data has not been QC-filtered"
+  )
+
+  expect_error(
+    result <- get_dataset_subset(
+      data = mexp2,
+      filter_data = FALSE,
+      qc_types = c("CAL", "SPL")),
+    "One or more specified `qc_types`"
+  )
+
+  expect_error(
+    result <- get_dataset_subset(
+      data = mexp2,
+      filter_data = FALSE,
+      qc_types = c("CAL|QA")),
+    "`qc_type` filter criteria resulted in no "
+  )
+
+  expect_error(
+    result <- get_dataset_subset(
+      data = mexp2,
+      filter_data = FALSE,
+      include_istd = FALSE,
+      qc_types = NA,
+      include_feature_filter = "ISTD"),
+    "The defined feature filter criteria resulted in no"
+  )
+
+  expect_error(
+    result <- get_dataset_subset(
+      data = mexp2,
+      filter_data = FALSE,
+      include_istd = TRUE,
+      qc_types = NA,
+      include_feature_filter = "PC",
+      exclude_feature_filter = "PC"),
+    "contain overlapping features"
+  )
+})
+
+
 
 test_that("get_analyticaldata returns correct table", {
-  expect_equal(dim(get_analyticaldata(mexp, annotated = FALSE)), c(1040, 14))
+  expect_equal(dim(get_analyticaldata(mexp, annotated = FALSE)), c(1040, 33))
   expect_equal(dim(get_analyticaldata(mexp, annotated = TRUE)), c(1040, 17))
 })
 
@@ -129,7 +295,7 @@ test_that("update_after_quantitation clears norm_intensity and conc if not quant
 test_that("check_var_in_dataset returns correct error if column not present", {
 
   expect_error(check_var_in_dataset(mexp$dataset, "feature_conc"),
-                 "Concentrations not available, please process data")
+                 "Concentration data are not available, please process data")
 
   expect_error(check_var_in_dataset(mexp$dataset, "feature_norm_intensity"),
                "Normalized intensities not available, please process")
@@ -139,9 +305,9 @@ test_that("check_var_in_dataset returns correct error if column not present", {
 
   tbl <- mexp$dataset |> select(-"feature_area")
   expect_error(check_var_in_dataset(tbl, "feature_area"),
-               "Area is not available, please choose")
+               "Peak area data are not available, please choose")
   expect_error(check_var_in_dataset(tbl, "feature_height"),
-               "Height is not available, please choose")
+               "Peak height data are not available, please choose")
 
 })
 

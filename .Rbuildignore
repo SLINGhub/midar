@@ -10,3 +10,4 @@
 ^codecov\.yml$
 .travis.yml
 ^raw-data$
+^data-raw$

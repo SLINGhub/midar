@@ -5,7 +5,7 @@ testthat::test_that("import_msorganizer_xlm: Template with all information", {
   #
   # mexp <- midar::normalize_by_istd(mexp)
   # mexp <- midar::quantify_by_istd(mexp)
-  # mexp <- midar::qc_calc_metrics(mexp)
+  # mexp <- midar::calc_qc_metrics(mexp)
   #
   # dd <- readRDS("21_MidarExperiment_1.rds")
   # #expect_equal(all.equal(mexp@metrics_qc, dd@metrics_qc), TRUE) &

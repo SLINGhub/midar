@@ -8,63 +8,87 @@ plot_responsecurves(
   data = NULL,
   variable = "intensity",
   filter_data = FALSE,
-  output_pdf = FALSE,
-  include_feature_filter = "",
-  exclude_feature_filter = "",
+  qc_types = NA,
+  include_qualifier = TRUE,
+  include_istd = TRUE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
   max_regression_value = NA,
-  path = "",
+  output_pdf = FALSE,
+  path = NA,
+  return_plots = FALSE,
+  color_curves = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027"),
+  point_size = 1.5,
+  line_width = 0.7,
+  font_base_size = 7,
   rows_page = 4,
   cols_page = 5,
   specific_page = NA,
-  point_size = 1.5,
-  line_width = 0.7,
-  scaling_factor = 1,
   page_orientation = "LANDSCAPE",
-  font_base_size = 7,
-  show_progress = TRUE,
-  return_plots = FALSE
+  show_progress = TRUE
 )
 }
 \arguments{
-\item{data}{A \code{MidarExperiment} object containing the dataset with sample amounts and detector signals. Required.}
+\item{data}{A \code{MidarExperiment} object containing the dataset and metadata.}
 
-\item{variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}.}
+\item{variable}{The variable to plot on the y-axis.}
 
-\item{filter_data}{Logical. Indicates whether to use quality control (QC) filtered data (\code{TRUE}) or the raw data (\code{FALSE}). Defaults to \code{FALSE}.}
+\item{filter_data}{Whether to use all data (default) or only
+QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
 
-\item{output_pdf}{Logical. If \code{TRUE}, saves the generated plots as a PDF file. Defaults to \code{FALSE}.}
+\item{include_qualifier}{Logical, whether to include qualifier features. Default is \code{TRUE}.}
 
-\item{include_feature_filter}{A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.}
+\item{include_istd}{Logical, whether to include internal standard (ISTD) features. Default is \code{TRUE}.}
 
-\item{exclude_feature_filter}{A regex pattern to filter and exclude features that match the criteria. If omitted, no features are excluded.}
+\item{include_feature_filter}{A regex pattern or a vector of feature names used to filter features by \code{feature_id}.
+If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
+is supplied, only features with exactly these names are selected (applied individually as OR conditions).}
 
-\item{max_regression_value}{The maximum x value (analyzed amount) for which the regression line is fitted. Defaults to \code{NA}, considering all data points.}
+\item{exclude_feature_filter}{A regex pattern or a vector of feature names to exclude features by feature_id.
+If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
+is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
 
-\item{path}{The file path for saving the PDF. Defaults to an empty string, meaning no file is saved.}
+\item{max_regression_value}{The maximum sample_amount (x) value for fitting
+the regression line. If \code{NA}, regression is based on all data points.}
 
-\item{rows_page}{The number of rows of plots per page for the PDF output. Defaults to 4.}
+\item{output_pdf}{If \code{TRUE}, saves the generated plots as a PDF
+file. Wjen \code{FALSE}, plots are directly plotted.}
 
-\item{cols_page}{The number of columns of plots per page for the PDF output. Defaults to 5.}
+\item{path}{The file path for saving the PDF. Must be defined if
+\code{output_pdf} is \code{TRUE}.}
 
-\item{specific_page}{An integer specifying a particular page to plot. If \code{NA}, all pages are plotted.}
+\item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of
+\code{ggplot2} objects.}
 
-\item{point_size}{Numeric value specifying the size of points in the plot. Defaults to 1.5.}
+\item{color_curves}{useA vector of colors for the curves.}
 
-\item{line_width}{Numeric value specifying the width of regression lines. Defaults to 0.7.}
+\item{point_size}{Size of points in millimeters.}
 
-\item{scaling_factor}{A universal scaling factor for fonts, symbols, and lines. Defaults to 1.}
+\item{line_width}{Width of regression lines.}
 
-\item{page_orientation}{The orientation of the PDF paper, either \code{"LANDSCAPE"} or \code{"PORTRAIT"}. Defaults to \code{"LANDSCAPE"}.}
+\item{font_base_size}{Base font size for text.}
 
-\item{font_base_size}{The base font size for text in the plots. Defaults to 7.}
+\item{rows_page}{Number of rows of plots per page.}
 
-\item{show_progress}{Logical. Show a progress bar during plot creation if set to \code{TRUE}. Defaults to \code{TRUE}.}
+\item{cols_page}{Number of columns of plots per page.}
 
-\item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of \code{ggplot2} objects. Each item represents a page of plots. Defaults to \code{FALSE}.}
+\item{specific_page}{An integer specifying a specific page to plot. If
+\code{NA} (default), all pages are plotted.}
+
+\item{page_orientation}{Orientation of the PDF paper: \code{"LANDSCAPE"} or
+\code{"PORTRAIT"}.}
+
+\item{show_progress}{Logical. If \code{TRUE}, displays a progress bar during
+plot creation.}
 }
 \value{
-If \code{return_plots} is \code{TRUE}, a list of \code{ggplot2} objects is returned. Otherwise, the function may return a plot output and/or save a PDF, depending on the \code{output_pdf} parameter.
+If \code{return_plots} is \code{TRUE}, a list of \code{ggplot2} objects is
+returned. Otherwise, the function saves the plot output or does not return
+anything.
 }
 \description{
-Generates linear regression plots for each measured feature within a dataset. The function allows for customization of the plot's appearance and format, and it can filter features based on specified criteria.
+Generates response curve plots for each measured feature. Plots can be
+saved as multi-page PDFs or directly displayed. Multiple response curves,
+each with a linear regression line, can be plotted on the same graph.
+Each feature is displayed as a separate facet.
 }

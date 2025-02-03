@@ -39,6 +39,8 @@ plot_pca <- function(data = NULL,
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
 
+  check_installed("ggrepel")
+
   # Filter data if filter_data is TRUE
   if (filter_data) {
     d_wide <- data@dataset_filtered |> dplyr::ungroup()
@@ -118,13 +120,16 @@ plot_pca <- function(data = NULL,
       cli_abort(cli::col_red("Hiding text defined with `hide_text_from_labels` would result in non-unique labels. Please modify or set to `NA` to show labels."))
   }
 
-  p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", pca_dim[1]),
-    paste0(".fittedPC", pca_dim[2]),
+  p <- ggplot(
+    data = pca_annot,
+    mapping = aes(
+      x = !!sym(paste0(".fittedPC", pca_dim[1])),
+      y = !!sym(paste0(".fittedPC", pca_dim[2]))),
     color = "qc_type",
     fill = "qc_type",
     shape = "qc_type",
     group = "qc_type"
-  )) +
+  ) +
     ggplot2::geom_hline(yintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, size = 0.5, color = "grey80", linetype = "dashed") +
     suppressWarnings(ggplot2::stat_ellipse(data = pca_annot |> filter(.data$qc_type %in% c("BQC", "TQC", "SPL")), geom = "polygon", level = 0.95, alpha = ellipse_alpha, size = 0.3, na.rm = TRUE)) +
@@ -215,8 +220,9 @@ plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filte
   j <- 1
 
   for (i in dim_range) {
-    p <- ggplot(data = pca_annot, aes_string(paste0(".fittedPC", i),
-      paste0(".fittedPC", i + 1),
+    p <- ggplot(data = pca_annot, aes(
+      x = !!sym(paste0(".fittedPC", i)),
+      y = !!sym(paste0(".fittedPC", i + 1)),
       color = grouping,
       shape = grouping,
       fill = grouping
@@ -288,7 +294,10 @@ plot_pca_loading_coord <- function(data = NULL, variable, log_transform, dim_x, 
     angle = 20, ends = "first", type = "closed", length = grid::unit(6, "pt")
   )
 
-  p <- ggplot(d_top_loadings, aes_string(glue::glue("PC{dim_x}"), glue::glue("PC{dim_y}"))) +
+  p <- ggplot(d_top_loadings, aes(
+    x = !!sym(glue("PC{dim_x}")),
+    y = !!sym(glue("PC{dim_y}"))
+  )) +
     ggplot2::geom_segment(xend = 0, yend = 0, arrow = arrow_style, color = "grey60", size = 0.3) +
     ggplot2::geom_text(
       aes(label = .data$column),

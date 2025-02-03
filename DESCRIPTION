@@ -33,12 +33,12 @@ Imports:
     tidyr,
     pillar,
     openxlsx2,
-    patchwork,
     ggrepel,
     ggh4x,
     ggplot2 (>= 3.5.0),
 Suggests: 
     ggvenn,
+    patchwork,
     ggbeeswarm,
     ggsignif,
     ggforce,
@@ -52,6 +52,7 @@ Suggests:
     KernSmooth,
     rmarkdown,
     bibtex,
+    here,
     testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
@@ -64,8 +65,8 @@ LazyData: true
 LazyDataCompression: xz
 Collate: 
     'calc-calibrations.R'
+    'calc-eda.R'
     'calc-istd-normalization.R'
-    'calc_eda.R'
     'midar-global-definitions.R'
     'classes.R'
     'correct-drift-batch.R'

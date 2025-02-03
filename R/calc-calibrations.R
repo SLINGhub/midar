@@ -143,7 +143,7 @@ calc_calibration_results <- function(data = NULL,
   rlang::arg_match(fit_weighting, c("none", "1/x", "1/x^2"))
 
   if (!(c("feature_norm_intensity") %in% names(data@dataset))) cli::cli_abort("Data needs to be ISTD-normalized, please run 'normalize_by_istd' before.")
-  if ( !any("CAL" %in% data@dataset$qc_type) & nrow(data@annot_qcconcentrations) == 0) cli::cli_abort("Calibration curve data missing...please check data and correct annotation om `analyis` and `qc_concentration` metadata. See this function's documentation.")
+  if ( !any("CAL" %in% data@dataset$qc_type) & nrow(data@annot_qcconcentrations) == 0) cli::cli_abort("Calibration curve data missing...Please verify data and correct annotation om `analyis` and `qc_concentration` metadata. See this function's documentation.")
 
 
   calc_lm <- function(dt){

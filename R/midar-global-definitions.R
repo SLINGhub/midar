@@ -54,7 +54,7 @@ pkg.env$table_templates <- list(
     "valid_feature" = logical(),
     "response_factor" = numeric(),
     "interference_feature_id" = character(),
-    "interference_proportion" = numeric(),
+    "interference_contribution" = numeric(),
     "curve_fit_method" = character(),
     "fit_weighting" = character(),
     "remarks" = character()

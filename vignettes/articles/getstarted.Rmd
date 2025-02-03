@@ -568,10 +568,10 @@ filters.
 myexp <- filter_features_qc(
   data = myexp, 
   replace_existing = TRUE,
-  batch_medians = TRUE,
+  use_batch_medians = TRUE,
   qualifier.include = FALSE,
   istd.include = FALSE,
-  response.curves.select = c(1,2),
+  response.curves.selection = c(1,2),
   response.curves.summary = "mean",
   min.rsquare.response = 0.8,
   min.slope.response = 0.75,

@@ -11,17 +11,19 @@ plot_rla_boxplot(
     "fwhm"),
   filter_data = FALSE,
   qc_types = NA,
-  x_axis_variable = c("run_seq_num"),
-  include_feature_filter = "",
-  exclude_feature_filter = "",
-  plot_range_indices = NA,
+  include_qualifier = TRUE,
+  include_istd = TRUE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
+  analysis_order_range = NA,
+  show_timestamp = FALSE,
   min_feature_intensity = 0,
   y_lim = NA,
   ignore_outliers = FALSE,
   show_batches = TRUE,
-  batches_as_shades = FALSE,
+  batch_zebra_stripe = FALSE,
   batch_line_color = "#b6f0c5",
-  batch_shading_color = "grey93",
+  batch_fill_color = "grey93",
   x_gridlines = FALSE,
   linewidth = 0.2,
   base_font_size = 8,
@@ -35,17 +37,26 @@ plot_rla_boxplot(
 
 \item{variable}{Variable to plot, must be one of "intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm".}
 
-\item{filter_data}{Logical, whether to use QC-filtered data}
+\item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{filter_features_qc()}.}
 
-\item{qc_types}{QC type(s) to plot. Can be a vector of QC types or \code{NA}/\code{NULL} to plot all available QC types.}
+\item{qc_types}{QC types to be plotted. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
 
-\item{x_axis_variable}{Character, variable to use for the x-axis. Must be one of: "run_seq_num", "run_no", "analysis_id", or "timestamp"}
+\item{include_qualifier}{Logical, whether to include qualifier features. Default is \code{TRUE}.}
 
-\item{include_feature_filter}{Regex pattern to select specific features}
+\item{include_istd}{Logical, whether to include internal standard (ISTD) features. Default is \code{TRUE}.}
 
-\item{exclude_feature_filter}{Regex pattern to exclude specific features}
+\item{include_feature_filter}{A regex pattern or a vector of feature names used to filter features by \code{feature_id}.
+If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
+is supplied, only features with exactly these names are selected (applied individually as OR conditions).}
 
-\item{plot_range_indices}{Numeric vector of length 2, specifying the start and end indices of the sequence to be plotted. \code{NA} plots all samples.}
+\item{exclude_feature_filter}{A regex pattern or a vector of feature names to exclude features by feature_id.
+If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
+is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
+
+\item{analysis_order_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
+
+\item{show_timestamp}{Logical, whether to use the acquisition timestamp as
+the x-axis instead of the run sequence number}
 
 \item{min_feature_intensity}{Numeric, exclude features with overall median signal below this value}
 
@@ -55,11 +66,11 @@ plot_rla_boxplot(
 
 \item{show_batches}{Logical, whether to show batch separators in the plot}
 
-\item{batches_as_shades}{Logical, whether to show batches as shaded areas instead of line separators}
+\item{batch_zebra_stripe}{Logical, whether to show batches as shaded areas instead of line separators}
 
 \item{batch_line_color}{Character, color of the batch separator lines}
 
-\item{batch_shading_color}{Character, color of the batch shaded areas}
+\item{batch_fill_color}{Character, color of the batch shaded areas}
 
 \item{x_gridlines}{Logical, whether to show major x-axis gridlines}
 

@@ -106,7 +106,7 @@ reference:
   description: |
     Functions to calculate feature QC metrics and apply QC filtering, and vizualize the filtering results.
   contents:
-  - qc_calc_metrics
+  - calc_qc_metrics
   - filter_features_qc
   - plot_qc_summary_byclass
   - plot_qc_summary_overall
@@ -119,7 +119,7 @@ reference:
   - plot_rla_boxplot
   - plot_pca
   - plot_cv_normalization
-  - plot_x_vs_y
+  - plot_compare_qcmetrics
 - title: Response Curves
   description: |
     Functions to calculate and visualize response curves

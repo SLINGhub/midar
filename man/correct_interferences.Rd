@@ -2,19 +2,56 @@
 % Please edit documentation in R/correct-isotope.R
 \name{correct_interferences}
 \alias{correct_interferences}
-\title{Substract interferences contributed by another feature}
+\title{Apply interference correction}
 \usage{
-correct_interferences(data = NULL, variable = "feature_intensity")
+correct_interferences(
+  data = NULL,
+  variable = "feature_intensity",
+  sequential_correction = TRUE
+)
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{MidarExperiment object containing lipidomics data.}
 
-\item{variable}{Name of Variable to be corrected. Default: \code{feature_intensity}.}
+\item{variable}{Name of the variable to be corrected. Default:
+\code{feature_intensity}.}
+
+\item{sequential_correction}{A logical indicating whether to apply
+corrections sequentially, starting with the most downstream feature.  If
+\code{FALSE}, corrections are based on the raw signal of the interfering
+features. If \code{FALSE}, the correction will be based on the raw signal of the
+interfering feature.}
 }
 \value{
-MidarExperiment object
+MidarExperiment object with feature intensities corrected for
+interferences.
 }
 \description{
-The interference (e.g. isotope overlap or in-source fragments) is subtracted using following formula:
-\deqn{Value_corrected = Value_Feature - relative_contribution * Value_InterferingFeature}
+This function corrects lipidomics feature intensities by
+subtracting interference (e.g., isotope overlap or in-source fragments). The
+correction is applied using the following formula: \deqn{value\_corrected =
+value\_raw - value\_raw\_interfering\_feature \times
+proportion\_interference}
+
+The interfering features and their relative contributions must be defined in
+the feature metadata.
+
+By default, sequential series of interferences (e.g., isotopic M+2
+interferences of PC 34:2 > PC 34:``1 > PC 34:0) will be corrected in a
+sequential manner. This means that the correction will applied iteratively,
+starting with the most downstream feature in the series. To disable this
+behavior, basing each correction on the raw signal of the interfering feature
+set \code{sequential_correction = FALSE}
+}
+\details{
+For isotopic interference correction of MRM/PRM data, the relative
+isotope abundances needed for the calculation ('proportion_interference') can
+be calculated using the LICAR application (Gao et al., 2021), see below..
+}
+\references{
+Gao L., Ji S, Burla B, Wenk MR, Torta F, Wenk MR, &
+Cazenave-Gassiot A (2021). LICAR: An Application for Isotopic Correction of
+Targeted Lipidomic Data Acquired with Class-Based Chromatographic Separations
+Using Multiple Reaction Monitoring. \emph{Analytical Chemistry}, 93(6), 3163-3171.
+\url{https://doi.org/10.1021/acs.analchem.0c04565}
 }

@@ -19,7 +19,7 @@
 #' @param specific_page An integer specifying a particular page to plot. If `NA`, all pages are plotted.
 #' @param point_size Numeric value specifying the size of points in the plot. Defaults to 1.5.
 #' @param line_width Numeric value specifying the width of regression lines. Defaults to 0.7.
-#' @param scaling_factor A universal scaling factor for fonts, symbols, and lines. Defaults to 1.
+#' @param plot_scaling_factor A universal scaling factor for fonts, symbols, and lines. Defaults to 1.
 #' @param page_orientation The orientation of the PDF paper, either `"LANDSCAPE"` or `"PORTRAIT"`. Defaults to `"LANDSCAPE"`.
 #' @param font_base_size The base font size for text in the plots. Defaults to 7.
 #' @param return_plots Logical. If `TRUE`, returns the plots as a list of `ggplot2` objects. Each item represents a page of plots. Defaults to `FALSE`.
@@ -44,7 +44,7 @@ plot_calibrationcurves <- function(data = NULL,
                                    specific_page = NA,
                                    point_size = 1.5,
                                    line_width = 0.7,
-                                   scaling_factor = 1,
+                                   plot_scaling_factor = 1,
                                    page_orientation = "LANDSCAPE",
                                    font_base_size = 7,
                                    show_progress = TRUE,
@@ -162,7 +162,7 @@ plot_calibrationcurves <- function(data = NULL,
       specific_page = i,
       point_size = point_size,
       line_width = line_width,
-      scaling_factor = scaling_factor,
+      plot_scaling_factor = plot_scaling_factor,
       font_base_size = font_base_size,
       x_axis_title = x_axis_unit,
       fit_method = fit_method,
@@ -206,7 +206,7 @@ plot_calibcurves_page <- function(data,
                                      specific_page,
                                      point_size,
                                      line_width,
-                                     scaling_factor,
+                                     plot_scaling_factor,
                                      font_base_size,
                                      x_axis_title,
                                   fit_method,
@@ -264,7 +264,6 @@ plot_calibcurves_page <- function(data,
 
  d_pred <- d_pred |>
    dplyr::arrange(.data$feature_id, .data$curve_id)
-browser()
 
     p <- ggplot(
         data = dat_subset,
@@ -305,7 +304,7 @@ browser()
         labs( x= x_axis_title, y = stringr::str_remove(response_variable, "feature\\_")) +
         theme_light(base_size = font_base_size) +
         theme(
-          strip.text = element_text(size = font_base_size * scaling_factor, face = "bold"),
+          strip.text = element_text(size = font_base_size * plot_scaling_factor, face = "bold"),
           strip.background = element_rect(size = 0.0001, fill = "#496875"),
           panel.grid.major = element_line(color = "grey70", size = 0.2, linetype = "dotted"),  # Light and dotted major gridlines
           panel.grid.minor = element_line(color = "grey90", size = 0.1, linetype = "dotted")   # Lighter minor gridlines

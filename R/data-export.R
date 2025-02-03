@@ -255,7 +255,7 @@ save_dataset_csv <- function(data = NULL,
 
 report_write_qc_metrics <- function(data = NULL, path) {
   check_data(data)
-  if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'qc_calc_metrics' first.")
+  if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'calc_qc_metrics' first.")
 
   readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)
   invisible(data@metrics_qc)

@@ -217,7 +217,8 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
   # prevent creating log file
   if(with_venn_diag) {
 
-
+    check_installed("ggvenn")
+    check_installed("patchwork")
 
     d_qc_venn <- d_qc
 

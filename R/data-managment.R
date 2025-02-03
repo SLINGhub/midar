@@ -5,6 +5,142 @@ check_data_present <- function(data){nrow(data@dataset_orig) > 0}
 check_dataset_present <- function(data){nrow(data@dataset) > 0}
 
 
+#' Retrieve and Subset/Filter Dataset
+#'
+#' Filters and subsets the dataset in a `MidarExperiment` object based on
+#' specified criteria.
+#'
+#' @param data A `MidarExperiment` object containing the dataset to filter.
+#' @param filter_data Logical. Whether to use QC-filtered data based on criteria
+#'   set via `filter_features_qc()`.
+#' @param qc_types QC types to be plotted. Can be a vector of QC types or a
+#'   regular expression pattern. `NA` (default) includes all QC/Sample types.
+#' @param include_qualifier Logical. Whether to include qualifier features.
+#' @param include_istd Logical. Whether to include internal standard (ISTD) features.
+
+#' @param include_feature_filter A regex pattern or a vector of feature names
+#'   to include by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#'   the filter is ignored. If a vector of length > 1 is supplied, only features
+#'   matching these names are selected (applied as OR conditions).
+#' @param exclude_feature_filter A regex pattern or a vector of feature names
+#'   to exclude by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#'   the filter is ignored. If a vector of length > 1 is supplied, only features
+#'   matching these names are excluded (applied as OR conditions).
+#' @param analysis_order_range Numeric vector of length 2, specifying the start
+#'   and end indices of the analysis order to be plotted. `NA` includes all
+#'   samples.
+#'
+#' @return A tibble with the filtered `MidarExperiment` dataset (either
+#'   `dataset` or `dataset_filtered`) in long format.
+#'
+#' @details Filters are applied in the following order:
+#'   1. Use QC-filtered or unfiltered data (`filter_data`).
+#'   2. Include/exclude qualifier features (`include_qualifier`).
+#'   3. Apply inclusion and exclusion filters for features.
+#'   4. Filter by QC types (`qc_types`).
+#'
+#'   An error is raised if no rows remain after filtering.
+#'
+#' @note This function is for internal use only and is not exported (`@noRd`).
+#'
+#' @noRd
+
+
+get_dataset_subset <- function(data,
+                               filter_data = FALSE,
+                               qc_types = NULL,
+                               include_qualifier = TRUE,
+                               include_istd = TRUE,
+                               include_feature_filter = NULL,
+                               exclude_feature_filter = NULL){
+
+  check_data(data)
+
+  # Check if include and exclude filters contain overlapping items, unless both are NULL or NA
+  if (all(!is.null(include_feature_filter)) && all(!is.null(exclude_feature_filter)) &&
+      all(!is.na(include_feature_filter)) && all(!is.na(exclude_feature_filter))) {
+    overlapping_features <- intersect(include_feature_filter, exclude_feature_filter)
+    if (length(overlapping_features) > 0) {
+      cli::cli_abort(
+        col_red("The include_feature_filter and exclude_feature_filter contain overlapping features: {overlapping_features}")
+      )
+    }
+  }
+
+  # Apply filtering if specified
+  if (filter_data) {
+    if (!data@is_filtered){
+      cli::cli_abort(col_red("Data has not been QC-filtered. Please run `filter_features_qc`."))
+    }
+    d_filt <- data@dataset_filtered |> dplyr::ungroup()
+  } else {
+    d_filt <- data@dataset |> dplyr::ungroup()
+  }
+
+  if (!is.null(qc_types) && length(qc_types) > 0 && all(!is.na(qc_types)) && all(qc_types != "")) {
+    if (length(qc_types) == 1) {
+      # Single QC type: check if it exists in the dataset
+      if (any(str_detect(d_filt$qc_type, qc_types))) {
+        d_filt <- d_filt |> dplyr::filter(str_detect(.data$qc_type, qc_types))
+      } else {
+        cli::cli_abort(col_red("The defined `qc_type` filter criteria resulted in no analyses to plot. Please verify the criteria set in the arguments."))
+      }
+    } else {
+      # Multiple QC types: check if all are in the dataset
+      if (all(qc_types %in% d_filt$qc_type)) {
+        d_filt <- d_filt |> dplyr::filter(.data$qc_type %in% qc_types)
+      } else {
+        cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
+      }
+    }
+  }
+
+  # Filter out non-qualifier features if required
+  if (!include_qualifier) {
+    d_filt <- d_filt |> filter(.data$is_quantifier)
+  }
+
+  # Filter out ISTD features if required
+  if (!include_istd) {
+    d_filt <- d_filt |> filter(!.data$is_istd)
+  }
+
+  # Apply feature inclusion and exclusion filters if provided
+  if (all(!is.na(include_feature_filter)) && all(!is.null(include_feature_filter)) && all(include_feature_filter != "")) {
+
+    if (length(include_feature_filter) == 1) {
+      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$feature_id,
+                                                            include_feature_filter))
+    } else {
+      d_filt <- d_filt |> dplyr::filter(.data$feature_id %in% include_feature_filter)
+    }
+  }
+
+
+  if (all(!is.na(exclude_feature_filter)) && all(!is.null(exclude_feature_filter)) && all(exclude_feature_filter != "")) {
+    if (length(exclude_feature_filter) == 1) {
+      d_filt <- d_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id,
+                                                             exclude_feature_filter))
+    } else {
+      d_filt <- d_filt |> dplyr::filter(!.data$feature_id %in% exclude_feature_filter)
+    }
+  }
+
+
+
+
+  # Ensure there is data to plot after filtering
+  if (nrow(d_filt) < 1)
+    cli::cli_abort(col_red("The defined feature filter criteria resulted in no selected features to plot.
+                       Please verify the criteria set in the arguments."))
+
+  # return data
+  d_filt
+}
+
+
+
+
 #' @title Get the annotated or the originally imported analytical data
 #' @param data MidarExperiment object
 #' @param annotated Boolean indicating whether to return the annotated data
@@ -234,12 +370,12 @@ update_after_quantitation <- function(data, is_quantitated, with_message = TRUE)
 
 check_var_in_dataset <- function(table, variable) {
 
-  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort(cli::col_red("Area is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort(cli::col_red("Concentration data are not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort(cli::col_red("Peak area data are not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
   if(variable == "feature_response" & !"feature_response" %in% names(table)) cli_abort(cli::col_red("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
   if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort(cli::col_red("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_height" & !"feature_height" %in% names(table)) cli_abort(cli::col_red("Height is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentrations not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_height" & !"feature_height" %in% names(table)) cli_abort(cli::col_red("Peak height data are not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
+  if(variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentration data are not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
 }
 
 #' @title Get the start and end analysis numbers of specified batches
@@ -600,7 +736,7 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
       }
   }
   if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id)) {
-    cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please check the analysis metadata."))
+    cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please verify the analysis metadata."))
   }
   if(!replace_existing){
     data@annot_analyses <- data@annot_analyses |>
@@ -654,7 +790,7 @@ exclude_features <- function(data = NULL, features_to_exclude, replace_existing 
     }
   }
   if (any(!c(features_to_exclude) %in% data@annot_features$feature_id)) {
-    cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please check the feature metadata."))
+    cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please verify the feature metadata."))
   }
   if(!replace_existing){
     data@annot_features <- data@annot_features |>

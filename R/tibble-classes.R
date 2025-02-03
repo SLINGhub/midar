@@ -35,11 +35,8 @@ tbl_format_footer.assertr_tibble <- function(x, setup, ...) {
 ctl_new_pillar.assertr_tibble <- function(controller, x, width, ..., title = NULL) {
   out <- NextMethod()
   pillar::new_pillar(list(
-    #top_rule = new_pillar_component(list("========"), width = 8),
     title = out$title,
     #type = out$type,
-    #mid_rule = new_pillar_component(list("--------"), width = 8),
     data = out$data
-    #bottom_rule = new_pillar_component(list("========"), width = 8)
   ))
 }

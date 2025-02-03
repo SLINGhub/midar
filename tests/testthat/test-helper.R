@@ -35,7 +35,8 @@ test_that("safe_max works", {
 test_that("check_groupwise_identical_ids works", {
   df_identical <- tibble::tibble(
     group = c("A", "A", "A", "B", "B"),
-    id = c(1, 1, 1, 2, 2))
+    id = c(1, 1, 1, 2, 2),
+    other_col = c(11, 21, 31, 41, 51))
   expect_true(check_groupwise_identical_ids(df_identical, group_col = group, id_col = id))
 
   df_non_identical <- tibble::tibble(
@@ -136,3 +137,99 @@ test_that("get_conc_unit works as expected", {
   expect_equal(get_conc_unit("mg"), "pmol/mg")
   expect_equal(get_conc_unit("Ul"), "\U003BCmol/L")
 })
+
+
+
+# Test: Handling when there are no disconnected rows
+test_that("order_chained_columns_tbl no disconnected rows", {
+  df_no_disconnected <- data.frame(
+    ColA = c("INSPECT", "VERIFY", "NULL", "NEW", "CREATE"),
+    ColB = c("VERIFY", "PUBLISH", "NEW", "CREATE", "INSPECT"),
+    colC = c("1", "11", "111", "1111", "11111"),
+    stringsAsFactors = FALSE
+  )
+  result <- order_chained_columns_tbl(df_no_disconnected, "ColA", "ColB", include_chain_id = TRUE)
+
+  # No disconnected rows, so the result should just be the connected chain
+  expect_equal(nrow(result), 5)  # 5 rows should be returned (no disconnected rows)
+  expect_equal(names(result), c("ColA", "ColB", "chain_id", "colC"))  # 5 rows should be returned (no disconnected rows)
+})
+
+test_that("order_chained_columns_tbl no disconnected rows", {
+  df_no_disconnected <- data.frame(
+    From = c("INSPECT", "VERIFY", "NULL", "NEW", "CREATE"),
+    To = c("VERIFY", "PUBLISH", "NEW", "CREATE", "INSPECT"),
+    colC = c("1", "11", "111", "1111", "11111"),
+    stringsAsFactors = FALSE
+  )
+  result <- order_chained_columns_tbl(df_no_disconnected, "From", "To", FALSE, "exclude")
+
+  # No disconnected rows, so the result should just be the connected chain
+  expect_equal(nrow(result), 5)  # 5 rows should be returned (no disconnected rows)
+  expect_equal(names(result), c("From", "To", "colC"))  # 5 rows should be returned (no disconnected rows)
+})
+
+
+# Unordered sample data frame for testing
+df_unordered <- data.frame(
+
+  From = c("INSPECT", "VERIFY", "START", "NULL", "NEW", "CREATE", "MID", "DIFFERENT", "OUTLIER"),
+  To = c("VERIFY", "PUBLISH", "MID", "NEW", "CREATE", "INSPECT", "END", "NOTSAME", "INSIDER"),
+  stringsAsFactors = FALSE
+)
+
+
+# Test: Include disconnected rows
+test_that("order_chained_columns_tbl remove disconnected rows", {
+  result <- order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "keep")
+  # Check the expected structure of the result
+  expect_equal(nrow(result), 9)
+  expect_false("ISOLATED" %in% result$From)
+  expect_false("LONELY" %in% result$To)
+})
+
+# Test: Remove disconnected rows
+test_that("order_chained_columns_tbl remove disconnected rows", {
+  result <- order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "exclude")
+  # Check the expected structure of the result
+  expect_equal(nrow(result), 7)  # 7 rows should be returned after removing disconnected ones
+  expect_false("ISOLATED" %in% result$From)
+  expect_false("LONELY" %in% result$To)
+})
+
+
+# Test: Circular dependency detection
+test_that("order_chained_columns_tbl fail circular dependency", {
+  df_circular <- data.frame(
+    From = c("A", "B", "C"),
+    To = c("B", "C", "A"),
+    stringsAsFactors = FALSE
+  )
+  expect_error(order_chained_columns_tbl(df_circular, "From", "To", "exclude"),
+               "Circular dependency detected")
+})
+
+
+# Test: Circular dependency detection
+test_that("order_chained_columns_tbl fail circular dependency", {
+  df_circular <- data.frame(
+    From = c("A", "B", "C", "D"),
+    To = c("B", "A", "D", "E"),
+    stringsAsFactors = FALSE
+  )
+  expect_error(order_chained_columns_tbl(df_circular, "From", "To", FALSE, "exclude"),
+               "Circular dependency detected")
+})
+
+
+# Test: Check if chain_id is correctly assigned
+test_that("order_chained_columns_tbl chain_id assignment", {
+  result <- order_chained_columns_tbl(df_unordered, "From", "To", TRUE, "keep")
+  # Check that chain_id is assigned properly to connected and disconnected rows
+  expect_true(all(!is.na(result$chain_id)))
+  expect_true(any(result$chain_id == 1))  # At least one connected chain
+  expect_true(any(result$chain_id == 3))  # Disconnected chain at the end
+})
+
+
+
