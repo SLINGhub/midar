@@ -109,7 +109,7 @@ The latter would indicate inconsistent analysis conditions.
 \item \verb{intensity_q10_*}: The 10th percentile of intensity values for the SPL sample type.
 }
 \item \strong{Normalized Intensity Metrics} (only if \code{include_norm_intensity_stats = TRUE}):
-Requires that raw intensities  were normalized, see \code{\link[=normalized_by_istd]{normalized_by_istd()}}
+Requires that raw intensities  were normalized, see \code{\link[=normalize_by_istd]{normalize_by_istd()}}
 for details.
 \itemize{
 \item \verb{norm_intensity_cv_*}: Coefficient of variation (CV) of normalized intensities for QC sample types like TQC, BQC, SPL, etc.
@@ -141,8 +141,9 @@ if \code{include_calibration_results = TRUE} and calibration curves are defined
 in the data:
 \itemize{
 \item \code{fit_model}: The regression model used for curve fitting.
-\item \code{weighting}: The weighting method applied during curve fitting.
+\item \code{fit_weighting}: The weighting method applied during curve fitting.
 \item \code{lowest_cal}: The lowest nonzero calibration concentration.
+\item \code{highest_cal}: The highest calibration concentration.
 \item \code{r.squared}: R-squared value indicating the goodness of fit.
 \item \code{coef_a}:
 \itemize{

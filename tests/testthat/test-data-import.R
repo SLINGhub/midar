@@ -73,10 +73,15 @@ testthat::test_that("Parses nested MH Quant .csv without the 'outlier' and 'quan
   expect_equal(d[[1, "feature_area"]], 71)
 })
 
-testthat::test_that("Returns error parsing corrupted nested MH Quant .csv with 'outlier'/'quant message' columns removed including header 'Samples'", {
-  expect_error(parse_masshunter_csv(testthat::test_path("8_Testdata_MHQuant_Corrupt_OutlierQuantMsgSumDeleted.csv")),
-    regexp = "Error parsing this file\\. It may in unsupported format"
-  )
+
+testthat::test_that("Parsing nested MH Quant .csv without 'outlier'/'quant message' columns and header 'Samples' in first row/col", {
+
+  d <- parse_masshunter_csv(testthat::test_path("8_Testdata_MHQuant_Corrupt_OutlierQuantMsgSumDeleted.csv"))
+  expect_equal(ncol(d), 12)
+  expect_equal(nrow(d), 1040)
+  expect_equal(names(d)[1], "analysis_id")
+  expect_equal(d[[1, "feature_rt"]], 3.422)
+  expect_equal(d[[1, "feature_area"]], 71)
 })
 
 
@@ -121,14 +126,14 @@ testthat::test_that("Returns a defined error when reading nested MH Quant .csv c
 testthat::test_that("Returns a defined error when reading MH Quant .csv with analytes/features as rows (Compound Table) is imported", {
   expect_error(
     parse_masshunter_csv(testthat::test_path("13_Testdata_MHQuant_CompoundTable_DefaultSampleInfo_RT-Areas-FWHM.csv")),
-    regexp = "unsupported format\\, e\\.g\\. with features\\/analytes in rows"
+    regexp = "The \\`Data File\\` column is missing\\, or the "
   )
 })
 
 testthat::test_that("Returns a defined error when reading a corrupted MH Quant .csv", {
   expect_error(
     parse_masshunter_csv(testthat::test_path("14_Testdata_MHQuant_Corrupt_RowAreaDeleted.csv")),
-    regexp = "The `Data File` column is missing"
+    regexp = "Error parsing this file\\. It may in unsupported format"
   )
 })
 
@@ -198,7 +203,7 @@ testthat::test_that("Imports nested MH Quant .csv file containing QUALIFIER peak
     expand_qualifier_names = TRUE
   )
   d <- mexp@dataset
-  expect_equal(ncol(d), 17)
+  expect_equal(ncol(d), 18)
   expect_equal(nrow(d), 1040)
   expect_equal(d[[1, "feature_rt"]], 3.422)
   expect_equal(d[[1, "feature_area"]], 51)
@@ -219,7 +224,7 @@ testthat::test_that("Imports another MH Quant .csv files into one MidarExperimen
     expand_qualifier_names = TRUE
   )
   d <- mexp@dataset
-  expect_equal(ncol(d), 18)
+  expect_equal(ncol(d), 19)
   expect_equal(nrow(d), 1178)
   expect_equal(d[[1, "feature_rt"]], 7.160)
   expect_equal(d[[1, "feature_area"]], 5152996.0)
@@ -240,7 +245,7 @@ testthat::test_that("Imports multiple MH Quant .csv files into one MidarExperime
     expand_qualifier_names = TRUE
   )
   d <- mexp@dataset
-  expect_equal(ncol(d), 18)
+  expect_equal(ncol(d), 19)
   expect_equal(nrow(d), 1178)
   expect_equal(d[[1, "feature_rt"]], 7.160)
   expect_equal(d[[1, "feature_area"]], 5152996.0)
@@ -290,7 +295,7 @@ testthat::test_that("Imports MRMkit result file (long format) into a MidarExperi
     import_metadata = TRUE,
   )
   d <- mexp@dataset
-  expect_equal(ncol(d), 18)
+  expect_equal(ncol(d), 19)
   expect_equal(nrow(d), 13972.0)
   expect_equal(d[[1, "feature_rt"]], 7.2950)
   expect_equal(d[[1, "feature_area"]], 3134.16360)

@@ -8,7 +8,6 @@ plot_responsecurves(
   data = NULL,
   variable = "intensity",
   filter_data = FALSE,
-  qc_types = NA,
   include_qualifier = TRUE,
   include_istd = TRUE,
   include_feature_filter = NA,
@@ -17,7 +16,7 @@ plot_responsecurves(
   output_pdf = FALSE,
   path = NA,
   return_plots = FALSE,
-  color_curves = c("#4575b4", "#91bfdb", "#fc8d59", "#d73027"),
+  color_curves = NULL,
   point_size = 1.5,
   line_width = 0.7,
   font_base_size = 7,
@@ -60,13 +59,15 @@ file. Wjen \code{FALSE}, plots are directly plotted.}
 \item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of
 \code{ggplot2} objects.}
 
-\item{color_curves}{useA vector of colors for the curves.}
+\item{color_curves}{A vector of colors for the curves. If \code{NULL} (default),
+the colors for each curve are generated automatically. If colors are provided,
+the number of colors must match the number of curves.}
 
 \item{point_size}{Size of points in millimeters.}
 
 \item{line_width}{Width of regression lines.}
 
-\item{font_base_size}{Base font size for text.}
+\item{font_base_size}{Base font size for text. Default is 7.}
 
 \item{rows_page}{Number of rows of plots per page.}
 
@@ -87,8 +88,20 @@ returned. Otherwise, the function saves the plot output or does not return
 anything.
 }
 \description{
-Generates response curve plots for each measured feature. Plots can be
-saved as multi-page PDFs or directly displayed. Multiple response curves,
+This function plots response curves for each feature. Multiple response curves,
 each with a linear regression line, can be plotted on the same graph.
 Each feature is displayed as a separate facet.
+}
+\details{
+Features for plotting can be filtered using QC filters defined via
+\code{\link[=filter_features_qc]{filter_features_qc()}} or through \code{include_feature_filter} and
+\code{exclude_feature_filter} arguments. The resulting plots offer extensive
+customization options, including point size, line width, point color, point
+fill, point shape, line color, ribbon fill, and font base size.
+
+Plots will be divided into multiple pages if the number of features exceeds
+the product of \code{rows_page} and \code{cols_page} settings. The function supports
+both direct plotting within R and saving plots as PDF files. Additionally,
+plots can be returned as a list of ggplot2 objects for further manipulation
+or integration into other analyses.
 }

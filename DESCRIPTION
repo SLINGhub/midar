@@ -14,26 +14,24 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     assertr,
+    methods,
     broom,
     cli,
     dplyr,
+    tibble,
     dtplyr,
     forcats,
     fs,
     glue,
     lubridate,
-    methods,
     purrr,
     readr,
     rlang,
-    tidyselect,
     scales,
     stringr,
-    tibble,
     tidyr,
     pillar,
     openxlsx2,
-    ggrepel,
     ggh4x,
     ggplot2 (>= 3.5.0),
 Suggests: 
@@ -43,17 +41,20 @@ Suggests:
     ggsignif,
     ggforce,
     ggpmisc,
+    ggnewscale,
+    ggrepel,
     covr,
     lancer,
     knitr,
     ComplexHeatmap,
     ggExtra,
     MASS,
-    KernSmooth,
+    mgcv,
     rmarkdown,
     bibtex,
     here,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    vdiffr
 VignetteBuilder: 
     knitr
 biocViews:
@@ -67,6 +68,7 @@ Collate:
     'calc-calibrations.R'
     'calc-eda.R'
     'calc-istd-normalization.R'
+    'calc-response.R'
     'midar-global-definitions.R'
     'classes.R'
     'correct-drift-batch.R'

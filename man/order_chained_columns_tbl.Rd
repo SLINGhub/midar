@@ -38,22 +38,17 @@ are not present in other rows). The behavior for disconnected rows is controlled
 \code{disconnected_action} parameter.
 }
 \examples{
-df <- data.frame(
+df_unordered <- data.frame(
   From = c("INSPECT", "VERIFY", "START", "NULL", "NEW", "CREATE", "MID", "DIFFERENT", "OUTLIER"),
   To = c("VERIFY", "PUBLISH", "MID", "NEW", "CREATE", "INSPECT", "END", "NOTSAME", "INSIDER"),
 stringsAsFactors = FALSE
 )
 
 # Order keeping disconnected rows
-order_chains_with_disconnected(df, "From", "To")
+order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "keep")
 
 # Ordr excluding disconnected rows
-order_chains_with_disconnected(df, "From", "To", "exclude")
+order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "exclude")
 
-# Throw error if circular dependencies are detected
-tryCatch(
-  order_chains_with_disconnected(df, "From", "To"),
-  error = function(e) message("Error: ", e$message)
-)
 
 }

@@ -95,7 +95,7 @@ is supplied, only features with exactly these names are excluded (applied indivi
 
 \item{cap_top_n_outliers}{Numeric, cap the top n outliers regardless of MAD fences. \code{NA} or \code{0} ignores this filter.}
 
-\item{show_reference_lines}{Whether to display reference lines (mean ± n x SD).}
+\item{show_reference_lines}{Whether to display reference lines (mean \eqn{\pm} n x SD).}
 
 \item{reference_qc_type}{QC type for which the reference lines are calculated.}
 
@@ -105,7 +105,7 @@ is supplied, only features with exactly these names are excluded (applied indivi
 
 \item{reference_line_color}{Color of the reference lines.}
 
-\item{reference_sd_shade}{\code{TRUE} plots a colored band indicating the ± n x SD
+\item{reference_sd_shade}{\code{TRUE} plots a colored band indicating the \eqn{\pm} n x SD
 reference range. \code{FALSE} (default) shows reference lines instead.}
 
 \item{reference_fill_color}{Fill color of the batch-wise reference ranges.
@@ -150,14 +150,14 @@ different sample/QC types along the analysis sequence. It helps identify
 trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.
-\n
+
 The function also supports visualizing analysis batches, reference lines
-(mean ± SD), and trends. It offers customization options to display batch
+(mean \eqn{\pm} SD), and trends. It offers customization options to display batch
 separators, apply outlier capping, show smoothed trend curves, add reference
 lines, and incorporate other features. Outlier capping is particularly useful
 to focus on QC or study sample trends that might otherwise be obscured by
 extreme values or high variability.
-\n
+
 The \code{runscatter} function serves as a central QC tool in the workflow,
 providing critical insights into data quality.
 }
@@ -169,7 +169,7 @@ remove the top n points. This can help to focus on the trends of interest when
 there are outlier or a high variability in the data, e.g. in the study samples.
 \item When using log-scale (\code{log_scale = TRUE}), zero or negative values will
 replaced with the minimum positive value divided by 5 to avoid log 0 errors
-\item Reference lines/ranges corresponding to mean ± k x SD can be shown across
+\item Reference lines/ranges corresponding to mean \eqn{\pm} k x SD can be shown across
 or within batches as lines or shaded stripes.
 \item Trend curves can be displayed before or after drift/batch correction. In
 either case, a drift and/or batch correction must be applied to the data

@@ -5,23 +5,24 @@
 \alias{lipidomics_dataset}
 \title{Plasma Lipidomics Dataset with Metadata}
 \format{
-A \code{MidarExperiment} object:
+A \code{MidarExperiment} object with the following data and metadata:
 \describe{
-\item{dataset_orig}{A tibble with the original peak data.}
-\item{dataset}{A tibble with annotated data.}
-\item{annot_analyses}{A tibble with analyses annotations.}
-\item{annot_features}{A tibble with features annotations.}
-\item{annot_batches}{A tibble with batch annotations.}
-...
+\item{dataset_orig}{A tibble containing the original peak data.}
+\item{dataset}{A tibble with annotated lipidomics data.}
+\item{annot_analyses}{Analysis-level metadata}
+\item{annot_features}{Feature-level metadata}
+\item{annot_batches}{Batch annotations.}
+\item{annot_istds}{ISTD concentrations}
+\item{annot_responsecurves}{Response curves metadata}
 }
 }
 \usage{
 lipidomics_dataset
 }
 \description{
-This is an demo dataset used in function usage examples in this package.
-It is a small subset of a prprocessed dataset
-containing raw peak areas and analytical metadata from a plasma lipidomics analysis
-published in Tan et al, ATVB, 2022. The dataset is used to demonstrate
+This demo dataset is included for use in function examples and user testing..
+It is a small, preprocessed subset of a plasma lipidomics dataset,
+containing raw peak areas and analytical metadata. The original dataset
+was published in Tan et al., ATVB, 2022.
 }
 \keyword{datasets}

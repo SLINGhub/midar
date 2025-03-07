@@ -8,51 +8,51 @@ correct_batch_centering(
   data = NULL,
   variable,
   reference_qc_types,
-  correct_location = TRUE,
   correct_scale = FALSE,
   replace_previous = TRUE,
   log_transform_internal = TRUE,
+  replace_exisiting_trendcurves = FALSE,
   ...
 )
 }
 \arguments{
-\item{data}{A MidarExperiment object containing the data to be corrected.
+\item{data}{A \code{MidarExperiment} object containing the data to be corrected.
 This object must include information about QC types and measurements.}
 
 \item{variable}{The variable to be corrected. Must be one of "intensity",
 "norm_intensity", or "conc".}
 
 \item{reference_qc_types}{A character vector specifying the QC types to be
-used as reference for batch centering.}
+used as references for batch centering.}
 
-\item{correct_location}{A logical value indicating whether to align the
-median locations (centers) of the batches. Defaults to TRUE.}
-
-\item{correct_scale}{A logical value indicating whether to scale the batches
-to the same level (equalize scale). Defaults to FALSE.}
+\item{correct_scale}{A logical value indicating whether to equalize the scale
+of the batches in addition to center them. Defaults to \code{FALSE}.}
 
 \item{replace_previous}{A logical value indicating whether to replace any
-previous batch correction or apply the new correction on top. Defaults to
-TRUE (replace).}
+previous batch corrections or apply the new correction on top. Defaults to
+\code{TRUE} (replace).}
 
-\item{log_transform_internal}{A logical value indicating whether to
-log-transform the data internally during correction. Defaults to TRUE.}
+\item{log_transform_internal}{A logical value indicating whether to log-transform
+the data internally during correction. Defaults to \code{TRUE}.}
+
+\item{replace_exisiting_trendcurves}{A logical value indicating whether to replace
+trend curves from previous corrections. This is only use for plotting using \code{plot_runscatter()}. Default is \code{FALSE}.}
 
 \item{...}{Additional arguments that can be passed to the batch correction
 function.}
 }
 \value{
-A MidarExperiment object containing the corrected data.
+A \code{MidarExperiment} object containing the corrected data.
 }
 \description{
-This function performs batch centering correction of each feature. Optionally,
-the scale of batches can be equalized across batches.The
-selected QC types (reference_qc_types) are used to calculate the
-medians and align all other qc types based on them. The correction can be
-applied to one of three variables: "intensity", "norm_intensity", or "conc".
-The correction can be applied on top of previous
-corrections or  replace all previous batch corrections.
+This function performs batch centering correction on each feature.
+Optionally, the scale of the batches can be equalized across batches.
+The selected QC types (\code{reference_qc_types}) are used to calculate
+the medians, which are then used to align all other samples. The
+correction can be applied to one of three variables: "intensity",
+"norm_intensity", or "conc". The correction can either be applied
+on top of previous corrections or replace all prior batch corrections.
 }
 \seealso{
-plot_runscatter for visualizing the correction before and after.
+\code{plot_runscatter} for visualizing the correction before and after.
 }

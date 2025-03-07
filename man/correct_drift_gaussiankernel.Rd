@@ -8,7 +8,8 @@ correct_drift_gaussiankernel(
   data = NULL,
   variable,
   reference_qc_types,
-  within_batch = TRUE,
+  batch_wise = TRUE,
+  ignore_istd = TRUE,
   replace_previous = TRUE,
   kernel_size = 10,
   outlier_filter = FALSE,
@@ -16,60 +17,110 @@ correct_drift_gaussiankernel(
   location_smooth = TRUE,
   scale_smooth = FALSE,
   log_transform_internal = TRUE,
-  ignore_istd = TRUE,
   conditional_correction = FALSE,
-  cv_ratio_threshold = 1,
-  recalc_trend_after = TRUE,
+  cv_diff_threshold = 0,
+  recalc_trend_after = FALSE,
   feature_list = NULL,
   use_original_if_fail = FALSE,
   show_progress = TRUE
 )
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A MidarExperiment object.}
 
-\item{variable}{The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"}
+\item{variable}{The target variable for drift correction; options include
+"intensity", "norm_intensity", or "conc".}
 
-\item{reference_qc_types}{QC types used for drift correction. Typically includes the study samples (\code{SPL}).}
+\item{reference_qc_types}{QC types used for drift correction, typically
+including study samples (\code{SPL}).}
 
-\item{within_batch}{Apply to each batch separately if \code{TRUE} (the default), or across all batches if \code{FALSE}.}
+\item{batch_wise}{Logical. Apply the correction to each batch separately
+(\code{TRUE}, default) or across all batches (\code{FALSE}).}
 
-\item{replace_previous}{Logical. Replace previous correction (\code{TRUE}), or adds on top of previous correction (\code{FALSE}). Default is \code{TRUE}.}
+\item{ignore_istd}{Logical. Exclude internal standards (ISTDs) from
+correction if \code{TRUE}.}
 
-\item{kernel_size}{Kernel bandwidth}
+\item{replace_previous}{Logical. Replace existing correction (\code{TRUE},
+default) or layer on top of it (\code{FALSE}).}
 
-\item{outlier_filter}{Kernel Outlier filter}
+\item{kernel_size}{Numeric. Defines the Gaussian kernel's bandwidth.}
 
-\item{outlier_ksd}{Kernel K times standard deviation of data distribution}
+\item{outlier_filter}{Logical. Enable kernel outlier filtering if \code{TRUE}.}
 
-\item{location_smooth}{Location parameter smoothing}
+\item{outlier_ksd}{Numeric. Set the kernel's k times standard deviation for
+outlier detection.}
 
-\item{scale_smooth}{Scale parameter smoothing}
+\item{location_smooth}{Logical. Apply smoothing to the location parameter if
+\code{TRUE}.}
 
-\item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.}
+\item{scale_smooth}{Logical. Apply smoothing to the scale parameter if
+\code{TRUE}.}
 
-\item{ignore_istd}{Do not apply corrections to ISTDs}
+\item{log_transform_internal}{Logical. Conduct log transformation internally
+for enhanced outlier robustness if \code{TRUE} (default); does not alter the
+output data.}
 
-\item{conditional_correction}{Apply drift correction to all species if \code{TRUE}, or only when sample CV after smoothing changes below a threshold defined via \code{cv_ratio_threshold}}
+\item{conditional_correction}{Determines whether drift correction should be applied to all features unconditionally (\code{TRUE}) or
+only when the difference of sample CV before vs after smoothing is below the threshold specified by \code{cv_diff_threshold}.}
 
-\item{cv_ratio_threshold}{Only used when \code{conditional_correction = TRUE}. Maximum allowed ratio of sample CV change before and after smoothing for the correction to be applied.
-A value of 1 (the default) indicates the CV needs to improve or remain unchanged after smoothing so that the conditional smoothing is applied. A value of < 1 means that CV needs to improve, a value of e.g. 1.20 that the CV need to improve or get worse by max 1.20-fold after smoothing.}
+\item{cv_diff_threshold}{This parameter defines the maximum allowable change (difference) in the coefficient of variation (CV) ratio of samples before and after smoothing for the correction to be applied.
+A value of 0 (the default) requires the CV to improve, while a value above 0 allows the CV to also become worse by a maximum of the defined difference.}
 
-\item{recalc_trend_after}{Recalculate trends after smoothing, used for plotting (e.g., in \code{plot_runscatter()})}
+\item{recalc_trend_after}{Logical. Recalculate trends post-smoothing for
+visualization (e.g., \code{plot_runscatter()}).}
 
-\item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
+\item{feature_list}{Character vector. Regular expression pattern to select
+specific features for correction. Default is \code{NULL} for all features.}
 
-\item{use_original_if_fail}{Determines the action when smoothing fails for a feature. If TRUE (default), the original data is used; if FALSE, the result for each analysis is NA.}
+\item{use_original_if_fail}{Determines the action when smoothing fails or results in invalid values for a feature. If \code{FALSE} (default), the result for each feature will \code{NA} for all batches, if \code{TRUE}, the original data is kept.}
 
-\item{show_progress}{Show progress bars. Set this to \code{FALSE} when rendering the notebook.}
+\item{show_progress}{Logical. Display progress bars if \code{TRUE}; disable for
+notebook rendering by setting to \code{FALSE}.}
 }
 \value{
-MidarExperiment object
+Returns a MidarExperiment object.
 }
 \description{
-Function to correct for run-order drifts within or across batches using gaussian kernel smoothing (see \emph{Tan et al. (2020)}).
-This is typically used to smooth based on the study samples. To avoid local biases and artefacts, this function should only be applied to analyses wit sufficient number of samples that were well randomized.
+Performs drift correction for run-order effects within or across batches
+using Gaussian kernel smoothing, as detailed in Teo et al. (2020). The
+Gaussian kernel estimates the local data trend, with bandwidth defined by
+the \code{kernel_size} parameter. This smoothing approach is mostly used with
+study samples and should only be applied to datasets with sufficiently randomized or
+stratified samples to avoid local biases and artifacts. The smoothing can be
+applied  to \code{concentration}, \code{norm_intensity}, and \code{intensity} data.
+
+Corrections can be applied on a batch-by-batch basis (\code{batch_wise = TRUE},
+default) or across all batches (\code{batch_wise = FALSE}). The correction can
+either replace existing drift or batch corrections (\verb{replace_previous = }TRUE\verb{, default) or applied on top of existing corrections (}replace_previous = FALSE`).
+
+Drift correction can be applied to all features (\code{conditional_correction = FALSE})
+or conditionally, based on whether the sample CV difference before and
+after correction is below a defined threshold (\code{cv_diff_threshold}). The
+conditional correction is applied separately for each batch if
+\code{batch_wise = TRUE}, .
+
+It is recommended to visually inspect the correction using the
+\code{\link[=plot_runscatter]{plot_runscatter()}} function. Set the argument
+\code{recalc_trend_after = TRUE} so that the trends after correction are also
+available for plotting. For further details, refer to the description
+of \code{\link[=plot_runscatter]{plot_runscatter()}}. This will double the processing time.
+
+\strong{Note}: The function outputs a message indicating the median CV change
+and the mean absolute CV before and after correction for all samples.
+However, these metrics are experimental and should not be used as
+definitive criteria for correction (see Details below).
+}
+\details{
+In the output message, the median CV change is computed as the median of CV changes for all
+features in global correction or for
+features where the correction passed the defined CV difference treshold in
+case of conditional correction  (\code{conditional_correction = FALSE}).
+For batch-wise correction, the change is calculated per batch, with the final median CV
+change being the median of these batch medians across features.
 }
 \references{
-Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H (2020). MRMkit: Automated Data Processing for Large-Scale Targeted Metabolomics Analysis. \emph{Analytical Chemistry}, 92(20), 13677–13682. \url{https://doi.org/10.1021/acs.analchem.0c03060}
+Teo G., Chew WS, Burla B, Herr D, Tai ES, Wenk MR, Torta F, & Choi H
+(2020). MRMkit: Automated Data Processing for Large-Scale Targeted
+Metabolomics Analysis. \emph{Analytical Chemistry}, 92(20), 13677–13682.
+\url{https://doi.org/10.1021/acs.analchem.0c03060}
 }

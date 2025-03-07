@@ -81,12 +81,12 @@ metadata or retrieved via specific functions, e.g., \code{\link[=get_lipid_class
 mexp <- lipidomics_dataset
 mexp <- calc_qc_metrics(mexp)
 plot_qcmetrics_comparison(data = mexp,
-            filter_data = TRUE,
+            filter_data = FALSE,
             x_variable = "precursor_mz",
             y_variable = "rt_median_SPL",
             include_qualifier = TRUE)
 
 }
 \seealso{
-\code{\link[=calc_qc_metrics]{calc_qc_metrics()}}, \code{\link[=filter_features_qc]{filter_features_qc()}}, \code{\link[=plot_normalization_qc]{plot_normalization_qc()}}, \code{\link[=normalize_features]{normalize_features()}}
+\code{\link[=calc_qc_metrics]{calc_qc_metrics()}}, \code{\link[=filter_features_qc]{filter_features_qc()}}, \code{\link[=plot_normalization_qc]{plot_normalization_qc()}}, \code{\link[=normalize_by_istd]{normalize_by_istd()}}
 }

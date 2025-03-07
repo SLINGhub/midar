@@ -149,7 +149,7 @@ plot_heatmap <- function(data, d_metadata, annot_color, log_transform, split_var
 
   m_raw <- d_filt |>
     # dplyr::select(where(~!any(is.na(.)))) |>
-    column_to_rownames("analysis_id") |>
+    tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
   if (log_transform) m_raw <- log2(m_raw)
@@ -257,7 +257,7 @@ plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform,
 
   m_raw <- d_filt |>
     dplyr::select(where(~ !any(is.na(.)))) |>
-    column_to_rownames("analysis_id") |>
+    tibble::column_to_rownames("analysis_id") |>
     as.matrix()
 
   if (log_transform) m_raw <- log2(m_raw)
@@ -270,8 +270,8 @@ plot_pca_sling2 <- function(data, d_metadata, annot_color = NULL, log_transform,
 
   p <- ggplot(data = pca_annot,
               aes(
-                x = !!sym(paste0(".fittedPC", pca_dim[1])),
-                y = !!sym(paste0(".fittedPC", pca_dim[2])),
+                x = !!sym(paste0(".fittedPC", .data$pca_dim[1])),
+                y = !!sym(paste0(".fittedPC", .data$pca_dim[2])),
                 color = grouping,
                 fill = grouping,
                 label = "analysis_id"

@@ -13,10 +13,10 @@ mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
 mexp_proc <- mexp
 mexp_proc <- normalize_by_istd(mexp_proc)
 mexp_proc <- quantify_by_istd(mexp_proc)
-mexp_filt <- filter_features_qc(mexp_proc, max.cv.conc.bqc = 20, min.intensity.median.bqc = 1000)
+mexp_filt <- filter_features_qc(mexp_proc, include_qualifier = FALSE, include_istd = FALSE, max.cv.conc.bqc = 20, min.intensity.median.bqc = 1000)
 
 mexp2 <- lipidomics_dataset
-mexp2_filt <- filter_features_qc(mexp2, min.intensity.median.spl = 1E6)
+mexp2_filt <- filter_features_qc(mexp2, include_qualifier = FALSE, include_istd = FALSE, min.intensity.median.spl = 1E6)
 
 test_that("check_data_present works", {
   testthat::expect_true(check_data_present(mexp))
@@ -257,7 +257,7 @@ test_that("update_after_normalization clears norm_intensity and conc if not norm
   mexp_temp_1 <- mexp_proc
   testthat::expect_true(any(c("feature_norm_intensity", "feature_conc") %in% names(mexp_temp_1@dataset)))
   expect_message(mexp_temp_1 <- update_after_normalization(mexp_temp_1, is_normalized = FALSE, with_message = TRUE),
-                 "normalized intensities and concentrations have been invalidated")
+                 "The normalized intensities and concentrations are no longer valid")
   testthat::expect_false(any(c("feature_norm_intensity", "feature_conc") %in% names(mexp_temp_1@dataset)))
   testthat::expect_false(mexp_temp_1@is_istd_normalized)
   testthat::expect_false(mexp_temp_1@is_quantitated)
@@ -276,7 +276,7 @@ test_that("update_after_quantitation clears norm_intensity and conc if not quant
   mexp_temp_1 <- mexp_proc
   testthat::expect_true(any(c("feature_norm_intensity", "feature_conc") %in% names(mexp_temp_1@dataset)))
   expect_message(mexp_temp_1 <- update_after_quantitation(mexp_temp_1, is_quantitated = FALSE, with_message = TRUE),
-                 "Concentrations not valid anymore. Please reprocess data.")
+                 "Concentrations are no longer valid. Please reprocess the data.")
   testthat::expect_false(any(c("feature_conc") %in% names(mexp_temp_1@dataset)))
   testthat::expect_true(any(c("feature_norm_intensity") %in% names(mexp_temp_1@dataset)))
   testthat::expect_true(mexp_temp_1@is_istd_normalized)
@@ -389,8 +389,8 @@ test_that("exclude_analyses excludes analyses", {
   mexp_temp@annot_analyses[mexp_temp@annot_analyses$analysis_id == "030_SPL_S010",]$valid_analysis <- FALSE
   expect_message(mexp_temp_excl <-
                    exclude_analyses(mexp_temp,
-                   analyses_to_exclude = c("026_SPL_S007", "020_SPL_S001"),
-                   replace_existing = FALSE),
+                   exclude = c("026_SPL_S007", "020_SPL_S001"),
+                   clear_existing = FALSE),
                  "A total of 3 analyses are now excluded for downstream processing")
 
   expect_false(mexp_temp_excl@annot_analyses[mexp_temp_excl@annot_analyses$analysis_id == "030_SPL_S010",]$valid_analysis)
@@ -399,8 +399,8 @@ test_that("exclude_analyses excludes analyses", {
 
   expect_message(mexp_temp_excl <-
                    exclude_analyses(mexp_temp,
-                     analyses_to_exclude = c("026_SPL_S007", "020_SPL_S001"),
-                     replace_existing = TRUE),
+                     exclude = c("026_SPL_S007", "020_SPL_S001"),
+                     clear_existing = TRUE),
                  "2 analyses were excluded for downstream processing")
   expect_true(mexp_temp_excl@annot_analyses[mexp_temp_excl@annot_analyses$analysis_id == "030_SPL_S010",]$valid_analysis)
   expect_false(mexp_temp_excl@annot_analyses[mexp_temp_excl@annot_analyses$analysis_id == "026_SPL_S007",]$valid_analysis)
@@ -409,22 +409,22 @@ test_that("exclude_analyses excludes analyses", {
   expect_error(mexp_temp_excl <-
                    exclude_analyses(
                      mexp_temp,
-                     analyses_to_exclude = c("026_SPL_S007", "020_SPL_S010"),
-                     replace_existing = FALSE),
+                     exclude = c("026_SPL_S007", "020_SPL_S010"),
+                     clear_existing = FALSE),
                  "One or more provided `analysis_id` to exclude are not present")
 
   expect_error(mexp_temp_excl <-
                    exclude_analyses(
                      mexp_temp,
-                     analyses_to_exclude = NA,
-                     replace_existing = FALSE),
+                     exclude = NA,
+                     clear_existing = FALSE),
                  "No `analysis_id` provided. To \\(re\\)include")
 
   expect_message(mexp_temp_excl <-
                    exclude_analyses(
                      mexp_temp,
-                     analyses_to_exclude = NA,
-                     replace_existing = TRUE),
+                     exclude = NA,
+                     clear_existing = TRUE),
                  "All exclusions removed")
 
 })
@@ -437,8 +437,8 @@ test_that("exclude_features excludes feautures", {
   mexp_temp@annot_features[mexp_temp@annot_features$feature_id == "S1P d20:1 [M>60]",]$valid_feature <- FALSE
   expect_message(mexp_temp_excl <-
                    exclude_features(mexp_temp,
-                                    features_to_exclude = c("S1P d19:1 [M>60]", "S1P d17:1 [M>60]"),
-                                    replace_existing = FALSE),
+                                    exclude = c("S1P d19:1 [M>60]", "S1P d17:1 [M>60]"),
+                                    clear_existing = FALSE),
                  "A total of 3 features are now excluded for downstream")
 
   expect_false(mexp_temp_excl@annot_features[mexp_temp_excl@annot_features$feature_id == "S1P d20:1 [M>60]",]$valid_feature)
@@ -447,8 +447,8 @@ test_that("exclude_features excludes feautures", {
 
   expect_message(mexp_temp_excl <-
                    exclude_features(mexp_temp,
-                                    features_to_exclude = c("S1P d19:1 [M>60]", "S1P d17:1 [M>60]"),
-                                    replace_existing = TRUE),
+                                    exclude = c("S1P d19:1 [M>60]", "S1P d17:1 [M>60]"),
+                                    clear_existing = TRUE),
                  "2 features were excluded for downstream processing")
   expect_true(mexp_temp_excl@annot_features[mexp_temp_excl@annot_features$feature_id == "S1P d20:1 [M>60]",]$valid_feature)
   expect_false(mexp_temp_excl@annot_features[mexp_temp_excl@annot_features$feature_id == "S1P d19:1 [M>60]",]$valid_feature)
@@ -457,22 +457,22 @@ test_that("exclude_features excludes feautures", {
   expect_error(mexp_temp_excl <-
                    exclude_features(
                      mexp_temp,
-                     features_to_exclude = c("1P d19:1 [M>60]", "1P d17:2 [M>60]"),
-                     replace_existing = FALSE),
+                     exclude = c("1P d19:1 [M>60]", "1P d17:2 [M>60]"),
+                     clear_existing = FALSE),
                  "One or more provided `feature_id` are not present")
 
   expect_error(mexp_temp_excl <-
                    exclude_features(
                      mexp_temp,
-                     features_to_exclude = NA,
-                     replace_existing = FALSE),
+                     exclude = NA,
+                     clear_existing = FALSE),
                  "No `feature_id` provided. To \\(re\\)include")
 
   expect_message(mexp_temp_excl <-
                    exclude_analyses(
                      mexp_temp,
-                     analyses_to_exclude = NA,
-                     replace_existing = TRUE),
+                     exclude = NA,
+                     clear_existing = TRUE),
                  "All exclusions removed")
 
 })

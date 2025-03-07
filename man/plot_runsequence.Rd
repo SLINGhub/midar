@@ -11,7 +11,7 @@ plot_runsequence(
   show_timestamp = FALSE,
   add_info_title = TRUE,
   single_row = FALSE,
-  segment_width = 0.5,
+  segment_linewidth = 0.5,
   batch_zebra_stripe = FALSE,
   batch_line_color = "#b6f0c5",
   batch_fill_color = "grey90",
@@ -25,27 +25,29 @@ plot_runsequence(
 regular expression pattern. \code{NA} (default) displays all available QC/Sample
 types.}
 
-\item{show_batches}{Logical, whether to show batch separators in the plot}
+\item{show_batches}{Logical, whether to show batch separators in the plot.}
 
 \item{show_timestamp}{Logical, whether to use the acquisition timestamp as
-the x-axis instead of the run sequence number}
+the x-axis instead of the run sequence number.}
 
 \item{add_info_title}{Logical, whether to add a title with the experiment
-title, analysis date, and analysis times}
+title, analysis date, and analysis times.}
 
-\item{single_row}{Logical, whether to show all QC types in a single row}
+\item{single_row}{Logical, whether to show all QC types in a single row.}
+
+\item{segment_linewidth}{Width of the segment lines, default is 0.5.}
 
 \item{batch_zebra_stripe}{Logical, whether to show batches as shaded areas
-instead of line separators}
+instead of line separators.}
 
-\item{batch_line_color}{Color of the batch separator lines}
+\item{batch_line_color}{Color of the batch separator lines.}
 
-\item{batch_fill_color}{Color of the batch shaded areas}
+\item{batch_fill_color}{Color of the batch shaded areas.}
 
-\item{base_font_size}{Numeric, base font size for the plot}
+\item{base_font_size}{Numeric, base font size for the plot.}
 }
 \value{
-A ggplot object representing the run sequence plot
+A ggplot object representing the run sequence plot.
 }
 \description{
 The RunSequence plot provides an overview of the analysis design and

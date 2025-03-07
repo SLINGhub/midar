@@ -6,26 +6,40 @@
 \usage{
 quantify_by_calibration(
   data = NULL,
-  overwrite_metadata = FALSE,
-  fit_method = c("linear", "quadratic"),
+  include_qualifier = TRUE,
+  overwrite_fit_param = FALSE,
+  fit_model = c("linear", "quadratic"),
   fit_weighting = c("none", "1/x", "1/x^2"),
-  error_failed_calibration = TRUE,
-  fail_missing_annotation = TRUE
+  ignore_failed_calibration = FALSE,
+  ignore_missing_annotation = FALSE
 )
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{overwrite_metadata}{If \code{TRUE},  any fit method and weighting settings defined in the metadata will be ignored and instead the \code{fit_method} and \code{fit_weighting} are used for all features}
+\item{include_qualifier}{A logical value. If \code{TRUE}, the function will include quantifier features in the calibration curve calculations.}
 
-\item{fit_method}{A character string indicating the default regression fit method to use for the calibration curve. Must be one of \code{"linear"} or \code{"quadratic"}. This method will be used if no specific fit method is defined for a feature in the metadata.}
+\item{overwrite_fit_param}{If \code{TRUE},
+the function will ignore any fit method and weighting settings defined in
+the metadata and use the provided \code{fit_model} and \code{fit_weighting} values
+for all analytes.}
 
-\item{fit_weighting}{A character string indicating the default weighting method for the regression points in the calibration curve. Must be one of \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. If no specific weighting method is defined for a feature in the metadata, this method will be used.}
+\item{fit_model}{A character string specifying the default regression fit
+method to use for the calibration curve. Must be one of \code{"linear"} or
+\code{"quadratic"}. This method will be applied if no specific fit method is
+defined for a feature in the metadata, or
+when \code{overwrite_fit_param = TRUE}.}
 
-\item{error_failed_calibration}{If \code{TRUE}, an error will be raised if the calibration curve fitting failed for any feature. If \code{FALSE}, failed calibration curve fitting will be ignored, and resulting feature concentration will be \code{NA}.}
+\item{fit_weighting}{A character string specifying the default weighting
+method for the regression points in the calibration curve. Must be one of
+\code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no
+specific weighting method is defined for a feature in the metadata, or
+when \code{overwrite_fit_param = TRUE}.}
 
-\item{fail_missing_annotation}{Raise error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
-If \code{FALSE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
+\item{ignore_failed_calibration}{If \code{FALSE}, raises error if calibration curve fit fails for any feature. If \code{TRUE}, failed fits will be ignored, and resulting feature concentration will be \code{NA}.}
+
+\item{ignore_missing_annotation}{If \code{FALSE}, raises error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
+If \code{TRUE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
 }
 \value{
 A modified \code{MidarExperiment} object with updated concentration values.
@@ -34,9 +48,9 @@ A modified \code{MidarExperiment} object with updated concentration values.
 Concentrations of all features in all analyses are determined using ISTD-normalized intensities and corresponding external calibration curves.
 Calibration curves are calculated for each feature based on calibration sample concentrations defined in the \code{qc_concentrations} metadata.
 The regression fit model (linear or quadratic) and the weighting method (either "none", "1/x", or "1/x^2") can be defined globally via
-the arguments \code{fit_method} and \code{fit_weighting} for all features, if \code{overwrite_metadata} is \code{TRUE}.
-Alternatively, the model and weighting can be defined individually for each feature in the \code{feature} metadata (columns \code{curve_fit_method} and \code{fit_weighting}).
-If these details are missing in the metadata, the default values provided via \code{fit_method} and \code{fit_weighting} will be used.
+the arguments \code{fit_model} and \code{fit_weighting} for all features, if \code{overwrite_fit_param} is \code{TRUE}.
+Alternatively, the model and weighting can be defined individually for each feature in the \code{feature} metadata (columns \code{curve_fit_model} and \code{fit_weighting}).
+If these details are missing in the metadata, the default values provided via \code{fit_model} and \code{fit_weighting} will be used.
 }
 \details{
 The concentrations are added to the \code{dataset} table as \code{feature_conc} column. The results of the regression and the calculated LoD and LoQ values are stored in the \code{metrics_calibration} table of the returned \code{MidarExperiment} object.

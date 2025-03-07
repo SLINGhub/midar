@@ -33,52 +33,54 @@ test_that("safe_max works", {
 
 
 test_that("check_groupwise_identical_ids works", {
-  df_identical <- tibble::tibble(
+  df_identical <- dplyr::tibble(
     group = c("A", "A", "A", "B", "B"),
     id = c(1, 1, 1, 2, 2),
     other_col = c(11, 21, 31, 41, 51))
   expect_true(check_groupwise_identical_ids(df_identical, group_col = group, id_col = id))
 
-  df_non_identical <- tibble::tibble(
+  df_non_identical <- dplyr::tibble(
     group = c("A", "A", "A", "B", "B"),
     id = c(1, 2, 1, 2, 3))
   expect_false(check_groupwise_identical_ids(df_non_identical, group_col = group, id_col = id))
 
-  df_missing <- tibble::tibble(
+  df_missing <- dplyr::tibble(
     group = c("A", "A", "B", "B"),
     id = c(1, NA, 2, 3))
   expect_false(check_groupwise_identical_ids(df_missing, group_col = group, id_col = id))
 
-  df_single <- tibble::tibble(group = "A", id = 1)
+  df_single <- dplyr::tibble(group = "A", id = 1)
   expect_true(check_groupwise_identical_ids(df_single, group_col = group, id_col = id))
 
-  df_empty <- tibble::tibble(
+  df_empty <- dplyr::tibble(
     group = character(0),
     id = integer(0))
   expect_error(check_groupwise_identical_ids(df_empty, group_col = group, id_col = id),
                "data has no rows")
 })
 
-test_that("comp_val works", {
-  tbl <- tibble::tibble(
+test_that("compare_values works", {
+  tbl <- dplyr::tibble(
     value1 = c(1, 2, NA, 4),
     value2 = c(5, NA, 7, 8)
   )
 
-  expect_equal(comp_val(tbl, val = "non_existing_column", threshold = 5, operator = ">"), NA)
+  expect_error(
+    compare_values(tbl, val = "non_existing_column", threshold = 5, operator = ">"),
+  "QC parameter is not available. Please verify the argument ")
 
-  tbl_with_na <- tibble::tibble(value1 = c(NA, NA, NA, NA))
-  expect_equal(comp_val(tbl_with_na, val = "value1", threshold = NA, operator = ">"), c(NA, NA, NA, NA))
 
-  expect_equal(comp_val(tbl, val = "value1", threshold = 3, operator = ">"), c(FALSE, FALSE, NA, TRUE))
-  expect_equal(comp_val(tbl, val = "value1", threshold = 3, operator = "<"), c(TRUE, TRUE, NA, FALSE))
-  expect_equal(comp_val(tbl, val = "value1", threshold = 2, operator = "=="), c(FALSE, TRUE, NA, FALSE))
-  expect_equal(comp_val(tbl, val = "value2", threshold = 8, operator = "=="), c(FALSE, NA, FALSE, TRUE))
+  tbl_with_na <- dplyr::tibble(value1 = c(NA, NA, NA, NA))
+  expect_equal(compare_values(tbl_with_na, val = "value1", threshold = NA, operator = ">"), c(NA, NA, NA, NA))
 
-  expect_equal(comp_val(tbl, val = "noexist_col", threshold = 10, operator = ">"), NA)
+  expect_equal(compare_values(tbl, val = "value1", threshold = 3, operator = ">"), c(FALSE, FALSE, NA, TRUE))
+  expect_equal(compare_values(tbl, val = "value1", threshold = 3, operator = "<"), c(TRUE, TRUE, NA, FALSE))
+  expect_equal(compare_values(tbl, val = "value1", threshold = 2, operator = "=="), c(FALSE, TRUE, NA, FALSE))
+  expect_equal(compare_values(tbl, val = "value2", threshold = 8, operator = "=="), c(FALSE, NA, FALSE, TRUE))
 
-  df_empty <- tibble::tibble(a = character(0),b = integer(0))
-  expect_error(comp_val(df_empty, val = "value1", threshold = 3, operator = ">"),
+
+  df_empty <- dplyr::tibble(a = character(0),b = integer(0))
+  expect_error(compare_values(df_empty, val = "value1", threshold = 3, operator = ">"),
                "tbl has no rows")
 })
 
@@ -96,8 +98,8 @@ test_that("comp_lgl_vec works as it should", {
   expect_equal(comp_lgl_vec(list(c(NA, NA, NA), c(NA, NA, NA)),
                             .operator = "AND"), c(NA, NA, NA))
 
-  expect_null(comp_lgl_vec(list(c(TRUE, FALSE, TRUE), c(TRUE, TRUE, FALSE)), .operator = "XAND"))
-  expect_null(comp_lgl_vec(list(), .operator = "AND"))
+  expect_error(comp_lgl_vec(list(c(TRUE, FALSE, TRUE), c(TRUE, TRUE, FALSE)), .operator = "XAND"),
+               "Unsupported operator")
 
 })
 
@@ -130,12 +132,14 @@ test_that("add_missing_column works", {
 
 
 test_that("get_conc_unit works as expected", {
-  expect_equal(get_conc_unit("ul"), "\U003BCmol/L")
-  expect_equal(get_conc_unit("mL"), "pmol/mL")
-  expect_equal(get_conc_unit("L"), "pmol/L")
-  expect_equal(get_conc_unit(c("ul", "ml")), "pmol/sample amount unit (multiple units)")
-  expect_equal(get_conc_unit("mg"), "pmol/mg")
-  expect_equal(get_conc_unit("Ul"), "\U003BCmol/L")
+  expect_equal(get_conc_unit("ul", "pmol"), "\U003BCmol/L")
+  expect_equal(get_conc_unit("mL", "pmol"), "pmol/mL")
+  expect_equal(get_conc_unit("L", "pmol"), "pmol/L")
+  expect_equal(get_conc_unit(c("ul", "ml"), "pmol"), "pmol/sample amount unit (multiple units)")
+  expect_equal(get_conc_unit("mg", "pmol"), "pmol/mg")
+  expect_equal(get_conc_unit("Ul", "pmol"), "\U003BCmol/L")
+  expect_equal(get_conc_unit("L", "ng/L"), "ng/L")
+  expect_equal(get_conc_unit("mL", "ng"), "ng/mL")
 })
 
 

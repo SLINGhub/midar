@@ -102,9 +102,9 @@ plot_runsequence(
   myexp, 
   qc_types = NA, 
   show_batches = TRUE, 
-  batches_as_shades = TRUE, 
-  batch_shading_color = "#fffbdb", 
-  segment_width = 0.5,
+  batch_zebra_stripe = TRUE, 
+  batch_fill_color = "#fffbdb", 
+  segment_linewidth = 0.5,
   show_timestamp = FALSE)
 
 ```
@@ -131,7 +131,7 @@ plot_runscatter(
   data = myexp,
   variable = "intensity",
   qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
-  plot_range_indices = NA, #get_batch_boundaries(myexp, c(1,6)), 
+  analysis_order_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
   include_feature_filter = "ISTD", 
   exclude_feature_filter = "Hex|282",
   cap_outliers = TRUE,
@@ -207,9 +207,9 @@ midar::plot_rla_boxplot(
   filter_data = FALSE, 
   #plot_range_indices = get_batch_boundaries(myexp, batch_ids = c(6,6)), 
   #y_lim = c(-3,3),
-  x_axis_variable = "run_seq_num",
+  show_timestamp = FALSE,
   ignore_outliers = FALSE, x_gridlines = FALSE,
-  batches_as_shades = FALSE,
+  batch_zebra_stripe = FALSE,
   linewidth = 0.1
 )
 ```
@@ -237,18 +237,18 @@ plot_pca(
   variable = "feature_intensity", 
   filter_data = FALSE,
   pca_dim = c(1,2),
-  label_mad_threshold = 3, 
-  qc_types = c("SPL", "BQC", "NIST", "TQC"),
+  labels_threshold_mad = 3, 
+  qc_types = c("SPL", "BQC", "TQC"),
   log_transform = TRUE,  
   point_size = 2, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3, 
-  exclude_istds = TRUE)
+  include_istd = FALSE)
 ```
 
 ## 8. Exclude technical outliers
 
 Based on the above RLA and PCA plots, we flagged a technical outlier and
 decided to remove it from all downstream processing via the function
-`analyses_to_exclude()`.
+`exclude()`.
 
 <details>
 
@@ -261,7 +261,7 @@ decided to remove it from all downstream processing via the function
 
 ```{r outlier-removal}
  # Exclude the sample from the processing
-myexp <- exclude_analyses(myexp, analyses_to_exclude = c("Longit_batch6_51"), replace_existing  = TRUE)
+myexp <- exclude_analyses(myexp, exclude = c("Longit_batch6_51"), clear_existing  = TRUE)
 
 # Replot the PCA
 plot_pca(
@@ -269,12 +269,12 @@ plot_pca(
   variable = "intensity",
   filter_data = FALSE,
   pca_dim = c(1,2),
-  label_mad_threshold = 3,
-  qc_types = c("SPL", "BQC", "NIST", "TQC"),
+  labels_threshold_mad = 3,
+  qc_types = c("SPL", "BQC", "TQC"),
   log_transform = TRUE,
   point_size = 2, point_alpha = 0.7, font_base_size = 8, ellipse_alpha = 0.3,
-  exclude_istds = TRUE,
-  hide_text_from_labels = NA)
+  include_istd = FALSE,
+  shared_labeltext_hide = NA)
 ```
 
 ## 9. Response curves
@@ -303,7 +303,10 @@ injection volume series at the start and end of this analysis as a QC.
 
 ```{r responsecurves}
 # Exclude very low abundant features
-myexp <- midar::filter_features_qc(myexp, min.intensity.median.spl = 200)
+myexp <- midar::filter_features_qc(myexp, 
+                                   include_qualifier = FALSE,
+                                   include_istd = TRUE,
+                                   min.intensity.median.spl = 200)
 
 #Plot the curves
 plot_responsecurves(
@@ -391,13 +394,17 @@ variability of QC and samples before and after normalization.
 </details>
 
 ```{r norm-effects}
-myexp <- filter_features_qc(myexp, min.intensity.median.spl = 1000)
-plot_cv_normalization(
+myexp <- midar::filter_features_qc(myexp, 
+                                   include_qualifier = FALSE,
+                                   include_istd = TRUE,
+                                   min.intensity.median.spl = 1000)
+midar::plot_normalization_qc(
   data = myexp, 
   filter_data = FALSE, 
+  facet_by_class = TRUE,
   qc_type = "SPL", 
-  var_before = "intensity", 
-  var_after = "norm_intensity")
+  before_norm_var = "intensity", 
+  after_norm_var = "norm_intensity")
 ```
 
 ## 13. Drift correction
@@ -410,18 +417,21 @@ major artefacts. There is also an option to scale along the fit by
 setting `scale_smooth = TRUE`.
 
 ```{r drift-corr}
+
 myexp <- midar::correct_drift_gaussiankernel(
   data = myexp,
+  ignore_istd = TRUE,
   variable = "conc",
   reference_qc_types = c("SPL"),
-  within_batch = TRUE,
-  replace_previous = FALSE,
+  batch_wise = TRUE,
+  replace_previous = TRUE,
+  recalc_trend_after = TRUE,
   kernel_size = 10,
-  outlier_filter = TRUE,
+  outlier_filter = FALSE,
   outlier_ksd = 5,
   location_smooth = TRUE,
-  scale_smooth = TRUE, 
-  show_progress = TRUE  # set to FALSE when rendering
+  scale_smooth = FALSE, 
+  show_progress = FALSE  # set to FALSE when rendering
 )
 ```
 
@@ -459,15 +469,15 @@ my_trend_plot <- function(variable, feature){
 > have caused such a drift in the raw concentrations? Do the QC samples
 > follow the trend of the sample? Look also at other lipid species.
 >
-> Try changing `within_batch = FALSE` in the code chunk above with
+> Try changing `batch_wise = FALSE` in the code chunk above with
 > `correct_drift_gaussiankernel()` to run the run the smoothing across
 > all batches. Would this be a valid alternative? NOTE: don't forget to
-> change back to `within_batch = TRUE` after the test.
+> change back to `batch_wise = TRUE` after the test.
 
 </details>
 
 ```{r plot-trends}
-my_trend_plot("conc_raw", "PC 40:8")
+my_trend_plot("conc_before", "PC 40:8")
 my_trend_plot("conc", "PC 40:8")
 ```
 
@@ -550,7 +560,7 @@ specific QC criteria. The available criteria can be seen by pressing
 `TAB` after the first open bracket of `filter_features_qc()` function,
 or by to viewing the help page. by running `?filter_features_qc` in the
 console. The filter function can be applied multiple times, either
-overwriting or amending (`replace_existing = FALSE`) previously set
+overwriting or amending (`clear_existing = FALSE`) previously set
 filters.
 
 <details>
@@ -567,10 +577,10 @@ filters.
 
 myexp <- filter_features_qc(
   data = myexp, 
-  replace_existing = TRUE,
+  clear_existing = TRUE,
   use_batch_medians = TRUE,
-  qualifier.include = FALSE,
-  istd.include = FALSE,
+  include_qualifier = FALSE,
+  include_istd = FALSE,
   response.curves.selection = c(1,2),
   response.curves.summary = "mean",
   min.rsquare.response = 0.8,
@@ -607,7 +617,7 @@ and `LOD`).
 </details>
 
 ```{r qc-summary-1}
-midar::plot_qc_summary_byclass(myexp, include_qualifier = FALSE)
+midar::plot_qc_summary_byclass(myexp)
 ```
 
 The following plot provides a further summary of the feature filtering
@@ -628,7 +638,7 @@ particular filtering criterion.
 </details>
 
 ```{r qc-summary-2}
-midar::plot_qc_summary_overall(myexp, include_qualifier = FALSE)
+midar::plot_qc_summary_overall(myexp)
 ```
 
 ## 18. Saving a report with data, metadata and processing details

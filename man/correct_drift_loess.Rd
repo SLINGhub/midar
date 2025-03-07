@@ -8,16 +8,18 @@ correct_drift_loess(
   data = NULL,
   variable,
   reference_qc_types,
-  within_batch = TRUE,
+  batch_wise = TRUE,
+  ignore_istd = TRUE,
   replace_previous = TRUE,
-  span = 0.75,
   conditional_correction = FALSE,
+  recalc_trend_after = FALSE,
   log_transform_internal = TRUE,
   feature_list = NULL,
-  ignore_istd = TRUE,
-  cv_ratio_threshold = 1,
-  use_original_if_fail = TRUE,
-  extrapolate = FALSE
+  cv_diff_threshold = 0,
+  use_original_if_fail = FALSE,
+  extrapolate = FALSE,
+  span = 0.75,
+  degree = 2
 )
 }
 \arguments{
@@ -27,35 +29,88 @@ correct_drift_loess(
 
 \item{reference_qc_types}{QC types used for drift correction}
 
-\item{within_batch}{Apply to each batch separately if \code{TRUE} (the default), or across all batches if \code{FALSE}.}
+\item{batch_wise}{Logical. Apply the correction to each batch separately
+(\code{TRUE}, default) or across all batches (\code{FALSE}).}
 
-\item{replace_previous}{Logical. Replace previous correction (\code{TRUE}), or adds on top of previous correction (\code{FALSE}). Default is \code{TRUE}.}
+\item{ignore_istd}{Do not apply corrections to ISTDs}
 
-\item{span}{Loess span width (default is 0.75)}
+\item{replace_previous}{Logical. Replace existing correction (\code{TRUE},
+default) or layer on top of it (\code{FALSE}).}
 
-\item{conditional_correction}{Determines whether drift correction should be applied to all species unconditionally (\code{TRUE}) or only when the sample CV after smoothing is below the ratio threshold specified by \code{cv_ratio_threshold}.}
+\item{conditional_correction}{Determines whether drift correction should be applied to all features unconditionally (\code{TRUE}) or
+only when the difference of sample CV before vs after smoothing is below the threshold specified by \code{cv_diff_threshold}.}
+
+\item{recalc_trend_after}{Recalculate trend post-drift correction for \code{plot_qc_runscatter()}. This will double calculation time.}
 
 \item{log_transform_internal}{Log transform the data for correction when \code{TRUE} (the default). Note: log transformation is solely applied internally for smoothing, results will not be be log-transformed. Log transformation may result in more robust smoothing that is less sensitive to outlier.}
 
 \item{feature_list}{Subset the features for correction whose names matches the specified text using regular expression. Default is \code{NULL} which means all features are selected.}
 
-\item{ignore_istd}{Do not apply corrections to ISTDs}
+\item{cv_diff_threshold}{This parameter defines the maximum allowable change (difference) in the coefficient of variation (CV) ratio of samples before and after smoothing for the correction to be applied.
+A value of 0 (the default) requires the CV to improve, while a value above 0 allows the CV to also become worse by a maximum of the defined difference.}
 
-\item{cv_ratio_threshold}{This parameter defines the maximum allowable change (ratio) in the coefficient of variation (CV) ratio of samples before and after smoothing for the correction to be applied.
-A value of 1 (the default) requires the CV to improve, while a value above 1 allows the CV to improve, or to degrade by a maximum of the indicated fold-difference times post-smoothing.}
-
-\item{use_original_if_fail}{Determines the action when smoothing fails for a feature. If TRUE (default), the original data is used; if FALSE, the result for each analysis is NA.}
+\item{use_original_if_fail}{Determines the action when smoothing fails or results in invalid values for a feature. If \code{FALSE} (default), the result for each feature will \code{NA} for all batches, if \code{TRUE}, the original data is kept.}
 
 \item{extrapolate}{Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.}
+
+\item{span}{Loess span width (default is 0.75)}
+
+\item{degree}{Degree of the polynomial to be used in the loess smoothing, normally 1 (default) or 2}
 }
 \value{
 MidarExperiment object
 }
 \description{
-Function to correct for run-order drifts within or across batches using loess smoothing
+This function corrects for run-order drifts within or across batches using
+LOESS (Locally Estimated Scatterplot Smoothing). The correction is typically
+based on QC (Quality Control) samples that were measured at specific intervals
+throughout the run sequence. The smoothed curve derived from the QC samples is
+then used to adjust all other samples in the dataset. The correction can be applied
+to "intensity", "norm_intensity", or "conc" data.
+
+The degree of smoothing is controlled by the span parameter \code{span} (default is 0.75).
+Additionally,
+the \code{degree} parameter can be specified to
+control the degree of the polynomial used in the local regression (default is 2)
+
+It is recommended to visually inspect the correction using the
+\code{\link[=plot_runscatter]{plot_runscatter()}} function. Set the argument
+\code{recalc_trend_after = TRUE} so that the trends after correction are also
+available for plotting. For further details, refer to the description
+of \code{\link[=plot_runscatter]{plot_runscatter()}}.
+
+The LOESS correction only applies to samples that lie within the span of the
+QC samples used for smoothing. Extrapolation outside this range is
+not recommended, as it can lead to unreliable corrections or artefacts in the extrapolated regions. However,
+extrapolation can be activated by setting \code{extrapolate = TRUE}. This may be
+useful in cases where specific drifts occur in segments of the analysis
+sequence that are not spanned by the QC samples, such as when the
+analysis was interrupted or the instrument had rapid changes in performance.
+
+The corrections can be applied on a batch-by-batch basis (\code{batch_wise = TRUE}, default) or across all batches (\code{batch_wise = FALSE}). Existing
+corrections are either replaced (\code{replace_previous = TRUE}) or added on top
+of them (\code{replace_previous = FALSE}).
+
+Furthermore, drift correction can be applied unconditionally
+(\code{conditional_correction = FALSE}) or conditionally, based on whether the
+sample CV change before and after correction is below a defined
+threshold (\code{cv_diff_threshold}). This conditional correction is assessed
+independently for each batch if \code{batch_wise = TRUE}, where the median of
+the CV changes across the batch is compared with the threshold.
+
+\strong{Note}: The function outputs a message indicating the median CV change
+and the mean absolute CV before and after correction for all samples.
+However, these metrics are experimental and should not be used as
+definitive criteria for correction (see Details below).
+
+This LOESS method is implemented using the base R function
+\code{\link[stats:loess]{stats::loess()}}.
 }
 \details{
-Note that using extrapolation for loess smoothing is generally not recommended. Use this only if you must include samples or QCs that are outside of the range spanned by the QCs used for smoothing.
-Cases where this may be necessary are when specific drifts occur in analysis sequence segments that are not spanned by QC, e.g. when the instrument broke down or suddenly changed its sensitivity.
-Only use for samples  adjacent to the first or last QC and consult runscatter plots.
+In the output message, the median CV change is computed as the median of CV changes for all
+features in global correction or for
+features where the correction passed the defined CV difference treshold in
+case of conditional correction  (\code{conditional_correction = FALSE}).
+For batch-wise correction, the change is calculated per batch, with the final median CV
+change being the median of these batch medians across features.
 }

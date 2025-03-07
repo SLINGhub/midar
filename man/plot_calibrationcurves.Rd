@@ -2,81 +2,155 @@
 % Please edit documentation in R/plots-calibcurves.R
 \name{plot_calibrationcurves}
 \alias{plot_calibrationcurves}
-\title{Plots calibration curves for each measured feature.}
+\title{Plot Calibration Curves}
 \usage{
 plot_calibrationcurves(
   data = NULL,
-  variable = "intensity",
-  overwrite_metadata = FALSE,
-  fit_method = c("linear", "quadratic"),
+  variable = "norm_intensity",
+  qc_types = NA,
+  overwrite_fit_param = FALSE,
+  fit_model = c("linear", "quadratic"),
   fit_weighting = c(NA, "none", "1/x", "1/x^2"),
+  show_confidence_interval = NA,
   log_axes = FALSE,
   filter_data = FALSE,
+  include_qualifier = TRUE,
+  include_istd = FALSE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
   output_pdf = FALSE,
-  include_feature_filter = "",
-  exclude_feature_filter = "",
-  max_regression_value = NA,
-  path = "",
+  path = NA,
+  return_plots = FALSE,
+  point_size = 1.5,
+  line_width = 0.7,
+  point_color = NA,
+  point_fill = NA,
+  point_shape = NA,
+  line_color = "#4575b4",
+  ribbon_fill = "#91bfdb40",
+  font_base_size = 7,
   rows_page = 4,
   cols_page = 5,
   specific_page = NA,
-  point_size = 1.5,
-  line_width = 0.7,
-  plot_scaling_factor = 1,
   page_orientation = "LANDSCAPE",
-  font_base_size = 7,
-  show_progress = TRUE,
-  return_plots = FALSE
+  show_progress = TRUE
 )
 }
 \arguments{
-\item{data}{A \code{MidarExperiment} object .}
+\item{data}{A \code{MidarExperiment} object containing the dataset.}
 
-\item{variable}{The variable name to plot on the y-axis, usually a measure of intensity. Defaults to \code{"intensity"}}
+\item{variable}{Variable to plot on the y-axis, usually intensity. Default
+is \code{"intensity"}.}
 
-\item{overwrite_metadata}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE}, the function will ignore any fit method and weighting settings defined in the metadata and use the provided \code{fit_method} and \code{fit_weighting} values for all analytes.}
+\item{qc_types}{A character vector specifying the QC types to plot. It must contain
+at least \code{CAL}, which represents calibration curve samples. Other QC types will be
+plotted as points when they have assigned concentrations (see QC-concentration metadata).
+These QC types need to be present in the data and defined in the analysis metadata.
+The default is \code{NA}, which means any of the QC types "CAL", "HQC", "MQC", "LQC",
+"EQA", "QC", will be plotted if present and have assigned concentrations.}
 
-\item{fit_method}{A character string specifying the default regression fit method to use for the calibration curve. Must be one of \code{"linear"} or \code{"quadratic"}. This method will be applied if no specific fit method is defined for a feature in the metadata.}
+\item{overwrite_fit_param}{If \code{TRUE},
+the function will ignore any fit method and weighting settings defined in
+the metadata and use the provided \code{fit_model} and \code{fit_weighting} values
+for all analytes.}
 
-\item{fit_weighting}{A character string specifying the default weighting method for the regression points in the calibration curve. Must be one of \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no specific weighting method is defined for a feature in the metadata.}
+\item{fit_model}{A character string specifying the default regression fit
+method to use for the calibration curve. Must be one of \code{"linear"} or
+\code{"quadratic"}. This method will be applied if no specific fit method is
+defined for a feature in the metadata, or
+when \code{overwrite_fit_param = TRUE}.}
 
-\item{log_axes}{Logical. If \code{TRUE}, the x and y axes are displayed in logarithmic scale. Defaults to \code{FALSE}.}
+\item{fit_weighting}{A character string specifying the default weighting
+method for the regression points in the calibration curve. Must be one of
+\code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no
+specific weighting method is defined for a feature in the metadata, or
+when \code{overwrite_fit_param = TRUE}.}
 
-\item{filter_data}{Logical. Indicates whether to use quality control (QC) filtered data (\code{TRUE}) or the raw data (\code{FALSE}). Defaults to \code{FALSE}.}
+\item{show_confidence_interval}{Logical, if \code{TRUE}, displays the confidence interval as ribbon.
+Default is \code{NA}, in which case confidence intervals are plotted in a linear
+scale and ommitted in log-log scale.}
 
-\item{output_pdf}{Logical. If \code{TRUE}, saves the generated plots as a PDF file. Defaults to \code{FALSE}.}
+\item{log_axes}{Logical. Determines whether the x and y axes are displayed in a logarithmic scale (log-log scale).
+Set to \code{TRUE} to enable logarithmic scaling; otherwise, set to \code{FALSE} for a linear scale.
+Note: If \code{TRUE}, any regression curves or standard error regions with negative
+values will be omitted from display.}
 
-\item{include_feature_filter}{A regex pattern to filter and include features that match the criteria. If omitted, all features are considered.}
+\item{filter_data}{Logical, if \code{TRUE}, uses QC filtered data; otherwise uses
+raw data. Default is \code{FALSE}.}
 
-\item{exclude_feature_filter}{A regex pattern to filter and exclude features that match the criteria. If omitted, no features are excluded.}
+\item{include_qualifier}{Logical, whether to include qualifier features. Default is \code{TRUE}.}
 
-\item{max_regression_value}{The maximum x value (analyzed amount) for which the regression line is fitted. Defaults to \code{NA}, considering all data points.}
+\item{include_istd}{Logical, whether to include internal standard (ISTD) features. Default is \code{TRUE}.}
 
-\item{path}{The file path for saving the PDF. Defaults to an empty string, meaning no file is saved.}
+\item{include_feature_filter}{Regex pattern to include features. If omitted,
+considers all features.}
 
-\item{rows_page}{The number of rows of plots per page for the PDF output. Defaults to 4.}
+\item{exclude_feature_filter}{Regex pattern to exclude features. If omitted,
+excludes none.}
 
-\item{cols_page}{The number of columns of plots per page for the PDF output. Defaults to 5.}
+\item{output_pdf}{Logical, if \code{TRUE}, saves plots as a PDF file. Default is
+\code{FALSE}.}
 
-\item{specific_page}{An integer specifying a particular page to plot. If \code{NA}, all pages are plotted.}
+\item{path}{File path for saving the PDF. Default is an empty string.}
 
-\item{point_size}{Numeric value specifying the size of points in the plot. Defaults to 1.5.}
+\item{return_plots}{Logical, if \code{TRUE}, returns plots as a list of ggplot2
+objects. Default is \code{FALSE}.}
 
-\item{line_width}{Numeric value specifying the width of regression lines. Defaults to 0.7.}
+\item{point_size}{Size of points in the plot. Default is 1.5.}
 
-\item{plot_scaling_factor}{A universal scaling factor for fonts, symbols, and lines. Defaults to 1.}
+\item{line_width}{Width of regression lines. Default is 0.7.}
 
-\item{page_orientation}{The orientation of the PDF paper, either \code{"LANDSCAPE"} or \code{"PORTRAIT"}. Defaults to \code{"LANDSCAPE"}.}
+\item{point_color}{A vector specifying the colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused colors will be ignored.
+Default is \code{NA} which corresponds to the default colors for QC types defined in the package.}
 
-\item{font_base_size}{The base font size for text in the plots. Defaults to 7.}
+\item{point_fill}{A vector specifying the fill colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused fill colors will be ignored.
+Default is \code{NA} which corresponds to the default fill colors for QC types defined in the package.}
 
-\item{show_progress}{Logical. Show a progress bar during plot creation if set to \code{TRUE}. Defaults to \code{TRUE}.}
+\item{point_shape}{A vector specifying the shapes for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused shapes will be ignored.
+Default is \code{NA} which corresponds to the default shapes for QC types defined in the package.}
 
-\item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of \code{ggplot2} objects. Each item represents a page of plots. Defaults to \code{FALSE}.}
-}
-\value{
-If \code{return_plots} is \code{TRUE}, a list of \code{ggplot2} objects is returned. Otherwise, the function may return a plot output and/or save a PDF, depending on the \code{output_pdf} parameter.
+\item{line_color}{Color of the regression line. Default is \code{"#4575b4"}.}
+
+\item{ribbon_fill}{Color for the confidence interval ribbon. Default is
+\code{"#91bfdb40"}.}
+
+\item{font_base_size}{Base font size for text in plots. Default is 7.}
+
+\item{rows_page}{Number of plot rows. Default is 4.}
+
+\item{cols_page}{Number of plot columns. Default is 5.}
+
+\item{specific_page}{Show/save a specific page number only. \code{NA} plots/saves all pages.}
+
+\item{page_orientation}{Orientation of PDF, either \code{"LANDSCAPE"} or
+\code{"PORTRAIT"}. Default is `"LANDSCAPE}
+
+\item{show_progress}{Logical. If \code{TRUE}, displays a progress bar during
+plot creation.}
 }
 \description{
-Plots calibration curves for each measured feature.
+This function plots calibration curves of each feature where defined
+and displays QC samples with defined concentrations within the plot.
+Users can select a regression model (\code{linear} or \code{quadratic}) and apply
+weighting (\code{none}, \code{"1/x"}, or \code{"1/x^2"}), either through function arguments
+or feature metadata.
+}
+\details{
+Features for plotting can be filtered using QC filters defined via
+\code{\link[=filter_features_qc]{filter_features_qc()}} or through \code{include_feature_filter} and
+\code{exclude_feature_filter} arguments. The resulting plots offer extensive
+customization options, including point size, line width, point color, point
+fill, point shape, line color, ribbon fill, and font base size.
+
+Plots will be divided into multiple pages if the number of features exceeds
+the product of \code{rows_page} and \code{cols_page} settings. The function supports
+both direct plotting within R and saving plots as PDF files. Additionally,
+plots can be returned as a list of ggplot2 objects for further manipulation
+or integration into other analyses.
 }

@@ -4,12 +4,14 @@
 \alias{fun_gauss.kernel.smooth}
 \title{Gaussian Kernel smoothing helper function}
 \usage{
-fun_gauss.kernel.smooth(tbl, reference_qc_types, ...)
+fun_gauss.kernel.smooth(tbl, reference_qc_types, log_transform_internal, ...)
 }
 \arguments{
 \item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
 \item{reference_qc_types}{QC types used for the smoothing (fit) by loess}
+
+\item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This does not affect the final data, which remains untransformed.}
 
 \item{...}{Additional arguments}
 }
@@ -17,7 +19,7 @@ fun_gauss.kernel.smooth(tbl, reference_qc_types, ...)
 List with a \code{data.frame} containing original \code{x} and the smoothed \code{y} values, and a \code{boolean} value indicting whether the fit failed or not not.
 }
 \description{
-Function for Gaussian kernel-based smoothing, for use by \code{corr_drift_fun}.
+Function for Gaussian kernel-based smoothing, for use by \code{fun_correct_drift}.
 }
 \author{
 Hyung Won Choi

@@ -349,10 +349,10 @@ update_after_normalization <- function(data, is_normalized, with_message = TRUE)
     if(data@is_quantitated){
       data <- update_after_quantitation(data, FALSE, FALSE)
       if(with_message)
-        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations have been invalidated. Please reprocess the data."))
+        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations are no longer valid. Please reprocess the data."))
     } else {
       if(with_message)
-        cli_alert_info(cli::col_yellow("Normalized intensities have been invalidated. Please reprocess data."))
+        cli_alert_info(cli::col_yellow("Normalized intensities are no longer valid. Please reprocess the data."))
     }
   }
   data@is_istd_normalized <- is_normalized
@@ -362,7 +362,7 @@ update_after_normalization <- function(data, is_normalized, with_message = TRUE)
 update_after_quantitation <- function(data, is_quantitated, with_message = TRUE){
   if(data@is_quantitated & !is_quantitated) {
     data@dataset <- data@dataset |> select(-any_of(c("feature_conc", "feature_raw_conc")))
-    if(with_message) cli_alert_info(cli::col_yellow("Concentrations not valid anymore. Please reprocess data."))
+    if(with_message) cli_alert_info(cli::col_yellow("Concentrations are no longer valid. Please reprocess the data."))
   }
   data@is_quantitated <- is_quantitated
   data
@@ -580,7 +580,6 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
       starts_with("method_"),
       starts_with("feature_")
     )
-
   if (nrow(data@annot_analyses) > 0) {
   data@dataset <- data@dataset |>
     select(-any_of("run_seq_num")) |>
@@ -608,6 +607,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
       "feature_class",
       "is_istd",
       "is_quantifier",
+      "analyte_id",
       "specimen")),
       starts_with("method_"),
       starts_with("feature_"),
@@ -714,19 +714,20 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 #' The function also alloows to reset the exclusions.
 #'
 #' @param data A `MidarExperiment` object
-#' @param analyses_to_exclude A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
-#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `replace_existing` flag.
-#' @param replace_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
+#' @param exclude A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
+#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `clear_existing` flag.
+#' @param clear_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
 #' the exclusions will be appended, preserving any existing invalidated analyses.
 #'
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing ){
+exclude_analyses <- function(data = NULL, exclude, clear_existing ){
   check_data(data)
-  if (all(is.na(analyses_to_exclude)) | length(analyses_to_exclude) == 0) {
-    if(!replace_existing){
-      cli_abort(cli::col_red("No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `replace_existing = TRUE`."))
+
+  if (all(is.na(exclude)) | length(exclude) == 0) {
+    if(!clear_existing){
+      cli_abort(cli::col_red("No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `clear_existing = TRUE`."))
     } else{
       cli::cli_alert_info(cli::col_green("All exclusions removed, and thus all analyses are now included for subsequent steps. Please reprocess data."))
       data@analyses_excluded <- NA
@@ -735,17 +736,17 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
       return(data)
       }
   }
-  if (any(!c(analyses_to_exclude) %in% data@annot_analyses$analysis_id)) {
+  if (any(!c(exclude) %in% data@annot_analyses$analysis_id)) {
     cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please verify the analysis metadata."))
   }
-  if(!replace_existing){
+  if(!clear_existing){
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% analyses_to_exclude) & .data$valid_analysis)
+      mutate(valid_analysis = !(.data$analysis_id %in% exclude) & .data$valid_analysis)
     cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses are now excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% analyses_to_exclude))
+      mutate(valid_analysis = !(.data$analysis_id %in% exclude))
     cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
     }
@@ -767,20 +768,20 @@ exclude_analyses <- function(data = NULL, analyses_to_exclude, replace_existing 
 #' The function also alloows to reset the exclusions.
 #'
 #' @param data A `MidarExperiment` object
-#' @param features_to_exclude A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
-#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `replace_existing` flag.
-#' @param replace_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
+#' @param exclude A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
+#' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `clear_existing` flag.
+#' @param clear_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
 #' the exclusions will be appended, preserving any existing invalidated features
 #'
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_features <- function(data = NULL, features_to_exclude, replace_existing ){
+exclude_features <- function(data = NULL, exclude, clear_existing ){
   check_data(data)
 
-  if (all(is.na(features_to_exclude)) | length(features_to_exclude) == 0) {
-    if(!replace_existing){
-      cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `replace_existing = TRUE`."))
+  if (all(is.na(exclude)) | length(exclude) == 0) {
+    if(!clear_existing){
+      cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `clear_existing = TRUE`."))
     } else{
       cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all features are included. Please reprocess data."))
       data@features_excluded <- NA
@@ -789,18 +790,18 @@ exclude_features <- function(data = NULL, features_to_exclude, replace_existing 
       return(data)
     }
   }
-  if (any(!c(features_to_exclude) %in% data@annot_features$feature_id)) {
+  if (any(!c(exclude) %in% data@annot_features$feature_id)) {
     cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please verify the feature metadata."))
   }
-  if(!replace_existing){
+  if(!clear_existing){
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% features_to_exclude) & .data$valid_feature)
+      mutate(valid_feature = !(.data$feature_id %in% exclude) & .data$valid_feature)
     cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."))
     data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }
   else {
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% features_to_exclude))
+      mutate(valid_feature = !(.data$feature_id %in% exclude))
     cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."))
     data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }

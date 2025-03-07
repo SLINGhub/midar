@@ -7,52 +7,132 @@
 plot_pca(
   data = NULL,
   variable,
-  filter_data,
-  pca_dim = c(1, 2),
-  qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR"),
-  label_mad_threshold = 3,
+  qc_types = NA,
+  ellipse_variable = "qc_type",
+  ellipse_levels = NA,
+  pca_dimensions = c(1, 2),
   log_transform = TRUE,
-  exclude_istds = TRUE,
-  min_median_signal = NA,
+  filter_data = FALSE,
+  include_qualifier = FALSE,
+  include_istd = FALSE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
+  min_median_value = NA,
+  show_labels = TRUE,
+  labels_threshold_mad = 3,
+  shared_labeltext_hide = NA,
+  label_font_size = 3,
   point_size = 2,
-  point_alpha = 0.7,
-  ellipse_alpha = 0.8,
+  point_alpha = 0.8,
   font_base_size = 8,
-  hide_text_from_labels = NA
+  ellipse_confidence_level = 0.95,
+  ellipse_linewidth = 1,
+  ellipse_fill = TRUE,
+  ellipse_fillcolor = NA,
+  ellipse_alpha = 0.1
 )
 }
 \arguments{
-\item{data}{MidarExperiment object containing the QC data}
+\item{data}{A MidarExperiment object}
 
-\item{variable}{Variable to use for PCA analysis. Must be one of: "area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"}
+\item{variable}{A character string indicating the variable to use for PCA
+analysis. Must be one of: "area", "height", "intensity", "response",
+"conc", "conc_raw", "rt", "fwhm".}
 
-\item{filter_data}{Use all (default) or qc-filtered data}
+\item{qc_types}{A character vector specifying the QC types to plot. It
+must contain at least one element. The default is \code{NA}, which means any
+of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
+"NIST", "LTR") will be plotted if present in the dataset.}
 
-\item{pca_dim}{PCA dimensions to plot as a vector of length 2. Default is c(1,2)}
+\item{ellipse_variable}{String specifying which sample variable to show
+as ellipses. Must be one of: "none", "qc_type", "batch_id".
+"none" omits ellipses.}
 
-\item{qc_types}{QC types to include in the plot. Default is c("SPL", "BQC", "TQC", "NIST", "LTR")}
+\item{ellipse_levels}{A character vector specifying the levels of
+\code{ellipse_variable} to display as ellipses.}
 
-\item{label_mad_threshold}{Show analysis_id label for points outside k * MAD of the selected PCA dimensions. Default is 3. Set NULL to suppress labels}
+\item{pca_dimensions}{A numeric vector of length 2 indicating the PCA dimensions
+to plot. Default is c(1, 2).}
 
-\item{log_transform}{Whether to log-transform data before PCA. Default is TRUE}
+\item{log_transform}{A logical value indicating whether to log-transform
+the data before the PCA. Default is \code{TRUE}.}
 
-\item{exclude_istds}{Whether to exclude internal standards. Default is TRUE}
+\item{filter_data}{A logical value indicating whether to use all data
+(default) or only QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
 
-\item{min_median_signal}{Minimum median signal across all samples from selected QC types. NA (default) will not filter any features}
+\item{include_qualifier}{A logical value indicating whether to include
+qualifier features. Default is \code{TRUE}.}
 
-\item{point_size}{Size of plot points. Default is 2}
+\item{include_istd}{A logical value indicating whether to include internal
+standard (ISTD) features. Default is \code{TRUE}.}
 
-\item{point_alpha}{Transparency of plot points (0-1). Default is 0.7}
+\item{include_feature_filter}{A character or regex pattern used to filter
+features by \code{feature_id}. If \code{NA} or an empty string (\code{""}) is provided,
+the filter is ignored. When a vector of length > 1 is supplied, only
+features with exactly these names are selected (applied individually as
+OR conditions).}
 
-\item{ellipse_alpha}{Transparency of ellipse fill (0-1). Default is 0.8}
+\item{exclude_feature_filter}{A character or regex pattern used to exclude
+features by \code{feature_id}. If \code{NA} or an empty string (\code{""}) is provided,
+the filter is ignored. When a vector of length > 1 is supplied, only
+features with exactly these names are excluded (applied individually as
+OR conditions).}
 
-\item{font_base_size}{Base font size for plot text elements. Default is 8}
+\item{min_median_value}{Minimum median
+feature value (as determined by the \code{variable}) across all samples from
+selected QC types that must be met for a feature to be included in the
+PCA analysis. \code{NA} (default) means no filtering will be applied. This
+parameter provides an fast way to exclude noisy features from the
+analysis. However, it is recommended to use \code{filter_data} with
+\code{\link[=filter_features_qc]{filter_features_qc()}}.}
 
-\item{hide_text_from_labels}{Hide shared text (case-sensitive) in labels. If resulting in non-unique analysis_id's, an error will be raised}
+\item{show_labels}{A logical value indicating whether to show analysis_id
+labels for points outside k * MAD of the selected PCA dimensions. Default
+is \code{TRUE}.}
+
+\item{labels_threshold_mad}{A numeric value determining the threshold
+for showing labels based on the median absolute deviation (MAD). Default
+is 3. Set to \code{NULL} to suppress labels.}
+
+\item{shared_labeltext_hide}{A character string representing text shared
+across labels to be hidden (case-sensitive). If this results in
+non-unique analysis_id's, an error will be raised.}
+
+\item{label_font_size}{Number indicating the font size for labels in 'mm'.
+Note the unit is different from font_base_size that is in 'pt'.}
+
+\item{point_size}{A numeric value indicating the size of points in
+millimeters. Default is 2.}
+
+\item{point_alpha}{A numeric value indicating the transparency of
+points (0-1). Default is 0.5.}
+
+\item{font_base_size}{A numeric value indicating the base font size for
+plot text elements. Default is 8.}
+
+\item{ellipse_confidence_level}{A numeric value indicating the confidence level
+for the ellipses. Default is 0.95.}
+
+\item{ellipse_linewidth}{A numeric value indicating the line width of the
+ellipses. Default is 1.}
+
+\item{ellipse_fill}{A logical value indicating whether to fill the ellipses.}
+
+\item{ellipse_fillcolor}{A vector specifying the fill colors for ellipse corresponding
+to different \code{ellipse_variable} levels. This can be either an unnamed vector or a named
+vector, with names corresponding to leves in \code{ellipse_variable}. Unused fill colors will be ignored.
+Default is \code{NA} which corresponds to the default fill colors in case of
+\code{ellipse_variable = qc_type}, and to automatically generated colors otherwise.}
+
+\item{ellipse_alpha}{A numeric value indicating the transparency of the
+ellipse fill (0-1). Default is 0.3.}
 }
 \value{
-A ggplot2 object
+A ggplot object with the PCA plot
 }
 \description{
-Generates a Principal Component Analysis (PCA) plot for visualizing QC samples, with options for filtering, transformations, and customizable visual elements.
+Generates a Principal Component Analysis (PCA) plot for
+visualizing samples including quality control (QC) samples. This function
+provides options for filtering data, applying transformations, and customizing
+visual elements to enhance the visualization.
 }

@@ -62,8 +62,8 @@ mexp <- midar::import_data_mrmkit(data = mexp,
 #   missing.normintensity.spl.prop.max = 0.2,
 #   max.cv.conc.bqc = 30,
 #   min.min.min.min.signalblank.median.spl.pblk = 3,
-#   qualifier.include = TRUE, 
-#   istd.include = FALSE
+#   include_qualifier = TRUE, 
+#   include_istd = FALSE
 #)
 ```
 

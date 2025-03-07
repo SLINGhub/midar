@@ -4,13 +4,13 @@
 \alias{quantify_by_istd}
 \title{Calculate Analyte Concentrations Based on Internal Standards}
 \usage{
-quantify_by_istd(data = NULL, fail_missing_annotation = TRUE)
+quantify_by_istd(data = NULL, ignore_missing_annotation = FALSE)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{fail_missing_annotation}{If \code{TRUE}, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
-If \code{FALSE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
+\item{ignore_missing_annotation}{If \code{FALSE}, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
+If \code{TRUE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
 }
 \value{
 A \code{MidarExperiment} object with the calculated analyte concentrations added to the

@@ -4,12 +4,14 @@
 \alias{fun_loess}
 \title{Loess smoothing helper function}
 \usage{
-fun_loess(tbl, reference_qc_types, ...)
+fun_loess(tbl, reference_qc_types, log_transform_internal, ...)
 }
 \arguments{
 \item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
 \item{reference_qc_types}{QC types used for the smoothing (fit) by loess}
+
+\item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This does not affect the final data, which remains untransformed.}
 
 \item{...}{Additional arguments forwarded to Loess}
 }
@@ -17,5 +19,5 @@ fun_loess(tbl, reference_qc_types, ...)
 List with a \code{data.frame} containing original x and the smoothed y values, and a \code{boolean} value indicting whether the fit failed or not not.
 }
 \description{
-Function for loess-based smoothing, for use by \code{corr_drift_fun}
+Function for loess-based smoothing, for use by \code{fun_correct_drift}
 }

@@ -4,25 +4,12 @@
 \alias{plot_qc_summary_overall}
 \title{Plot Overall QC Filtering Summary}
 \usage{
-plot_qc_summary_overall(
-  data = NULL,
-  include_qualifier = FALSE,
-  include_istd = FALSE,
-  with_venn_diag = TRUE,
-  user_defined_keeper = FALSE,
-  font_base_size = 8
-)
+plot_qc_summary_overall(data = NULL, with_venn = TRUE, font_base_size = 8)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{include_qualifier}{Whether to include qualifier features in the plot. Default is \code{FALSE}.}
-
-\item{include_istd}{Whether to include internal standard features in the plot. Default is \code{FALSE}.}
-
-\item{with_venn_diag}{Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is \code{TRUE}.}
-
-\item{user_defined_keeper}{Whether to retain user-specified features that were not selected by the QC filters. Default is \code{FALSE}.}
+\item{with_venn}{Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is \code{TRUE}.}
 
 \item{font_base_size}{The base font size for the plot. Default is \code{8}.}
 }
@@ -32,7 +19,7 @@ A \code{ggplot2} object showing the feature QC filtering summary with or without
 \description{
 This function generates a summary of the feature QC filtering process, visualizing the number of features that passed or failed the various QC criteria.
 It includes a Venn diagram showing the features excluded due to different filtering criteria such as signal-to-blank ratios, CV thresholds, and linearity.
-The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters.
+The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters. See \code{\link[=plot_qc_summary_byclass]{plot_qc_summary_byclass()}} for more information.
 }
 \details{
 The QC filtering process follows a hierarchical structure, where features are first evaluated against lower-level filters such as signal-to-blank ratios and limit of detection (LOD).

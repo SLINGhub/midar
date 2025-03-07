@@ -4,15 +4,15 @@
 \alias{exclude_analyses}
 \title{Exclude analyses from the dataset}
 \usage{
-exclude_analyses(data = NULL, analyses_to_exclude, replace_existing)
+exclude_analyses(data = NULL, exclude, clear_existing)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{analyses_to_exclude}{A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
-If this is \code{NA} or an empty vector, the exclusion behavior will be handled as set via the \code{replace_existing} flag.}
+\item{exclude}{A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
+If this is \code{NA} or an empty vector, the exclusion behavior will be handled as set via the \code{clear_existing} flag.}
 
-\item{replace_existing}{A logical value. If \code{TRUE}, existing \code{valid_analysis} flags will be overwritten. If \code{FALSE},
+\item{clear_existing}{A logical value. If \code{TRUE}, existing \code{valid_analysis} flags will be overwritten. If \code{FALSE},
 the exclusions will be appended, preserving any existing invalidated analyses.}
 }
 \value{

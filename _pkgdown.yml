@@ -9,7 +9,7 @@ navbar:
       text: Get Started
       href: articles/getstarted.html
     articles:
-      text: Articles
+      text: Manual
       menu:
       - text: '-------'
       - text: Key Concepts
@@ -27,7 +27,7 @@ navbar:
       - text: Batch/Drift Correction
         href: articles/BatchDriftCorrect.html
     news:
-      text: Updates
+      text: News
       href: articles/updates.html
 
 reference:
@@ -42,9 +42,16 @@ reference:
   - get_batch_boundaries
   - exclude_analyses
   - exclude_features
-  - combine_experiments
   - get_analyticaldata
   - set_intensity_var
+  - get_analysis_count
+  - get_analyis_start
+  - get_analyis_end
+  - get_analysis_breaks
+  - get_analysis_duration
+  - get_runtime_median
+  - get_feature_count
+  - get_featurelist
 - title: Analysis data import
   description: |
     Functions to import analytical data from different sources into MidarExperiment objects.
@@ -69,16 +76,17 @@ reference:
   - import_metadata_istds
   - import_metadata_responsecurves
   - import_metadata_qcconcentrations
-  - metadata_responsecurves
   - assert_metadata
   - add_metadata
 - title: External Calibration
   description: |
     Function to plot and analyze external calibration curves
   contents:
+  - quantify_by_calibration
   - plot_calibrationcurves
   - calc_calibration_results
-  - get_calibration_results
+  - get_calibration_metrics
+  - get_qc_bias_variability
 - title: Normalization and Quantification
   description: |
     Functions to normalization by internal standards and sample amounts, to calculate analyte concentrations based
@@ -91,23 +99,24 @@ reference:
   description: |
     Function for drift and batch correction correction
   contents:
-  - correct_drift_loess
   - correct_drift_gaussiankernel
-  - corr_drift_fun
-  - fun_gauss.kernel.smooth
-  - fun_loess
+  - correct_drift_loess
+  - correct_drift_cubicspline
+  - correct_drift_gam
   - correct_batch_centering
 - title: Isotope correction
   description: |
     Functions to perform type II isotopic correction
   contents:
   - correct_interferences
+  - correct_interference_manual
 - title: Quality Control and Filtering
   description: |
     Functions to calculate feature QC metrics and apply QC filtering, and vizualize the filtering results.
   contents:
   - calc_qc_metrics
   - filter_features_qc
+  - detect_outlier
   - plot_qc_summary_byclass
   - plot_qc_summary_overall
 - title: Quality Control Plots
@@ -118,8 +127,8 @@ reference:
   - plot_runscatter
   - plot_rla_boxplot
   - plot_pca
-  - plot_cv_normalization
-  - plot_compare_qcmetrics
+  - plot_normalization_qc
+  - plot_qcmetrics_comparison
 - title: Response Curves
   description: |
     Functions to calculate and visualize response curves
@@ -132,7 +141,7 @@ reference:
   contents:
   - save_report_xlsx
   - save_dataset_csv
-  - report_write_qc_metrics
+  - save_feature_qc_metrics
 - title: Lipidomics
   description: |
     Functions specific to lipidomics data processing and analysis.
@@ -142,11 +151,21 @@ reference:
     Example datasets for testing and demonstration.
   contents:
   - lipidomics_dataset
+  - quant_lcms_dataset
   - data_load_example
 - title: Helper functions
   description: |
     A collection of functions that may be useful in the context of mass spectrometry is also available.
   contents:
+  - cv
   - cv_log
   - save_dataset_csv
+  - fun_correct_drift
+  - fun_gauss.kernel.smooth
+  - fun_loess
+  - fun_cspline
+  - fun_gam_smooth
+  - get_mad_tails
+  - order_chained_columns_tbl
+
 

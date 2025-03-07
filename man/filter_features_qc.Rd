@@ -2,15 +2,15 @@
 % Please edit documentation in R/qc-filtering.R
 \name{filter_features_qc}
 \alias{filter_features_qc}
-\title{Feature Filtering Based on Quality Control Criteria}
+\title{Feature Filtering Based on QC Criteria}
 \usage{
 filter_features_qc(
   data = NULL,
-  replace_existing = TRUE,
+  clear_existing = TRUE,
   use_batch_medians = FALSE,
-  qualifier.include = FALSE,
-  istd.include = FALSE,
-  features.to.keep = NULL,
+  include_qualifier,
+  include_istd,
+  features.to.keep = NA,
   max.prop.missing.intensity.spl = NA,
   max.prop.missing.normintensity.spl = NA,
   max.prop.missing.conc.spl = NA,
@@ -30,7 +30,7 @@ filter_features_qc(
   max.cv.normintensity.tqc = NA,
   max.cv.conc.bqc = NA,
   max.cv.conc.tqc = NA,
-  response.curves.select = NA,
+  response.curves.selection = NA,
   response.curves.summary = NA,
   min.rsquare.response = NA,
   min.slope.response = NA,
@@ -49,13 +49,13 @@ filter_features_qc(
 \arguments{
 \item{data}{MidarExperiment object.}
 
-\item{replace_existing}{Logical. If \code{TRUE}, replaces any existing filters; if \code{FALSE}, adds new filters on top of existing ones. Default is \code{TRUE}.}
+\item{clear_existing}{Logical. If \code{TRUE}, replaces any existing filters; if \code{FALSE}, adds new filters on top of existing ones. Default is \code{TRUE}.}
 
 \item{use_batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
 
-\item{qualifier.include}{Logical. If \code{TRUE}, includes qualifier features in the filtering process. Default is \code{FALSE}.}
+\item{include_qualifier}{Logical. If \code{TRUE}, includes qualifier features in the filtering process.}
 
-\item{istd.include}{Logical. If \code{TRUE}, includes internal standards (ISTDs) in the filtering process. Default is \code{FALSE}.}
+\item{include_istd}{Logical. If \code{TRUE}, includes internal standards (ISTDs) in the filtering process.}
 
 \item{features.to.keep}{A vector of feature identifiers to retain, even if they do not meet the filtering criteria.}
 
@@ -97,7 +97,7 @@ filter_features_qc(
 
 \item{max.cv.conc.tqc}{Maximum CV for concentration in TQC samples. Default is \code{NA}.}
 
-\item{response.curves.select}{Select specific response curves by ID. Default is \code{NA}.}
+\item{response.curves.selection}{Select specific response curves by ID. Default is \code{NA}.}
 
 \item{response.curves.summary}{Define the method to summarize multiple response curves. Default is \code{NA}.}
 
@@ -133,6 +133,9 @@ Filters a dataset based on quality control (QC) criteria, including intensity,
 coefficient of variation (CV), signal-to-blank ratios, D-ratio, response curve properties,
 and proportion of missing values. Criteria apply to different QC types (BQC, TQC) and
 measurement variables (concentration, intensity, and normalized intensity).
+
+To clear all existing filters, run \code{filter_features_qc()} with \code{clear_existing = TRUE}
+and without any filtering criteria.
 }
 \details{
 This function implements filtering criteria based on quality control (QC) samples

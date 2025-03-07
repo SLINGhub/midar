@@ -51,6 +51,8 @@ test_that("correct_interferences corrects overlapping interferences", {
     "Interference-correction has been applied to 4 of the 16 features"
   )
 
+
+
   expect_equal(
     mexp_res@dataset |>
       filter(
@@ -59,6 +61,38 @@ test_that("correct_interferences corrects overlapping interferences", {
       ) |>
       pull(feature_intensity),
     31526
+  )
+
+  expect_equal(
+    mexp_res@dataset |>
+      filter(
+        feature_id == "S1P d18:1 [M>60]",
+        analysis_id == "008_LTR_LTR01"
+      ) |>
+      pull(feature_intensity),
+    84304.7172490
+  )
+
+  # corrrected with corrected S1P d18:1
+  expect_equal(
+    mexp_res@dataset |>
+      filter(
+        feature_id == "S1P d18:0 [M>60]",
+        analysis_id == "008_LTR_LTR01"
+      ) |>
+      pull(feature_intensity),
+    7256.0500353124
+  )
+
+  # reapply
+  expect_message(
+    mexp_res <-
+      correct_interferences(
+        mexp_res,
+        variable = "feature_intensity",
+        sequential_correction = TRUE
+      ),
+    "Interference-correction has been applied to 4 of the 16 features"
   )
 
   expect_equal(

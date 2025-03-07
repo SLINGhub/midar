@@ -1,9 +1,20 @@
 #' Plot Response Curves
 #'
-#' Generates response curve plots for each measured feature. Plots can be
-#' saved as multi-page PDFs or directly displayed. Multiple response curves,
+#' This function plots response curves for each feature. Multiple response curves,
 #' each with a linear regression line, can be plotted on the same graph.
 #' Each feature is displayed as a separate facet.
+#'
+#' Features for plotting can be filtered using QC filters defined via
+#' [filter_features_qc()] or through `include_feature_filter` and
+#' `exclude_feature_filter` arguments. The resulting plots offer extensive
+#' customization options, including point size, line width, point color, point
+#' fill, point shape, line color, ribbon fill, and font base size.
+#'
+#' Plots will be divided into multiple pages if the number of features exceeds
+#' the product of `rows_page` and `cols_page` settings. The function supports
+#' both direct plotting within R and saving plots as PDF files. Additionally,
+#' plots can be returned as a list of ggplot2 objects for further manipulation
+#' or integration into other analyses.
 #'
 #' @param data A `MidarExperiment` object containing the dataset and metadata.
 #' @param variable The variable to plot on the y-axis.
@@ -25,10 +36,12 @@
 #'   `output_pdf` is `TRUE`.
 #' @param return_plots Logical. If `TRUE`, returns the plots as a list of
 #'   `ggplot2` objects.
-#' @param color_curves useA vector of colors for the curves.
+#' @param color_curves A vector of colors for the curves. If `NULL` (default),
+#' the colors for each curve are generated automatically. If colors are provided,
+#' the number of colors must match the number of curves.
 #' @param point_size Size of points in millimeters.
 #' @param line_width Width of regression lines.
-#' @param font_base_size Base font size for text.
+#' @param font_base_size Base font size for text. Default is 7.
 #' @param rows_page Number of rows of plots per page.
 #' @param cols_page Number of columns of plots per page.
 #' @param specific_page An integer specifying a specific page to plot. If
@@ -49,7 +62,6 @@ plot_responsecurves <- function(data = NULL,
                                 variable = "intensity",
                                 # Data and filtering arguments
                                 filter_data = FALSE,
-                                qc_types = NA,
                                 include_qualifier = TRUE,
                                 include_istd = TRUE,
                                 include_feature_filter = NA,
@@ -62,8 +74,7 @@ plot_responsecurves <- function(data = NULL,
                                 return_plots = FALSE,
 
                                 # Plot customization
-                                color_curves = c("#4575b4", "#91bfdb", "#fc8d59",
-                                                  "#d73027"),
+                                color_curves = NULL,
                                 point_size = 1.5,
                                 line_width = 0.7,
                                 font_base_size = 7,
@@ -147,7 +158,11 @@ plot_responsecurves <- function(data = NULL,
   #Check if color_curves is provided or is NA
   if (is.null(color_curves) || length(color_curves) == 0 || all(is.na(color_curves))) {
     # If no color_curves is provided (NA or NULL), generate a discrete color scale
-    color_curves <- scales::hue_pal()(length(unique(d_rqc$curve_id)))
+    n_curves <- length(unique(d_rqc$curve_id))
+    if(n_curves < 5)
+      color_curves <- c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")
+    else
+      color_curves <- scales::hue_pal()(n_curves)
   } else {
     # If color_curves is provided, check if it has enough colors
     num_levels <- length(unique(d_rqc$curve_id))
@@ -200,7 +215,7 @@ plot_responsecurves <- function(data = NULL,
 
   # Initialize progress bar if requested
   if (show_progress) pb <- txtProgressBar(min = 0, max = max(page_range),
-                                          width = 50, style = 3)
+                                          width = 30, style = 3)
 
   p_list <- list()  # List to store plots for each page
   for (i in page_range) {
@@ -249,9 +264,9 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
   dataset$curve_id <- as.character(dataset$curve_id)
 
   # Subset dataset for current page
-  n_cmpd <- length(unique(dataset$analysis_id))
-  row_start <- n_cmpd * cols_page * rows_page * (specific_page - 1) + 1
-  row_end <- n_cmpd * cols_page * rows_page * specific_page
+  n_samples <- length(unique(dataset$analysis_id))
+  row_start <- n_samples * cols_page * rows_page * (specific_page - 1) + 1
+  row_end <- n_samples * cols_page * rows_page * specific_page
 
   dat_subset <- dataset |>
     arrange(.data$feature_id, .data$curve_id) |>
@@ -267,8 +282,8 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
       se = FALSE, na.rm = TRUE, linewidth = line_width , inherit.aes = FALSE
     ) +
     ggpmisc::stat_poly_eq(
-      aes(group = .data$curve_id, label = after_stat(.data$rr.label)),
-      size = 2 * font_base_size/8, rr.digits = 3, vstep = 0.1
+      aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
+      size = font_base_size * 0.4, rr.digits = 4, vstep = 0.02
     ) +
     scale_color_manual(values = color_curves) +
     scale_y_continuous(limits = c(0, NA)) +

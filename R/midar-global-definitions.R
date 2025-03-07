@@ -6,13 +6,13 @@ setOldClass(c("tbl_df", "tbl", "data.frame")) # allow S4 to see the S3 tbl_df
 
 # Data structure templates
 pkg.env$table_templates <- list(
-  dataset_orig_template = tibble::tibble(
+  dataset_orig_template = dplyr::tibble(
     "analysis_id" = character(),
     "raw_data_filename" = character(),
     "acquisition_time_stamp" = as.Date(character()),
     "feature_id" = character(),
   ),
-  dataset_template = tibble::tibble(
+  dataset_template = dplyr::tibble(
     "run_seq_num" = integer(),
     "analysis_id" = character(),
     "acquisition_time_stamp" = as.Date(character()),
@@ -29,7 +29,7 @@ pkg.env$table_templates <- list(
     "feature_intensity" = numeric()
 
   ),
-  annot_analyses_template = tibble::tibble(
+  annot_analyses_template = dplyr::tibble(
     "run_seq_num" = integer(),
     "analysis_id" = character(),
     "sample_id" = character(),
@@ -44,9 +44,10 @@ pkg.env$table_templates <- list(
     "annot_order_num" = integer(),
     "remarks" = character()
   ),
-  annot_features_template = tibble::tibble(
+  annot_features_template = dplyr::tibble(
     "feature_id" = character(),
     "feature_class" = character(),
+    "analyte_id" = character(),
     "is_istd" = logical(),
     "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
@@ -55,33 +56,33 @@ pkg.env$table_templates <- list(
     "response_factor" = numeric(),
     "interference_feature_id" = character(),
     "interference_contribution" = numeric(),
-    "curve_fit_method" = character(),
+    "curve_fit_model" = character(),
     "fit_weighting" = character(),
     "remarks" = character()
   ),
-  annot_istds_template = tibble::tibble(
+  annot_istds_template = dplyr::tibble(
     "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
     "istd_conc_nmolar" = numeric()
   ),
-  annot_responsecurves_template = tibble::tibble(
+  annot_responsecurves_template = dplyr::tibble(
     "analysis_id" = character(),
     "curve_id" = character(),
     "analyzed_amount" = numeric()
   ),
-  annot_qcconcentrations_template = tibble::tibble(
+  annot_qcconcentrations_template = dplyr::tibble(
     "sample_id" = character(),
-    "feature_id" = character(),
+    "analyte_id" = character(),
     "concentration" = numeric(),
     "concentration_unit" = character()
   ),
-  annot_batch_info_template = tibble::tibble(
+  annot_batch_info_template = dplyr::tibble(
     "batch_id" = character(),
     "batch_no" = numeric(),
     "id_batch_start" = numeric(),
     "id_batch_end" = numeric()
   ),
-  parameters_processing_template = tibble::tibble(
+  parameters_processing_template = dplyr::tibble(
     "parameter_name" = character()
   )
 )
@@ -89,7 +90,7 @@ pkg.env$table_templates <- list(
 
 pkg.env$qc_type_annotation <- list(
   qc_type_levels = c(
-    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC",  "PBLK", "CAL","EQA", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
+    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC",  "QC", "PBLK", "CAL","EQA", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
     "LTR",  "SPL", "SST", "MBLK"
   ),
   qc_type_col = c(
@@ -99,10 +100,11 @@ pkg.env$qc_type_annotation <- list(
     "BQC" = "#db0202",
     "TQC" = "#1854f9",
     "PQC" = "#f99f18",
-    "LQC" = "#c47b0c",
-    "MQC" = "#c47b0c",
-    "HQC" = "#c47b0c",
-    "CAL" = "#04c9a9",
+    "LQC" = "#f27507",
+    "MQC" = "#f27507",
+    "HQC" = "#f27507",
+    "QC" = "#f27507",
+    "CAL" = "#4575b4",
     "RQC" = "#96a4ff",
     "EQC" = "#513c3c",
     "NIST" = "#002e6b",
@@ -120,11 +122,12 @@ pkg.env$qc_type_annotation <- list(
     "BQC" = "#db0202",
     "TQC" = "#1854f9",
     "PQC" = "#f99f18",
-    "LQC" = "#ffba19",
-    "MQC" = "#ffba19",
-    "HQC" = "#ffba19",
+    "LQC" = "#f5c969",
+    "MQC" = "#f5c969",
+    "HQC" = "#f5c969",
+    "QC" = "#f5c969",
     "EQA" = "#de21de",
-    "CAL" = "#43e0c7",
+    "CAL" = "white",
     "RQC" = "#688ff9",
     "EQC" = "NA",
     "NIST" = "#cce2ff",
@@ -144,7 +147,7 @@ pkg.env$qc_type_annotation <- list(
     "LQC" = 25,
     "MQC" = 23,
     "HQC" = 24,
-    "EQA" = 23,
+    "EQA" = 22,
     "CAL" = 21,
     "RQC" = 6,
     "EQC" = 24,

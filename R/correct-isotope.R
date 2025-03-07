@@ -113,10 +113,9 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
   check_data(data)
 
   if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
-
   # Check if data is already interference-corrected
-  if (data@is_isotope_corr & (c("feature_intensity_orig") %in% names(data@dataset))) {
-    cli_alert_info(glue::glue("Data is already interference-corrected. Corrections will be reapplied to raw intensities."))
+  if (data@is_isotope_corr && (c("feature_intensity_orig") %in% names(data@dataset))) {
+    cli_alert_info(cli::col_yellow("Data was already interference-corrected. Corrections will be reapplied to raw intensities."))
     data@dataset <- data@dataset |>
       mutate(
         feature_intensity = .data$feature_intensity_orig,
@@ -148,7 +147,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
                               include_chain_id = FALSE, disconnected_action = "keep")
 
   # Check if there are incomplete interference data
-  if(!all(complete.cases(features_to_correct))) {
+  if(!all(stats::complete.cases(features_to_correct))) {
     cli_abort("Some features have incomplete interference information (i.e., `interference_contribution` or `interference_contribution` missing. Please verify feature metadata.")
   }
 
@@ -169,7 +168,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
 
   # Function to apply correction for each feature set in features_to_correct
   correct_feature_intensity <- function(data,features_to_correct, i) {
-    d <- data %>%
+    d <- data |>
       group_by(.data$analysis_id) |>
       mutate(
         raw_target = if_else(.data$feature_id == features_to_correct$feature_id[i],
@@ -179,7 +178,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
         rel_interference = if_else(.data$feature_id == features_to_correct$feature_id[i],
                                    features_to_correct$interference_contribution[i], NA_real_),
         corr_intensity = if_else(.data$feature_id == features_to_correct$feature_id[i],
-                                 raw_target - raw_source * rel_interference, NA_real_)
+                                 .data$raw_target - .data$raw_source * .data$rel_interference, NA_real_)
       ) |>
       ungroup() |>
       select(-"raw_target", -"raw_source", -"rel_interference") |>
@@ -208,7 +207,7 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
       interference_corrected = .data$feature_intensity != .data$intensity_corrected,
       feature_intensity = .data$intensity_corrected
     ) |>
-    select(-"intensity_corrected", -"feature_intensity_orig")
+    select(-"intensity_corrected")
 
 
   # Update MidarExperiment flags

@@ -10,6 +10,7 @@ mexp <- normalize_by_istd(mexp_orig)
 mexp <- quantify_by_istd(mexp)
 mexp <- calc_qc_metrics(mexp)  # Ensure calc_qc_metrics is executed before
 
+
 test_that("plot_runscatter generates a plot", {
 
   # Test with valid arguments
@@ -99,7 +100,7 @@ test_that("plot_runscatter generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "673K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "672K")
   fs::file_delete(temp_pdf_path)
 
 })
@@ -119,7 +120,7 @@ test_that("plot_runscatter filter work", {
   )
   expect(length(p), 1)
   plot_data <- ggplot_build(p[[1]])$data
-  expect_equal(nrow(plot_data[[2]]), 3464)
+  expect_equal(nrow(plot_data[[2]]), 3456)
   expect_doppelganger("filtered plot_responsecurves plot", p)
 
   # Test range filter and also regex for qc type
@@ -137,7 +138,7 @@ test_that("plot_runscatter filter work", {
   )
   expect(length(p), 1)
   plot_data <- ggplot_build(p[[1]])$data
-  expect_equal(nrow(plot_data[[2]]), 3464)
+  expect_equal(nrow(plot_data[[2]]), 3456)
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   expect_doppelganger("filtered range plot_responsecurves plot 2", p)
 
@@ -155,7 +156,7 @@ test_that("plot_runscatter filter work", {
   )
   expect(length(p), 1)
   plot_data <- ggplot_build(p[[1]])$data
-  expect_equal(nrow(plot_data[[2]]), 866)
+  expect_equal(nrow(plot_data[[2]]), 864)
   expect_equal(max(p[[1]]$data$value_mod),9364398.0)
   expect_doppelganger("filtered range plot_responsecurves plot", p)
 
@@ -185,7 +186,7 @@ test_that("plot_runscatter filter work", {
       show_progress = TRUE
   ))
 
-  expect_true(any(grepl("==================================================",
+  expect_true(any(grepl("======================",
                         captured_output)))
 
   captured_output <- capture_output(
@@ -381,7 +382,7 @@ test_that("plot_runscatter show reference lines works", {
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),6)
-  expect_equal(mean(plot_data[[3]]$yend),2083367.3)
+  expect_equal(mean(plot_data[[3]]$yend),2103609.1)
 
 
   p <- plot_runscatter(
@@ -401,7 +402,7 @@ test_that("plot_runscatter show reference lines works", {
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),5)
   expect_equal(unique(plot_data[[2]]$alpha),0.15)
-  expect_equal(mean(plot_data[[2]]$ymax),2429202.3)
+  expect_equal(mean(plot_data[[2]]$ymax),2408485.4)
   expect_doppelganger("extended plot_responsecurves plot with ref", p)
 
   p <- plot_runscatter(
@@ -419,7 +420,7 @@ test_that("plot_runscatter show reference lines works", {
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),4)
-  expect_equal(mean(plot_data[[3]]$yintercept), 2085094.9)
+  expect_equal(mean(plot_data[[3]]$yintercept), 2103633.9)
 
   p <- plot_runscatter(
     data = mexp,
@@ -484,6 +485,8 @@ test_that("plot_runscatter show trend works", {
   mexp_drift <- correct_drift_gaussiankernel(
     mexp_orig,
     variable = "intensity",
+    recalc_trend_after = TRUE,
+
     reference_qc_types = "SPL",
     ignore_istd = FALSE)
 
@@ -518,7 +521,7 @@ test_that("plot_runscatter show trend works", {
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5988,10))
   expect_equal(dim(plot_data[[3]]),c(5988,9)) # smoothed data points
-  expect_equal(mean(plot_data[[3]]$y),2001316.99143234) # smoothed data points
+  expect_equal(mean(plot_data[[3]]$y),2084559.556) # smoothed data points
 })
 
 test_that("plot_runscatter handles filter and missing data", {
@@ -549,7 +552,9 @@ expect_error(
     ),
     "Data has not been QC-filtered"
   )
-  mexp_filt <- midar::filter_features_qc(mexp, min.intensity.median.spl = 1000000)
+  mexp_filt <- midar::filter_features_qc(mexp, include_qualifier = FALSE, include_istd = FALSE,
+
+                                         min.intensity.median.spl = 1000000)
 
   # uses filtered dataset
   p <- plot_runscatter(
@@ -647,7 +652,7 @@ test_that("plot_runsequence works with basic parameters", {
 
   p <- plot_runsequence(mexp,qc_types = c("SPL", "BQC", "RQC"), show_batches = TRUE)
   plot_data <- ggplot_build(p)$data
-  expect_equal(dim(plot_data[[2]]),c(445,10))
+  expect_equal(dim(plot_data[[2]]),c(444,10))
 
   p <- plot_runsequence(mexp,qc_types = c("SPL|BQC|RQC"), show_batches = TRUE)
   plot_data <- ggplot_build(p)$data

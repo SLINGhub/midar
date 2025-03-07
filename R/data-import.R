@@ -218,7 +218,6 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
   #
   # Read Agilent MassHunter Quant Export file (CSV)
-
   suppressWarnings(suppressMessages(
     datWide <-
       readr::read_csv(
@@ -243,9 +242,13 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   datWide <- datWide |> dplyr::add_row(.after = 1)
 
-  if (datWide[1, 1] != "Sample") cli::cli_abort("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
 
-  feature_id_tbl <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
+
+  if (!any(c("Name", "Data File") %in% unlist(datWide[3,]))) cli::cli_abort("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
+
+  if(datWide[1, 1] != "Sample") datWide[1, 1] <- "Sample"
+
+  feature_id_tbl <- dplyr::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if(""))
 
   # if parameter set, then use prefix the feature name and modify the qualifier name
   if (!expand_qualifier_names) {
@@ -272,7 +275,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
   datWide[1, ] <- replace(datWide[1, ], stringr::str_detect(string = datWide[1, ], pattern = "_prefixXXX_"), "")
   datWide[2, ] <- replace(datWide[1, ], !stringr::str_detect(string = datWide[1, ], pattern = "_prefixXXX_"), "")
 
-  datWide[1, ] <- tibble::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if("")) |>
+  datWide[1, ] <- dplyr::tibble(`_prefixXXX_` = datWide[1, ] |> unlist() |> dplyr::na_if("")) |>
     tidyr::fill("_prefixXXX_") |>
     unlist() |>
     as.list()
@@ -288,7 +291,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
   # Dealing with exported "Qualifier" results: Adds the corresponding quantifier name (the first column of the group) with the Tag "QUAL" and the transition in front e.g. "Sph d18:0 [QUAL 302.3>266.2]"
 
   # Remove columns with no column names, as they are undefined (seems to be only Outlier Summary and Quantitation Message Summary)
-  datWide <- datWide |> dplyr::select(-tidyselect::where(~ .x[2] == ""))
+  datWide <- datWide |> dplyr::select(-where(~ .x[2] == ""))
 
   # Concatenate rows containing parameters + transitions to the form parameter.sample and parameter.transition headers. This will later be converted with reshape()
   colnames(datWide) <- paste(datWide[2, ], datWide[1, ], sep = "\t")
@@ -325,13 +328,12 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "completed" = "Completed\tSample",
     "compound_name" = "Name\tCompound"
   )
-
   datWide <- datWide |> dplyr::rename(dplyr::any_of(new_colnames))
 
   # TODO: check if all these are caught
   if ("message_quantitation" %in% names(datWide)) cli::cli_abort("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
   if ("compound_name" %in% names(datWide)) cli::cli_abort("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("The `Data File` column is missing or the file format is unsupported format. Please try re-export with `Data File` from Masshunter.")
+  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("The `Data File` column is missing, or the file format is unsupported format. Please re-export with `Data File` field from Masshunter and ensure analytes are in columns, analyses in rows.")
   if (nrow(warnings_datWide) > 0) cli::cli_abort("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
@@ -365,7 +367,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide |>
     dplyr::mutate(file_run_seq_num = dplyr::row_number(), .before = 1) |>
-    tidyr::pivot_longer(cols = tidyselect::all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_id")) |>
+    tidyr::pivot_longer(cols = all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_id")) |>
     tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
 
@@ -386,6 +388,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_int_start" = "Results_IntStart",
     "feature_int_end" = "Results_IntEnd",
     "feature_symetry" = "Results_Symmetry",
+    "feature_istd_responseratio" = "Results_ISTD Resp. Ratio",
     "method_precursor_mz" = "Method_Precursor Ion",
     "method_product_mz" = "Method_Product Ion",
     "method_collision_energy" = "Method_Collision Energy",
@@ -444,7 +447,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
       )
     ) |>
     dplyr::mutate(raw_data_filename = stringr::str_replace(.data$raw_data_filename, "\\.d", "")) |>
-    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish)) |>
+    dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish)) |>
     dplyr::relocate("sample_name", .after = "raw_data_filename")
 
 
@@ -522,7 +525,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     dplyr::distinct() |>
     dplyr::mutate(analysis_id = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
     dplyr::mutate(acquisition_time_stamp = lubridate::parse_date_time(.data$acquisition_time_stamp, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)) |>
-    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
+    dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 
   d_feature <- d_mrmkit_data |>
     dplyr::select(c("featurename", "istd_feature_id")) |>
@@ -532,9 +535,9 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 
   # finalize data
   d_mrmkit_data <- d_mrmkit_data |>
-    dplyr::mutate(dplyr::across(tidyselect::starts_with("feature_"), as.numeric)) |>
-    dplyr::mutate(dplyr::across(tidyselect::ends_with("_mz"), as.numeric)) |>
-    dplyr::mutate(dplyr::across(tidyselect::ends_with("_energy"), as.numeric)) |>
+    dplyr::mutate(dplyr::across(starts_with("feature_"), as.numeric)) |>
+    dplyr::mutate(dplyr::across(ends_with("_mz"), as.numeric)) |>
+    dplyr::mutate(dplyr::across(ends_with("_energy"), as.numeric)) |>
     dplyr::mutate(integration_qualifier = FALSE) |>
     dplyr::select(-c("acquisition_time_stamp",  "istd_feature_id", "batch_id")) |>
     left_join(d_sample, by = "raw_data_filename") |>
@@ -698,9 +701,6 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
                          col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
   } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
     if (sheet == "") cli::cli_abort("Please define sheet name via the `sheet` parameter")
-    # nms <- names(readxl::read_excel(path = path, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), n_max = 0))
-    # ct <- c("text", rep("numeric",length(nms)-1))
-    # d <- readxl::read_excel(path = path, sheet = sheet, trim_ws = TRUE, progress = TRUE, na = c("n/a", "N/A", "NA"), col_types = ct)
     d <- .read_generic_excel(path, sheet)
   } else {
     cli::cli_abort("Invalid file format. Only CSV, XLS and XLSX supported.")
@@ -796,7 +796,7 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
 #     dplyr::mutate(dplyr::across(.data$value, as.numeric)) |>
 #     dplyr::left_join(d_mrmkit_featureinfo, by = "feature_id") |>
 #     dplyr::relocate(.data$value, .after = dplyr::last_col()) |>
-#     dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
+#     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 #
 #   if (use_normalized_data) {
 #     d_mrmkit_data <- d_mrmkit_data |>
@@ -818,7 +818,7 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
 #   #     dplyr::mutate(path = stringr::str_squish(str_remove(.data$path, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)))) |>
 #   #     dplyr::rename(raw_data_filename = .data$path) |>
 #   #     #dplyr::mutate(run_seq_num = row_number(), .before = ANALYSIS_ID) |>
-#   #     dplyr::select(-tidyselect::any_of(c("batch", "type"))) |>
+#   #     dplyr::select(-any_of(c("batch", "type"))) |>
 #   #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_id", values_to = "feature_norm_intensity")
 #   #
 #   #   data@dataset <- data@dataset_orig |> left_join(d_results, by=c("raw_data_filename", "feature_id"))

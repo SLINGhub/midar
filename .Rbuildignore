@@ -11,3 +11,5 @@
 .travis.yml
 ^raw-data$
 ^data-raw$
+plot-methods.R
+.covrignore

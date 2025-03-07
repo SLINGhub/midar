@@ -13,7 +13,7 @@ test_that("Imports/associates data and metadata, orders analyses by dataset (tim
   )
   expect_equal(mexp@dataset[[1, "analysis_id"]], "020_SPL_S001")
   expect_equal(dim(mexp@annot_analyses),c(65, 13))
-  expect_equal(dim(mexp@annot_features),c(16, 15))
+  expect_equal(dim(mexp@annot_features),c(16, 16))
   expect_equal(dim(mexp@annot_istds),c(2, 4))
   expect_equal(dim(mexp@annot_responsecurves),c(12, 5))
   expect_equal(dim(mexp@annot_batches),c(1, 4))
@@ -155,7 +155,7 @@ test_that("Prepare qc concentration metadata from given table imported from an X
   tbl <- get_metadata_table(path = path, sheet = "QCconc")
   metadata <- clean_qcconc_metadata(tbl)
   expect_type(metadata$sample_id, "character")
-  expect_type(metadata$feature_id, "character")
+  expect_type(metadata$analyte_id, "character")
   expect_type(metadata$concentration, "double")
   expect_type(metadata$concentration_unit, "character")
   expect_type(metadata$remarks, "character")
@@ -164,7 +164,7 @@ test_that("Prepare qc concentration metadata from given table imported from an X
   expect_equal(metadata[[3,"concentration"]], 0.1)
   expect_equal(nrow(metadata), 6)
   expect_equal(ncol(metadata), 5)
-  expect_error(clean_qcconc_metadata(tbl |> select(-"feature_id")), regexp = "must have following columns")
+  expect_error(clean_qcconc_metadata(tbl |> select(-"analyte_id")), regexp = "must have following columns")
 })
 
 test_that("Add indidual metadata types to data, first analyses then features", {

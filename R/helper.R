@@ -25,7 +25,7 @@ check_groupwise_identical_ids <- function(data, group_col, id_col) {
 # Function to used to compare qc values with criteria and deal with NA
 
 
-#The comp_val function compares a column in a data frame to a threshold using a
+#The compare_values function compares a column in a data frame to a threshold using a
 #specified operator. It handles NA values by returning NA when both are NA, FALSE
 #when the column is NA and the threshold is numeric, and applies the operator
 #(e.g., >, <, ==) when both are numeric. If the column does not exist, it returns NA.
@@ -39,10 +39,24 @@ check_groupwise_identical_ids <- function(data, group_col, id_col) {
 # TODO: Add to function description,
 # TODO: make this function public for user to build own?
 
-comp_val <- function(tbl, val, threshold, operator) {
+compare_values <- function(tbl, val, threshold, operator) {
   if(nrow(tbl) == 0) stop("tbl has no rows")
-  if (!val %in% names(tbl)) return(NA)
+  if (!val %in% names(tbl)  && !is.na(threshold)) {
+    var_name <- deparse(substitute(threshold))
+    error_message <- case_when(
+      str_detect(var_name, "conc") ~ "Cannot filter by `{var_name}` because concentration data is unavailable. Please quantify the data first using `quantify_by_*()` functions.",
+      str_detect(var_name, "normint") ~ "Cannot filter by `{var_name}` because normalized data is unavailable. Please normalize the data first using `normalize_by_*()` functions.",
+      str_detect(var_name, "response") ~ "Cannot filter by `{var_name}` because response curve data is unavailable. Please verify the corresponding data and metadata.",
+      TRUE ~ "QC parameter is not available. Please verify the argument `val`."
+    )
+    cli_abort(col_red(error_message))
+   }
+  if (all(is.na(tbl[[val]])) && !is.na(threshold)) {
+    var_name <- deparse(substitute(threshold))
+    cli_abort("Underlying QC parameter to filter for {var_name} is not available. Please verify data if selected QC type is present and contains results.")
+  }
   v_val <- tbl[[val]]
+  if(is.null(v_val) && is.na(threshold)) return(rep(NA, nrow(tbl)))
   result <- get(operator)(v_val, threshold)
 }
 
@@ -53,18 +67,39 @@ comp_val <- function(tbl, val, threshold, operator) {
 # corresponding elements of the input vectors.
 # If any element is NA, the result for that position will also be NA.
 # If list is empty NULL is returned
-comp_lgl_vec <- function(lgl_list, .operator){
-  if (.operator == "AND") {
-    return(Reduce("&", lgl_list))
-  } else if (.operator == "OR") {
-    return(Reduce("|", lgl_list))
-  } else if (.operator == "XOR") {
-    return(Reduce(function(x, y) xor(x, y), lgl_list))
-  } else {
-    # Return NULL for unsupported operators
-    return(NULL)
-  }
+comp_lgl_vec <- function(lgl_list, .operator) {
+
+  # Convert the list of vectors into a matrix
+  matrix_data <- do.call(cbind, lgl_list)
+
+  # Define the operation function based on the operator
+  op_func <- switch(.operator,
+                    "AND" = function(x) if (all(is.na(x))) NA else all(x, na.rm = TRUE),
+                    "OR"  = function(x) if (all(is.na(x))) NA else any(x, na.rm = TRUE),
+                    "XOR" = function(x) if (all(is.na(x))) NA else Reduce(xor, x[!is.na(x)]),
+                    stop("Unsupported operator"))
+
+  # Apply the operation function across the columns
+  result <- apply(matrix_data, 1, op_func)
+
+  return(result)
 }
+
+
+
+# comp_lgl_vec <- function(lgl_list, .operator){
+#   browser()
+#   if (.operator == "AND") {
+#     return(Reduce("&", lgl_list))
+#   } else if (.operator == "OR") {
+#     return(Reduce("|", lgl_list))
+#   } else if (.operator == "XOR") {
+#     return(Reduce(function(x, y) xor(x, y), lgl_list))
+#   } else {
+#     # Return NULL for unsupported operators
+#     return(NULL)
+#   }
+# }
 
 # Custom assertr function to test if at least one of provided columns exists
 has_any_name = function(...){
@@ -96,20 +131,24 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase, all_n
 #' pmol/uL equal to umol/L
 #'
 #' @param sample_amount_unit string with sample amount unit
+#' @param analyte_amount_unit string with base analyre amount unit
 #' @return string with feature_conc unit
 #' @noRd
 
-get_conc_unit <- function(sample_amount_unit) {
+get_conc_unit <- function(sample_amount_unit, analyte_amount_unit) {
   units <- tolower(unique(sample_amount_unit))
+  analyte_units <- tolower(unique(analyte_amount_unit))
 
   if (length(units) > 1) {
-    conc_unit <- "pmol/sample amount unit (multiple units)"
-  } else if (units == "ul" | units == "\U003BCl") {
+    conc_unit <- glue::glue("{analyte_amount_unit}/sample amount unit (multiple units)")
+  } else if (analyte_amount_unit == "pmol"  && (units == "ul" | units == "\U003BCl")) {
     conc_unit <- "\U003BCmol/L"
+  } else if (!str_detect(analyte_units, "\\/") && !str_detect(analyte_units, "\\-1")) {
+    conc_unit <- glue::glue("{analyte_amount_unit}/{sample_amount_unit}")
   } else {
-    conc_unit <- glue::glue("pmol/{sample_amount_unit}")
+    conc_unit <- analyte_amount_unit
   }
-  conc_unit
+  unique(conc_unit)
 }
 
 #' Reorder Data Frame based on a chain of linked values in two columns.
@@ -133,23 +172,18 @@ get_conc_unit <- function(sample_amount_unit) {
 #'   If disconnected rows are included, they will have their own `chain_id`.
 #'
 #' @examples
-#' df <- data.frame(
+#' df_unordered <- data.frame(
 #'   From = c("INSPECT", "VERIFY", "START", "NULL", "NEW", "CREATE", "MID", "DIFFERENT", "OUTLIER"),
 #'   To = c("VERIFY", "PUBLISH", "MID", "NEW", "CREATE", "INSPECT", "END", "NOTSAME", "INSIDER"),
 #' stringsAsFactors = FALSE
 #' )
 #'
 #' # Order keeping disconnected rows
-#' order_chains_with_disconnected(df, "From", "To")
+#' order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "keep")
 #'
 #' # Ordr excluding disconnected rows
-#' order_chains_with_disconnected(df, "From", "To", "exclude")
+#' order_chained_columns_tbl(df_unordered, "From", "To", FALSE, "exclude")
 #'
-#' # Throw error if circular dependencies are detected
-#' tryCatch(
-#'   order_chains_with_disconnected(df, "From", "To"),
-#'   error = function(e) message("Error: ", e$message)
-#' )
 #'
 #' @export
 order_chained_columns_tbl <- function(df, from_col, to_col, include_chain_id, disconnected_action = "keep") {

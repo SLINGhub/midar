@@ -2,37 +2,57 @@
 % Please edit documentation in R/data-export.R
 \name{save_dataset_csv}
 \alias{save_dataset_csv}
-\title{Export any parameter to a wide-format table}
+\title{Export Data to CSV file}
 \usage{
 save_dataset_csv(
   data = NULL,
   path,
-  variable = c("area", "height", "intensity", "norm_intensity", "response", "conc",
-    "conc_raw", "rt", "fwhm"),
+  variable,
+  qc_types = NA,
   filter_data,
-  qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK"),
   include_qualifier = NA,
   include_istd = NA,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
   add_qctype = NA
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{path}{File name with path of exported CSV fil}
+\item{path}{File name with path of exported CSV file}
 
-\item{variable}{Variable to be exported}
+\item{variable}{Variable to be exported, must be present in the data and any of "area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm".}
 
-\item{filter_data}{Use QC-filtered data, based on criteria set via \code{filter_features_qc()}. Overwrites \code{include_qualifier} and \code{include_istd}.}
+\item{qc_types}{QC types to be plotted. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
 
-\item{qc_types}{QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.}
+\item{filter_data}{A logical value indicating whether to use all data
+(default) or only QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
 
-\item{include_qualifier}{Include qualifier features. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_qualifier}{A logical value indicating whether to include
+qualifier features. Default is \code{NA}, which will be automatically set to \code{FALSE}
+if \code{variable} is \code{conc} or \code{conc_raw}, and \code{FALSE} otherwise.}
 
-\item{include_istd}{Include internal standard features. Default is \code{TRUE}. Is not used when \code{filter_data = TRUE} was applied.}
+\item{include_istd}{A logical value indicating whether to include internal
+standard (ISTD) features. Default is \code{NA}, which will be automatically set to \code{FALSE}
+if \code{variable} is ''norm_intensity\verb{, }conc\code{or}conc_raw\verb{, and }TRUE` otherwise.}
+
+\item{include_feature_filter}{A character or regex pattern used to filter
+features by \code{feature_id}. If \code{NA} or an empty string (\code{""}) is provided,
+the filter is ignored. When a vector of length > 1 is supplied, only
+features with exactly these names are selected (applied individually as
+OR conditions).}
+
+\item{exclude_feature_filter}{A character or regex pattern used to exclude
+features by \code{feature_id}. If \code{NA} or an empty string (\code{""}) is provided,
+the filter is ignored. When a vector of length > 1 is supplied, only
+features with exactly these names are excluded (applied individually as
+OR conditions).}
 
 \item{add_qctype}{Add the QC type as column}
 }
 \description{
-Export any parameter to a wide-format table
+This function exports specific unprocessed or pr ocessed feature variable
+(e.g. intensities or concentrations) from a \code{MidarExperiment} object to a CSV file.
+Allows selection of features and optional QC filtering.
 }

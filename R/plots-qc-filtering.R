@@ -1,52 +1,66 @@
 #' Plot QC Filtering Summary by Feature Class
 #'
-#' This function provides a summary of feature QC filtering based on class,
+#' This function provides a summary of feature QC filtering based on feature class,
 #' showing the number of features that passed or failed various quality control criteria.
-#' It visualizes the hierarchical filtering process for different feature classes.
-#' Features are classified as failing a given criterion (e.g., `CV`) only after passing all
-#' the hierarchically lower filters (e.g., `S/B` ratio and `LOD`).
+#' It visualizes the filtering in a hierarchical sequence. Features are first evaluated
+#' against lower-level filters such as signal-to-blank (S/B) ratios and limit of detection (LOD),
+#' followed by higher-level filters like the coefficient of variation (CV) or linear regression results.
+#' This means that a feature is classified as failing a given criterion (e.g., `CV`)
+#' only if it has passed all hierarchically lower filters (e.g., `S/B` ratio and `LOD`).
 #'
 #' @param data MidarExperiment object
-#' @param include_qualifier Whether to include qualifier features in the plot. Default is `FALSE`. Qualifier features are those that may not be included in the final analysis but are still retained for reference.
-#' @param include_istd Whether to include internal standard features in the plot. Default is `FALSE`. Internal standards are used for calibration purposes in mass spectrometry experiments.
-#' @param user_defined_keeper Whether to retain user-specified features that were not selected by the QC filters. Default is `FALSE`. If `TRUE`, the user-defined features are kept even if they fail QC.
 #' @param font_base_size The base font size for the plot. Default is `8`.
 #'
-#' @return A `ggplot2` object showing the feature QC filtering summary by class.
+#' @return A `ggplot2` object showing the feature QC filtering summary by feature class.
 #'
 #' @seealso
 #' \code{\link{plot_qc_summary_overall}} for an overall summary plot
-
+#' \code{\link{filter_features_qc}} for comparing QC metrics
+#'
 #' @export
 
+#'
+# @param exclude_qualifier Whether to exclude any qualifier features in the plot. Default is `FALSE`.
+# @param exclude_istd Whether to exclude any internal standard features in the plot. Default is `FALSE`.
+
+
 # TODO: handling of features with (many) missing values, in SPL, in QC
-plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, user_defined_keeper = FALSE, font_base_size = 8) {
+# TOOD: handle user_defined_keeper, i.e. add lighter green color for features that were forced kept
+# TODO: add option to facet by batch (required qc matrix by batch)
+plot_qc_summary_byclass <- function(data = NULL,
+                                    font_base_size = 8) {
   check_data(data)
-  if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
+
 
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!data@is_filtered)
-    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
+    cli_abort(col_red("Feature QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
+
+
+  if (all(is.na(data@metrics_qc$feature_class))) cli::cli_abort(col_red("This plot requires the `feature_class` to be defined in the data. Please define classes in the feature metadata or retrieve via corresponding functions."))
+
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>
     mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
 
-  if(!include_qualifier){
-    d_qc <- d_qc |> filter(.data$is_quantifier)
-  }
 
-  if(!include_istd){
-    d_qc <- d_qc |> filter(!.data$is_istd)
-  }
+
+  # TODO: clean up or re-add
+  # if(!exclude_qualifier){
+  #   d_qc <- d_qc |> filter(.data$is_quantifier)
+  # }
+  #
+  # if(!exclude_istd){
+  #   d_qc <- d_qc |> filter(!.data$is_istd)
+  # }
 
 
   # TODO: cleanup feature/lipidclasses
   # if(!all(is.na(d_qc$feature_class)) & any(is.na(d_qc$lipid_class))) d_qc$feature_class <- d_qc$lipid_class
 
-  if (all(is.na(d_qc$feature_class))) cli::cli_abort("This plot requires `feature_class` to be defined. Please define classes in the feature metadata or retrieve via corresponding {midar} functions.")
 
   d_qc$feature_class <- forcats::fct(d_qc$feature_class)
 
@@ -62,14 +76,14 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
       above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
       bad_linearity = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
       above_dratio = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
-      qc_pass = sum(.data$qc_pass, na.rm = TRUE)
+      all_filter_pass = sum(.data$all_filter_pass, na.rm = TRUE)
     ) |>
-    tidyr::pivot_longer(-.data$feature_class, names_to = "qc_criteria", values_to = "count_pass") |>
+    tidyr::pivot_longer(-"feature_class", names_to = "qc_criteria", values_to = "count_pass") |>
     ungroup() |>
     group_by(.data$feature_class) |>
     mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100)
 
-  qc_colors <- c(qc_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
+  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
@@ -82,8 +96,8 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
   if(all(is.na(d_qc$pass_linearity))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "bad_linearity")
   if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
-  d_qc_sum <- d_qc_sum |> drop_na(.data$qc_criteria)
-  ggplot(d_qc_sum, aes(x = as.numeric(rev(.data$feature_class)), y = .data$count_pass)) +
+  d_qc_sum <- d_qc_sum |> drop_na("qc_criteria")
+  p <- ggplot(d_qc_sum, aes(x = as.numeric(rev(.data$feature_class)), y = .data$count_pass)) +
     ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat = "identity", na.rm = TRUE) +
     scale_fill_manual(values = qc_colors, na.value = "purple", drop = FALSE) +
     # facet_wrap(~Tissue) +
@@ -95,12 +109,13 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
     ggplot2::scale_x_continuous(breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
                                 labels = rev(levels(d_qc_sum$feature_class)),
                                 expand = expansion(0.02, 0.02),
-                                sec.axis = ggplot2::sec_axis(~ ., name = "Features passed QC",
+                                sec.axis = ggplot2::sec_axis(~ ., name = "Number of features that passed the filter (% per class)",
                                                   breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
-                                                  labels = rev(d_qc_sum |> filter(.data$qc_criteria == "qc_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(.data$txt)))) +
+                                                  labels = rev(d_qc_sum |> filter(.data$qc_criteria == "all_filter_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(.data$txt)))) +
     theme_bw(base_size = font_base_size) +
     theme(
-      legend.position = c(0.8, 0.8),
+      legend.position = "inside",
+      legend.position.inside = c(0.85, 0.85),
       panel.grid.major.x = element_line(color = "grey80", linewidth = .1),
       panel.grid.major.y = element_line(color = "grey90", linewidth = .1),
       panel.grid.minor = element_blank(),
@@ -109,6 +124,9 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
       legend.title = element_text(size = font_base_size), # Legend title size
       legend.key.size = unit(2, "mm")
     ) # Legend key size
+  p
+
+  # cli::cli_alert_info(cli::green(""))
 }
 
 
@@ -117,13 +135,10 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
 #'
 #' This function generates a summary of the feature QC filtering process, visualizing the number of features that passed or failed the various QC criteria.
 #' It includes a Venn diagram showing the features excluded due to different filtering criteria such as signal-to-blank ratios, CV thresholds, and linearity.
-#' The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters.
+#' The criteria are applied hierarchically, meaning a feature must pass all lower-tier filters before being considered for failure on higher-tier filters. See [plot_qc_summary_byclass()] for more information.
 #'
 #' @param data MidarExperiment object
-#' @param include_qualifier Whether to include qualifier features in the plot. Default is `FALSE`.
-#' @param include_istd Whether to include internal standard features in the plot. Default is `FALSE`.
-#' @param with_venn_diag Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is `TRUE`.
-#' @param user_defined_keeper Whether to retain user-specified features that were not selected by the QC filters. Default is `FALSE`.
+#' @param with_venn Whether to include a Venn diagram summarizing the features excluded due to different QC criteria. Default is `TRUE`.
 #' @param font_base_size The base font size for the plot. Default is `8`.
 #'
 #' @return A `ggplot2` object showing the feature QC filtering summary with or without a Venn diagram.
@@ -136,27 +151,19 @@ plot_qc_summary_byclass <- function(data = NULL, include_qualifier = FALSE, incl
 #'
 #' @export
 
-plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, include_istd = FALSE, with_venn_diag = TRUE, user_defined_keeper = FALSE, font_base_size = 8) {
+plot_qc_summary_overall <- function(data = NULL,
+                                    with_venn = TRUE,
+                                    font_base_size = 8) {
   check_data(data)
-  if (user_defined_keeper) cli::cli_abort("user_defined_keeper = TRUE not yet supported")
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
   if(!data@is_filtered)
-    cli_abort(col_red("QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
+    cli_abort(col_red("Feature QC filter has not yet been applied, or data has changed. Please run `filter_features_qc()` first."))
 
   d_qc <- data@metrics_qc |>
-    filter(.data$valid_feature, .data$in_data) |>
-    mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
+    filter(.data$valid_feature, .data$in_data)
 
-
-  if(!include_qualifier){
-    d_qc <- d_qc |> filter(.data$is_quantifier)
-  }
-
-  if(!include_istd){
-    d_qc <- d_qc |> filter(!.data$is_istd)
-  }
 
   d_qc_sum <- d_qc |>
     ungroup() |>
@@ -168,15 +175,15 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
       above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
       bad_linearity = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE)) & !replace_na(.data$pass_linearity, TRUE), na.rm = TRUE),
       above_dratio = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE) & replace_na(.data$pass_cva, TRUE) & replace_na(.data$pass_linearity, TRUE)) & !replace_na(.data$pass_dratio, TRUE), na.rm = TRUE),
-      qc_pass = sum(.data$qc_pass, na.rm = TRUE)
+      all_filter_pass = sum(.data$all_filter_pass, na.rm = TRUE)
     ) |>
     tidyr::pivot_longer(names_to = "qc_criteria", values_to = "count_pass", cols = everything()) |>
     ungroup() |>
     mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100) |>
     ungroup() |>
-    mutate(qc_criteria = factor(.data$qc_criteria, c("exceed_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "qc_pass")))
+    mutate(qc_criteria = factor(.data$qc_criteria, c("exceed_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "all_filter_pass")))
 
-  qc_colors <- c(qc_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
+  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
@@ -189,7 +196,7 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
   if(all(is.na(d_qc$pass_linearity))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "bad_linearity")
   if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
-  p_bar <- ggplot(d_qc_sum |> drop_na(.data$qc_criteria), aes(x = .data$qc_criteria, y = .data$count_pass, fill = .data$qc_criteria)) +
+  p_bar <- ggplot(d_qc_sum |> drop_na("qc_criteria"), aes(x = .data$qc_criteria, y = .data$count_pass, fill = .data$qc_criteria)) +
     geom_bar(width = 1, stat = "identity") +
     coord_flip() +
     scale_fill_manual(values = qc_colors) +
@@ -203,7 +210,7 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
       ),
       size = 2
     ) +
-    labs(x = "", y= "Number of analytes") +
+    labs(x = "", y= "Number of features") +
   # facet_wrap(~Tissue) +
   theme_bw(base_size = font_base_size) +
     theme(
@@ -215,7 +222,7 @@ plot_qc_summary_overall <- function(data = NULL, include_qualifier = FALSE, incl
     ) # Legend key size
 
   # prevent creating log file
-  if(with_venn_diag) {
+  if(with_venn) {
 
     check_installed("ggvenn")
     check_installed("patchwork")

@@ -14,18 +14,19 @@
 #' @param qc_types QC types to be plotted. Can be a vector of QC types or a
 #' regular expression pattern. `NA` (default) displays all available QC/Sample
 #' types.
-#' @param show_batches Logical, whether to show batch separators in the plot
+#' @param show_batches Logical, whether to show batch separators in the plot.
 #' @param show_timestamp Logical, whether to use the acquisition timestamp as
-#' the x-axis instead of the run sequence number
+#' the x-axis instead of the run sequence number.
 #' @param add_info_title Logical, whether to add a title with the experiment
-#' title, analysis date, and analysis times
-#' @param single_row Logical, whether to show all QC types in a single row
+#' title, analysis date, and analysis times.
+#' @param single_row Logical, whether to show all QC types in a single row.
+#' @param segment_linewidth Width of the segment lines, default is 0.5.
 #' @param batch_zebra_stripe Logical, whether to show batches as shaded areas
-#' instead of line separators
-#' @param batch_line_color Color of the batch separator lines
-#' @param batch_fill_color Color of the batch shaded areas
-#' @param base_font_size Numeric, base font size for the plot
-#' @return A ggplot object representing the run sequence plot
+#' instead of line separators.
+#' @param batch_line_color Color of the batch separator lines.
+#' @param batch_fill_color Color of the batch shaded areas.
+#' @param base_font_size Numeric, base font size for the plot.
+#' @return A ggplot object representing the run sequence plot.
 #' @export
 plot_runsequence <- function(data = NULL,
                              qc_types = NA,
@@ -33,7 +34,7 @@ plot_runsequence <- function(data = NULL,
                              show_timestamp = FALSE,
                              add_info_title = TRUE,
                              single_row = FALSE,
-                             segment_width = 0.5,
+                             segment_linewidth = 0.5,
                              batch_zebra_stripe = FALSE,
                              batch_line_color = "#b6f0c5",
                              batch_fill_color = "grey90",
@@ -131,7 +132,7 @@ plot_runsequence <- function(data = NULL,
       p <- p + geom_vline(data = d_batch_info,
                           aes(xintercept = if (show_timestamp) .data$acquisition_time_stamp
                               else (.data$id_batch_end + 0.5)),
-                          colour = batch_line_color, linewidth = segment_width * 2)
+                          colour = batch_line_color, linewidth = segment_linewidth * 2)
     }
   }
 
@@ -141,7 +142,7 @@ plot_runsequence <- function(data = NULL,
       x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       y = -1, yend = 1
-    ), linewidth = segment_width) +
+    ), linewidth = segment_linewidth) +
       scale_y_continuous(breaks = NULL)  # Hide y-axis breaks
   } else {
     p <- p + geom_segment(aes(
@@ -149,7 +150,7 @@ plot_runsequence <- function(data = NULL,
       xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
       y = as.integer(.data$qc_type) - 0.4,
       yend = as.integer(.data$qc_type) + 0.4
-    ), linewidth = segment_width)
+    ), linewidth = segment_linewidth)
 
     # Position sample counts outside the y-axis
     p <- p +
@@ -175,9 +176,9 @@ plot_runsequence <- function(data = NULL,
   # Add additional information in the title
   if (add_info_title) {
 
-    title_text <- if(data@title == "") "A" else glue::glue("{data@title} — A" )
+    title_text <- if(data@title == "") "A" else glue::glue("{data@title} - A" )
 
-    p <- p + labs(title = glue::glue("{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)}) — median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min — interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
+    p <- p + labs(title = glue::glue("{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)}) - median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min - interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
   }
 
   # Color mapping
@@ -195,14 +196,14 @@ plot_runsequence <- function(data = NULL,
 #' trends, detect outliers, and assess analytical performance. Available
 #' feature variables, such as retention time (RT) and full width at
 #' half maximum (FWHM), can be plotted against analysis order or timestamps.
-#' \n
+#'
 #' The function also supports visualizing analysis batches, reference lines
-#' (mean ± SD), and trends. It offers customization options to display batch
+#' (mean \eqn{\pm} SD), and trends. It offers customization options to display batch
 #' separators, apply outlier capping, show smoothed trend curves, add reference
 #' lines, and incorporate other features. Outlier capping is particularly useful
 #' to focus on QC or study sample trends that might otherwise be obscured by
 #' extreme values or high variability.
-#' \n
+#'
 #' The `runscatter` function serves as a central QC tool in the workflow,
 #' providing critical insights into data quality.
 
@@ -215,7 +216,7 @@ plot_runsequence <- function(data = NULL,
 #' - When using log-scale (`log_scale = TRUE`), zero or negative values will
 #' replaced with the minimum positive value divided by 5 to avoid log 0 errors
 #'
-#' - Reference lines/ranges corresponding to mean ± k x SD can be shown across
+#' - Reference lines/ranges corresponding to mean \eqn{\pm} k x SD can be shown across
 #' or within batches as lines or shaded stripes.
 #'
 #' - Trend curves can be displayed before or after drift/batch correction. In
@@ -252,11 +253,11 @@ plot_runsequence <- function(data = NULL,
 #' @param cap_qc_k_mad Numeric, k * MAD (median absolute deviation) for outlier capping of QC samples.
 #' @param cap_top_n_outliers Numeric, cap the top n outliers regardless of MAD fences. `NA` or `0` ignores this filter.
 #'
-#' @param show_reference_lines Whether to display reference lines (mean ± n x SD).
+#' @param show_reference_lines Whether to display reference lines (mean \eqn{\pm} n x SD).
 #' @param reference_k_sd Multiplier for standard deviations to define SD reference lines.
 #' @param reference_qc_type QC type for which the reference lines are calculated.
 #' @param reference_batchwise Whether to calculate reference lines per batch.
-#' @param reference_sd_shade `TRUE` plots a colored band indicating the ± n x SD
+#' @param reference_sd_shade `TRUE` plots a colored band indicating the \eqn{\pm} n x SD
 #' reference range. `FALSE` (default) shows reference lines instead.
 #' @param reference_line_color Color of the reference lines.
 #' @param reference_fill_color Fill color of the batch-wise reference ranges.
@@ -362,8 +363,8 @@ plot_runscatter <- function(data = NULL,
   # Match the selected variable with predefined options
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
-                               "intensity_raw", "norm_intensity_raw", "response",
-                               "conc", "conc_raw", "rt", "fwhm"))
+                               "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "response",
+                               "conc", "conc_raw", "conc_before", "rt", "fwhm"))
   variable <- stringr::str_c("feature_", variable)
   variable_sym = rlang::sym(variable)
 
@@ -512,14 +513,14 @@ plot_runscatter <- function(data = NULL,
 
   message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
   if(show_progress) pb <- txtProgressBar(min = 0, max = max(page_range),
-                                         width = 50, style = 3)
+                                         width = 30, style = 3)
 
   p_list <- list()
   for (i in page_range) {
     p <- runscatter_one_page(
       d_filt = d_filt, data = data, y_var = variable, d_batches = data@annot_batches,
       cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
-      fit_qc_type = fit_qc_type, output_pdf = output_pdf, page_no = i,
+      output_pdf = output_pdf, page_no = i,
       point_size = point_size, cap_outliers = cap_outliers, point_transparency =
         point_transparency,
       show_batches = show_batches, batch_zebra_stripe = batch_zebra_stripe,
@@ -553,7 +554,7 @@ plot_runscatter <- function(data = NULL,
 
 
 runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
-                                show_trend, fit_qc_type, cap_outliers,
+                                show_trend, cap_outliers,
                                 show_batches, batch_zebra_stripe, batch_line_color, batch_fill_color,
                                 output_pdf, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
                                 show_grid, log_scale, analysis_order_range, show_reference_lines,reference_qc_type, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
@@ -629,8 +630,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                 sd = if(!is.na(reference_k_sd)) reference_k_sd * sd(.data$value_mod, na.rm = TRUE) else 0,
                 y_min = .data$mean - .data$sd,
                 y_max = .data$mean + .data$sd,
-                y_min_cap = if(y_min < 0) 0 else y_min,
-                y_max_cap = if(y_max > max(.data$value_mod, na.rm = TRUE)) max(.data$value_mod, na.rm = TRUE) else .data$y_max,
+                y_min_cap = if(.data$y_min < 0) 0 else .data$y_min,
+                y_max_cap = if(.data$y_max > max(.data$value_mod, na.rm = TRUE)) max(.data$value_mod, na.rm = TRUE) else .data$y_max,
                 batch_start = min(.data$id_batch_start),
                 batch_end = max(.data$id_batch_end),
                 batch_id = min(.data$batch_id),
@@ -653,10 +654,10 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
       aes(
         x = !!sym("run_seq_num"),
         y = !!sym("value_mod"),
-        color = qc_type,
-        fill = qc_type,
-        shape = qc_type,
-        group = batch_id
+        color = .data$qc_type,
+        fill = .data$qc_type,
+        shape = .data$qc_type,
+        group = .data$batch_id
       ),
       size = point_size,
       alpha = point_transparency,
@@ -665,12 +666,12 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   if (show_trend) {
     #browser()
-    y_var_trend <- if_else(str_detect(y_var, "\\_raw"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
+    y_var_trend <- if_else(str_detect(y_var, "\\_raw|\\_before"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
     p <- p +
       ggplot2::geom_line(aes(
         x = !!sym("run_seq_num"),
         y = !!sym(y_var_trend),
-        group = batch_id
+        group = .data$batch_id
       ),
       color = trend_color,
       linewidth = 1,

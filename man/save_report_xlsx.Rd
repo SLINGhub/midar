@@ -2,15 +2,54 @@
 % Please edit documentation in R/data-export.R
 \name{save_report_xlsx}
 \alias{save_report_xlsx}
-\title{Writes all a data processing report to an EXCEL file}
+\title{Write Data Processing Report (EXCEL)}
 \usage{
-save_report_xlsx(data = NULL, path)
+save_report_xlsx(data = NULL, path, filtered_variable = "conc")
 }
 \arguments{
-\item{data}{MidarExperiment object}
+\item{data}{A \code{MidarExperiment} object containing original and processed data and metadata.}
 
-\item{path}{File name and path of the Excel file}
+\item{path}{A character string specifying the file name and path for the Excel file.
+If the path does not include an \code{.xlsx} extension, it is added automatically.}
+
+\item{filtered_variable}{A character string specifying the variable name in the
+filtered data to be exported. It must be one of "conc", "intensity", "norm_intensity",
+"response", "area", "height", "conc_raw", "rt", or "fwhm". The defined variable
+name will be included in the sheet name. Default is "conc".}
+}
+\value{
+The function does not return a value. It writes the report to the specified Excel file.
 }
 \description{
-Writes all a data processing report to an EXCEL file
+Generates a data processing report from a \code{MidarExperiment} object and writes it to an Excel file.
+The report includes information on the data processing steps, quality control metrics, feature concentrations, and metadata.
+Following tables will be created as sheets in the EXCEL file:
+}
+\details{
+\itemize{
+\item Info: General  information including date, author, and MiDAR version, processing status and feature concentration unit.
+\item Feature_QC_metrics: Quality control metrics of all features.
+\item QCfilt_x_StudySamples: Feature (QC)-filtered data (variable defiend via \code{filtered_variable}) in study samples ('SPL'). Filter have to be set via \code{\link[=filter_features_qc]{filter_features_qc()}}. The \emph{x} corresponds to the \code{filtered_variable} argument.
+\item QCfilt_x_AllSamples: Feature (QC)-filtered data (variable defiend via \code{filtered_variable}) in all samples. Filter have to be set via \code{\link[=filter_features_qc]{filter_features_qc()}}. The \emph{x} corresponds to the \code{filtered_variable} argument.
+\item Conc_FullDataset: Final feature concentrations from the full, non-filtered dataset.
+\item Raw_Intensity_FullDataset: Raw feature intensities from the full, non-filtered dataset.
+\item Norm_Intensity_FullDataset: Normalized feature intensities from the full, non-filtered dataset.
+\item SampleMetadata:  Analysis metadata that was imported and used for processing steps
+\item FeatureMetadata: Feature metadata that was imported and used for processing steps
+\item InternalStandards: Internal standards metadata with concentrations
+\item BatchInfo: Information on batches and positions of first and last analysis/sample
+in each batch
+}
+
+#' If certain data sets are not available, the function includes empty tables for the corresponding dataset.
+
+Concentration corresponds to the final concentration values after applying isotope correction, and drift and batch correction, if applicable.
+If any corrections, such as drift or batch correction, were applied to raw or normalized intensities, the exported values will reflect these corrections.
+}
+\examples{
+\dontrun{
+# Assuming `midarexp` is a MidarExperiment object and `output_path` is a valid path
+save_report_xlsx(data = midarexp, path = "output_path/report.xlsx")
+}
+
 }

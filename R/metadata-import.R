@@ -336,8 +336,13 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses;analysis_id|qc_type") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & !dplyr::any_of(c("analysis_id", "qc_type")), description = "W;Missing value(s);Analyses;analysis_id|qc_type")
-      #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses;analysis_id")
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_id")), description = "W;Incomplete value(s);Analyses;sample_id") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_amount", "sample_amount_unit")), description = "W;Incomplete value(s);Analyses;sample_amount|sample_amount_unit") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("istd_volume")), description = "W;Incomplete value(s);Analyses;istd_volume") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("batch_id")), description = "W;Incomplete value(s);Analyses;batch_id") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("replicate_no")), description = "W;Incomplete value(s);Analyses;replicate_no") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("valid_analysis")), description = "E;Incomplete value(s);Analyses;valid_analysis")
+    #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses;analysis_id")
 
     if(!is.null(data)){
       metadata$annot_analyses <- metadata$annot_analyses |>
@@ -369,11 +374,13 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
-      assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_method", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_method") |>
+      assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_model", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_model") |>
       assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "interference_feature_id", description = "E;Interfering feature(s) not defined as feature;Features;interference_feature_id") |>
-      assertr::verify(any(!xor(is.na(metadata$annot_features$interference_contribution), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_contribution")
-      #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_contribution")
+      assertr::verify(any(!xor(is.na(metadata$annot_features$interference_contribution), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_contribution") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("analyte_id")), description = "E;Incomplete value(s);Features;analyte_id")
+      #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_contribution") |>
+
 
     if(!is.null(data)){
       metadata$annot_features <- metadata$annot_features |>
@@ -448,7 +455,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   if (!is.null(metadata$annot_qcconcentrations) && nrow(metadata$annot_qcconcentrations) > 0){
     ## Check for data defects ----
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
-      assertr::verify(assertr::has_all_names("sample_id", "feature_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
+      assertr::verify(assertr::has_all_names("sample_id", "analyte_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
 
     ## Check data integrity ----
     ### TODO: check for qc_type RQC
@@ -533,6 +540,11 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
     }
   }
 
+  # lists of analyses (analyses_id) and features (feature_id) in the dataset that are annotated
+  annot_analyses <- data@annot_analyses  |> semi_join(data@dataset_orig, by = "analysis_id") |> pull(.data$analysis_id) |> unique()
+  annot_features <- data@annot_features  |> semi_join(data@dataset_orig, by = "feature_id") |> pull(.data$feature_id) |> unique()
+
+
   # ISTD METADATA ====================
   if (!is.null(metadata$annot_istds) & nrow(metadata$annot_istds) > 0){
     # Add template table structure
@@ -543,15 +555,22 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
     cli_alert_success(col_green(glue::glue("Internal Standard metadata associated with {n_match} ISTDs.")))
   }
 
+
+
   # RQC METADATA ====================
   if (!is.null(metadata$annot_responsecurves) & nrow(metadata$annot_responsecurves) > 0){
     # Add template table structure
     data@annot_responsecurves <- metadata$annot_responsecurves
 
     # Get info for cli output
-    n_match <- intersect(data@dataset_orig$analysis_id, data@annot_responsecurves$analysis_id) |> length()
-    cli_alert_success(col_green(glue::glue("Response curve metadata associated with {n_match} analyses.")))
+    n_match <- intersect(annot_analyses, data@annot_responsecurves$analysis_id) |> length()
+    cli_alert_success(col_green(glue::glue("Response curve metadata associated with {n_match} annotated analyses.")))
   }
+
+  # lists of samples (sample_id) and analytes (analyte_id) in the dataset that are annotated
+  annot_samples <- data@annot_analyses  |> semi_join(data@dataset_orig, by = "analysis_id") |> pull(.data$sample_id) |> unique()
+  annot_analytes <- data@annot_features  |> semi_join(data@dataset_orig, by = "feature_id") |> pull(.data$analyte_id) |> unique()
+
 
   # QC CONCENTRATION METADATA ====================
   if (!is.null(metadata$annot_qcconcentrations) & nrow(metadata$annot_qcconcentrations) > 0){
@@ -559,10 +578,9 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
     data@annot_qcconcentrations <- metadata$annot_qcconcentrations
 
     # Get info for cli output
-    # TODOTODO: use dataset instead annot to get samples ids actually in the dataset and not just in metadata
-    n_match_samples <- intersect(data@dataset$sample_id, data@annot_qcconcentrations$sample_id) |> length()
-    n_match_features <- intersect(data@annot_qcconcentrations$feature_id, data@dataset_orig$feature_id) |> length()
-    cli_alert_success(col_green(glue::glue("QC concentration metadata associated with {n_match_samples} QC samples and {n_match_features} features.")))
+    n_match_samples <- intersect(annot_samples, unique(data@annot_qcconcentrations$sample_id)) |> length()
+    n_match_analytes <- intersect(annot_analytes, unique(data@annot_qcconcentrations$analyte_id)) |> length()
+    cli_alert_success(col_green(glue::glue("QC concentration metadata associated with {n_match_samples} annotated samples and {n_match_analytes} annotated analytes")))
   }
 
 
@@ -693,7 +711,7 @@ read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
       istd_feature_id = "istd_feature_id",
       istd_conc_nmolar = "istd_conc_[nm]"
     ) |>
-    dplyr::mutate(dplyr::across(tidyselect::where(is.character), stringr::str_squish))
+    dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 
   metadata$annot_istds <- clean_istd_metadata(d_istds)
 
@@ -890,9 +908,10 @@ clean_feature_metadata <- function(d_features) {
   d_features <- d_features |> add_missing_column(col_name = "quant_istd_feature_id", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "response_factor", init_value = 1.0, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "feature_label", init_value = NA_character_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "analyte_id", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_feature_id", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "interference_contribution", init_value = NA_real_, make_lowercase = FALSE)
-  d_features <- d_features |> add_missing_column(col_name = "curve_fit_method", init_value = NA_character_, make_lowercase = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "curve_fit_model", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "curve_fit_weighting", init_value = NA_character_, make_lowercase = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
 
@@ -901,6 +920,7 @@ clean_feature_metadata <- function(d_features) {
       feature_id = stringr::str_squish(.data$feature_id),
       feature_label = stringr::str_squish(.data$feature_label),
       feature_class = stringr::str_squish(.data$feature_class),
+      analyte_id = stringr::str_squish(.data$analyte_id),
       istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       is_quantifier = as.logical(case_match(tolower(.data$is_quantifier),
@@ -916,7 +936,7 @@ clean_feature_metadata <- function(d_features) {
                                             "false" ~ FALSE,
                                             .default = NA)),
       interference_feature_id = stringr::str_squish(.data$interference_feature_id),
-      curve_fit_method = stringr::str_squish(.data$curve_fit_method),
+      curve_fit_model = stringr::str_squish(.data$curve_fit_model),
       curve_fit_weighting = stringr::str_squish(.data$curve_fit_weighting),
       remarks = as.character(.data$remarks)
     ) |>
@@ -925,6 +945,7 @@ clean_feature_metadata <- function(d_features) {
       "feature_id",
       "feature_class",
       "feature_label",
+      "analyte_id",
       "istd_feature_id",
       "quant_istd_feature_id",
       "response_factor",
@@ -932,7 +953,7 @@ clean_feature_metadata <- function(d_features) {
       "valid_feature",
       "interference_feature_id",
       "interference_contribution",
-      "curve_fit_method",
+      "curve_fit_model",
       "curve_fit_weighting",
       "remarks"
     )
@@ -1011,8 +1032,8 @@ clean_response_metadata <- function(d_rqc) {
 }
 
 clean_qcconc_metadata <- function(d_cal) {
-  if(!all(c("sample_id", "feature_id", "concentration", "concentration_unit") %in% names(d_cal))){
-    cli::cli_abort(cli::col_red("QC concentration metadata must have following columns: `sample_id`, `feature_id`, `concentration` and `concentration_unit`. Please verify the input data. "))
+  if(!all(c("sample_id", "analyte_id", "concentration", "concentration_unit") %in% names(d_cal))){
+    cli::cli_abort(cli::col_red("QC concentration metadata must have following columns: `sample_id`, `analyte_id`, `concentration` and `concentration_unit`. Please verify the input data. "))
   }
 
   d_cal <- d_cal |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
@@ -1021,12 +1042,12 @@ clean_qcconc_metadata <- function(d_cal) {
     dplyr::mutate(
       sample_id = stringr::str_remove(.data$sample_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       sample_id = stringr::str_squish(as.character(.data$sample_id)),
-      feature_id = stringr::str_squish(as.character(.data$feature_id)),
+      analyte_id = stringr::str_squish(as.character(.data$analyte_id)),
       concentration_unit = stringr::str_squish(.data$concentration_unit)
     ) |>
     dplyr::select(
       "sample_id",
-      "feature_id",
+      "analyte_id",
       "concentration",
       "concentration_unit",
       "remarks"

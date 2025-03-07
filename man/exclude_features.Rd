@@ -4,15 +4,15 @@
 \alias{exclude_features}
 \title{Exclude features from the dataset}
 \usage{
-exclude_features(data = NULL, features_to_exclude, replace_existing)
+exclude_features(data = NULL, exclude, clear_existing)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
-\item{features_to_exclude}{A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
-If this is \code{NA} or an empty vector, the exclusion behavior will be handled as set via the \code{replace_existing} flag.}
+\item{exclude}{A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
+If this is \code{NA} or an empty vector, the exclusion behavior will be handled as set via the \code{clear_existing} flag.}
 
-\item{replace_existing}{A logical value. If \code{TRUE}, existing \code{valid_analysis} flags will be overwritten. If \code{FALSE},
+\item{clear_existing}{A logical value. If \code{TRUE}, existing \code{valid_analysis} flags will be overwritten. If \code{FALSE},
 the exclusions will be appended, preserving any existing invalidated features}
 }
 \value{

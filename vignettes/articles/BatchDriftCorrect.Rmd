@@ -96,7 +96,7 @@ myexp <- import_data_csv(data = myexp,
 myexp <- midar::correct_drift_gaussiankernel(myexp,
                                         variable = "conc",
                                         reference_qc_types = "SPL", 
-                                        within_batch = TRUE, 
+                                        batch_wise = TRUE, 
                                         kernel_size = 10, 
                                         recalc_trend_after = TRUE,show_progress = T)
 

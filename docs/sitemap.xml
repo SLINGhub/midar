@@ -38,7 +38,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/calc_calibration_results.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/cash-MidarExperiment-method.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/combine_experiments.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/corr_drift_fun.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/fun_correct_drift.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/correct_batch_centering.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/correct_drift_gaussiankernel.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/correct_drift_loess.html</loc></url>

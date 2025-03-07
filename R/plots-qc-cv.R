@@ -18,8 +18,6 @@
 #'   QC-filtered data (filtered via [filter_features_qc()]).
 #' @param include_qualifier Whether to include qualifier features
 #'   (default is `TRUE`).
-#' @param equality_line Whether to show a line indicating
-#'   identical values in both compared variables (default is `FALSE`)..
 #' @param cv_threshold_value Numerical threshold value to be shown as dashed
 #'   lines in the plot (default is `25`).
 #' @param xlim Numeric vector of length 2 for x-axis limits. Use `NA` for
@@ -40,7 +38,7 @@
 #' The function preselects the corresponding variables from the QC metrics and uses
 #' [plot_qcmetrics_comparison()] to visualize the results.
 #'
-#' - The data must be normalized before using [normalize_features()] followed by
+#' - The data must be normalized before using [normalize_by_istd()] followed by
 #' calculation of the QC metrics table via [calc_qc_metrics()] or
 #' [filter_features_qc()], see examples below.
 #'
@@ -60,7 +58,7 @@
 #'   before_norm_var = "intensity",
 #'   after_norm_var = "norm_intensity",
 #'   qc_type = "SPL",
-#'   filter_data = TRUE,
+#'   filter_data = FALSE,
 #'   facet_by_class = TRUE,
 #'   cv_threshold_value = 25
 #' )
@@ -176,14 +174,14 @@ plot_normalization_qc <- function(data = NULL,
 #'   metadata or retrieved via specific functions, e.g., [get_lipid_class_names()].
 #'
 #' @seealso
-#' [calc_qc_metrics()], [filter_features_qc()], [plot_normalization_qc()], [normalize_features()]
+#' [calc_qc_metrics()], [filter_features_qc()], [plot_normalization_qc()], [normalize_by_istd()]
 #'
 #' @examples
 #' # Example usage
 #' mexp <- lipidomics_dataset
 #' mexp <- calc_qc_metrics(mexp)
 #' plot_qcmetrics_comparison(data = mexp,
-#'             filter_data = TRUE,
+#'             filter_data = FALSE,
 #'             x_variable = "precursor_mz",
 #'             y_variable = "rt_median_SPL",
 #'             include_qualifier = TRUE)
@@ -225,7 +223,7 @@ plot_qcmetrics_comparison <- function(data = NULL,
   # Apply additional QC filtering if requested
   if (filter_data) {
     if (data@is_filtered) {
-      d_qc <- d_qc |> filter(.data$valid_feature, .data$qc_pass)
+      d_qc <- d_qc |> filter(.data$valid_feature, .data$all_filter_pass)
     } else {
       cli_abort(cli::col_red("Data has not yet been QC-filtered. Apply filter or set `filter_data = FALSE`."))
     }

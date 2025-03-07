@@ -55,8 +55,8 @@ test_that("`show` method displays processing status", {
   expect_match(text_output, "feature_area")
   expect_match(text_output, "Analyses manually excluded")
 
-  mexp <- exclude_analyses(mexp, c("030_SPL_S010", "107_SPL_S075"), replace_existing = TRUE)
-  mexp <- exclude_features(mexp, c("S1P d20:1 [M>60]", "S1P d20:1 [M>113]"), replace_existing = TRUE)
+  mexp <- exclude_analyses(mexp, c("030_SPL_S010", "107_SPL_S075"), clear_existing = TRUE)
+  mexp <- exclude_features(mexp, c("S1P d20:1 [M>60]", "S1P d20:1 [M>113]"), clear_existing = TRUE)
   mexp
 })
 

@@ -2,7 +2,7 @@ library(vdiffr)
 library(ggplot2)
 
 mexp <- lipidomics_dataset
-
+mexp_nonorm <- mexp
 mexp <- normalize_by_istd(mexp)
 mexp <- calc_qc_metrics(mexp)  # Ensure calc_qc_metrics is executed before
 
@@ -96,7 +96,9 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
   )
 
   mexp_filt <- mexp
-  mexp_filt <- filter_features_qc(mexp_filt, max.cv.intensity.bqc = 25)
+  mexp_filt <- filter_features_qc(mexp_filt,
+                                  include_qualifier = TRUE, include_istd = FALSE,
+                                  max.cv.intensity.bqc = 25)
 
 
   # Check if qc filter data works
@@ -113,7 +115,7 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
   # Extract the plot's data (data frame used for the first layer)
   plot_data <- ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
-  expect_equal(nrow(plot_data), 24)
+  expect_equal(nrow(plot_data), 19)
 
 
   # Check if include_qualifier = FALSE works
@@ -128,7 +130,7 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
   # Extract the plot's data (data frame used for the first layer)
   plot_data <- ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
-  expect_equal(nrow(plot_data), 23)
+  expect_equal(nrow(plot_data), 18)
 
 })
 

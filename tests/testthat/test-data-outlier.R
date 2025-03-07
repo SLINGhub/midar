@@ -41,4 +41,18 @@ test_that("multiplication works", {
                              log_transform = TRUE,
                              fence_multiplicator = 1.3)
   expect_equal(outliers, NULL)
+  expect_error(
+    outliers <- detect_outlier(mexp_proc, variable = "intensity", filter_data = TRUE,
+                               outlier_detection = "mad", pca_component = 2,
+                               log_transform = TRUE,
+                               fence_multiplicator = 1.3),
+  "Data has not been qc filtered")
+
+  expect_error(
+    outliers <- detect_outlier(mexp_proc, variable = "intensity", filter_data = FALSE,
+                               outlier_detection = "mad", pca_component = 2, summarize_fun = "rma",
+                               log_transform = TRUE,
+                               fence_multiplicator = 1.3),
+    "Relative Mean Abundance")
+  expect_equal(outliers, NULL)
 })

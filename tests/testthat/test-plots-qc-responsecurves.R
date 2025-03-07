@@ -40,7 +40,7 @@ test_that("plot_responsecurves generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "65.8K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "65.9K")
   fs::file_delete(temp_pdf_path)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
@@ -193,8 +193,22 @@ test_that("curve color definition works", {
       return_plots = TRUE
     )
     smooth_data <- ggplot_build(p[[1]])$data
-    expect_equal(unique(smooth_data[[1]]$colour), scales::hue_pal()(2))
+    expect_equal(unique(smooth_data[[1]]$colour), c("#4575b4","#91bfdb"))
 
+    mexp_temp <- mexp
+    mexp_temp@annot_responsecurves$curve_id <- rep(1:6, each = 2)
+    p <- plot_responsecurves(
+      data = mexp_temp,
+      variable = "intensity",
+      rows_page = 3,
+      cols_page = 4,
+      output_pdf = FALSE,
+      color_curves = NA,
+      specific_page = 3,
+      return_plots = TRUE)
+
+    smooth_data <- ggplot_build(p[[1]])$data
+    expect_equal(unique(smooth_data[[1]]$colour), c("#F8766D" ,"#B79F00", "#00BA38","#00BFC4" ,"#619CFF" ,"#F564E3"))
 })
 
 
@@ -254,7 +268,7 @@ test_that("plot_responsecurves feature filters work", {
     "Data has not been QC-filtered"
   )
   mexp_filt <-  mexp
-  mexp_filt <- filter_features_qc(mexp_filt, min.intensity.median.spl = 100000)
+  mexp_filt <- filter_features_qc(mexp_filt, include_qualifier = FALSE, include_istd = FALSE, min.intensity.median.spl = 100000)
 
 
   p <- plot_responsecurves(

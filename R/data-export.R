@@ -1,17 +1,55 @@
-#' Writes all a data processing report to an EXCEL file
+#' Write Data Processing Report (EXCEL)
 #'
-#' @param data MidarExperiment object
-#' @param path File name and path of the Excel file
+#' Generates a data processing report from a `MidarExperiment` object and writes it to an Excel file.
+#' The report includes information on the data processing steps, quality control metrics, feature concentrations, and metadata.
+#' Following tables will be created as sheets in the EXCEL file:
+#'
+#' - Info: General  information including date, author, and MiDAR version, processing status and feature concentration unit.
+#' - Feature_QC_metrics: Quality control metrics of all features.
+#' - QCfilt_x_StudySamples: Feature (QC)-filtered data (variable defiend via `filtered_variable`) in study samples ('SPL'). Filter have to be set via [filter_features_qc()]. The _x_ corresponds to the `filtered_variable` argument.
+#' - QCfilt_x_AllSamples: Feature (QC)-filtered data (variable defiend via `filtered_variable`) in all samples. Filter have to be set via [filter_features_qc()]. The _x_ corresponds to the `filtered_variable` argument.
+#' - Conc_FullDataset: Final feature concentrations from the full, non-filtered dataset.
+#' - Raw_Intensity_FullDataset: Raw feature intensities from the full, non-filtered dataset.
+#' - Norm_Intensity_FullDataset: Normalized feature intensities from the full, non-filtered dataset.
+#' - SampleMetadata:  Analysis metadata that was imported and used for processing steps
+#' - FeatureMetadata: Feature metadata that was imported and used for processing steps
+#' - InternalStandards: Internal standards metadata with concentrations
+#' - BatchInfo: Information on batches and positions of first and last analysis/sample
+#' in each batch
+#'
+#'
+#' @param data A `MidarExperiment` object containing original and processed data and metadata.
+#' @param path A character string specifying the file name and path for the Excel file.
+#' If the path does not include an `.xlsx` extension, it is added automatically.
+#' @param filtered_variable A character string specifying the variable name in the
+#' filtered data to be exported. It must be one of "conc", "intensity", "norm_intensity",
+#' "response", "area", "height", "conc_raw", "rt", or "fwhm". The defined variable
+#' name will be included in the sheet name. Default is "conc".
+#'
+#' @details
+#' #' If certain data sets are not available, the function includes empty tables for the corresponding dataset.
+#'
+#' Concentration corresponds to the final concentration values after applying isotope correction, and drift and batch correction, if applicable.
+#' If any corrections, such as drift or batch correction, were applied to raw or normalized intensities, the exported values will reflect these corrections.
+#'
+#' @return The function does not return a value. It writes the report to the specified Excel file.
+#'
+#' @examples
+#' \dontrun{
+#' # Assuming `midarexp` is a MidarExperiment object and `output_path` is a valid path
+#' save_report_xlsx(data = midarexp, path = "output_path/report.xlsx")
+#' }
+#'
 #' @export
-#'
-#' @importFrom lubridate now
-#' @importFrom tibble tribble
-#' @importFrom utils packageVersion
 
-
-# TODO: filtering of names containing "(IS"
-save_report_xlsx <- function(data = NULL, path) {
+save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
   check_data(data)
+
+  filtered_variable <- str_remove(filtered_variable, "feature_")
+  filtered_variable_strip <- filtered_variable
+  rlang::arg_match(filtered_variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  filtered_variable <- stringr::str_c("feature_", filtered_variable)
+  if(data@is_filtered) check_var_in_dataset(data@dataset, filtered_variable) #TODO dataset_filt?
 
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
 
@@ -21,7 +59,7 @@ save_report_xlsx <- function(data = NULL, path) {
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
   } else {
-    d_intensity_wide <- tibble("No annotated raw data available." = NA)
+    d_intensity_wide <- tibble("No ISTD-normalized intensities available." = NA) |> tibble::add_row()
   }
 
   if(data@is_istd_normalized){
@@ -30,7 +68,7 @@ save_report_xlsx <- function(data = NULL, path) {
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
   } else {
-    d_norm_intensity_wide <- tibble("No ISTD-normalized intensities available." = NA)
+    d_norm_intensity_wide <- tibble("No ISTD-normalized intensities available." = NA) |> tibble::add_row()
   }
 
   if(data@is_quantitated){
@@ -40,23 +78,23 @@ save_report_xlsx <- function(data = NULL, path) {
         dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
         tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
   } else{
-    d_conc_wide <- tibble("No concentration data available." = NA)
+    d_conc_wide <- tibble("No concentration data available." = NA) |> tibble::add_row()
   }
 
   if (data@is_filtered) {
     d_conc_wide_QC_SPL <- data@dataset_filtered |>
       #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::filter(.data$qc_type %in% c("SPL")) |>
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "is_quantifier", "is_istd", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "feature_id", filtered_variable))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
-      dplyr::filter(.data$is_quantifier) |>
-      dplyr::filter(!.data$is_istd) |>
-      tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
+      #dplyr::filter(.data$is_quantifier) |>
+      #dplyr::filter(!.data$is_istd) |>
+      tidyr::pivot_wider(names_from = "feature_id", values_from = any_of(filtered_variable))
 
 
     d_conc_wide_QC_all <- data@dataset_filtered |>
       dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "feature_id", "feature_norm_intensity"))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
@@ -65,40 +103,64 @@ save_report_xlsx <- function(data = NULL, path) {
 
 
   } else {
-    d_conc_wide_QC_SPL <- tibble("No concentration data available." = NA)
-    d_conc_wide_QC_all <- tibble("No qc-filtered concentration data available." = NA)
+    filtered_variable_strip <- ""
+    d_conc_wide_QC_SPL <- tibble("No qc-filtered data available." = NA) |> tibble::add_row()
+    d_conc_wide_QC_all <- tibble("No qc-filtered data available." = NA) |> tibble::add_row()
   }
+
+  if(data@is_quantitated && data@status_processing == "Calibration-quantitated data")
+    conc_unit_origin <- unique(data@annot_qcconcentrations$concentration_unit)
+  else
+    conc_unit_origin <- "pmpol"
 
   d_info <- tibble::tribble(
     ~Info, ~Value,
     "Date Report", as.character(lubridate::now()),
     "Author", Sys.info()[["user"]],
-    "MiDAR Version", as.character(packageVersion("midar")[[1]]),
+    "MiDAR Version", as.character(utils::packageVersion("midar")[[1]]),
     "", "",
-    "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit)
+    "feature_conc Unit", get_conc_unit(data@annot_analyses$sample_amount_unit, conc_unit_origin)
   )
 
 
   if(nrow(data@metrics_qc) == 0)
-    qc_metrics <- tibble(tibble("Feature qc metrics available." = NA))
+    qc_metrics <- tibble(tibble("Feature qc metrics has not been calculated." = NA)) |> tibble::add_row()
   else
     qc_metrics <- data@metrics_qc
+
+  if(nrow(data@metrics_calibration) == 0)
+    metrics_calibration <- tibble(tibble("Calibration metrics has not been calculated." = NA)) |> tibble::add_row()
+  else
+    metrics_calibration <- data@metrics_calibration
+
+  if(filtered_variable_strip == "norm_intensity") filtered_variable_strip <- "normInt"
+  if(filtered_variable_strip != "") {
+    name_filt<- paste0("_", paste0(toupper(substr(filtered_variable_strip, 1, 1)), substr(filtered_variable_strip, 2, nchar(filtered_variable_strip))) )
+  } else {
+    name_filt <- ""
+  }
+  name_filt_spl <- paste0("QCfilt",name_filt,"_StudySamples")
+  name_filt_all <- paste0("QCfilt",name_filt,"_AllSamples")
+
 
   table_list <- list(
     "Info" = d_info,
     "Feature_QC_metrics" = qc_metrics,
-    "Conc_QCfilt_StudySamples" = d_conc_wide_QC_SPL,
-    "Conc_QCfilt_AllSamples" = d_conc_wide_QC_all,
-    "Conc_FullDataset" = d_conc_wide,
+    "Calibration_metrics" = metrics_calibration,
+    name_filt_spl = d_conc_wide_QC_SPL,
+    name_filt_all = d_conc_wide_QC_all,
     "Raw_Intensity_FullDataset" = d_intensity_wide,
     "Norm_Intensity_FullDataset" = d_norm_intensity_wide,
-    "SampleMetadata" = data@annot_analyses,
-    "FeatureMetadata" = data@annot_features,
-    "InternalStandards" = data@annot_istds,
-    "BatchInfo" = data@annot_batches
+    "Conc_FullDataset" = d_conc_wide,
+    "SampleMetadata" = if(nrow(data@annot_analyses) == 0) data@annot_analyses |> tibble::add_row() else data@annot_analyses,
+    "FeatureMetadata" = if(nrow(data@annot_features) == 0) data@annot_features |> tibble::add_row() else data@annot_features,
+    "InternalStandards" = if(nrow(data@annot_istds) == 0) data@annot_istds |> tibble::add_row() else data@annot_istds,
+    "BatchInfo" = if(nrow(data@annot_batches  ) == 0) tibble("No batches defined" = NA) |> tibble::add_row() else data@annot_istds
   )
 
-  cat("\rSaving report to disk - please wait...")
+  names(table_list)[4:5] <- c(name_filt_spl, name_filt_all)
+
+  message("\rSaving report to disk - please wait...")
   openxlsx2::write_xlsx(x = table_list,
                         file = path,
                         na.strings = "",
@@ -107,84 +169,62 @@ save_report_xlsx <- function(data = NULL, path) {
                         col_names = TRUE,
                         grid_lines = FALSE,
                         col_widths = "auto",
-                        first_col = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        first_row = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        with_filter = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
-                        tab_color = c("#d7fc5d", "#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+                        first_col = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        first_row = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        with_filter = c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
+                        tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
   )
-  cli_alert_success(col_green(glue::glue("\rThe data processing report of analysis '{data@title}' has been saved.")))
+
+  txtitle <- if(data@title != "") glue::glue(" of experiment '{data@title}' ") else " "
+  cli_alert_success(col_green(glue::glue("\rThe data processing report{txtitle}has been saved to '{path}'.")))
 }
 
 
-#' Get a calibration regression results
+#' Export Data to CSV file
 #'
+#' This function exports specific unprocessed or pr ocessed feature variable
+#' (e.g. intensities or concentrations) from a `MidarExperiment` object to a CSV file.
+#' Allows selection of features and optional QC filtering.
 #' @param data MidarExperiment object
-#' @param qc_types QC types to be included in the results, aside of CAL. Default is all QC types.
-#' @param with_lod Include the limit of detection (LoD) in the results
-#' @param with_loq Include the limit of quantification (LoQ) in the results
-#' @param with_bias Include the bias in the results
-#' @param with_coefficients Include the regression coefficients in the results
-#' @param with_sigma Include the residual standard error in the results
-#' @export
-get_calibration_results <- function(data, qc_types, with_lod = TRUE, with_loq = TRUE, with_bias = TRUE,  with_coefficients = TRUE, with_sigma = TRUE){
-
-  d_qc_summary <- data@dataset |>
-    filter(.data$qc_type %in% qc_types, !.data$is_istd, .data$is_quantifier) |>
-    select("analysis_id", "qc_type", "sample_id", "feature_id", "feature_conc") |>
-    left_join(data@annot_qcconcentrations |> select("sample_id", "feature_id", target_concentration = "concentration"), by = c("sample_id", "feature_id")) |>
-    relocate(.data$target_concentration, .after = .data$feature_id) |>
-    mutate(
-      bias_perc = (.data$feature_conc - .data$target_concentration) / .data$target_concentration * 100
-    ) |>
-    summarise(
-      n = dplyr::n(),
-      conc_target = mean(.data$target_concentration, na.rm = FALSE),
-      conc_mean = mean(.data$feature_conc, na.rm = TRUE),
-      conc_sd = sd(.data$feature_conc, na.rm = TRUE),
-      bias_perc_mean = mean(.data$bias_perc, na.rm = TRUE),
-      bias_perc_sd = sd(.data$bias_perc, na.rm = TRUE),
-      cv_intra = .data$conc_sd / .data$conc_mean * 100,
-      .by = c("sample_id", "qc_type", "feature_id")) |>
-    select("feature_id", "qc_type", "bias_perc_mean", "bias_perc_sd", "cv_intra") |>
-    pivot_wider(names_from = "qc_type", values_from = c("bias_perc_mean", "bias_perc_sd", "cv_intra"),
-                names_sort = TRUE, names_glue = "{qc_type}_{.value}")
-
-
-  d_qc_summary <- d_qc_summary |> select(order(colnames(d_qc_summary))) |>
-    relocate(.data$feature_id, .before  = 1) |>
-    left_join(data@metrics_calibration |> select("feature_id", model = "fit_model", weighting = "weighting", r2 = "r2_cal_1", Cal_A_nM = "lowest_cal_cal_1", LoD_nM = "lod_cal_1", LoQ_nM = "loq_cal_1"), by = c("feature_id"))
-
-  d_qc_summary |>
-    arrange(.data$feature_id)
-}
-
-
-
-
-#' Export any parameter to a wide-format table
-#'
-#' @param data MidarExperiment object
-#' @param path File name with path of exported CSV fil
-#' @param variable Variable to be exported
-#' @param filter_data Use QC-filtered data, based on criteria set via `filter_features_qc()`. Overwrites `include_qualifier` and `include_istd`.
-#' @param qc_types QC type to plot. When qc_types us NA or NULL, all available QC types are plotted.
-#' @param include_qualifier Include qualifier features. Is not used when `filter_data = TRUE` was applied.
-#' @param include_istd Include internal standard features. Default is `TRUE`. Is not used when `filter_data = TRUE` was applied.
+#' @param path File name with path of exported CSV file
+#' @param variable Variable to be exported, must be present in the data and any of "area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm".
+#' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
+#' @param filter_data A logical value indicating whether to use all data
+#' (default) or only QC-filtered data (filtered via [filter_features_qc()]).
+#' @param include_qualifier A logical value indicating whether to include
+#' qualifier features. Default is `NA`, which will be automatically set to `FALSE`
+#' if `variable` is `conc` or `conc_raw`, and `FALSE` otherwise.
+#' @param include_istd A logical value indicating whether to include internal
+#' standard (ISTD) features. Default is `NA`, which will be automatically set to `FALSE`
+#' if `variable` is ''norm_intensity`, `conc` or `conc_raw`, and `TRUE` otherwise.
+#' @param include_feature_filter A character or regex pattern used to filter
+#' features by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#' the filter is ignored. When a vector of length > 1 is supplied, only
+#' features with exactly these names are selected (applied individually as
+#' OR conditions).
+#' @param exclude_feature_filter A character or regex pattern used to exclude
+#' features by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#' the filter is ignored. When a vector of length > 1 is supplied, only
+#' features with exactly these names are excluded (applied individually as
+#' OR conditions).
 #' @param add_qctype Add the QC type as column
 #' @export
 save_dataset_csv <- function(data = NULL,
                              path,
-                             variable = c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"),
+                             variable,
+                             qc_types = NA,
                              filter_data,
-                             qc_types = c("SPL", "BQC", "TQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK"),
                              include_qualifier = NA,
                              include_istd = NA,
+                             include_feature_filter = NA,
+                             exclude_feature_filter = NA,
                              add_qctype = NA
                              ) {
   check_data(data)
-  variable_strip <- str_remove(variable, "feature_")
-  rlang::arg_match(variable_strip, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
-  variable <- stringr::str_c("feature_", variable_strip)
+  variable <- str_remove(variable, "feature_")
+  variable_strip <- variable
+  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
 
@@ -198,65 +238,64 @@ save_dataset_csv <- function(data = NULL,
     if(variable %in% c("feature_conc", "feature_conc_raw", "feature_norm_intensity")) include_istd <- FALSE else include_istd <- TRUE
   }
 
-  if(length(qc_types) == 1) add_qctype <- FALSE else add_qctype <- TRUE
+  if(is.na(add_qctype))
+    add_qctype <- !(length(qc_types) == 1)
 
   if (!(variable %in% names(data@dataset))) cli::cli_abort("Variable '{variable}' has not yet been calculated. Please process data or choose other variable.")
 
-
-
-  # Filter data if filter_data is TRUE
-  if (filter_data) {
-    dat_filt <- data@dataset_filtered |> dplyr::ungroup()
-    if (!data@is_filtered) cli::cli_abort("Data has not been qc filtered. Please apply `filter_features_qc` first.")
-  } else {
-    dat_filt <- data@dataset |> dplyr::ungroup()
-  }
-
-  if(!include_qualifier){
-    dat_filt <- dat_filt |> filter(.data$is_quantifier)
-  }
-
-  if(!include_istd){
-    dat_filt <- dat_filt |> filter(!.data$is_istd)
+  if(all(is.na(qc_types))){
+    qc_types <- unique(data$dataset$qc_type)
   }
 
 
-  # Subset data based on qc_types argument ----
-  if (all(!is.na(qc_types)) & all(qc_types != "")) {
-    if (length(qc_types) == 1) {
-      dat_filt <- dat_filt |> dplyr::filter(stringr::str_detect(.data$qc_type, qc_types))
-    } else {
-      dat_filt <- dat_filt |> dplyr::filter(.data$qc_type %in% qc_types)
-    }
-  }
+  # Subset dataset according to arguments
+  d_filt <- get_dataset_subset(
+    data,
+    filter_data = filter_data,
+    qc_types = qc_types,
+    include_qualifier = include_qualifier,
+    include_istd = include_istd,
+    include_feature_filter = include_feature_filter,
+    exclude_feature_filter = exclude_feature_filter
+  )
 
   if(add_qctype)
     flds <- c("analysis_id", "qc_type", "feature_id")
   else
     flds <- c("analysis_id", "feature_id")
 
-
-  ds <- dat_filt |>
+  ds <- d_filt |>
     dplyr::select(all_of(c(flds, variable))) |>
-    tidyr::pivot_wider(names_from = .data$feature_id, values_from = !!variable_sym)
+    tidyr::pivot_wider(names_from = "feature_id", values_from = !!variable_sym)
 
-  readr::write_csv(ds, file = path, num_threads = 4, col_names = TRUE)
+  readr::write_csv(ds, file = path, col_names = TRUE)
   if(variable_strip ==  "conc") variable_strip <- "concentration"
-  cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values of {nrow(ds)} analyses and {length(unique(dat_filt$feature_id))} features have been exported.")))
+  cli_alert_success(col_green(glue::glue("{stringr::str_to_title(variable_strip)} values for {nrow(ds)} analyses and {length(unique(d_filt$feature_id))} features have been exported to '{path}'.")))
 }
 
-
-#' Save the QC table to a CSV file
+#' Save Feature QC Metrics to CSV
 #'
-#' @param data MidarExperiment object
-#' @param path File name with path of exported CSV file
-#' @return A tibble with the exported dataset
+#' This function exports the feature information and QC (Quality Control) metrics
+#' from a MidarExperiment object to a CSV file.
+#'
+#' @param data A MidarExperiment object containing the QC metrics.
+#' @param path A string specifying the file path where the CSV file will be saved.
+#' @return A tibble with the QC metrics that have been exported.
 #' @export
-
-report_write_qc_metrics <- function(data = NULL, path) {
+#'
+save_feature_qc_metrics <- function(data = NULL, path) {
   check_data(data)
-  if (nrow(data@metrics_qc) == 0) cli::cli_abort("QC info has not yet been calculated. Please apply 'calc_qc_metrics' first.")
 
-  readr::write_csv(data@metrics_qc, file = path, num_threads = 4, col_names = TRUE)
+  # Verify that the QC metrics have been calculated
+  if (nrow(data@metrics_qc) == 0) {
+    cli::cli_abort(col_red("Feature QC metrics has not yet been calculated. Please run 'calc_qc_metrics()' first."))
+  }
+
+  # Write the QC metrics to a CSV file
+  readr::write_csv(data@metrics_qc, file = path, col_names = TRUE)
+
+  cli_alert_success(col_green("Feature QC metrics table was saved to '{path}'."))
+
+  # Return the QC metrics invisibly as a side-effect
   invisible(data@metrics_qc)
 }

@@ -60,9 +60,6 @@ different feature classes (default is \code{5}). Only used if
 \item{point_alpha}{Transparency of points (default is \code{0.5}).}
 
 \item{font_base_size}{Base font size in points (default is \code{8}).}
-
-\item{equality_line}{Whether to show a line indicating
-identical values in both compared variables (default is \code{FALSE})..}
 }
 \value{
 A \code{ggplot2} object representing the scatter plot comparing CV values
@@ -78,7 +75,7 @@ plot. The plot can be faceted by \code{feature_class}.
 The function preselects the corresponding variables from the QC metrics and uses
 \code{\link[=plot_qcmetrics_comparison]{plot_qcmetrics_comparison()}} to visualize the results.
 \itemize{
-\item The data must be normalized before using \code{\link[=normalize_features]{normalize_features()}} followed by
+\item The data must be normalized before using \code{\link[=normalize_by_istd]{normalize_by_istd()}} followed by
 calculation of the QC metrics table via \code{\link[=calc_qc_metrics]{calc_qc_metrics()}} or
 \code{\link[=filter_features_qc]{filter_features_qc()}}, see examples below.
 \item When \code{facet_by_class = TRUE}, then the \code{feature_class} must be defined in the
@@ -95,7 +92,7 @@ plot_normalization_qc(
   before_norm_var = "intensity",
   after_norm_var = "norm_intensity",
   qc_type = "SPL",
-  filter_data = TRUE,
+  filter_data = FALSE,
   facet_by_class = TRUE,
   cv_threshold_value = 25
 )
