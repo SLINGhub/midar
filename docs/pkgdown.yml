@@ -2,15 +2,17 @@ pandoc: '3.2'
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
+  articles/01_datastructure: 01_datastructure.html
+  articles/02_keydataids: 02_keydataids.html
   articles/02_QualityControl: 02_QualityControl.html
-  articles/annotating: annotating.html
-  articles/BatchDriftCorrect: BatchDriftCorrect.html
-  articles/dataimport: dataimport.html
-  articles/datastructure: datastructure.html
-  articles/getstarted: getstarted.html
+  articles/03_midarexperiment: 03_midarexperiment.html
+  articles/04_dataimport: 04_dataimport.html
+  articles/05_metadataimport: 05_metadataimport.html
+  articles/07_BatchDriftCorrect: 07_BatchDriftCorrect.html
+  articles/i00_get_started: i00_get_started.html
   midar: midar.html
-  articles/midarexperiment: midarexperiment.html
-last_built: 2025-01-14T16:11Z
+  articles/T01_targetlipidomics_workflow: T01_targetlipidomics_workflow.html
+last_built: 2025-03-10T07:53Z
 urls:
   reference: https://slinghub.github.io/midar/reference
   article: https://slinghub.github.io/midar/articles

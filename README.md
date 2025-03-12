@@ -1,5 +1,5 @@
 ---
-title: "MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data "
+title: "MiDAR: Quantitative Mass Spectrometry Data Processing and Quality Control "
 ---
 
 # MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
@@ -10,12 +10,11 @@ title: "MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectro
 
 <!-- badges: end -->
 
-MiDAR is an R package designed for reproducible post-processing, assessment, quality control, and reporting of small-molecule mass spectrometry (MS) datasets, including those from lipidomics and metabolomics. It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects. Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.
+MiDAR is an R package for reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data.It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects.Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.
 
-MiDAR is intended for both analytical and bioinformatics scientists. ItIts core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customizations and access to all data. With this approach, the package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.
+The intended users of MiDAR are analytical and bioinformatics scientists. Its core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customisations and access to all data.The package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.
 
-MiDAR emphasizes fully documented, reproducible data processing workflows and serves as a tool for creating automated data processing pipelines.
-
+MiDAR emphasises fully documented, reproducible data processing workflows and also serves as a software library for creating automated data processing pipelines.
 ## Installation
 
 In the console run:
@@ -35,7 +34,7 @@ myexp <- MidarExperiment()
 
 # Load data and available metadata
 myexp <- import_data_mrmkit(myexp, path = "data.tsv")
-myexp <- import_metadata_midarxlm(myexp, path = "metadata.csv")
+myexp <- import_metadata_msorganizer(myexp, path = "metadata.csv")
 
 
 # Normalize and quantitate each feature by internal standards

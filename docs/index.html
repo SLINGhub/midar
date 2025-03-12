@@ -19,6 +19,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Small Molecule Mass Spectrometry Data Post-Processing, Quality Control, Exploration and Reporting">
 <meta name="description" content="R functions to facilitate managing, processing and evaluating lipidomics data.">
 <meta property="og:description" content="R functions to facilitate managing, processing and evaluating lipidomics data.">
+<meta property="og:image" content="https://slinghub.github.io/midar/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -28,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,24 +38,31 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/getstarted.html">Get Started</a></li>
-<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/i00_get_started.html">Getting Started</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="articles/datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="articles/midarexperiment.html">MidarExperiment</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
-    <li><a class="dropdown-item" href="articles/dataimport.html">Importing</a></li>
-    <li><a class="dropdown-item" href="articles/annotating.html">Annotating (Metadata)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
+<li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Targeted Lipidomics processing</a></li>
+    <li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Quantitative LC-MS</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="articles/updates.html">Updates</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
+<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+    <li><a class="dropdown-item" href="articles/01_datastructure.html">Data Structures</a></li>
+    <li><a class="dropdown-item" href="articles/02_keydataids.html">Data Indentifier</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
+    <li><a class="dropdown-item" href="articles/03_midarexperiment.html">MidarExperiment Object</a></li>
+    <li><a class="dropdown-item" href="articles/04_dataimport.html">Data Import</a></li>
+    <li><a class="dropdown-item" href="articles/05_metadataimport.html">Metadata Import</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="articles/07_BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+  </ul>
+</li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/updates.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -69,22 +77,20 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="midar-">MiDAR <img src="reference/figures/logo.png" align="right" height="139"><a class="anchor" aria-label="anchor" href="#midar-"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="midar-">MiDAR <a class="anchor" aria-label="anchor" href="#midar-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <!-- badges: end -->
-<p>MiDAR is an R package designed for reproducible post-processing, assessment, quality control, and reporting of small-molecule mass spectrometry (MS) datasets, including those from lipidomics and metabolomics. It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects. Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.</p>
-<p>MiDAR is intended for both analytical and bioinformatics scientists. ItIts core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customizations and access to all data. With this approach, the package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.</p>
-<p>MiDAR emphasizes fully documented, reproducible data processing workflows and serves as a tool for creating automated data processing pipelines.</p>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
+<p>MiDAR is an R package for reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data.It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects.Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.</p>
+<p>The intended users of MiDAR are analytical and bioinformatics scientists. Its core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customisations and access to all data.The package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.</p>
+<p>MiDAR emphasises fully documented, reproducible data processing workflows and also serves as a software library for creating automated data processing pipelines. ## Installation</p>
 <p>In the console run:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://pak.r-lib.org/" class="external-link">"pak"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"SLINGhub/midar"</span><span class="op">)</span></span></code></pre></div>
-</div>
 <div class="section level2">
 <h2 id="example-workflow">Example workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
 </h2>
@@ -96,7 +102,7 @@
 <span></span>
 <span><span class="co"># Load data and available metadata</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"data.tsv"</span><span class="op">)</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_metadata_midarxlm.html">import_metadata_midarxlm</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"metadata.csv"</span><span class="op">)</span></span>
+<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_metadata_msorganizer.html">import_metadata_msorganizer</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"metadata.csv"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># Normalize and quantitate each feature by internal standards</span></span>

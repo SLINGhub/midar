@@ -12,7 +12,7 @@ lipidomics_dataset <- import_data_mrmkit(data = lipidomics_dataset,
                                          path = here("data-raw/MRMkit_example.tsv"),
                                          import_metadata = T)
 
-lipidomics_dataset <- import_metadata_midarxlm(lipidomics_dataset,
+lipidomics_dataset <- import_metadata_msorganizer(lipidomics_dataset,
                                  here("data-raw/MRMkit_example_metadata.xlsm"),
                                  excl_unmatched_analyses = T)
 
@@ -34,7 +34,7 @@ mexp <- import_data_masshunter(data = mexp,
                                          path = here("data-raw/QuantLCMS_Example_MassHunter.csv"),
                                          import_metadata = T)
 
-quant_lcms_dataset <- import_metadata_midarxlm(mexp,
+quant_lcms_dataset <- import_metadata_msorganizer(mexp,
                                                here("data-raw/QuantLCMS_Example_Metadata.xlsm"),
                                                excl_unmatched_analyses = T, ignore_warnings = T)
 

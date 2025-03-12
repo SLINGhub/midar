@@ -4,7 +4,14 @@
 \alias{parse_plain_csv}
 \title{Reads a long CSV file with Feature Intensities}
 \usage{
-parse_plain_csv(path, variable_name, analysis_id_col = NA, import_metadata)
+parse_plain_csv(
+  path,
+  variable_name,
+  analysis_id_col = NA,
+  import_metadata = TRUE,
+  first_feature_column = NA,
+  na_strings = "NA"
+)
 }
 \arguments{
 \item{path}{path name and path of a plain long-format CSV file}
@@ -14,6 +21,10 @@ parse_plain_csv(path, variable_name, analysis_id_col = NA, import_metadata)
 \item{analysis_id_col}{Column to be used as analysis_id}
 
 \item{import_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object}
+
+\item{first_feature_column}{Column number of the first column representing the feature values}
+
+\item{na_strings}{A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.}
 }
 \value{
 A tibble in the long format

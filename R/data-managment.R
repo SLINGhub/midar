@@ -451,33 +451,39 @@ set_analysis_order_analysismetadata <- function(data = NULL,
   check_data(data)
   order_by <- rlang::arg_match(
     arg = order_by,
-    values = c("timestamp", "resultfile", "metadata", "default"),
+    values = c("timestamp", "analysis_order_column", "resultfile", "metadata", "default"),
     multiple = FALSE
   )
 
   # Extract relevant columns from original dataset
   d_temp <- data@dataset_orig |>
-    dplyr::select("analysis_id", dplyr::any_of(c("run_seq_num", "acquisition_time_stamp"))) |>
+    dplyr::select("analysis_id", dplyr::any_of(c("analysis_order", "acquisition_time_stamp"))) |>
     dplyr::distinct()
 
   # Handle default ordering logic
+
   if (order_by == "default") {
-    order_by <- if (!all(is.na(d_temp$acquisition_time_stamp))) {
-      "timestamp"
-    } else {
-      cli::cli_alert_info(
-        cli::col_grey(
-          "Analysis order was based on sequence of analysis results, as no timestamps were found.
-           Use `set_analysis_order` to define alternative analysis orders."
+    if (!all(is.na(d_temp$acquisition_time_stamp))) {
+      order_by <- "timestamp"
+    } else if("analysis_order" %in% names(d_temp)) {
+        cli::cli_alert_info(
+          cli::col_grey(
+            "Analysis order was based on `analysis_order` column of imported data. Use `set_analysis_order` to change the order."
+          )
         )
-      )
-      "resultfile"
+      order_by <-  "analysis_order_column"
+    } else {
+        cli::cli_alert_info(
+          cli::col_grey(
+            "Analysis order was based on sequence of imported analysis data (no timestamps found). Use `set_analysis_order` to define a different order."
+          )
+        )
+      order_by <- "resultfile"
     }
   }
 
   # Apply ordering based on specified method
-  data@annot_analyses <- data@annot_analyses |>
-    select(-"run_seq_num")
+
 
   data@annot_analyses <- switch(
     order_by,
@@ -490,25 +496,35 @@ set_analysis_order_analysismetadata <- function(data = NULL,
         )
       }
       data@annot_analyses |>
+      select(-"analysis_order") |>
       dplyr::inner_join(
           d_temp |>
           dplyr::arrange(.data$acquisition_time_stamp) |>
-          dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1) |>
+          dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1) |>
           dplyr::select(-"acquisition_time_stamp"),
           by = "analysis_id") |>
-          relocate("run_seq_num", .before = 1)
+          relocate("analysis_order", .before = 1)
+    },
+    "analysis_order_column" = {
+      data@annot_analyses |>
+        select(-"analysis_order") |>
+        dplyr::inner_join(
+          d_temp, by = "analysis_id") |>
+        relocate("analysis_order", .before = 1)
     },
     "resultfile" = {
       data@annot_analyses |>
+        select(-"analysis_order") |>
         dplyr::inner_join(
           d_temp |>
-            dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1),
-        by = "analysis_id") |>
-        relocate("run_seq_num", .before = 1)
+            dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1),
+          by = "analysis_id") |>
+        relocate("analysis_order", .before = 1)
     },
     "metadata" = {
       data@annot_analyses |>
-        dplyr::mutate("run_seq_num" = .data$annot_order_num, .before = 1)
+        select(-"analysis_order") |>
+        dplyr::mutate("analysis_order" = .data$annot_order_num, .before = 1)
     }
   )
 
@@ -573,7 +589,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
   check_data(data)
   data@dataset <- data@dataset_orig |>
     select(
-      "run_seq_num",
+      "analysis_order",
       "analysis_id",
       "acquisition_time_stamp",
       "feature_id",
@@ -582,7 +598,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
     )
   if (nrow(data@annot_analyses) > 0) {
   data@dataset <- data@dataset |>
-    select(-any_of("run_seq_num")) |>
+    select(-any_of("analysis_order")) |>
     inner_join(data@annot_analyses, by = "analysis_id") |>
     filter(.data$valid_analysis)
   }
@@ -596,7 +612,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
   data@dataset <- dplyr::bind_rows(pkg.env$table_templates$dataset_template, data@dataset)
   data@dataset <- data@dataset |>
     select(any_of(c(
-      "run_seq_num",
+      "analysis_order",
       "analysis_id",
       "acquisition_time_stamp",
       "qc_type",
@@ -638,10 +654,10 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 
   data@metrics_qc <- data@metrics_qc[FALSE,]
 
-  # Arrange run_seq_num and then by feature_id, as they appear in the metadata
+  # Arrange analysis_order and then by feature_id, as they appear in the metadata
   data@dataset <- data@dataset |>
     dplyr::arrange(match(.data$feature_id, data@annot_features$feature_id)) |>
-    arrange(.data$run_seq_num)
+    arrange(.data$analysis_order)
 
   data
 }
@@ -714,7 +730,7 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 #' The function also alloows to reset the exclusions.
 #'
 #' @param data A `MidarExperiment` object
-#' @param exclude A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
+#' @param analyses A character vector of analysis IDs (case-sensitive) to be excluded from the dataset.
 #' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `clear_existing` flag.
 #' @param clear_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
 #' the exclusions will be appended, preserving any existing invalidated analyses.
@@ -722,10 +738,10 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_analyses <- function(data = NULL, exclude, clear_existing ){
+exclude_analyses <- function(data = NULL, analyses, clear_existing ){
   check_data(data)
 
-  if (all(is.na(exclude)) | length(exclude) == 0) {
+  if (all(is.na(analyses)) | length(analyses) == 0) {
     if(!clear_existing){
       cli_abort(cli::col_red("No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `clear_existing = TRUE`."))
     } else{
@@ -736,17 +752,17 @@ exclude_analyses <- function(data = NULL, exclude, clear_existing ){
       return(data)
       }
   }
-  if (any(!c(exclude) %in% data@annot_analyses$analysis_id)) {
+  if (any(!c(analyses) %in% data@annot_analyses$analysis_id)) {
     cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please verify the analysis metadata."))
   }
   if(!clear_existing){
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% exclude) & .data$valid_analysis)
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses) & .data$valid_analysis)
     cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses are now excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% exclude))
+      mutate(valid_analysis = !(.data$analysis_id %in% analyses))
     cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
     data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
     }
@@ -768,7 +784,7 @@ exclude_analyses <- function(data = NULL, exclude, clear_existing ){
 #' The function also alloows to reset the exclusions.
 #'
 #' @param data A `MidarExperiment` object
-#' @param exclude A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
+#' @param features A character vector of feature IDs (case-sensitive) to be excluded from the dataset.
 #' If this is `NA` or an empty vector, the exclusion behavior will be handled as set via the `clear_existing` flag.
 #' @param clear_existing A logical value. If `TRUE`, existing `valid_analysis` flags will be overwritten. If `FALSE`,
 #' the exclusions will be appended, preserving any existing invalidated features
@@ -776,10 +792,10 @@ exclude_analyses <- function(data = NULL, exclude, clear_existing ){
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_features <- function(data = NULL, exclude, clear_existing ){
+exclude_features <- function(data = NULL, features, clear_existing ){
   check_data(data)
 
-  if (all(is.na(exclude)) | length(exclude) == 0) {
+  if (all(is.na(features)) | length(features) == 0) {
     if(!clear_existing){
       cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `clear_existing = TRUE`."))
     } else{
@@ -790,18 +806,18 @@ exclude_features <- function(data = NULL, exclude, clear_existing ){
       return(data)
     }
   }
-  if (any(!c(exclude) %in% data@annot_features$feature_id)) {
+  if (any(!c(features) %in% data@annot_features$feature_id)) {
     cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please verify the feature metadata."))
   }
   if(!clear_existing){
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% exclude) & .data$valid_feature)
+      mutate(valid_feature = !(.data$feature_id %in% features) & .data$valid_feature)
     cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."))
     data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }
   else {
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% exclude))
+      mutate(valid_feature = !(.data$feature_id %in% features))
     cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."))
     data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
   }

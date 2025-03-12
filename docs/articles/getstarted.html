@@ -21,6 +21,7 @@
 ">
 <meta property="og:description" content="MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data
 ">
+<meta property="og:image" content="https://slinghub.github.io/midar/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -30,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,13 +40,18 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="active nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/getstarted.html">Overview</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
+<li><a class="dropdown-item" href="../articles/dataimport.html">Targeted MRM panel</a></li>
+    <li><a class="dropdown-item" href="../articles/dataimport.html">Quantitative LC-MS</a></li>
+  </ul>
+</li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
+<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
     <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
     <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -56,7 +62,8 @@
     <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/updates.html">Updates</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -75,8 +82,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>MiDAR workflow</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>MiDAR workflow</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/articles/getstarted.Rmd" class="external-link"><code>vignettes/articles/getstarted.Rmd</code></a></small>
@@ -138,7 +144,7 @@ filter functionality.</p>
 </details><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">@</span><span class="va">dataset_orig</span><span class="op">)</span> <span class="co"># Better use `get_rawdata(mexp, "original")`</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 250,997 × 20</span></span></span>
-<span><span class="co">#&gt;    analysis_id   raw_data_filename acquisition_time_stamp feature_id run_seq_num</span></span>
+<span><span class="co">#&gt;    analysis_id   raw_data_filename acquisition_time_stamp feature_id analysis_order</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Longit_BLANK… Longit_BLANK-01 … 2017-10-20 <span style="color: #949494;">14:15:36</span>    CE 14:0              1</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Longit_B-IST… Longit_B-ISTD 01… 2017-10-20 <span style="color: #949494;">14:27:06</span>    CE 14:0              2</span></span>
@@ -177,9 +183,9 @@ Have there been long interruptions within and between the batches?</p>
 <span>  <span class="va">myexp</span>, </span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>, </span>
 <span>  show_batches <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>  batches_as_shades <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>  batch_shading_color <span class="op">=</span> <span class="st">"#fffbdb"</span>, </span>
-<span>  segment_width <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  batch_zebra_stripe <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  batch_fill_color <span class="op">=</span> <span class="st">"#fffbdb"</span>, </span>
+<span>  segment_linewidth <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  show_timestamp <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/runsequence-1.png" width="100%"></p>
 </div>
@@ -201,7 +207,7 @@ save the plots as PDF (see subfolder <code>output</code>).</p>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"intensity"</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"TQC"</span>, <span class="st">"SPL"</span>, <span class="st">"PBLK"</span>, <span class="st">"SBLK"</span><span class="op">)</span>,</span>
-<span>  plot_range_indices <span class="op">=</span> <span class="cn">NA</span>, <span class="co">#get_batch_boundaries(myexp, c(1,6)), </span></span>
+<span>  analysis_order_range <span class="op">=</span> <span class="cn">NA</span>, <span class="co">#get_batch_boundaries(myexp, c(1,6)), </span></span>
 <span>  include_feature_filter <span class="op">=</span> <span class="st">"ISTD"</span>, </span>
 <span>  exclude_feature_filter <span class="op">=</span> <span class="st">"Hex|282"</span>,</span>
 <span>  cap_outliers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -238,7 +244,7 @@ explore the metadata structure (click ‘Disable Macros’).</p>
 </details><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_midarxlm.html">import_metadata_midarxlm</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="va">file_path</span>, ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganizer.html">import_metadata_msorganizer</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="va">file_path</span>, ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Metadata has following warnings and notifications:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span></span>
 <span><span class="co">#&gt;   Type Table    Column                Issue                           Count</span></span>
@@ -252,11 +258,11 @@ explore the metadata structure (click ‘Disable Macros’).</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 502 features.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 17 ISTDs.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Response curve metadata associated with 12 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Response curve metadata associated with 12 annotated analyses.</span></span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_analysis_order.html">set_analysis_order</a></span><span class="op">(</span><span class="va">myexp</span>, order_by <span class="op">=</span> <span class="st">"timestamp"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis order set to </span><span style="color: #0000BB;">"timestamp"</span></span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_intensity_var.html">set_intensity_var</a></span><span class="op">(</span><span class="va">myexp</span>, variable_name <span class="op">=</span> <span class="st">"area"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Default feature intensity variable set to </span><span style="color: #0000BB;">"area"</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Default feature intensity variable set to </span><span style="color: #0000BB;">"feature_area"</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="overall-trends-and-possible-technical-outlier">6. Overall trends and possible technical outlier<a class="anchor" aria-label="anchor" href="#overall-trends-and-possible-technical-outlier"></a>
@@ -289,9 +295,9 @@ fluctuations.</p>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>, </span>
 <span>  <span class="co">#plot_range_indices = get_batch_boundaries(myexp, batch_ids = c(6,6)), </span></span>
 <span>  <span class="co">#y_lim = c(-3,3),</span></span>
-<span>  x_axis_variable <span class="op">=</span> <span class="st">"run_seq_num"</span>,</span>
+<span>  show_timestamp <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ignore_outliers <span class="op">=</span> <span class="cn">FALSE</span>, x_gridlines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  batches_as_shades <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  batch_zebra_stripe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linewidth <span class="op">=</span> <span class="fl">0.1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/rla-plot-1.png" width="100%"></p>
@@ -317,11 +323,13 @@ think the resulting PCA plot suggests now?</p>
 <span>  variable <span class="op">=</span> <span class="st">"feature_intensity"</span>, </span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  pca_dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
-<span>  label_mad_threshold <span class="op">=</span> <span class="fl">3</span>, </span>
-<span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"BQC"</span>, <span class="st">"NIST"</span>, <span class="st">"TQC"</span><span class="op">)</span>,</span>
+<span>  labels_threshold_mad <span class="op">=</span> <span class="fl">3</span>, </span>
+<span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"BQC"</span>, <span class="st">"TQC"</span><span class="op">)</span>,</span>
 <span>  log_transform <span class="op">=</span> <span class="cn">TRUE</span>,  </span>
 <span>  point_size <span class="op">=</span> <span class="fl">2</span>, point_alpha <span class="op">=</span> <span class="fl">0.7</span>, font_base_size <span class="op">=</span> <span class="fl">8</span>, ellipse_alpha <span class="op">=</span> <span class="fl">0.3</span>, </span>
-<span>  exclude_istds <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>  include_istd <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">2 features contained missing or non-numeric values and were exluded.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">The PCA was calculated based on `feature_intensity` values of 423 features.</span></span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/pca-before-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -347,12 +355,14 @@ dimensions (by modifying <code>pca_dim</code>).</p>
 <span>  variable <span class="op">=</span> <span class="st">"intensity"</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  pca_dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
-<span>  label_mad_threshold <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"BQC"</span>, <span class="st">"NIST"</span>, <span class="st">"TQC"</span><span class="op">)</span>,</span>
+<span>  labels_threshold_mad <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"BQC"</span>, <span class="st">"TQC"</span><span class="op">)</span>,</span>
 <span>  log_transform <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">2</span>, point_alpha <span class="op">=</span> <span class="fl">0.7</span>, font_base_size <span class="op">=</span> <span class="fl">8</span>, ellipse_alpha <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  exclude_istds <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  hide_text_from_labels <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
+<span>  include_istd <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  shared_labeltext_hide <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">2 features contained missing or non-numeric values and were exluded.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">The PCA was calculated based on `feature_intensity` values of 423 features.</span></span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/outlier-removal-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -380,9 +390,12 @@ commenting out (add a <code>#</code> in front of)
 </blockquote>
 </details><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Exclude very low abundant features</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, min.intensity.median.spl <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
+<span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                                   include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                                   min.intensity.median.spl <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Calculating feature QC metrics - please wait...</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New QC filter criteria were defined: 415 of 423 quantifier features meet QC criteria (excluding the 25 quantifier ISTD features).</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 437 of 448 quantifier features meet QC criteria (including the 25 quantifier ISTD features).</span></span></span>
 <span></span>
 <span><span class="co">#Plot the curves</span></span>
 <span><span class="fu"><a href="../reference/plot_responsecurves.html">plot_responsecurves</a></span><span class="op">(</span></span>
@@ -397,9 +410,11 @@ commenting out (add a <code>#</code> in front of)
 <span><span class="co">#&gt;   method                  from   </span></span>
 <span><span class="co">#&gt;   heightDetails.titleGrob ggplot2</span></span>
 <span><span class="co">#&gt;   widthDetails.titleGrob  ggplot2</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span>  |                                                          |                                                  |   0%</span></span></code></pre></div>
+<span><span class="co">#&gt; Generating plots (1 page):</span></span>
+<span><span class="co">#&gt;   |                                      |                              |   0%</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/responsecurves-1.png" width="100%"></p>
-<pre><code><span><span class="co">#&gt;   |                                                          |==================================================| 100%<span style="color: #00BB00;"> - done!</span></span></span></code></pre>
+<pre><code><span><span class="co">#&gt;   |                                      |==============================| 100%</span></span>
+<span><span class="co">#&gt;  - done!</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="isotope-interference-correction">10. Isotope interference correction<a class="anchor" aria-label="anchor" href="#isotope-interference-correction"></a>
@@ -419,7 +434,8 @@ you need? Why should we correct for M+3 isotope interference?</p>
 </blockquote>
 </details><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_interferences.html">correct_interferences</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Interference-correction has been applied to 11 of the 502 features.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interference correction led to negative or zero values in 2 feature(s) in samples/QCs. Please verify the correction, or set `neg_to_na = TRUE`</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Interference-correction has been applied to 10 of the 502 features.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="normalization-and-quantification-based-on-istds">11. Normalization and quantification based on ISTDs<a class="anchor" aria-label="anchor" href="#normalization-and-quantification-based-on-istds"></a>
@@ -441,7 +457,7 @@ can also try to re-run e.g. above RLA and PCA plots with
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">460 features normalized with 17 ISTDs in 498 analyses.</span></span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">460 feature concentrations calculated based on 42 ISTDs and sample amounts of 498 analyses.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Concentrations are given in μmol/L.</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in μmol/L.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="examine-the-effects-of-class-wide-istd-normalization">12. Examine the effects of class-wide ISTD normalization<a class="anchor" aria-label="anchor" href="#examine-the-effects-of-class-wide-istd-normalization"></a>
@@ -467,15 +483,19 @@ explanations for such an effect? And what would you do in this
 situation?</p>
 </blockquote>
 </details><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, min.intensity.median.spl <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
+<span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                                   include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                                   min.intensity.median.spl <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Calculating feature QC metrics - please wait...</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New QC filter criteria were defined: 393 of 423 quantifier features meet QC criteria (excluding the 25 quantifier ISTD features).</span></span></span>
-<span><span class="fu"><a href="../reference/plot_cv_normalization.html">plot_cv_normalization</a></span><span class="op">(</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 413 of 448 quantifier features meet QC criteria (including the 25 quantifier ISTD features).</span></span></span>
+<span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_normalization_qc.html">plot_normalization_qc</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>  facet_by_class <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  qc_type <span class="op">=</span> <span class="st">"SPL"</span>, </span>
-<span>  var_before <span class="op">=</span> <span class="st">"intensity"</span>, </span>
-<span>  var_after <span class="op">=</span> <span class="st">"norm_intensity"</span><span class="op">)</span></span></code></pre></div>
+<span>  before_norm_var <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  after_norm_var <span class="op">=</span> <span class="st">"norm_intensity"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/norm-effects-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -488,24 +508,30 @@ diagnostics of the fit, but rather to understand if the fit caused any
 major artefacts. There is also an option to scale along the fit by
 setting <code>scale_smooth = TRUE</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
+<span>  ignore_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>  reference_qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span><span class="op">)</span>,</span>
 <span>  batch_wise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  replace_previous <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  replace_previous <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  recalc_trend_after <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  kernel_size <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  outlier_filter <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  outlier_filter <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  outlier_ksd <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  location_smooth <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  scale_smooth <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>  show_progress <span class="op">=</span> <span class="cn">TRUE</span>  <span class="co"># set to FALSE when rendering</span></span>
+<span>  scale_smooth <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>  show_progress <span class="op">=</span> <span class="cn">FALSE</span>  <span class="co"># set to FALSE when rendering</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">4 feature(s) contain one or more zero or negative `conc` values. Verify your data or use `log_transform_internal = FALSE`.</span></span></span>
 <span><span class="co">#&gt;   |                                                    |                                            |   0%  |                                                    |=                                           |   2%  |                                                    |==                                          |   4%  |                                                    |===                                         |   6%  |                                                    |====                                        |   8%  |                                                    |====                                        |  10%  |                                                    |=====                                       |  12%  |                                                    |======                                      |  14%  |                                                    |=======                                     |  16%  |                                                    |========                                    |  18%  |                                                    |=========                                   |  20%  |                                                    |==========                                  |  22%  |                                                    |===========                                 |  24%  |                                                    |============                                |  26%  |                                                    |============                                |  28%  |                                                    |=============                               |  30%  |                                                    |==============                              |  32%  |                                                    |===============                             |  34%  |                                                    |================                            |  37%  |                                                    |=================                           |  39%  |                                                    |==================                          |  41%  |                                                    |===================                         |  43%  |                                                    |====================                        |  45%  |                                                    |=====================                       |  47%  |                                                    |=====================                       |  49%  |                                                    |======================                      |  51%  |                                                    |=======================                     |  53%  |                                                    |========================                    |  55%  |                                                    |=========================                   |  57%  |                                                    |==========================                  |  59%  |                                                    |===========================                 |  61%  |                                                    |============================                |  63%  |                                                    |=============================               |  65%  |                                                    |=============================               |  67%  |                                                    |==============================              |  69%  |                                                    |===============================             |  71%  |                                                    |================================            |  73%  |                                                    |=================================           |  75%  |                                                    |==================================          |  77%  |                                                    |===================================         |  79%  |                                                    |====================================        |  81%  |                                                    |=====================================       |  83%  |                                                    |=====================================       |  85%  |                                                    |======================================      |  87%  |                                                    |=======================================     |  89%  |                                                    |========================================    |  91%  |                                                    |=========================================   |  93%  |                                                    |==========================================  |  95%  |                                                    |=========================================== |  97%  |                                                    |============================================|  99%  |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend smoothing done!</span></span></span>
 <span><span class="co">#&gt;   |                                                    |                                            |   0%  |                                                    |=                                           |   2%  |                                                    |==                                          |   4%  |                                                    |===                                         |   6%  |                                                    |====                                        |   8%  |                                                    |====                                        |  10%  |                                                    |=====                                       |  12%  |                                                    |======                                      |  14%  |                                                    |=======                                     |  16%  |                                                    |========                                    |  18%  |                                                    |=========                                   |  20%  |                                                    |==========                                  |  22%  |                                                    |===========                                 |  24%  |                                                    |============                                |  26%  |                                                    |============                                |  28%  |                                                    |=============                               |  30%  |                                                    |==============                              |  32%  |                                                    |===============                             |  34%  |                                                    |================                            |  37%  |                                                    |=================                           |  39%  |                                                    |==================                          |  41%  |                                                    |===================                         |  43%  |                                                    |====================                        |  45%  |                                                    |=====================                       |  47%  |                                                    |=====================                       |  49%  |                                                    |======================                      |  51%  |                                                    |=======================                     |  53%  |                                                    |========================                    |  55%  |                                                    |=========================                   |  57%  |                                                    |==========================                  |  59%  |                                                    |===========================                 |  61%  |                                                    |============================                |  63%  |                                                    |=============================               |  65%  |                                                    |=============================               |  67%  |                                                    |==============================              |  69%  |                                                    |===============================             |  71%  |                                                    |================================            |  73%  |                                                    |=================================           |  75%  |                                                    |==================================          |  77%  |                                                    |===================================         |  79%  |                                                    |====================================        |  81%  |                                                    |=====================================       |  83%  |                                                    |=====================================       |  85%  |                                                    |======================================      |  87%  |                                                    |=======================================     |  89%  |                                                    |========================================    |  91%  |                                                    |=========================================   |  93%  |                                                    |==========================================  |  95%  |                                                    |=========================================== |  97%  |                                                    |============================================|  99%  |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend recalc done!</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction (batch-wise) was applied to raw concentrations of 460 of 460 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of all features in study samples (batch medians) </span><span style="color: #555555; font-weight: bold;">decreased</span><span style="color: #555555;"> by -1.7% (-3.7 to 0.3%) to 42.2%.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features showed no variation in the study sample's original values across analyses. </span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features have invalid values after smoothing. NA will be be returned for all values of these faetures. Set `use_original_if_fail = FALSE to return orginal values..</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 459 of 460 features (batch-wise).</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-1.00%</span><span style="color: #555555;"> (range: -12.53% to 2.59%). The median absolute CV of all features across batches </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">39.00% to 37.71%</span><span style="color: #555555;">.</span></span></span></code></pre></div>
 <p>In order to demonstrate the correction, we will plot an example (PC
 40:8) before and after the drift and batch correction. As we will be
 using the same plot on several occasions, we create a simple function
@@ -535,14 +561,14 @@ Exercises
 selected example before and after within-batch smoothing. What may have
 caused such a drift in the raw concentrations? Do the QC samples follow
 the trend of the sample? Look also at other lipid species.</p>
-<p>Try changing <code>batch_wise = FALSE</code> in the code chunk
-above with <code><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel()</a></code> to run the run
-the smoothing across all batches. Would this be a valid alternative?
-NOTE: don’t forget to change back to <code>batch_wise = TRUE</code>
-after the test.</p>
+<p>Try changing <code>batch_wise = FALSE</code> in the code chunk above
+with <code><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel()</a></code> to run the run the
+smoothing across all batches. Would this be a valid alternative? NOTE:
+don’t forget to change back to <code>batch_wise = TRUE</code> after the
+test.</p>
 </blockquote>
 </details><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc_raw"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc_before"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/plot-trends-1.png" width="100%"></p>
 <pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
@@ -576,9 +602,9 @@ to center the batches. What do you observe?</p>
 <span>  correct_location <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>  log_transform_internal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 6 batches was applied to drift-corrected concentrations of all 460 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of features in the study samples across batches </span><span style="color: #555555; font-weight: bold;">increased</span><span style="color: #555555;"> by 29.8% (7.2 to 52.3%) to 45.9%.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-0.29%</span><span style="color: #555555;"> (range: -31.80% to 69.10%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">increased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">39.12% to 39.44%</span><span style="color: #555555;">.</span></span></span>
 <span></span>
 <span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
@@ -643,10 +669,10 @@ the effects visually.</p>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  clear_existing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  batch_medians <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  use_batch_medians <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_istd <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  response.curves.select <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
+<span>  response.curves.selection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,</span>
 <span>  response.curves.summary <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  min.rsquare.response <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  min.slope.response <span class="op">=</span> <span class="fl">0.75</span>,</span>
@@ -657,7 +683,8 @@ the effects visually.</p>
 <span>  features.to.keep <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CE 20:4"</span>, <span class="st">"CE 22:5"</span>, <span class="st">"CE 22:6"</span>, <span class="st">"CE 16:0"</span>, <span class="st">"CE 18:0"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Calculating feature QC metrics - please wait...</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New QC filter criteria were defined: 325 of 423 quantifier features meet QC criteria (excluding the 25 quantifier ISTD features).</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">The following features were forced to be retained despite not meeting filtering criteria: CE 16:0, CE 20:4, CE 22:5, and CE 22:6</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 324 of 423 quantifier features meet QC criteria (not including the 25 quantifier ISTD features).</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="summary-of-the-qc-filtering">17. Summary of the QC filtering<a class="anchor" aria-label="anchor" href="#summary-of-the-qc-filtering"></a>
@@ -679,7 +706,7 @@ possible explanations for these? What could be the implications if you
 want to run the next analysis?</p>
 </blockquote>
 </details><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_byclass.html">plot_qc_summary_byclass</a></span><span class="op">(</span><span class="va">myexp</span>, include_qualifier <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_byclass.html">plot_qc_summary_byclass</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/qc-summary-1-1.png" width="100%"></p>
 <p>The following plot provides a further summary of the feature
 filtering process, indicating the total number of features that have
@@ -695,7 +722,7 @@ non-linear response (e.g. r2 &lt; 0.8), what could be the reasons for
 this?</p>
 </blockquote>
 </details><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_overall.html">plot_qc_summary_overall</a></span><span class="op">(</span><span class="va">myexp</span>, include_qualifier <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_overall.html">plot_qc_summary_overall</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span></code></pre></div>
 <p><img src="getstarted_files/figure-html/qc-summary-2-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -715,7 +742,7 @@ folder.</p>
 </details><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"./output/myexp-midar_report.xlsx"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report of analysis 'sPerfect' has been saved.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report of experiment 'sPerfect' has been saved to './output/myexp-midar_report.xlsx'.</span></span></span></code></pre></div>
 <p>You can also save specific data subsets as a clean flat, wide CSV
 file. This is how we shared the data for the statistical analysis that
 will be presented in the next part of this workshop!</p>
@@ -733,7 +760,7 @@ generated CSV files.</p>
 <span>  qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values of 377 analyses and 325 features have been exported.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 377 analyses and 324 features have been exported to './output/sperfect_filt_uM.csv'.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="sharing-the-midarexperiment-dataset">19. Sharing the <code>MidarExperiment</code> dataset<a class="anchor" aria-label="anchor" href="#sharing-the-midarexperiment-dataset"></a>
@@ -759,7 +786,7 @@ above (<code>mexp</code>)</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">MidarExperiment</span> <span style="color: #00BBBB;">─────────────────────────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">Title: </span><span style="color: #0000BB; font-weight: bold;">sPerfect</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">Processing status: </span><span style="color: #0000BB; font-weight: bold;">Batch- and drift-corrected concentrations</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">Processing status: </span><span style="color: #0000BB; font-weight: bold;">Drift-Batch-corrected concentrations</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Annotated Raw Data</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -787,7 +814,8 @@ above (<code>mexp</code>)</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Exclusion of Analyses and Features</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • Analyses manually excluded (`analysis_id`): <span style="color: #BB0000;">Longit_batch6_51</span></span></span></code></pre></div>
+<span><span class="co">#&gt; • Analyses manually excluded (`analysis_id`): <span style="color: #BB0000;">Longit_batch6_51</span></span></span>
+<span><span class="co">#&gt; • Features manually excluded (`feature_id`): <span style="color: #BB0000;">✖</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

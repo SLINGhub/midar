@@ -4,6 +4,11 @@ different sample/QC types along the analysis sequence. It helps identify
 trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.
+To plot the feature values before the last applied drift/batch correction,
+add *_before to the variable name, e.g., intensity_before or conc_before.
+To plot the uncorrected feature values (before any drift/batch correction),
+add *_raw to the variable name, e.g., intensity_raw or conc_raw. To show
+corresponding fit curves, set show_trend = TRUE.
 The function also supports visualizing analysis batches, reference lines
 (mean \(\pm\) SD), and trends. It offers customization options to display batch
 separators, apply outlier capping, show smoothed trend curves, add reference
@@ -16,6 +21,11 @@ different sample/QC types along the analysis sequence. It helps identify
 trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.
+To plot the feature values before the last applied drift/batch correction,
+add *_before to the variable name, e.g., intensity_before or conc_before.
+To plot the uncorrected feature values (before any drift/batch correction),
+add *_raw to the variable name, e.g., intensity_raw or conc_raw. To show
+corresponding fit curves, set show_trend = TRUE.
 The function also supports visualizing analysis batches, reference lines
 (mean \(\pm\) SD), and trends. It offers customization options to display batch
 separators, apply outlier capping, show smoothed trend curves, add reference
@@ -23,7 +33,7 @@ lines, and incorporate other features. Outlier capping is particularly useful
 to focus on QC or study sample trends that might otherwise be obscured by
 extreme values or high variability.
 The runscatter function serves as a central QC tool in the workflow,
-providing critical insights into data quality."></head><body>
+providing critical insights into data quality."><meta property="og:image" content="https://slinghub.github.io/midar/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -31,7 +41,7 @@ providing critical insights into data quality."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,21 +49,26 @@ providing critical insights into data quality."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/i00_get_started.html">Getting Started</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes"><li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted Lipidomics processing</a></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Quantitative LC-MS</a></li>
+  </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data Structures</a></li>
+    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data Indentifier</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
-    <li><a class="dropdown-item" href="../articles/dataimport.html">Importing</a></li>
-    <li><a class="dropdown-item" href="../articles/annotating.html">Annotating (Metadata)</a></li>
+    <li><a class="dropdown-item" href="../articles/03_midarexperiment.html">MidarExperiment Object</a></li>
+    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
+    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -65,8 +80,7 @@ providing critical insights into data quality."></head><body>
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>RunScatter Plot</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>RunScatter Plot</h1>
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/R/plots-qc-runorder.R" class="external-link"><code>R/plots-qc-runorder.R</code></a></small>
       <div class="d-none name"><code>plot_runscatter.Rd</code></div>
     </div>
@@ -77,6 +91,11 @@ different sample/QC types along the analysis sequence. It helps identify
 trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.</p>
+<p>To plot the feature values before the last applied drift/batch correction,
+add <code>*_before</code> to the variable name, e.g., <code>intensity_before</code> or <code>conc_before</code>.
+To plot the uncorrected feature values (before any drift/batch correction),
+add <code>*_raw</code> to the variable name, e.g., <code>intensity_raw</code> or <code>conc_raw</code>. To show
+corresponding fit curves, set <code>show_trend = TRUE</code>.</p>
 <p>The function also supports visualizing analysis batches, reference lines
 (mean \(\pm\) SD), and trends. It offers customization options to display batch
 separators, apply outlier capping, show smoothed trend curves, add reference
@@ -91,8 +110,9 @@ providing critical insights into data quality.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_runscatter</span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"intensity"</span>, <span class="st">"norm_intensity"</span>, <span class="st">"conc"</span>, <span class="st">"conc_raw"</span>, <span class="st">"rt"</span>, <span class="st">"area"</span>, <span class="st">"height"</span>,</span>
-<span>    <span class="st">"fwhm"</span><span class="op">)</span>,</span>
+<span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"intensity"</span>, <span class="st">"norm_intensity"</span>, <span class="st">"conc"</span>, <span class="st">"rt"</span>, <span class="st">"area"</span>, <span class="st">"height"</span>, <span class="st">"fwhm"</span>,</span>
+<span>    <span class="st">"intensity_raw"</span>, <span class="st">"intensity_before"</span>, <span class="st">"norm_intensity_raw"</span>, <span class="st">"norm_intensity_before"</span>,</span>
+<span>    <span class="st">"conc_raw"</span>, <span class="st">"conc_before"</span><span class="op">)</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -145,7 +165,11 @@ providing critical insights into data quality.</p>
 
 
 <dt id="arg-variable">variable<a class="anchor" aria-label="anchor" href="#arg-variable"></a></dt>
-<dd><p>The variable to plot on the y-axis, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'</p></dd>
+<dd><p>The variable to plot on the y-axis, one of 'intensity',
+'norm_intensity', 'conc', 'conc', 'rt', 'fwhm', 'area', 'height', response'.
+Add <code>_before</code> after the variable name to plot the feature values before the last
+applied drift/batch correction, (e.g., <code>conc_before</code>). Add <code>_raw</code> after the
+variable name to plot the raw uncorrected feature values (e.g., <code>conc_raw</code>).</p></dd>
 
 
 <dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>
@@ -331,7 +355,9 @@ replaced with the minimum positive value divided by 5 to avoid log 0 errors</p><
 or within batches as lines or shaded stripes.</p></li>
 <li><p>Trend curves can be displayed before or after drift/batch correction. In
 either case, a drift and/or batch correction must be applied to the data
-to enable plotting of trend curves.</p></li>
+to enable plotting of trend curves. To show trend curves used for the last drift or batch correction,
+add "_before" to the variable name, e.g. <code>conc_before</code> or <code>intensity_before</code>
+and set <code>show_trend = TRUE</code>.</p></li>
 </ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

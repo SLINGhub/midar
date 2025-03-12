@@ -10,6 +10,7 @@
 #'   contributing to the signal of `feature`
 #' @param interference_contribution Relative portion of the interfering feature to
 #'   contribute to the feature signal. Must be between 0 and 1.
+#' @param neg_to_na If `TRUE`, negative or zero values after correction will be replaced with `NA`. Default: `FALSE`.
 #' @param updated_feature_id Optional. New name of corrected feature. If empty
 #'   then feature name will not change.
 #' @param variable Default: `feature_intensity`. Name of Variable to be
@@ -20,7 +21,7 @@
 
 #  Example:  mexp <- correct_interference_manual(mexp, "feature_intensity", "PC 32:0 | SM 36:1 M+3", "SM 36:1", 0.0106924, "PC 32:0")
 
-correct_interference_manual <- function(data = NULL, variable, feature, interfering_feature, interference_contribution, updated_feature_id = NA) {
+correct_interference_manual <- function(data = NULL, variable, feature, interfering_feature, interference_contribution, neg_to_na = FALSE, updated_feature_id = NA) {
 
   check_data(data)
   variable_var <- rlang::ensym(variable)
@@ -50,10 +51,31 @@ correct_interference_manual <- function(data = NULL, variable, feature, interfer
       interference_corrected = if_else(.data$feature_id == feature, TRUE, .data$interference_corrected)
     )
 
+    neg_zero_sum <- data@dataset |>
+      filter(.data$interference_corrected) |>
+      group_by(.data$feature_id, .data$qc_type) |>
+      summarise(negative_count = sum(!!variable_var  <= 0))  |>
+      filter(!str_detect(.data$qc_type, "BLK"))
+
+    if (sum(neg_zero_sum$negative_count) > 0) {
+      if(neg_to_na) {
+        cli_alert_warning(col_yellow("Interference correction led to {sum(neg_zero_sum$negative_count)} negative or zero values in samples/QCs. All negative/zero values (incl. in Blanks) were replaced with `NA`."))
+      } else {
+        cli_alert_warning(col_yellow("Interference correction led to {sum(neg_zero_sum$negative_count)} negative or zero values in samples/QCs. Please verify the correction, or set `neg_to_na = TRUE`"))
+      }
+    }
+
+    data@dataset <- data@dataset |>
+      mutate(
+        !!variable_var := if_else(neg_to_na & .data$interference_corrected & !!variable_var <= 0, NA_real_, !!variable_var)
+      )
+
   if(!is.na(updated_feature_id)) {
     data@dataset <- data@dataset |>
       mutate(feature_id = if_else(.data$feature_id == feature & .data$interference_corrected, updated_feature_id, .data$feature_id))
   }
+
+
 
   data@is_isotope_corr <- TRUE
   data@status_processing <- "Isotope-corrected raw data"
@@ -98,6 +120,7 @@ correct_interference_manual <- function(data = NULL, variable, feature, interfer
 #'   `FALSE`, corrections are based on the raw signal of the interfering
 #'   features. If `FALSE`, the correction will be based on the raw signal of the
 #'   interfering feature.
+#' @param neg_to_na If `TRUE`, negative or zero values after correction will be replaced with `NA`. Default: `FALSE`.
 #' @return MidarExperiment object with feature intensities corrected for
 #'   interferences.
 #' @export
@@ -108,11 +131,11 @@ correct_interference_manual <- function(data = NULL, variable, feature, interfer
 #' \url{https://doi.org/10.1021/acs.analchem.0c04565}
 
 
-correct_interferences <- function(data = NULL, variable = "feature_intensity", sequential_correction = TRUE) {
+correct_interferences <- function(data = NULL, variable = "feature_intensity", sequential_correction = TRUE, neg_to_na = FALSE) {
 
   check_data(data)
 
-  if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus must be set to `feature_intensity` or not defined.")
+  if (variable != "feature_intensity") cli::cli_abort("Currently only correction for raw intensities suspported, thus variable must be set to `feature_intensity` or not defined.")
   # Check if data is already interference-corrected
   if (data@is_isotope_corr && (c("feature_intensity_orig") %in% names(data@dataset))) {
     cli_alert_info(cli::col_yellow("Data was already interference-corrected. Corrections will be reapplied to raw intensities."))
@@ -209,6 +232,24 @@ correct_interferences <- function(data = NULL, variable = "feature_intensity", s
     ) |>
     select(-"intensity_corrected")
 
+  neg_zero_sum <- data@dataset |>
+    filter(.data$interference_corrected) |>
+    group_by(.data$feature_id, .data$qc_type) |>
+    summarise(negative_count = sum(.data$feature_intensity <= 0)) |>
+    filter(.data$negative_count > 0)
+
+  if (sum(neg_zero_sum$negative_count) > 0) {
+    if(neg_to_na) {
+      cli_alert_warning(col_yellow("Interference correction led to negative or zero values in {length(unique(neg_zero_sum$feature_id))} feature(s) in samples/QCs. All negative/zero values (incl. in Blanks) were replaced with `NA`."))
+    } else {
+      cli_alert_warning(col_yellow("Interference correction led to negative or zero values in {length(unique(neg_zero_sum$feature_id))} feature(s) in samples/QCs. Please verify the correction, or set `neg_to_na = TRUE`"))
+    }
+  }
+
+  data@dataset <- data@dataset |>
+    mutate(
+      feature_intensity = if_else(neg_to_na & .data$interference_corrected & .data$feature_intensity  <= 0, NA_real_, .data$feature_intensity )
+    )
 
   # Update MidarExperiment flags
 

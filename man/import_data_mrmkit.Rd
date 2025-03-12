@@ -2,9 +2,9 @@
 % Please edit documentation in R/data-import.R
 \name{import_data_mrmkit}
 \alias{import_data_mrmkit}
-\title{Imports MRMkit peak integration results}
+\title{Import MRMkit peak integration results}
 \usage{
-import_data_mrmkit(data = NULL, path, import_metadata, silent = FALSE)
+import_data_mrmkit(data = NULL, path, import_metadata = TRUE, silent = FALSE)
 }
 \arguments{
 \item{data}{MidarExperiment object}

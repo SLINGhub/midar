@@ -348,6 +348,7 @@ fun_correct_drift <- function(data = NULL,
   variable_raw <- paste0(variable, "_raw")
   variable_before <- paste0(variable, "_before")
 
+
    # Clear all previous calculations
   data@dataset <- data@dataset |> select(-any_of(c("curve_y_predicted", "y_fit", "y_fit_after", "y_predicted_median",
                                                    "cv_raw_spl", "cv_adj_spl", "drift_correct",
@@ -360,6 +361,7 @@ fun_correct_drift <- function(data = NULL,
   txt2 <- ifelse(data@var_batch_corrected[[variable]], "batch", NA)
   txt <- stringr::str_flatten(c(txt1, txt2), collapse = " and ", na.rm = TRUE)
 
+  is_first_correction <- FALSE
 
   if(data@var_drift_corrected[[variable]] | data@var_batch_corrected[[variable]]){
     if(!replace_previous){
@@ -372,6 +374,8 @@ fun_correct_drift <- function(data = NULL,
       data@dataset[[variable]] <- data@dataset[[variable_raw]]
     }
   } else {
+    # data was not corrected before, make a copy of the original data as "_raw"
+    is_first_correction <- TRUE
     data@dataset[[variable_raw]] <- data@dataset[[variable]]
     cli::cli_alert_info(cli::col_green(glue::glue("Applying `{variable_strip}` drift correction...")))
   }
@@ -608,6 +612,7 @@ fun_correct_drift <- function(data = NULL,
 
   variable_fit_sym <- rlang::sym(paste0(variable_before, "_fit"))
   variable_fit_after_sym <- rlang::sym(paste0(variable, "_fit_after"))
+  variable_raw_fit_sym <- rlang::sym(paste0(variable_raw, "_fit"))
   variable_corrected <- rlang::sym(paste0(variable, "_drift_correct"))
   variable_fit_error <- rlang::sym(paste0(variable, "_fit_error"))
   variable_fit_warning <- rlang::sym(paste0(variable, "_fit_warning"))
@@ -617,6 +622,7 @@ fun_correct_drift <- function(data = NULL,
     left_join(d_smooth_final, by = c("analysis_id", "qc_type", "feature_id", "batch_id")) |>
     mutate(!!variable_sym := .data$var_adj,
            !!variable_before_sym := .data$y_original,
+           !!variable_raw_fit_sym := if(is_first_correction) .data$y_fit else !!variable_raw_fit_sym,
            !!variable_fit_sym := .data$y_fit,
            !!variable_fit_after_sym := .data$y_fit_after,
            !!variable_corrected := .data$drift_correct,
@@ -1266,9 +1272,13 @@ correct_batch_centering <- function(data = NULL,
   rlang::arg_match(variable_strip, c("intensity", "norm_intensity", "conc"))
   variable <- stringr::str_c("feature_", variable_strip)
   variable_sym <- rlang::sym(variable)
+  variable_raw <- paste0(variable, "_raw")
   variable_before <- paste0(variable, "_before")
+  variable_before_sym <- rlang::sym(variable_before)
   variable_fit <- paste0(variable_before, "_fit")
+  variable_raw_fit <- paste0(variable_raw, "_fit")
   variable_fit_sym <- rlang::sym(variable_fit)
+  variable_raw_fit_sym <- rlang::sym(variable_raw_fit)
   variable_fit_after <- paste0(variable, "_fit_after")
   variable_fit_after_sym <- rlang::sym(variable_fit_after)
   variable_smoothed_fit_after <- paste0(variable, "_smoothed_fit_after")
@@ -1282,6 +1292,8 @@ correct_batch_centering <- function(data = NULL,
   txt1 <- ifelse(data@var_drift_corrected[[variable]], "drift", NA)
   txt2 <- ifelse(data@var_drift_corrected[[variable]], "batch", NA)
   txt <- stringr::str_flatten(c(txt1, txt2), collapse = " and ", na.rm = TRUE)
+
+  is_first_correction <- FALSE
 
   if(data@var_drift_corrected[[variable]] ){
     # Drift-corrected data
@@ -1328,7 +1340,10 @@ correct_batch_centering <- function(data = NULL,
         # Uncorrected data (raw)
       cli_alert_info(col_yellow(glue::glue("Adding batch correction to `{variable_strip}` data.")))
         #Store raw data
-        data@dataset[[variable_before]] <- data@dataset[[variable]]
+        is_first_correction <- TRUE
+        data@dataset[[variable_raw]] <- data@dataset[[variable]]
+
+
         # Use median horizontal lines to indicate fits if data was not drift corrected before
         data@dataset <- data@dataset |>
             mutate(!!variable_fit_sym := median(.data[[variable_sym]][.data$qc_type %in% reference_qc_types ], na.rm = TRUE), .by = c("feature_id", "batch_id"))
@@ -1406,12 +1421,15 @@ correct_batch_centering <- function(data = NULL,
 
 
   data@dataset <- data@dataset |>
-    left_join(d_res |> select(-"y", -"y_fit_after"),
+    left_join(d_res |> select(  -"y_fit_after"),
               by = c("analysis_id", "feature_id", "qc_type", "batch_id")) |>
     mutate(!!variable_sym := .data$y_adj,
+           !!variable_before_sym := .data$y,
            !!variable_fit_sym := .data[[variable_fit]],
+           !!variable_raw_fit_sym := if(is_first_correction) .data[[variable_fit_after]] else !!variable_raw_fit_sym,
            !!variable_fit_after_sym := .data$y_fit_after_adj) |>
-    select(-"y_adj", -"y_fit_after_adj")
+    select(-"y_adj", -"y_fit_after_adj", -"y")
+
 
 
 

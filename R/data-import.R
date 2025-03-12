@@ -1,5 +1,5 @@
 
-#' @title Imports Agilent MassHunter Quantitative Analysis CSV files
+#' @title Import Agilent MassHunter Quantitative Analysis CSV files
 #' @description
 #' Imports .csv files exported from Agilent MassHunter Quantitative Analysis software, containing peak integration results.
 #' The input files must have anlyses (samples) in rows, features/compounds in columns, and either peak areas, peak heights, or response as the values.
@@ -29,7 +29,7 @@
 #'
 #' @export
 
-import_data_masshunter <- function(data = NULL, path, import_metadata, expand_qualifier_names = TRUE, silent = FALSE) {
+import_data_masshunter <- function(data = NULL, path, import_metadata = TRUE, expand_qualifier_names = TRUE, silent = FALSE) {
   check_data(data)
   #if (fs::path_ext(path) == "csv") {
     data <- import_data_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
@@ -41,7 +41,7 @@ import_data_masshunter <- function(data = NULL, path, import_metadata, expand_qu
   #}
 }
 
-#' @title Imports MRMkit peak integration results
+#' @title Import MRMkit peak integration results
 #' @description
 #' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak integration results.
 #' The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other arguments
@@ -69,7 +69,7 @@ import_data_masshunter <- function(data = NULL, path, import_metadata, expand_qu
 #
 #' print(mexp)
 #' @export
-import_data_mrmkit <- function(data = NULL, path, import_metadata, silent = FALSE) {
+import_data_mrmkit <- function(data = NULL, path, import_metadata = TRUE, silent = FALSE) {
   check_data(data)
   data <- import_data_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
   data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
@@ -78,23 +78,42 @@ import_data_mrmkit <- function(data = NULL, path, import_metadata, silent = FALS
   data
 }
 
-#' @title Import plain analysis results
-#' @description
-#' Imports .csv file(s) reprensenting analysis results in a wide format with samples in rows and features in columns.
-#' The first column must contain the analysis identifier, subsequent columns can be metadata columns, followed by value of different features.
-#' The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other arguments
-#' Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and will available from the `MidarExperiment` object for downstream analyses.
+#' Import Analysis Results from Plain CSV Files
+#' @details
+#' This function imports analysis result data from .csv files in wide format,
+#' where each row represents a sample and each column signifies a feature.
 #'
-#' When a path to a folder is provided, all .scv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-#' Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+#' The dataset must have an analysis identifier, either in an "analysis_id"
+#' column or inferred from the first column if it contains unique values. The
+#' `variable_name` argument specifies the data type in the table: "area",
+#' "height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
+#' "rt", or "fwhm".
+#'
+#' Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
+#' "is_quantifier", "is_istd", can be imported if present.
+#'
+#' WHen there are other columns that not represent features, use the `first_feature_column` parameter
+#' to define where feature columns start.
+#'
+#' When a directory path is specified, the function processes all .csv files in
+#' that directory, merging them into a single dataset. This is useful for
+#' datasets divided into multiple files during preprocessing. Ensure each
+#' feature and raw data file pair appears only once to avoid duplication
+#' errors.
+#'
+#'
+#' The `na_strings` parameter allows specifying strings to be interpreted as NA,
+#' ensuring the dataset is clean for analysis.
 #'
 #' @param data MidarExperiment object
 #' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
 #' @param variable_name Variable type representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
 #' @param analysis_id_col Column to be used as analysis_id. `NA` (default) used 'analysis_id' if present, or the first column if it contains unique values.
 #' @param import_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
-#' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "run_seq_num", "precursor_mz", "product_mz", "collision_energy"
-# #' @param silent Suppress notifications
+#' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order"
+#' @param first_feature_column Column number of the first column representing the feature values
+#' @param na_strings A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.
+# #' @param silent Su ppress notifications
 #' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
@@ -111,11 +130,17 @@ import_data_mrmkit <- function(data = NULL, path, import_metadata, silent = FALS
 #'
 #' @export
 
-import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata) {
+import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata  = TRUE, first_feature_column = NA, na_strings = "NA") {
   check_data(data)
-  data <- import_data_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata)
-  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height", "feature_conc")
-  if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
+  data <- import_data_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata, first_feature_column)
+  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
+
+  if (import_metadata)
+    data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
+  else{
+    #set_analysis_order_analysismetadata(data, order_by = "default")
+    data <- link_data_metadata(data)
+  }
 
   data
 }
@@ -140,22 +165,32 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
     purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source") |>
     relocate("analysis_id", "data_source")
 
-  d_runorder <- d_raw |>
-    select("analysis_id") |>
-    distinct() |>
-    mutate(run_seq_num = row_number())
 
-  d_raw <- d_raw |>
-    left_join(d_runorder, by = "analysis_id") |>
-    relocate("run_seq_num", .before = 1)
+  if(!"analysis_order" %in% names(d_raw)) {
+    d_runorder <- d_raw |>
+      select("analysis_id") |>
+      distinct() |>
+      mutate(analysis_order = row_number())
+
+    d_raw <- d_raw |>
+      left_join(d_runorder, by = "analysis_id") |>
+      relocate("analysis_order", .before = 1)
+  }
 
   # VERIFY DATA, i.e. analysis_ids, feature_ids, and values are replicated ===
   ## which can be result of multiple imports of the same/overlapping data or due to parsing error
-  n_idpairs_distinct <- d_raw |> select("analysis_id", "feature_id") |>  distinct(.keep_all = FALSE) |> nrow()
+  n_idpairs_distinct <- d_raw |>
+    select("analysis_id", "feature_id") |>
+    distinct(.keep_all = FALSE) |>
+    nrow()
   if (nrow(d_raw) > n_idpairs_distinct) {
     has_duplicated_id <- TRUE
 
-    n_idvalpairs_distinct <- d_raw |> select("analysis_id", "feature_id", any_of(c("feature_area", "feature_rt", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>  distinct(.keep_all = FALSE) |> nrow()
+    n_idvalpairs_distinct <- d_raw |>
+      select("analysis_order", "analysis_id", "feature_id",
+        any_of(c("feature_area", "feature_rt", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>
+      distinct(.keep_all = FALSE) |>
+      nrow()
 
     if (n_idvalpairs_distinct == n_idpairs_distinct ) {
       has_duplicated_values <- TRUE
@@ -244,7 +279,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
 
 
-  if (!any(c("Name", "Data File") %in% unlist(datWide[3,]))) cli::cli_abort("Error parsing this file. It may in unsupported format, e.g. with features/analytes in rows, or corrupt. Please try re-export from Masshunter with samples in rows and features/analytes in columns.")
+  if (!any(c("Data File") %in% unlist(datWide[3,]))) cli::cli_abort("`Data File` column is missing, or the data file is in an unsupported or corrupt format. Please try re-export from Masshunter ensuring `Data File` is exported and that samples in rows and features in columns.")
 
   if(datWide[1, 1] != "Sample") datWide[1, 1] <- "Sample"
 
@@ -366,7 +401,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   # Obtain long table of all param-transition combinations, split param and compund name and then spread values of different param as columns
   datLong <- datWide |>
-    dplyr::mutate(file_run_seq_num = dplyr::row_number(), .before = 1) |>
+    dplyr::mutate(file_analysis_order = dplyr::row_number(), .before = 1) |>
     tidyr::pivot_longer(cols = all_of(param_transition_names), names_pattern = "(.*)\t(.*)$", names_to = c("Param", "feature_id")) |>
     tidyr::pivot_wider(names_from = "Param", values_from = "value")
 
@@ -375,13 +410,12 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   new_numeric_colnames <- c(
     "feature_rt" = "Results_RT",
-    "method_target_rt" = "Method_RT",
     "feature_response" = "Results_Resp",
     "feature_height" = "Results_Height",
     "feature_area" = "Results_Area",
     "feature_accuracy" = "Results_Accuracy",
     "feature_conc_calc" = "Results_Calc Conc",
-    "feature_conc_final" = "Results_Final Conc",
+    "feature_conc" = "Results_Final Conc",
     "feature_fwhm" = "Results_FWHM",
     "feature_width" = "Results_Width",
     "feature_sn_ratio" = "Results_SN",
@@ -389,10 +423,11 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_int_end" = "Results_IntEnd",
     "feature_symetry" = "Results_Symmetry",
     "feature_istd_responseratio" = "Results_ISTD Resp. Ratio",
+    "method_target_rt" = "Method_RT",
+    "method_conc_expected" = "Method_Exp Conc",
     "method_precursor_mz" = "Method_Precursor Ion",
     "method_product_mz" = "Method_Product Ion",
     "method_collision_energy" = "Method_Collision Energy",
-    "method_conc_expected" = "Method_Exp Conc",
     "method_fragmentor" = "Method_Fragmentor",
     "method_multiplier" = "Method_Multiplier",
     "method_noise_raw_signal" = "Method_Noise of Raw Signal",
@@ -457,6 +492,8 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
         (!expand_qualifier_names & str_detect(.data$feature_id, "^Qualifier \\("))),
       .after = "feature_id"
     )
+
+
 
     # Defines the field from the raw data to used as analysis id
   datLong <- datLong |>
@@ -562,6 +599,8 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @param variable_name Name of the variable representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
 #' @param analysis_id_col Column to be used as analysis_id
 #' @param import_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object
+#' @param first_feature_column Column number of the first column representing the feature values
+#' @param na_strings A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.
 #' @return A tibble in the long format
 #' @examples
 #' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
@@ -574,84 +613,122 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #'
 #' head(tbl)
 #' @export
- parse_plain_csv <- function(path, variable_name, analysis_id_col = NA, import_metadata) {
+ parse_plain_csv <- function(path, variable_name, analysis_id_col = NA, import_metadata = TRUE, first_feature_column = NA, na_strings = "NA") {
 
   if(fs::path_ext(path) != "csv") cli::cli_abort("Only csv files are currently supported.")
 
   variable_name <- str_remove(variable_name, "feature_")
-  rlang::arg_match(variable_name, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable_name, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
   variable_name <- stringr::str_c("feature_", variable_name)
   variable_name_sym = rlang::sym(variable_name)
 
-  if(import_metadata){
-    analysis_metadata_cols <- c(
-      "run_seq_num",
-      "qc_type",
-      "batch_id",
-      "is_quantifier",
-      "is_istd",
-      "precursor_mz",
-      "product_mz",
-      "collision_energy"
-    )
-  } else {
-    analysis_metadata_cols = NULL
-  }
 
-  d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "n", progress = FALSE)
+  d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "n", na = na_strings, progress = FALSE, name_repair = "minimal")
 
   if (!is.null(analysis_id_col) & !is.na(analysis_id_col)){
+    # a column name was provided as analysis_id
     if (!analysis_id_col %in% names(d)) {
-      cli::cli_abort("No column with the name `{analysis_id_col}` found in the data file.")
+      cli::cli_abort(col_red("No column with the name `{analysis_id_col}` found in the data file."))
     }
   } else {
-    if ("analysis_id" %in% names(d) & (length(unique(d$analysis_id)) == nrow(d))){
+    # no column name provided, try to find analysis_id first
+    if ("analysis_id" %in% names(d)){
       analysis_id_col <- "analysis_id"
     } else {
-      if (all(is.character(d[,1]))) {
-        analysis_id_col <- "analysis_id"
-        cli::cli_alert_info("The first column was used as `analysis_id`.")
-      } else {
-        cli::cli_abort("No column with the name `analysis_id` or other potential column with unique text identifiers found in the data file.")
-      }
+      # no analysis_id column found
+      cli::cli_abort(col_red("Column `analysis_id` not found in imported data. Please set the column to be used as `analysis_id` using the `analysis_id_col` argument"))
     }
   }
 
-  if(import_metadata){
-    analysis_metadata_cols <- c(
-      "run_seq_num",
-      "qc_type",
-      "batch_id",
-      "is_quantifier",
-      "is_istd",
-      "precursor_mz",
-      "product_mz",
-      "collision_energy"
-    )
-    if(!any(analysis_metadata_cols %in% names(d))) {
-      cli::cli_abort("No metadata column names found. Please refer to `??import_data_plain` for more information on support metadata column names.")
+
+  analysis_metadata_cols <- c(
+    "analysis_order",
+    "qc_type",
+    "batch_id",
+    "is_quantifier",
+    "is_istd"
+  )
+
+  analysis_metadata_cols <- intersect(analysis_metadata_cols,names(d))
+  if(length(analysis_metadata_cols) > 0) {
+    txt <- glue::glue_collapse(analysis_metadata_cols, sep = ", ")
+    if(import_metadata){
+      if("analysis_order" %in% analysis_metadata_cols) {
+        if(!is.numeric(d$analysis_order))
+          cli::cli_abort(col_red("Column `analysis_order` must contain unique numbers. Please verify your data or use `import_metadata = FALSE`"))
+        if(any(duplicated(d$analysis_order)))
+          cli::cli_abort(col_red("`analysis_order` contains duplicated values. Please verify your data."))
+      }
+
+      cli::cli_alert_info(col_green("Metadata column(s) '{txt}' imported. To ignore, set `import_metadata = FALSE`"))
+
+
+    } else {
+
+      d <- d |> select(-all_of(analysis_metadata_cols))
+      cli::cli_alert_info(cli::col_grey("Metadata column(s) '{txt}' found and ignored. To import the metadata, set `import_metadata = TRUE`"))
+
     }
+
   } else {
     analysis_metadata_cols = NULL
   }
+
   analysis_id_col_sym = rlang::sym(analysis_id_col)
+
+  n_dup <- sum(duplicated(d[analysis_id_col]))
+  if(n_dup > 0) {
+    cli::cli_abort(col_red("{n_dup} duplicated `analysis_id` present in the data file. Please verify the data."))
+  }
+
+  n_dup <- sum(duplicated(d[analysis_id_col]))
+  if(n_dup > 0) {
+    cli::cli_abort(col_red("{n_dup} duplicated `analysis_id` present in the data file. Please verify the data."))
+  }
+
 
   # Verify all data columns are numeric
 
-  val_cols <- setdiff(names(d), c(analysis_id_col, analysis_metadata_cols))
+  if(!is.na(first_feature_column)) {
+    if(!is.numeric(first_feature_column)) {
+      if(!first_feature_column %in% names(d)) {
+        cli::cli_abort(col_red("Column `{first_feature_column}` not found in the data file. Please very set argument `first_feature_column`"))
+      } else {
+        first_feature_column_ix <- which(names(d) == first_feature_column)
+      }
+    } else {
+      if(first_feature_column > ncol(d) | first_feature_column < 2) {
+        cli::cli_abort(col_red("Column index set via `first_feature_column` out of range. Please verify the set value or use the column name."))
+      } else {
+        first_feature_column_ix <- first_feature_column
+      }
+    }
+    sel_feature_names <- d |> select(first_feature_column_ix:dplyr::last_col()) |>  names()
+  } else {
+    sel_feature_names <- d  |>  names()
+  }
+
+  n_dup <- sum(duplicated(sel_feature_names))
+  if(n_dup > 0) {
+    cli::cli_abort(col_red("{n_dup} duplicated column name(s) present in the data file. Please verify the data."))
+  }
+
+  val_cols <- setdiff(sel_feature_names, c(analysis_id_col, analysis_metadata_cols))
   analysis_cols <- setdiff(names(d), c(val_cols))
 
+
+
+
+
+
   if(!all(purrr::map_lgl(d[val_cols], is.numeric))) {
-    if(import_metadata)
-      cli::cli_abort("All columns with feature values must be numeric. Check your data, or if metadata is present, set `import_metadata = TRUE`.")
-    else
-      cli::cli_abort("All columns with feature values must be numeric. Check your data, and metadata column names, see `??import_data_plain`")
+      cli::cli_abort(col_red("All columns with feature values must be numeric. Check your data, or if metadata is present, use `first_feature_column` to set start of feature data. If missing values are present as text, use `na_strings` to set the values to be treated as missing."))
   }
 
   d_long <- d |>
     tidyr::pivot_longer(cols = -all_of(c(analysis_cols)), names_to = "feature_id", values_to = variable_name) |>
     dplyr::rename(analysis_id = !!analysis_id_col_sym) |>
-    dplyr::mutate(across(any_of(c("analysis_id", "batch_id")), as.character)) |>
+    dplyr::mutate(across(any_of(c("analysis_id", "batch_id", "batch_id")), as.character)) |>
     dplyr::mutate(integration_qualifier = FALSE)
 
   d_long
@@ -661,58 +738,58 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 
 
 
-#' Reads a generic wide .csv or .xls sheet with analysis results data
+#' #' Reads a generic wide .csv or .xls sheet with analysis results data
+#' #'
+#' #' @description
+#' #' Imports a tables with the column being the analysis identifier (e.g. sample name) and the following colums being measured features. The values in the table
+#' #'
+#' #'
+#' #' @param path File name and path of a plain wide-format CSV or XLS file
+#' #' @param value_type Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm" or "width"
+#' #' @param sheet Sheet name in case an Excel file (.xls, .xlsx, .xlsm) is imported
+#' #' @param silent Suppress messages
 #'
-#' @description
-#' Imports a tables with the column being the analysis identifier (e.g. sample name) and the following colums being measured features. The values in the table
+#' #' @return A tibble in the long format
+#' #' @noRd
+#' read_data_table <- function(path, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
+#'   value_type <- match.arg(value_type)
 #'
+#'   value_type <- dplyr::case_match(
+#'     value_type,
+#'     "area" ~ "feature_area",
+#'     "height" ~ "feature_height",
+#'     "intensity" ~ "feature_intensity",
+#'     "norm_area" ~ "feature_norm_area",
+#'     "norm_height" ~ "feature_norm_height",
+#'     "norm_intensity" ~ "feature_norm_intensity",
+#'     "feature_conc" ~ "feature_conc",
+#'     "rt" ~ "feature_rt",
+#'     "fwhm" ~ "feature_fwhm",
+#'     "width" ~ "feature_width",
+#'     .default = NULL
+#'   )
 #'
-#' @param path File name and path of a plain wide-format CSV or XLS file
-#' @param value_type Parameter type of the feature, i.e. "area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm" or "width"
-#' @param sheet Sheet name in case an Excel file (.xls, .xlsx, .xlsm) is imported
-#' @param silent Suppress messages
-
-#' @return A tibble in the long format
-#' @noRd
-read_data_table <- function(path, value_type = c("area", "height", "intensity", "norm_area", "norm_height", "norm_intensity", "feature_conc", "rt", "fwhm", "width"), sheet = "", silent = FALSE) {
-  value_type <- match.arg(value_type)
-
-  value_type <- dplyr::case_match(
-    value_type,
-    "area" ~ "feature_area",
-    "height" ~ "feature_height",
-    "intensity" ~ "feature_intensity",
-    "norm_area" ~ "feature_norm_area",
-    "norm_height" ~ "feature_norm_height",
-    "norm_intensity" ~ "feature_norm_intensity",
-    "feature_conc" ~ "feature_conc",
-    "rt" ~ "feature_rt",
-    "fwhm" ~ "feature_fwhm",
-    "width" ~ "feature_width",
-    .default = NULL
-  )
-
-  var_value_type <- rlang::ensym(value_type)
-  ext <- fs::path_ext(path)
-
-  if (ext == "csv") {
-    d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, progress = FALSE,
-                         na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."),
-                         col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
-  } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
-    if (sheet == "") cli::cli_abort("Please define sheet name via the `sheet` parameter")
-    d <- .read_generic_excel(path, sheet)
-  } else {
-    cli::cli_abort("Invalid file format. Only CSV, XLS and XLSX supported.")
-  }
-
-  d |>
-    dplyr::mutate(run_seq_num = dplyr::row_number(), .before = 1) |>
-    tidyr::pivot_longer(cols = -1:-2, names_to = "feature_id", values_to = value_type) |>
-    dplyr::rename(analysis_id = 2) |>
-    mutate({{ value_type }} := as.numeric(!!var_value_type))
-}
-
+#'   var_value_type <- rlang::ensym(value_type)
+#'   ext <- fs::path_ext(path)
+#'
+#'   if (ext == "csv") {
+#'     d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, progress = FALSE,
+#'                          na = c("n/a", "N/A", "NA", "na", "ND", "N.D.", "n.d."),
+#'                          col_types = "cn", locale = readr::locale(encoding = "UTF-8"))
+#'   } else if (ext == "xls" || ext == "xlsx" || ext == "xlm" || ext == "xlmx") {
+#'     if (sheet == "") cli::cli_abort("Please define sheet name via the `sheet` parameter")
+#'     d <- .read_generic_excel(path, sheet)
+#'   } else {
+#'     cli::cli_abort("Invalid file format. Only CSV, XLS and XLSX supported.")
+#'   }
+#'
+#'   d |>
+#'     dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1) |>
+#'     tidyr::pivot_longer(cols = -1:-2, names_to = "feature_id", values_to = value_type) |>
+#'     dplyr::rename(analysis_id = 2) |>
+#'     mutate({{ value_type }} := as.numeric(!!var_value_type))
+#' }
+#'
 
 
 
@@ -730,7 +807,7 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
                               skip_empty_rows = TRUE,
                               skip_empty_cols = TRUE,
                               detect_dates = TRUE,
-                              na.strings = c("n/a", "N/A", "NA"),
+                              na_strings = c("n/a", "N/A", "NA"),
                               rows = 1)|>
     mutate(across(where(is.character), str_trim))
 
@@ -745,7 +822,7 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
                               detect_dates = TRUE,
                               skip_empty_rows = TRUE,
                               skip_empty_cols = TRUE,
-                              na.strings = c("n/a", "N/A", "NA")
+                              na_strings = c("n/a", "N/A", "NA")
                               #types = ct
                               ) |>
     mutate(across(where(is.character), str_trim))
@@ -787,8 +864,8 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
 #
 #   d_mrmkit_data <- d_mrmkit_raw |>
 #     dplyr::filter(!.data$name %in% c("Q1", "Q3", "RT", "D-ratio")) |>
-#     dplyr::mutate(file_run_seq_num = dplyr::row_number(), .before = "name") |>
-#     tidyr::pivot_longer(-.data$file_run_seq_num:-.data$name, names_to = "feature_id", values_to = "value") |>
+#     dplyr::mutate(file_analysis_order = dplyr::row_number(), .before = "name") |>
+#     tidyr::pivot_longer(-.data$file_analysis_order:-.data$name, names_to = "feature_id", values_to = "value") |>
 #     dplyr::rename(raw_data_filename = .data$name) |>
 #     dplyr::mutate(raw_data_filename = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
 #     dplyr::mutate(raw_data_filename = stringr::str_squish(.data$raw_data_filename)) |>
@@ -817,7 +894,7 @@ read_data_table <- function(path, value_type = c("area", "height", "intensity", 
 #   #     dplyr::filter(!is.na(.data$type))|>
 #   #     dplyr::mutate(path = stringr::str_squish(str_remove(.data$path, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)))) |>
 #   #     dplyr::rename(raw_data_filename = .data$path) |>
-#   #     #dplyr::mutate(run_seq_num = row_number(), .before = ANALYSIS_ID) |>
+#   #     #dplyr::mutate(analysis_order = row_number(), .before = ANALYSIS_ID) |>
 #   #     dplyr::select(-any_of(c("batch", "type"))) |>
 #   #     tidyr::pivot_longer(-.data$raw_data_filename, names_to = "feature_id", values_to = "feature_norm_intensity")
 #   #

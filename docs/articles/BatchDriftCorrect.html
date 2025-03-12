@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,13 +35,18 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Overview</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
+<li><a class="dropdown-item" href="../articles/dataimport.html">Targeted MRM panel</a></li>
+    <li><a class="dropdown-item" href="../articles/dataimport.html">Quantitative LC-MS</a></li>
+  </ul>
+</li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
+<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
     <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
     <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -52,7 +57,8 @@
     <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/updates.html">Updates</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -71,8 +77,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Drift and Batch Correction</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Drift and Batch Correction</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/articles/BatchDriftCorrect.Rmd" class="external-link"><code>vignettes/articles/BatchDriftCorrect.Rmd</code></a></small>
@@ -102,38 +107,43 @@ data.</p>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>  reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">Adding batch correction to `conc` data...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction to `conc` data.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to raw concentrations of all 2 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of features in the study samples across batches </span><span style="color: #555555; font-weight: bold;">increased</span><span style="color: #555555;"> by 1.1% (1.1 to 1.1%) to 44.0%.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-30.67%</span><span style="color: #555555;"> (range: -30.80% to -30.50%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">43.96% to 13.29%</span><span style="color: #555555;">.</span></span></span></code></pre></div>
 <p>Now let’s plot the data before and after batch correction.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_raw"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (2 pages)...</span></span></span></code></pre></div>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-3-1.png" width="700"><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-3-2.png" width="700"></p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (2 pages)...</span></span></span></code></pre>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-3-3.png" width="700"><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-3-4.png" width="700"></p>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 <p>Next, we correct the batch effects again, this time with scaling of
 variance.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Correct batch effects - WITH scaling of variance</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">Replacing previous `conc` batch correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Replacing previous `conc` batch correction.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to raw concentrations of all 2 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of features in the study samples across batches </span><span style="color: #555555; font-weight: bold;">increased</span><span style="color: #555555;"> by 1.1% (1.1 to 1.1%) to 44.0%.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-32.37%</span><span style="color: #555555;"> (range: -32.50% to -32.20%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">43.96% to 11.59%</span><span style="color: #555555;">.</span></span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (2 pages)...</span></span></span></code></pre></div>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-4-1.png" width="700"><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 <p>Finally, we can export the corrected data using the
 <code><a href="../reference/save_dataset_csv.html">save_dataset_csv()</a></code> function.</p>
 </div>
 <div class="section level2">
 <h2 id="drift-correction-and-batch-centering">Drift Correction and Batch-Centering<a class="anchor" aria-label="anchor" href="#drift-correction-and-batch-centering"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Created a data object</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"batch-effects"</span><span class="op">)</span></span>
 <span></span>
@@ -156,41 +166,44 @@ variance.</p>
 <span>                                        batch_wise <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                                        kernel_size <span class="op">=</span> <span class="fl">10</span>, </span>
 <span>                                        recalc_trend_after <span class="op">=</span> <span class="cn">TRUE</span>,show_progress <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction (batch-wise) was applied to raw concentrations of 1 of 1 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of all features in study samples (batch medians) </span><span style="color: #555555; font-weight: bold;">decreased</span><span style="color: #555555;"> by -5% (-5.0 to -5.0%) to 9.0%.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 1 of 1 features (batch-wise).</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-4.36%</span><span style="color: #555555;"> (range: -4.36% to -4.36%). The median absolute CV of all features across batches </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">14.27% to 9.90%</span><span style="color: #555555;">.</span></span></span>
 <span></span>
 <span><span class="co"># Plot before and after batch correction </span></span>
-<span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_raw"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-5-2.png" width="700"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
+<span></span>
 <span><span class="co"># Correct between-batch effects (median centering)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                        variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>                                        reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>                                        correct_scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction...</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to drift-corrected concentrations of all 1 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV of features in the study samples across batches </span><span style="color: #555555; font-weight: bold;">increased</span><span style="color: #555555;"> by 0.6% (0.6 to 0.6%) to 39.4%.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-29.60%</span><span style="color: #555555;"> (range: -29.60% to -29.60%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">39.44% to 9.84%</span><span style="color: #555555;">.</span></span></span>
 <span><span class="co">#Plot again the fully corrected data</span></span>
-<span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
-<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                          show_trend <span class="op">=</span> <span class="cn">TRUE</span>, show_progress <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
 <p><img src="BatchDriftCorrect_files/figure-html/unnamed-chunk-5-3.png" width="700"></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
+<span></span>
 <span></span>
 <span><span class="co"># Save corrected data</span></span>
 <span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                        path <span class="op">=</span> <span class="st">"corrected-data.csv"</span>, </span>
 <span>                        variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
 <span>                        filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values of 1400 analyses and 1 features have been exported.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 1400 analyses and 1 features have been exported to 'corrected-data.csv'.</span></span></span></code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

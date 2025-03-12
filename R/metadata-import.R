@@ -12,10 +12,12 @@ import_metadata_from_data<- function(data = NULL, qc_type_column_name = "qc_type
 
   # get analysis metadata
    annot_analyses <- data@dataset_orig |>
-    dplyr::select("analysis_id", dplyr::any_of(c(qc_type_column_name, "batch_id"))) |>
+    dplyr::select("analysis_id", dplyr::any_of(c("analysis_order", qc_type_column_name, "batch_id"))) |>
     dplyr::distinct() |>
-    dplyr::rename(any_of(c(qc_type = qc_type_column_name))) |>
-     dplyr::mutate(run_seq_num = row_number(), before = 1)
+    dplyr::rename(any_of(c(qc_type = qc_type_column_name)))
+
+   if(!"analysis_order" %in% names(annot_analyses))
+     annot_analyses <- annot_analyses |>  dplyr::mutate(analysis_order = row_number(), before = 1)
 
    annot_analyses <- clean_analysis_metadata(annot_analyses)
 
@@ -43,8 +45,8 @@ get_metadata_batches <- function(annot_analyses){
     dplyr::group_by(.data$batch_no) |>
     dplyr::summarise(
       batch_id = .data$batch_id[1],
-      id_batch_start = dplyr::first(.data$run_seq_num),
-      id_batch_end = dplyr::last(.data$run_seq_num)
+      id_batch_start = dplyr::first(.data$analysis_order),
+      id_batch_end = dplyr::last(.data$analysis_order)
     ) |>
     dplyr::ungroup() |>
     dplyr::arrange(.data$id_batch_start)
@@ -54,10 +56,10 @@ get_metadata_batches <- function(annot_analyses){
 }
 
 
-#' @title Import Metadata from MIDAR Template
-#' @description Imports metadata from a MIDAR template (.xlsm/.xlsx) file and associates it with analysis data.
+#' @title Import Metadata from a MIDAR Metadata Organizer file
+#' @description Imports metadata from a 'MIDAR Metadata Organizer' file (.xlsm/.xlsx) file and associates it with analysis data.
 #' @param data A `MidarExperiment` object
-#' @param path File name and path of the MIDAR template (.xlsm/.xlsx) file
+#' @param path File name and path of the 'MIDAR Metadata Organizer' file (.xlsm/.xlsx) file
 #' @param excl_unmatched_analyses Exclude analyses (samples) that have no matching metadata
 #' @param ignore_warnings Ignore warnings from data validation and proceed with importing metadata
 #' @return An updated `MidarExperiment` object
@@ -70,7 +72,7 @@ get_metadata_batches <- function(annot_analyses){
 #'   path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar"),
 #'   import_metadata = TRUE)
 #'
-#' mexp <- import_metadata_midarxlm(
+#' mexp <- import_metadata_msorganizer(
 #'  data = mexp,
 #'  path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar"),
 #'  excl_unmatched_analyses = FALSE)
@@ -78,10 +80,10 @@ get_metadata_batches <- function(annot_analyses){
 #' print(mexp)
 #'
 #' @export
-import_metadata_midarxlm <- function(data = NULL, path,  ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
+import_metadata_msorganizer <- function(data = NULL, path,  ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
   check_data(data)
 
-  metadata <- read_metadata_midarxlm(path)
+  metadata <- read_metadata_msorganizer(path)
   metadata  <- assert_metadata(data, metadata = metadata, ignore_warnings = ignore_warnings, excl_unmatched_analyses = excl_unmatched_analyses)
   data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = excl_unmatched_analyses)
   data <- link_data_metadata(data)
@@ -611,7 +613,7 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
 #' @param trim_ws Trim all white spaces and double spaces
 #' @return A list with tibbles containing different metadata
 #' @noRd
-read_metadata_midarxlm <- function(path, trim_ws = TRUE) {
+read_metadata_msorganizer <- function(path, trim_ws = TRUE) {
 
   metadata <- list()
 
@@ -840,6 +842,7 @@ clean_analysis_metadata <- function(d_analyses) {
   }
 
   # Fill missing columns
+  d_analyses <- d_analyses |> add_missing_column(col_name = "analysis_order", init_value = NA_real_, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "batch_id", init_value = 1, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount", init_value = NA_real_, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount_unit", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = TRUE)
@@ -853,6 +856,7 @@ clean_analysis_metadata <- function(d_analyses) {
 
   d_analyses <- d_analyses |>
     dplyr::select(
+      "analysis_order",
       "analysis_id",
       "qc_type",
       "sample_amount",

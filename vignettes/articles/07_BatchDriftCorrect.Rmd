@@ -56,7 +56,7 @@ Now let's plot the data before and after batch correction.
 
 ```{r}
 #| results: false 
-plot_runscatter(myexp, variable = "conc_raw", rows_page = 1, cols_page = 1)
+plot_runscatter(myexp, variable = "conc_before", rows_page = 1, cols_page = 1)
 plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
 ```
 
@@ -101,9 +101,9 @@ myexp <- midar::correct_drift_gaussiankernel(myexp,
                                         recalc_trend_after = TRUE,show_progress = T)
 
 # Plot before and after batch correction 
-midar::plot_runscatter(myexp, variable = "conc_raw", rows_page = 1, cols_page = 1, 
+plot_runscatter(myexp, variable = "conc_before", rows_page = 1, cols_page = 1, 
                           show_trend = TRUE, show_progress = F)
-midar::plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 
+plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 
                           show_trend = TRUE, show_progress = F)
 
 # Correct between-batch effects (median centering)
@@ -112,7 +112,7 @@ myexp <- midar::correct_batch_centering(myexp,
                                         reference_qc_types = "SPL", 
                                         correct_scale = TRUE)
 #Plot again the fully corrected data
-midar::plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 
+plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 
                           show_trend = TRUE, show_progress = F)
 
 

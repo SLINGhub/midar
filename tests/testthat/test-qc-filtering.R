@@ -2,7 +2,7 @@ library(testthat)
 library(dplyr)
 
 mexp_orig <- lipidomics_dataset
-mexp <- exclude_analyses(mexp_orig, exclude = "Longit_batch6_51", clear_existing = TRUE )
+mexp <- exclude_analyses(mexp_orig, analyses = "Longit_batch6_51", clear_existing = TRUE )
 mexp <- normalize_by_istd(mexp_orig)
 mexp <- quantify_by_istd(mexp)
 mexp_proc <- calc_qc_metrics(mexp,  use_batch_medians = FALSE)

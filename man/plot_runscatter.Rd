@@ -6,8 +6,9 @@
 \usage{
 plot_runscatter(
   data = NULL,
-  variable = c("intensity", "norm_intensity", "conc", "conc_raw", "rt", "area", "height",
-    "fwhm"),
+  variable = c("intensity", "norm_intensity", "conc", "rt", "area", "height", "fwhm",
+    "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before",
+    "conc_raw", "conc_before"),
   filter_data = FALSE,
   qc_types = NA,
   include_qualifier = TRUE,
@@ -53,7 +54,11 @@ plot_runscatter(
 \arguments{
 \item{data}{A \code{MidarExperiment} object containing the dataset and metadata.}
 
-\item{variable}{The variable to plot on the y-axis, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'}
+\item{variable}{The variable to plot on the y-axis, one of 'intensity',
+'norm_intensity', 'conc', 'conc', 'rt', 'fwhm', 'area', 'height', response'.
+Add \verb{_before} after the variable name to plot the feature values before the last
+applied drift/batch correction, (e.g., \code{conc_before}). Add \verb{_raw} after the
+variable name to plot the raw uncorrected feature values (e.g., \code{conc_raw}).}
 
 \item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{filter_features_qc()}.}
 
@@ -151,6 +156,12 @@ trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.
 
+To plot the feature values before the last applied drift/batch correction,
+add \verb{*_before} to the variable name, e.g., \code{intensity_before} or \code{conc_before}.
+To plot the uncorrected feature values (before any drift/batch correction),
+add \verb{*_raw} to the variable name, e.g., \code{intensity_raw} or \code{conc_raw}. To show
+corresponding fit curves, set \code{show_trend = TRUE}.
+
 The function also supports visualizing analysis batches, reference lines
 (mean \eqn{\pm} SD), and trends. It offers customization options to display batch
 separators, apply outlier capping, show smoothed trend curves, add reference
@@ -173,6 +184,8 @@ replaced with the minimum positive value divided by 5 to avoid log 0 errors
 or within batches as lines or shaded stripes.
 \item Trend curves can be displayed before or after drift/batch correction. In
 either case, a drift and/or batch correction must be applied to the data
-to enable plotting of trend curves.
+to enable plotting of trend curves. To show trend curves used for the last drift or batch correction,
+add "_before" to the variable name, e.g. \code{conc_before} or \code{intensity_before}
+and set \code{show_trend = TRUE}.
 }
 }

@@ -13,7 +13,7 @@ pkg.env$table_templates <- list(
     "feature_id" = character(),
   ),
   dataset_template = dplyr::tibble(
-    "run_seq_num" = integer(),
+    "analysis_order" = integer(),
     "analysis_id" = character(),
     "acquisition_time_stamp" = as.Date(character()),
     "qc_type" = factor(),
@@ -30,7 +30,7 @@ pkg.env$table_templates <- list(
 
   ),
   annot_analyses_template = dplyr::tibble(
-    "run_seq_num" = integer(),
+    "analysis_order" = integer(),
     "analysis_id" = character(),
     "sample_id" = character(),
     "qc_type" = factor(),

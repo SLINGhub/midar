@@ -188,9 +188,9 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 #' @param data MidarExperiment object
 #' @param path File name with path of exported CSV file
 #' @param variable Variable to be exported, must be present in the data and any of "area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm".
-#' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
 #' @param filter_data A logical value indicating whether to use all data
 #' (default) or only QC-filtered data (filtered via [filter_features_qc()]).
+#' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
 #' @param include_qualifier A logical value indicating whether to include
 #' qualifier features. Default is `NA`, which will be automatically set to `FALSE`
 #' if `variable` is `conc` or `conc_raw`, and `FALSE` otherwise.
@@ -212,8 +212,8 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 save_dataset_csv <- function(data = NULL,
                              path,
                              variable,
-                             qc_types = NA,
                              filter_data,
+                             qc_types = NA,
                              include_qualifier = NA,
                              include_istd = NA,
                              include_feature_filter = NA,
@@ -298,4 +298,59 @@ save_feature_qc_metrics <- function(data = NULL, path) {
 
   # Return the QC metrics invisibly as a side-effect
   invisible(data@metrics_qc)
+}
+
+#' Saves a Excel (xlsx) file with metadata templates
+#'
+#' This function saves a XLSX file with metadata template to the specified location.
+#'
+#' @param path File path where the XLSX file with templates will be saved.
+#' If left empty (default), the file will be saved in the current working directory
+#' under the file "metadata_template.xlsx"
+#' @export
+#'
+
+save_metadata_templates <- function(path = "metadata_template.xlsx") {
+  # Locate the template file inside the package
+  template_path <- system.file("extdata", "midar_metadata_templates.xlsx", package = "midar")
+
+  if (fs::file_exists(path)) {
+    cli_abort(col_red("A file with this name already exists at the specified location. Please delete it or choose a different filename or location."))
+  }
+
+  if (template_path == "") {
+    cli_abort(col_red("Template file not found in package data. Please re-install `midar`."))
+  }
+
+  # Copy the template to the desired location
+  fs::file_copy(template_path, path, overwrite = TRUE)
+  cli_alert_success(col_green("Metadata table templates were saved to '{path}'."))
+}
+
+
+#' Saves a MiDAR Metadata Organizer template
+#'
+#' This function saves a XLSX file with metadata template to the specified location.
+#'
+#' @param path File path where the MiDAR Metadata Organizer file will be saved.
+#' If left empty (default), the file will be saved in the current working directory
+#' under the file "metadata_msorganizer_template.xlsm"
+#' @export
+#'
+
+save_metadata_msorganizer_template <- function(path = "metadata_msorganizer_template.xlsm") {
+  # Locate the template file inside the package
+  template_path <- system.file("extdata", "metadata_msorganizer_template.xlsm", package = "midar")
+
+  if (fs::file_exists(path)) {
+    cli_abort(col_red("A file with this name already exists at the specified location. Please delete it or choose a different filename or location."))
+  }
+
+  if (template_path == "") {
+    cli_abort(col_red("Template file not found in package data. Please re-install `midar`."))
+  }
+
+  # Copy the template to the desired location
+  fs::file_copy(template_path, path, overwrite = TRUE)
+  cli_alert_success(col_green("A MiDAR Metadata Organizer template was saved to '{path}'."))
 }

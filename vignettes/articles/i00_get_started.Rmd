@@ -1,0 +1,88 @@
+---
+title: "MidarExperiment object"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{MidarExperiment object}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+# MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
+
+<!-- badges: start -->
+
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![Codecov test coverage](https://codecov.io/gh/SLINGhub/midar/branch/master/graph/badge.svg)](https://app.codecov.io/gh/SLINGhub/midar?branch=master)
+
+<!-- badges: end -->
+
+MiDAR is an R package for reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data. It offers a complete workflow, allowing users to import data from different sources, apply normalization and quantification, perform isotope correction, apply drift and batch corrections, quality control and sharing the results. MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.
+
+The intended users of MiDAR are analytical and bioinformatics scientists. Its core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customisations and access to all data.The package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.
+
+MiDAR emphasises fully documented, reproducible data processing workflows and also serves as a software library for creating automated data processing pipelines.
+## Installation
+
+In the console run:
+
+```{r}
+if (require("pak")) install.packages("pak")
+pak::pkg_install("SLINGhub/midar")
+```
+
+## Example workflow
+
+```{r}
+library(midar)
+
+# Create a MidarExperiment object
+myexp <- midar::MidarExperiment(title = "sPerfect")
+
+# Import data and available metadata
+mexp <- import_data_mrmkit(data = mexp, 
+                           path = "datasets/sPerfect_MRMkit.tsv", 
+                           import_metadata = TRUE)
+
+
+# Import metadata
+mexp <- import_metadata_msorganizer(mexp, 
+                                     path = "datasets/sPerfect_Metadata.xlsm", 
+                                     ignore_warnings = TRUE)
+
+# Normalize and quantitate each feature by internal standards
+mexp <- normalize_by_istd(mexp)
+mexp <- quantify_by_istd(mexp)
+mexp <- correct_drift_cubicspline(mexp, 
+                                   variable = "conc", 
+                                   reference_qc_types = "BQC")
+mexp <- correct_batch_centering(mexp, 
+                                 variable = "conc", 
+                                 reference_qc_types = "SPL")
+
+# Filter features according to QC criteria
+mexp <- filter_features_qc(
+  data = mexp, 
+  max.cv.conc.bqc = 30,
+  min.signalblank.median.spl.pblk = 3,
+)
+
+# Export concentration data
+save_dataset_csv(
+  mexp, 
+  path = "mydata.csv", 
+  variable = "norm_intensity", 
+  filter_data = TRUE)
+```

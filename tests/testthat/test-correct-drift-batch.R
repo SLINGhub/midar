@@ -9,7 +9,7 @@ set.seed(123)
 
 mexp_orig <- lipidomics_dataset
 
-mexp_raw <- exclude_analyses(mexp_orig, exclude = c("Longit_batch6_51"), clear_existing  = TRUE)
+mexp_raw <- exclude_analyses(mexp_orig, analyses = c("Longit_batch6_51"), clear_existing  = TRUE)
 mexp_norm <- normalize_by_istd(mexp_raw)
 mexp <- quantify_by_istd(mexp_norm)
 

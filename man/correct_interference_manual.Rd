@@ -10,6 +10,7 @@ correct_interference_manual(
   feature,
   interfering_feature,
   interference_contribution,
+  neg_to_na = FALSE,
   updated_feature_id = NA
 )
 }
@@ -26,6 +27,8 @@ contributing to the signal of \code{feature}}
 
 \item{interference_contribution}{Relative portion of the interfering feature to
 contribute to the feature signal. Must be between 0 and 1.}
+
+\item{neg_to_na}{If \code{TRUE}, negative or zero values after correction will be replaced with \code{NA}. Default: \code{FALSE}.}
 
 \item{updated_feature_id}{Optional. New name of corrected feature. If empty
 then feature name will not change.}

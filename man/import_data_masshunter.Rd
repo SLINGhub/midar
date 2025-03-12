@@ -2,12 +2,12 @@
 % Please edit documentation in R/data-import.R
 \name{import_data_masshunter}
 \alias{import_data_masshunter}
-\title{Imports Agilent MassHunter Quantitative Analysis CSV files}
+\title{Import Agilent MassHunter Quantitative Analysis CSV files}
 \usage{
 import_data_masshunter(
   data = NULL,
   path,
-  import_metadata,
+  import_metadata = TRUE,
   expand_qualifier_names = TRUE,
   silent = FALSE
 )

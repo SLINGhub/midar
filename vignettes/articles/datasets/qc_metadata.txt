@@ -1,0 +1,7 @@
+sample_id	analyte_id	concentration	concentration_unit
+199_NIST_NIST04	S1PÊd18:1	0.2	umol/L
+198_LTR_LTR04	S1PÊd18:1	0.2	umol/L
+199_NIST_NIST04	S1PÊd18:2	0.1	umol/L
+198_LTR_LTR04	S1PÊd18:2	0.1	umol/L
+199_NIST_NIST04	S1PÊd18:0	0.05	umol/L
+198_LTR_LTR04	S1PÊd18:0	0.05	umol/L

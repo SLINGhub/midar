@@ -1,31 +1,42 @@
 url: https://slinghub.github.io/midar/
 template:
   bootstrap: 5
-  bootswatch: flatly
+  bootswatch: sandstone
 navbar:
+  structure:
+    left: [intro, tutorials, articles, reference, news]
+    right: [search, github, lightswitch]
   components:
     home: ~
     intro:
-      text: Get Started
-      href: articles/getstarted.html
+      text: Getting Started
+      href: articles/i00_get_started.html
+    tutorials:
+      text: Workflows/Recipes
+      menu:
+       - text: Targeted Lipidomics processing
+         href: articles/T01_targetlipidomics_workflow.html
+       - text: Quantitative LC-MS
+         href: articles/T01_targetlipidomics_workflow.html
     articles:
       text: Manual
       menu:
-      - text: '-------'
       - text: Key Concepts
       - text: Data Structures
-        href: articles/datastructure.html
-      - text: MidarExperiment
-        href: articles/midarexperiment.html
+        href: articles/01_datastructure.html
+      - text: Data Indentifier
+        href: articles/02_keydataids.html
       - text: '-------'
       - text: Data and Metadata
-      - text: Importing
-        href: articles/dataimport.html
-      - text: Annotating (Metadata)
-        href: articles/annotating.html
+      - text: MidarExperiment Object
+        href: articles/03_midarexperiment.html
+      - text: Data Import
+        href: articles/04_dataimport.html
+      - text: Metadata Import
+        href: articles/05_metadataimport.html
       - text: '-------'
       - text: Batch/Drift Correction
-        href: articles/BatchDriftCorrect.html
+        href: articles/07_BatchDriftCorrect.html
     news:
       text: News
       href: articles/updates.html
@@ -69,15 +80,23 @@ reference:
     Functions to import metadata describing the analyses (samples), features (analytes), internal standards
     and other relevant information from the MiDAR Excel template or CSV files.
   contents:
-  - import_metadata_midarxlm
-  - import_metadata_from_data
   - import_metadata_analyses
   - import_metadata_features
   - import_metadata_istds
   - import_metadata_responsecurves
   - import_metadata_qcconcentrations
-  - assert_metadata
+  - import_metadata_msorganizer
+  - import_metadata_from_data
+  - save_metadata_templates
+  - save_metadata_msorganizer_template
   - add_metadata
+  - assert_metadata
+- title: Isotope correction
+  description: |
+    Functions to perform type II isotopic correction
+  contents:
+  - correct_interferences
+  - correct_interference_manual
 - title: External Calibration
   description: |
     Function to plot and analyze external calibration curves
@@ -95,21 +114,15 @@ reference:
   - normalize_by_istd
   - quantify_by_istd
   - quantify_by_calibration
-- title: Data Correction and Adjustments
+- title: Drift/Batch Correction
   description: |
     Function for drift and batch correction correction
   contents:
   - correct_drift_gaussiankernel
-  - correct_drift_loess
   - correct_drift_cubicspline
+  - correct_drift_loess
   - correct_drift_gam
   - correct_batch_centering
-- title: Isotope correction
-  description: |
-    Functions to perform type II isotopic correction
-  contents:
-  - correct_interferences
-  - correct_interference_manual
 - title: Quality Control and Filtering
   description: |
     Functions to calculate feature QC metrics and apply QC filtering, and vizualize the filtering results.

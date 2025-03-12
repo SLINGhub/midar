@@ -34,7 +34,7 @@ dataset.
 library(midar)
 ```
 
-## 1. Importing MRMkit results with integrated peak areas
+## 1. Importing analysis results
 
 We begin by importing the MRMkit result file, which contains the areas
 of the integrated peaks (features) in all the processed raw data files.
@@ -60,7 +60,7 @@ data_path <- "datasets/sPerfect_MRMkit.tsv"
 myexp <- import_data_mrmkit(data = myexp, path = data_path, import_metadata = TRUE)
 ```
 
-## 2. A glimpse on the imported MRMkit results
+## 2. A glimpse on the imported data
 
 Let us examine the imported data by executing the code below or by
 entering the command `View(myexp@dataset_orig)` in the console. As can
@@ -77,7 +77,7 @@ view multiple parameters for each analysis-feature pair.
 </details>
 
 ```{r view-rawdata}
-print(myexp@dataset_orig) # Better use `get_rawdata(mexp, "original")`
+print(myexp@dataset) # Better use `get_rawdata(mexp, "original")`
 ```
 
 ## 3. Analytical design and timeline
@@ -168,13 +168,13 @@ metadata by working through these warnings, or proceed using
 ```{r import-metadat}
 
 file_path <- "datasets/sPerfect_Metadata.xlsm"
-myexp <- import_metadata_midarxlm(myexp, path = file_path, ignore_warnings = TRUE)
+myexp <- import_metadata_msorganizer(myexp, path = file_path, ignore_warnings = TRUE)
 myexp <- set_analysis_order(myexp, order_by = "timestamp")
 myexp <- set_intensity_var(myexp, variable_name = "area")
 
 ```
 
-## 6. Overall trends and possible technical outlier
+## 6. Overall trends and possible outlier
 
 To examine overall technical trends and issues affecting the majority of
 analytes (features), the RLA (Relative Log Abundance) plot is a useful
@@ -261,7 +261,7 @@ decided to remove it from all downstream processing via the function
 
 ```{r outlier-removal}
  # Exclude the sample from the processing
-myexp <- exclude_analyses(myexp, exclude = c("Longit_batch6_51"), clear_existing  = TRUE)
+myexp <- exclude_analyses(myexp, analyses = c("Longit_batch6_51"), clear_existing  = TRUE)
 
 # Replot the PCA
 plot_pca(

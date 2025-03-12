@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,13 +35,18 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Overview</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
+<li><a class="dropdown-item" href="../articles/dataimport.html">Targeted MRM panel</a></li>
+    <li><a class="dropdown-item" href="../articles/dataimport.html">Quantitative LC-MS</a></li>
+  </ul>
+</li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
+<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
     <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
     <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -52,7 +57,8 @@
     <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/updates.html">Updates</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -71,11 +77,10 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Getting Started</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Getting Started</h1>
                         <h4 data-toc-skip class="author">Bo Burla</h4>
             
-            <h4 data-toc-skip class="date">2025-01-12</h4>
+            <h4 data-toc-skip class="date">2025-03-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/midar.Rmd" class="external-link"><code>vignettes/midar.Rmd</code></a></small>
       <div class="d-none name"><code>midar.Rmd</code></div>
@@ -125,7 +130,7 @@ the peak integration results from <code>MRMkit</code> (<a href="https://github.c
 <span><span class="co"># mexp &lt;- normalize_by_istd(mexp)</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># # Get QC metrics for each feature</span></span>
-<span><span class="co"># mexp &lt;- qc_calc_metrics(mexp)</span></span>
+<span><span class="co"># mexp &lt;- calc_qc_metrics(mexp)</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># # Filter features according to QC criteria</span></span>
 <span><span class="co"># mexp &lt;- filter_features_qc(</span></span>

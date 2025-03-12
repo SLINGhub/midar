@@ -45,7 +45,7 @@ plot_runsequence <- function(data = NULL,
 
   # Extract the required columns from the dataset
   d_filt <- data$dataset |>
-    select("run_seq_num", "acquisition_time_stamp", "batch_id", "analysis_id",
+    select("analysis_order", "acquisition_time_stamp", "batch_id", "analysis_id",
            "qc_type") |>
     distinct()
 
@@ -70,7 +70,7 @@ plot_runsequence <- function(data = NULL,
     forcats::fct_drop()
   d_filt$sample_category <- as.character(d_filt$qc_type)
 
-  # Count samples per run_seq_num
+  # Count samples per analysis_order
   sample_counts <- d_filt |>
     group_by(.data$qc_type) |>
     summarise(sample_count = stringr::str_c("", dplyr::n()), .groups = 'drop')
@@ -80,7 +80,7 @@ plot_runsequence <- function(data = NULL,
 
   # Initialize the ggplot object
   p <- ggplot(d_filt, aes(x = if (show_timestamp) .data$acquisition_time_stamp
-                          else .data$run_seq_num,
+                          else .data$analysis_order,
                           y = rev(.data$qc_type),
                           color = .data$sample_category)) +
     labs(x = if (show_timestamp) "Acquisition Time" else "Analysis Order",
@@ -109,12 +109,12 @@ plot_runsequence <- function(data = NULL,
     # Retrieve batch info
     d_batch_info <- data@annot_batches |>
       left_join(data$dataset |>
-                  select("run_seq_num", "acquisition_time_stamp", "batch_id") |>
-                  distinct(), by = c("id_batch_start" = "run_seq_num"),
+                  select("analysis_order", "acquisition_time_stamp", "batch_id") |>
+                  distinct(), by = c("id_batch_start" = "analysis_order"),
                 suffix = c("", "_start"), keep = FALSE) |>
       left_join(data$dataset |>
-                  select("run_seq_num", "acquisition_time_stamp", "batch_id") |>
-                  distinct(), by = c("id_batch_end" = "run_seq_num"),
+                  select("analysis_order", "acquisition_time_stamp", "batch_id") |>
+                  distinct(), by = c("id_batch_end" = "analysis_order"),
                 suffix = c("", "_end"), keep = FALSE)
 
     if (batch_zebra_stripe) {
@@ -139,15 +139,15 @@ plot_runsequence <- function(data = NULL,
   # Add segments for qc_type
   if (single_row) {
     p <- p + geom_segment(aes(
-      x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
-      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
+      x = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
+      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
       y = -1, yend = 1
     ), linewidth = segment_linewidth) +
       scale_y_continuous(breaks = NULL)  # Hide y-axis breaks
   } else {
     p <- p + geom_segment(aes(
-      x = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
-      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$run_seq_num,
+      x = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
+      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
       y = as.integer(.data$qc_type) - 0.4,
       yend = as.integer(.data$qc_type) + 0.4
     ), linewidth = segment_linewidth)
@@ -169,8 +169,8 @@ plot_runsequence <- function(data = NULL,
                                        date_breaks = "day", date_minor_breaks = "hour")
   } else {
     p <- p + scale_x_continuous(expand = expansion(0.02, 0.02),
-                                breaks = seq(0, max(d_filt$run_seq_num),
-                                             10^ceiling(log10(max(d_filt$run_seq_num))) / 10))
+                                breaks = seq(0, max(d_filt$analysis_order),
+                                             10^ceiling(log10(max(d_filt$analysis_order))) / 10))
   }
 
   # Add additional information in the title
@@ -197,6 +197,12 @@ plot_runsequence <- function(data = NULL,
 #' feature variables, such as retention time (RT) and full width at
 #' half maximum (FWHM), can be plotted against analysis order or timestamps.
 #'
+#' To plot the feature values before the last applied drift/batch correction,
+#' add `*_before` to the variable name, e.g., `intensity_before` or `conc_before`.
+#' To plot the uncorrected feature values (before any drift/batch correction),
+#' add `*_raw` to the variable name, e.g., `intensity_raw` or `conc_raw`. To show
+#' corresponding fit curves, set `show_trend = TRUE`.
+#'
 #' The function also supports visualizing analysis batches, reference lines
 #' (mean \eqn{\pm} SD), and trends. It offers customization options to display batch
 #' separators, apply outlier capping, show smoothed trend curves, add reference
@@ -221,11 +227,17 @@ plot_runsequence <- function(data = NULL,
 #'
 #' - Trend curves can be displayed before or after drift/batch correction. In
 #' either case, a drift and/or batch correction must be applied to the data
-#' to enable plotting of trend curves.
+#' to enable plotting of trend curves. To show trend curves used for the last drift or batch correction,
+#' add "_before" to the variable name, e.g. `conc_before` or `intensity_before`
+#' and set `show_trend = TRUE`.
 #'
 #'
 #' @param data A `MidarExperiment` object containing the dataset and metadata.
-#' @param variable The variable to plot on the y-axis, one of 'area', 'height', 'intensity', 'norm_intensity', 'intensity_raw', 'norm_intensity_raw', 'response', 'conc', 'conc_raw', 'rt', 'fwhm.'
+#' @param variable The variable to plot on the y-axis, one of 'intensity',
+#' 'norm_intensity', 'conc', 'conc', 'rt', 'fwhm', 'area', 'height', response'.
+#' Add `_before` after the variable name to plot the feature values before the last
+#' applied drift/batch correction, (e.g., `conc_before`). Add `_raw` after the
+#' variable name to plot the raw uncorrected feature values (e.g., `conc_raw`).
 #'
 #' @param filter_data Logical, whether to use QC-filtered data based on criteria set via `filter_features_qc()`.
 #' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
@@ -283,11 +295,13 @@ plot_runsequence <- function(data = NULL,
 #' @param show_progress Logical, whether to show a progress bar.
 #'
 #' @return A list of ggplot2 plots, or `NULL` if `return
+#' @export
 
 plot_runscatter <- function(data = NULL,
                             variable = c(
                               "intensity", "norm_intensity", "conc",
-                              "conc_raw", "rt", "area", "height", "fwhm"
+                              "rt", "area", "height", "fwhm",
+                              "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"
                             ),
                             # Data and filtering arguments
                             filter_data = FALSE,
@@ -383,9 +397,15 @@ plot_runscatter <- function(data = NULL,
     cli::cli_abort("Selected `reference_qc_type` not present in the dataset.")
   }
 
-  if (show_trend) {
+  if (str_detect(variable, "_before|_raw")) {
     if (!any(data@var_drift_corrected) && !any(data@var_batch_corrected)) {
-      cli::cli_abort(col_red("Drift or batch correction is currently required to show trend lines. Please apply drift/batch correction first."))
+      cli::cli_abort(col_red("Variables `_before` and `_raw` after only available after drift/batch corrections. Please set chose an other variable, or first apply drift/batch correction."))
+    }
+  }
+
+  if (show_trend | str_detect(variable, "_before|_raw")) {
+    if (!any(data@var_drift_corrected) && !any(data@var_batch_corrected)) {
+      cli::cli_abort(col_red("Drift or batch correction is currently required to show trend lines. Please set `show_trend = FALSE`, or apply drift/batch correction first."))
     }
   }
 
@@ -441,7 +461,7 @@ plot_runscatter <- function(data = NULL,
         dplyr::arrange(desc(.data$value)) |>
         mutate(value = ifelse(dplyr::row_number() <= cap_top_n_outliers,
                               .data$value[row_number() > cap_top_n_outliers] * outlier_offset_ratio, .data$value)) |>
-        dplyr::arrange(.data$feature_id, .data$run_seq_num) |>
+        dplyr::arrange(.data$feature_id, .data$analysis_order) |>
         dplyr::ungroup()
     }
 
@@ -570,7 +590,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 
   d_subset <- d_filt |>
-    dplyr::arrange(.data$feature_id, .data$run_seq_num) |>
+    dplyr::arrange(.data$feature_id, .data$analysis_order) |>
     dplyr::slice(row_start:row_end)
 
   d_subset$qc_type <- forcats::fct_relevel(d_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
@@ -602,7 +622,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
   d_batch_data <- d_batch_data |> dplyr::left_join(dMax, by = c("feature_id"))
 
-  p <- ggplot2::ggplot(d_subset, aes(x = !!sym("run_seq_num")))
+  p <- ggplot2::ggplot(d_subset, aes(x = !!sym("analysis_order")))
 
   # browser()
   if (show_batches) {
@@ -652,7 +672,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   p <- p +
     ggplot2::geom_point(
       aes(
-        x = !!sym("run_seq_num"),
+        x = !!sym("analysis_order"),
         y = !!sym("value_mod"),
         color = .data$qc_type,
         fill = .data$qc_type,
@@ -666,10 +686,10 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   if (show_trend) {
     #browser()
-    y_var_trend <- if_else(str_detect(y_var, "\\_raw|\\_before"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
+    y_var_trend <- if_else(str_detect(y_var, "\\_before|\\_raw"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
     p <- p +
       ggplot2::geom_line(aes(
-        x = !!sym("run_seq_num"),
+        x = !!sym("analysis_order"),
         y = !!sym(y_var_trend),
         group = .data$batch_id
       ),
@@ -765,7 +785,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #'
 #' @param data MidarExperiment
 #' @param rla_type_batch Character, must be either "within" or "across", defining whether to use within-batch or across-batch RLA
-#' @param variable Variable to plot, must be one of "intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm".
+#' @param variable Variable to plot, must be one of "intensity", "norm_intensity", "conc", "area", "height", "fwhm", or one of
+#' "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"
 
 #' @param filter_data Logical, whether to use QC-filtered data based on criteria set via `filter_features_qc()`.
 #' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
@@ -838,7 +859,7 @@ plot_rla_boxplot <- function(
 
 
   # Check if selected variable is valid
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("intensity", "norm_intensity", "conc", "intensity_raw","norm_intensity_raw", "conc_raw", "area", "height", "rt", "fwhm", "response"))
   variable <- str_remove(variable, "feature_")
   variable <- stringr::str_c("feature_", variable)
 
@@ -863,14 +884,14 @@ plot_rla_boxplot <- function(
     d_filt$acquisition_time_stamp <- as.POSIXct(d_filt$acquisition_time_stamp)
     x_axis_variable <- "acquisition_time_stamp"
   } else {
-    x_axis_variable <- "run_seq_num"
+    x_axis_variable <- "analysis_order"
   }
 
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
 
 
   if (!all(is.na(analysis_order_range))) {
-    d_filt <- d_filt |> dplyr::filter(.data$run_seq_num >= analysis_order_range[1] & .data$run_seq_num <= analysis_order_range[2]) |> droplevels()
+    d_filt <- d_filt |> dplyr::filter(.data$analysis_order >= analysis_order_range[1] & .data$analysis_order <= analysis_order_range[2]) |> droplevels()
   }
 
 
@@ -879,11 +900,11 @@ plot_rla_boxplot <- function(
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   d_filt <- d_filt |>
-    dplyr::select(any_of(c("analysis_id", "run_seq_num", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
+    dplyr::select(any_of(c("analysis_id", "analysis_order", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
     group_by(.data$feature_id) |>
     filter(median(.data$feature_intensity) >= min_feature_intensity) |>
     droplevels() |>
-    dplyr::arrange(.data$run_seq_num)
+    dplyr::arrange(.data$analysis_order)
 
 
   if (relative_log_abundances) {
@@ -907,14 +928,14 @@ plot_rla_boxplot <- function(
 
 
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
-  if(x_axis_variable != "run_seq_num"){
+  if(x_axis_variable != "analysis_order"){
     labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 20)]
-    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$run_seq_num) |> unique()
+    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$analysis_order) |> unique()
   } else {
-    breaks <- scales::breaks_pretty(n = 20)(range(d_filt$run_seq_num))
+    breaks <- scales::breaks_pretty(n = 20)(range(d_filt$analysis_order))
     labels = breaks
   }
-  p <- ggplot(d_filt, aes(x = .data$run_seq_num, y = .data$val_res, group = .data$run_seq_num))
+  p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
 
   p <- p + scale_x_continuous(breaks = breaks, labels = labels)
 
@@ -934,8 +955,8 @@ plot_rla_boxplot <- function(
   }
 
 
-  x_text_angle <- ifelse(x_axis_variable != "run_seq_num", 90, 0)
-  x_text_just <- ifelse(x_axis_variable != "run_seq_num", 1, 0.5)
+  x_text_angle <- ifelse(x_axis_variable != "analysis_order", 90, 0)
+  x_text_just <- ifelse(x_axis_variable != "analysis_order", 1, 0.5)
 
   p <- p +
     geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +

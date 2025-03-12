@@ -3,7 +3,7 @@
 for each response curve in the provided MidarExperiment object. Optionally, it can include
 additional statistics from the lancer package (if installed) when with_staturation_stats is set to TRUE."><meta property="og:description" content="This function calculates linear regression statistics (R-squared, slope, and intercept)
 for each response curve in the provided MidarExperiment object. Optionally, it can include
-additional statistics from the lancer package (if installed) when with_staturation_stats is set to TRUE."></head><body>
+additional statistics from the lancer package (if installed) when with_staturation_stats is set to TRUE."><meta property="og:image" content="https://slinghub.github.io/midar/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -11,7 +11,7 @@ additional statistics from the lancer package (if installed) when with_staturati
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,21 +19,26 @@ additional statistics from the lancer package (if installed) when with_staturati
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/i00_get_started.html">Getting Started</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes"><li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted Lipidomics processing</a></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Quantitative LC-MS</a></li>
+  </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data Structures</a></li>
+    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data Indentifier</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
-    <li><a class="dropdown-item" href="../articles/dataimport.html">Importing</a></li>
-    <li><a class="dropdown-item" href="../articles/annotating.html">Annotating (Metadata)</a></li>
+    <li><a class="dropdown-item" href="../articles/03_midarexperiment.html">MidarExperiment Object</a></li>
+    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
+    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -45,8 +50,7 @@ additional statistics from the lancer package (if installed) when with_staturati
 </nav><div class="container template-reference-topic">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Linear Regression Statistics of Response Curves</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Linear Regression Statistics of Response Curves</h1>
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/R/calc-response.R" class="external-link"><code>R/calc-response.R</code></a></small>
       <div class="d-none name"><code>get_response_curve_stats.Rd</code></div>
     </div>

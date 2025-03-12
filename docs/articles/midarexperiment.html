@@ -21,6 +21,7 @@
 ">
 <meta property="og:description" content="MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data
 ">
+<meta property="og:image" content="https://slinghub.github.io/midar/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -30,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,13 +40,18 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Get Started</a></li>
-<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Overview</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
+<li><a class="dropdown-item" href="../articles/dataimport.html">Targeted MRM panel</a></li>
+    <li><a class="dropdown-item" href="../articles/dataimport.html">Quantitative LC-MS</a></li>
+  </ul>
+</li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
+<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
     <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
     <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -56,7 +62,8 @@
     <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="../articles/updates.html">Updates</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -75,8 +82,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>MidarExperiment object</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>MidarExperiment object</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/articles/midarexperiment.Rmd" class="external-link"><code>vignettes/articles/midarexperiment.Rmd</code></a></small>
@@ -88,21 +94,12 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>MidarExperiment` object is the main <strong>data container</strong>
-used in the MiDAR workflow. It holds all the experimental and processed
-data and metadata, as well as details of the applied processing steps
-and the current status of the data.</p>
-<p>Most <code>MiDAR</code> functions take an
-<code>MidarExperiment</code> object as input. Functions that process or
-update the data return a modified <code>MidarExperiment</code> object as
-output, allowing it to be used in subsequent functions. You can create
-and process multiple <code>MidarExperiment</code> objects independently
-within the same script.</p>
+<p>The <code>MidarExperiment</code> object is the main <strong>data
+container</strong> used in the MiDAR workflow. See ‘Data Structure’ for
+more information.</p>
 <div class="section level4">
 <h4 id="creating-a-midarexperiment-object">Creating a MidarExperiment object<a class="anchor" aria-label="anchor" href="#creating-a-midarexperiment-object"></a>
 </h4>
-<p>First the {midar} package is loaded and then we create a new
-<code>MidarExperiment</code> object.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SLINGhub/midar" class="external-link">midar</a></span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -111,114 +108,112 @@ within the same script.</p>
 <h4 id="using-midarexperiment-objects">Using MidarExperiment objects<a class="anchor" aria-label="anchor" href="#using-midarexperiment-objects"></a>
 </h4>
 <p>Most <code>MiDAR</code> functions take an MidarExperiment object as
-input. Functions that process or update the data return a modified
-<code>MidarExperiment</code> object as output, allowing it to be used in
-subsequent functions.</p>
+input. Data processing functions return a modified
+<code>MidarExperiment</code>, which can be in subsequent step.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">24 features normalized with 9 ISTDs in 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interfering features defined in metadata, but no correction was applied. Use `correct_interferences()` to correct.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">20 features normalized with 9 ISTDs in 499 analyses.</span></span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="st">"mydata.csv"</span>, <span class="st">"norm_intensity"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Norm_intensity values of 499 analyses and 24 features have been exported.</span></span></span></code></pre></div>
-<p>You can also use <code>MidarExperiment</code> objects in an R pipe
-chain. This allows you to chain multiple functions together, making your
-code more streamlined and easier to read while clearly indicating the
-flow of your processing workflow.</p>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Norm_intensity values for 499 analyses and 20 features have been exported to 'mydata.csv'.</span></span></span></code></pre></div>
+<p>R pipes can also be used, allowing to chain multiple functions
+together. This can more clearly indicate the processing workflow and
+make the code more easier to read.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="va">myexp</span> <span class="op">|&gt;</span> </span>
+<code class="sourceCode R"><span>  <span class="va">myexp</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="st">"mydata.csv"</span>, <span class="st">"norm_intensity"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">24 features normalized with 9 ISTDs in 499 analyses.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Norm_intensity values of 499 analyses and 24 features have been exported.</span></span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="status-of-an-midarexperiment">Status of an <code>MidarExperiment</code><a class="anchor" aria-label="anchor" href="#status-of-an-midarexperiment"></a>
-</h4>
-<p>A detailed summary of the dataset and processing status can be
-printed any time</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "cli-85346-7"</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interfering features defined in metadata, but no correction was applied. Use `correct_interferences()` to correct.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">20 features normalized with 9 ISTDs in 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Norm_intensity values for 499 analyses and 20 features have been exported to 'mydata.csv'.</span></span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="multiple-midarexperiment-objects">Multiple <code>MidarExperiment</code> objects<a class="anchor" aria-label="anchor" href="#multiple-midarexperiment-objects"></a>
 </h4>
 <p>Multiple <code>MidarExperiment</code> objects can be created and
 processed independently within the same script.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">myexp_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Polar metabolites"</span><span class="op">)</span></span>
-<span><span class="va">myexp_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Non-polar metabolites"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">#myexp &lt;- midar::combine_experiments(myexp_1, myexp_2)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">m_polars</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Polar metabolites"</span><span class="op">)</span></span>
+<span><span class="va">m_lipids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Non-polar metabolites"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="accessing-data-and-metadata">Accessing data and metadata<a class="anchor" aria-label="anchor" href="#accessing-data-and-metadata"></a>
 </h4>
 <p>Functions starting with <code>data_get_</code> allow to retrieve data
 and metadat from <code>MidarExperiment</code> object.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">dataset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_analyticaldata.html">get_analyticaldata</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
+<span><span class="va">dataset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_analyticaldata.html">get_analyticaldata</a></span><span class="op">(</span><span class="va">myexp</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dataset</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 16,467 × 18</span></span></span>
-<span><span class="co">#&gt;    run_seq_num analysis_id     acquisition_time_stamp qc_type batch_id sample_id</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 14,471 × 19</span></span></span>
+<span><span class="co">#&gt;    analysis_order analysis_id     acquisition_time_stamp qc_type batch_id sample_id</span></span>
 <span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 16,457 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more variables: replicate_no &lt;int&gt;, specimen &lt;chr&gt;, feature_id &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>           1 Longit_BLANK-0… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        Longit_B…</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14,461 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 13 more variables: replicate_no &lt;int&gt;, specimen &lt;chr&gt;, feature_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   feature_class &lt;chr&gt;, feature_label &lt;chr&gt;, is_istd &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   is_quantifier &lt;lgl&gt;, feature_rt &lt;dbl&gt;, feature_area &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   feature_height &lt;dbl&gt;, feature_fwhm &lt;dbl&gt;, feature_intensity &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   is_quantifier &lt;lgl&gt;, analyte_id &lt;chr&gt;, feature_rt &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   feature_area &lt;dbl&gt;, feature_height &lt;dbl&gt;, feature_fwhm &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   feature_intensity &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>Alternatively, the <code>$</code> syntax can be used access data and
 metadata tables in <code>MidarExperiment</code> objects.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">analyses</span> <span class="op">&lt;-</span> <span class="va">myexp</span><span class="op">$</span><span class="va">annot_analyses</span></span>
 <span><span class="va">features</span> <span class="op">&lt;-</span> <span class="va">myexp</span><span class="op">$</span><span class="va">annot_features</span></span>
 <span><span class="va">dataset</span> <span class="op">&lt;-</span> <span class="va">myexp</span><span class="op">$</span><span class="va">dataset</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">features</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 33 × 15</span></span></span>
-<span><span class="co">#&gt;    feature_id        feature_class is_istd istd_feature_id quant_istd_feature_id</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CE 18:1           <span style="color: #BB0000;">NA</span>            FALSE   CE 18:1 d7 (IS… CE 18:1 d7 (ISTD)    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> CE 18:1 d7 (ISTD) <span style="color: #BB0000;">NA</span>            TRUE    CE 18:1 d7 (IS… CE 18:1 d7 (ISTD)    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Cer d18:1/12:0 (… <span style="color: #BB0000;">NA</span>            FALSE   Cer d18:1/25:0… Cer d18:1/25:0 (ISTD)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Cer d18:1/16:0    <span style="color: #BB0000;">NA</span>            FALSE   Cer d18:1/25:0… Cer d18:1/25:0 (ISTD)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Cer d18:1/24:0    <span style="color: #BB0000;">NA</span>            FALSE   Cer d18:1/25:0… Cer d18:1/25:0 (ISTD)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Cer d18:1/25:0 (… <span style="color: #BB0000;">NA</span>            TRUE    Cer d18:1/25:0… Cer d18:1/25:0 (ISTD)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> LPC 18:1 (a)      <span style="color: #BB0000;">NA</span>            FALSE   LPC 18:1 (ab )… LPC 18:1 (ab ) d7 (I…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> LPC 18:1 (b)      <span style="color: #BB0000;">NA</span>            FALSE   LPC 18:1 (ab )… LPC 18:1 (ab ) d7 (I…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> LPC 18:1 (ab ) d… <span style="color: #BB0000;">NA</span>            TRUE    LPC 18:1 (ab )… LPC 18:1 (ab ) d7 (I…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> LPC 18:1 (a ) d7… <span style="color: #BB0000;">NA</span>            FALSE   LPC 18:1 (ab )… LPC 18:1 (ab ) d7 (I…</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 23 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 10 more variables: is_quantifier &lt;lgl&gt;, valid_feature &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   response_factor &lt;dbl&gt;, interference_feature_id &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   interference_proportion &lt;dbl&gt;, curve_fit_model &lt;chr&gt;, fit_weighting &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   remarks &lt;chr&gt;, feature_label &lt;chr&gt;, curve_fit_weighting &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 29 × 16</span></span></span>
+<span><span class="co">#&gt;    feature_id              feature_class analyte_id is_istd istd_feature_id     </span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> CE 18:1                 CE            <span style="color: #BB0000;">NA</span>         FALSE   CE 18:1 d7 (ISTD)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> CE 18:1 d7 (ISTD)       CE            <span style="color: #BB0000;">NA</span>         TRUE    CE 18:1 d7 (ISTD)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Cer d18:1/16:0          Cer 18:1;O2   <span style="color: #BB0000;">NA</span>         FALSE   Cer d18:1/25:0 (IST…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Cer d18:1/24:0          Cer 18:1;O2   <span style="color: #BB0000;">NA</span>         FALSE   Cer d18:1/25:0 (IST…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Cer d18:1/25:0 (ISTD)   Cer 18:1;O2   <span style="color: #BB0000;">NA</span>         TRUE    Cer d18:1/25:0 (IST…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> LPC 18:1 (a)            LPC           <span style="color: #BB0000;">NA</span>         FALSE   LPC 18:1 (ab) d7 (I…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> LPC 18:1 (ab) d7 (ISTD) LPC           <span style="color: #BB0000;">NA</span>         TRUE    LPC 18:1 (ab) d7 (I…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> LPC 18:1 (b)            LPC           <span style="color: #BB0000;">NA</span>         FALSE   LPC 18:1 (ab) d7 (I…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> PC 28:0|SM 32:1 M+3     PC            <span style="color: #BB0000;">NA</span>         FALSE   PC 33:1 d7 (ISTD)   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> PC 32:1                 PC            <span style="color: #BB0000;">NA</span>         FALSE   PC 33:1 d7 (ISTD)   </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 19 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 11 more variables: quant_istd_feature_id &lt;chr&gt;, is_quantifier &lt;lgl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   valid_feature &lt;lgl&gt;, response_factor &lt;dbl&gt;, interference_feature_id &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   interference_contribution &lt;dbl&gt;, curve_fit_model &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   fit_weighting &lt;chr&gt;, remarks &lt;chr&gt;, feature_label &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   curve_fit_weighting &lt;chr&gt;</span></span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="saving-and-reading-midarexperiment-objects">Saving and Reading MidarExperiment objects<a class="anchor" aria-label="anchor" href="#saving-and-reading-midarexperiment-objects"></a>
 </h4>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">myexp</span>, file <span class="op">=</span> <span class="st">"myexp-midar.rds"</span>, compress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">my_saved_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"myexp-midar.rds"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">my_saved_exp</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">my_saved_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"myexp-midar.rds"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="status-of-an-midarexperiment">Status of an <code>MidarExperiment</code><a class="anchor" aria-label="anchor" href="#status-of-an-midarexperiment"></a>
+</h4>
+<p>A detailed summary of the dataset and processing status can be
+printed any time</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">my_saved_exp</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -2,14 +2,16 @@
 % Please edit documentation in R/data-import.R
 \name{import_data_csv}
 \alias{import_data_csv}
-\title{Import plain analysis results}
+\title{Import Analysis Results from Plain CSV Files}
 \usage{
 import_data_csv(
   data = NULL,
   path,
   variable_name,
   analysis_id_col = NA,
-  import_metadata
+  import_metadata = TRUE,
+  first_feature_column = NA,
+  na_strings = "NA"
 )
 }
 \arguments{
@@ -22,19 +24,42 @@ import_data_csv(
 \item{analysis_id_col}{Column to be used as analysis_id. \code{NA} (default) used 'analysis_id' if present, or the first column if it contains unique values.}
 
 \item{import_metadata}{Import additional metadata columns (e.g. batch ID, sample type) and add to the \code{MidarExperiment} object.
-Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "run_seq_num", "precursor_mz", "product_mz", "collision_energy"}
+Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order"}
+
+\item{first_feature_column}{Column number of the first column representing the feature values}
+
+\item{na_strings}{A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.}
 }
 \value{
 MidarExperiment object
 }
 \description{
-Imports .csv file(s) reprensenting analysis results in a wide format with samples in rows and features in columns.
-The first column must contain the analysis identifier, subsequent columns can be metadata columns, followed by value of different features.
-The table format must be in the long format with columns for the raw data file name, feature ID, and the peak intensity and other arguments
-Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and will available from the \code{MidarExperiment} object for downstream analyses.
+Import Analysis Results from Plain CSV Files
+}
+\details{
+This function imports analysis result data from .csv files in wide format,
+where each row represents a sample and each column signifies a feature.
 
-When a path to a folder is provided, all .scv files in that folder will be imported and merged into one raw dataset. This is useful, e.g. when importing datasets that were pre-processed in blocks resulting in different files.
-Each feature and raw data file pair must only occur once within and across all .csv source data files, duplicated return an error.
+The dataset must have an analysis identifier, either in an "analysis_id"
+column or inferred from the first column if it contains unique values. The
+\code{variable_name} argument specifies the data type in the table: "area",
+"height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
+"rt", or "fwhm".
+
+Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
+"is_quantifier", "is_istd", can be imported if present.
+
+WHen there are other columns that not represent features, use the \code{first_feature_column} parameter
+to define where feature columns start.
+
+When a directory path is specified, the function processes all .csv files in
+that directory, merging them into a single dataset. This is useful for
+datasets divided into multiple files during preprocessing. Ensure each
+feature and raw data file pair appears only once to avoid duplication
+errors.
+
+The \code{na_strings} parameter allows specifying strings to be interpreted as NA,
+ensuring the dataset is clean for analysis.
 }
 \examples{
 file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")

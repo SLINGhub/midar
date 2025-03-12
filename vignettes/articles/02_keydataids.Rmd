@@ -1,0 +1,47 @@
+---
+title: "Data Structure of MiDAR"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{Data Structure of MiDAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, warning = FALSE,
+                      message = FALSE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+# Key Data Identifiers
+
+The following key data fields are essential for organizing data in Midar. Many
+MiDAR functions depend on these fields, and exported data utilizes these
+identifier names.
+
+| Table | Field | Description |
+|----|----|----|
+| Analyses | [`analysis_id`]{style="color: blue;"} | Unique identifier of each analysis. |
+|  | qc_type | Describes the function of sample in the analysis, such as Blank, QC, or study sample. Must be a subset of SPL, TQC, BQC, PBLK, SBLK, UBLK, MBLK, |
+|  | `batch_id` | Unique identifier of each batch level. |
+|  | sample_id | Unique identifier pf the (physical) sample that was tested |
+| Features | [`feature_id`]{style="color: blue;"} | Unique identifier for each feature. |
+|  | `istd_feature_id` | The `feature_id` of the internal standard used to normalize raw intensities (each internal standard must be defined as a feature). |
+|  | analyte_id | Unique identifier of the analyte |
+
+Certain field names differ from conventional terminology
+(e.g., `analysis_id` instead of `sample_id`) to allow more flexible workflows
+and to reduce confusion with other identifiers. A sample may be measured
+multiple times across different methods or processing replicates, necessitating
+distinct identifiers. Similarly, analytes can be quantified through multiple
+transitions or adducts, which is why `feature_id` is designated as the primary
+identifier.

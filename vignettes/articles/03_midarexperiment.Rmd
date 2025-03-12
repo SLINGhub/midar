@@ -22,13 +22,9 @@ options(dplyr.print_max = 10)
 ```
 # Overview
 
-MidarExperiment` object is the main **data container** used in the MiDAR workflow. It holds all the experimental and processed data and metadata, as well as details of the applied processing steps and the current status of the data.
-
-Most `MiDAR` functions take an `MidarExperiment` object as input. Functions that process or update the data return a modified `MidarExperiment` object as output, allowing it to be used in subsequent functions. You can create and process multiple `MidarExperiment` objects independently within the same script.
+The `MidarExperiment` object is the main **data container** used in the MiDAR workflow. See 'Data Structure' for more information.
 
 ### Creating a MidarExperiment object
-
-First the {midar} package is loaded and then we create a new `MidarExperiment` object.
 
 ```{r}
 library(midar)
@@ -38,7 +34,8 @@ myexp <- MidarExperiment()
 
 ### Using MidarExperiment objects
 
-Most `MiDAR` functions take an MidarExperiment object as input. Functions that process or update the data return a modified `MidarExperiment` object as output, allowing it to be used in subsequent functions. 
+Most `MiDAR` functions take an MidarExperiment object as input. Data processing 
+functions return a modified `MidarExperiment`, which can be in subsequent step. 
 
 ```{r, results = TRUE, message = TRUE}
 myexp <- MidarExperiment()
@@ -49,10 +46,11 @@ save_dataset_csv(myexp, "mydata.csv", "norm_intensity", FALSE)
 
 ```
 
-You can also use `MidarExperiment` objects in an R pipe chain. This allows you to chain multiple functions together, making your code more streamlined and easier to read while clearly indicating the flow of your processing workflow.
+R pipes can also be used, allowing to chain multiple functions together. This can 
+more clearly indicate the processing workflow and make the code more  easier to read. 
 
 ```{r, results = TRUE, message = TRUE}
-myexp <- myexp |> 
+  myexp |> 
   MidarExperiment() |>
   data_load_example(1) |>
   normalize_by_istd() |>
@@ -60,24 +58,14 @@ myexp <- myexp |>
 
 ```
 
-
-### Status of an `MidarExperiment`
-
-A detailed summary of the dataset and processing status can be printed any time
-
-```{r, results = TRUE}
-print(myexp)
-```
-
 ### Multiple `MidarExperiment` objects
 
 Multiple `MidarExperiment` objects can be created and processed independently within the same script.
 
 ```{r, results = TRUE}
-myexp_1 <- MidarExperiment(title = "Polar metabolites")
-myexp_2 <- MidarExperiment(title = "Non-polar metabolites")
+m_polars <- MidarExperiment(title = "Polar metabolites")
+m_lipids <- MidarExperiment(title = "Non-polar metabolites")
 
-#myexp <- midar::combine_experiments(myexp_1, myexp_2)
 ```
 
 
@@ -97,9 +85,7 @@ Alternatively, the `$` syntax can be used access data and metadata tables in `Mi
 ```{r, results = TRUE}
 analyses <- myexp$annot_analyses
 features <- myexp$annot_features
-dataset <- myexp$dataset
-
-print(features)
+  print(features)
 
 ```
 
@@ -110,6 +96,11 @@ myexp <- MidarExperiment()
 myexp <- data_load_example(myexp, 1)
 saveRDS(myexp, file = "myexp-midar.rds", compress = TRUE)
 my_saved_exp <- readRDS(file = "myexp-midar.rds")
+```
+### Status of an `MidarExperiment`
+
+A detailed summary of the dataset and processing status can be printed any time
+
+```{r, results = TRUE}
 print(my_saved_exp)
 ```
-

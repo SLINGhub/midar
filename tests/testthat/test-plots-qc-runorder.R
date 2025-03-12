@@ -493,6 +493,7 @@ test_that("plot_runscatter show trend works", {
   p <- plot_runscatter(
     data = mexp_drift,
     variable = "intensity",
+    qc_types = c("BQC", "SPL"),
     rows_page = 3,
     cols_page = 4,
     show_trend = TRUE,
@@ -500,9 +501,42 @@ test_that("plot_runscatter show trend works", {
   )
 
   plot_data <- ggplot_build(p[[1]])$data
-  expect_equal(dim(plot_data[[2]]),c(5988,10))
-  expect_equal(dim(plot_data[[3]]),c(5988,9)) # smoothed data points
-  expect_equal(mean(plot_data[[3]]$y),1978701.7) # smoothed data points
+  expect_equal(dim(plot_data[[2]]),c(5184,10))
+  expect_equal(mean(plot_data[[2]]$y),2054300.962) #  data points
+  expect_equal(dim(plot_data[[3]]),c(5184,9)) # smoothed ref data points
+  expect_equal(mean(plot_data[[3]]$y),1985330.456) # smoothed ref data points
+
+  p <- plot_runscatter(
+    data = mexp_drift,
+    variable = "intensity_raw",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+  expect_equal(mean(plot_data[[3]]$y),1982570.1) # ref data points (batch-wise)
+
+  p <- plot_runscatter(
+    data = mexp_drift,
+    variable = "intensity_before",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+  expect_equal(mean(plot_data[[3]]$y),1982570.1) # ref data points (batch-wise)
 
   mexp_drift <- correct_batch_centering(
     mexp_orig,
@@ -512,6 +546,7 @@ test_that("plot_runscatter show trend works", {
   p <- plot_runscatter(
     data = mexp_drift,
     variable = "intensity",
+    qc_types = c("BQC", "SPL"),
     rows_page = 3,
     cols_page = 4,
     show_trend = TRUE,
@@ -519,9 +554,145 @@ test_that("plot_runscatter show trend works", {
   )
 
   plot_data <- ggplot_build(p[[1]])$data
-  expect_equal(dim(plot_data[[2]]),c(5988,10))
-  expect_equal(dim(plot_data[[3]]),c(5988,9)) # smoothed data points
-  expect_equal(mean(plot_data[[3]]$y),2084559.556) # smoothed data points
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # ref data points
+  expect_equal(mean(plot_data[[2]]$y),2039591.3) #  data points
+  expect_equal(mean(plot_data[[3]]$y),2084560.8) #  ref data points (batch-wise)
+
+  p <- plot_runscatter(
+    data = mexp_drift,
+    variable = "intensity_raw",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+  expect_equal(mean(plot_data[[3]]$y),2093909.456) # ref data points (batch-wise)
+
+  p <- plot_runscatter(
+    data = mexp_drift,
+    variable = "intensity_raw",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = FALSE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+
+  p <- plot_runscatter(
+    data = mexp_drift,
+    variable = "intensity_before",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+  expect_equal(mean(plot_data[[3]]$y),2093909.456) # ref data points (batch-wise)
+
+  # compare again with orginal data from mexp orginal
+  p <- plot_runscatter(
+    data = mexp_orig,
+    variable = "intensity",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = FALSE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184,10))
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+
+  mexp_drift <- correct_drift_gaussiankernel(
+    mexp_orig,
+    variable = "intensity",
+    recalc_trend_after = TRUE,
+
+    reference_qc_types = "SPL",
+    ignore_istd = FALSE)
+
+  mexp_drift2 <- correct_batch_centering(
+    mexp_drift,
+    reference_qc_type = "SPL",
+    variable = "intensity")
+
+
+  p <- plot_runscatter(
+    data = mexp_drift2,
+    variable = "intensity_raw",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
+  expect_equal(mean(plot_data[[3]]$y),1982570.1) # ref data points (batch-wise)
+
+  p <- plot_runscatter(
+    data = mexp_drift2,
+    variable = "intensity_before",
+    qc_types = c("BQC", "SPL"),
+    rows_page = 3,
+    cols_page = 4,
+    show_trend = TRUE,
+    return_plots = TRUE
+  )
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(5184, 10))
+  expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
+  expect_equal(mean(plot_data[[2]]$y),2054300.962) # data points
+  expect_equal(mean(plot_data[[3]]$y),1982570.1) # ref data points (batch-wise)
+
+
+  expect_error(
+    p <- plot_runscatter(
+      data = mexp_orig,
+      variable = "intensity_before",
+      qc_types = c("BQC", "SPL"),
+      rows_page = 3,
+      cols_page = 4,
+      show_trend = FALSE,
+      return_plots = TRUE
+    ),
+  "Variables `_before` and `_raw` after only available after drift/batch corrections",
+  fixed = TRUE)
+
+  expect_error(
+    p <- plot_runscatter(
+      data = mexp_orig,
+      variable = "intensity",
+      qc_types = c("BQC", "SPL"),
+      rows_page = 3,
+      cols_page = 4,
+      show_trend = TRUE,
+      return_plots = TRUE
+    ),
+    "Drift or batch correction is currently required to show trend lines",
+    fixed = TRUE)
+
 })
 
 test_that("plot_runscatter handles filter and missing data", {

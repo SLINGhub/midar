@@ -1,5 +1,7 @@
 mexp_empty <- MidarExperiment(title = "Test Experiment", analysis_type = "lipidomics")
-mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
+mexp  <- lipidomics_dataset
+
+
 mexp_proc <- mexp
 mexp_proc <- normalize_by_istd(mexp_proc)
 mexp_proc <- quantify_by_istd(mexp_proc)
@@ -52,12 +54,15 @@ test_that("`show` method displays processing status", {
   text_output <- toString(cli::cli_fmt(print(mexp)))
 
   # Capture the output of the show method
+
   expect_match(text_output, "feature_area")
   expect_match(text_output, "Analyses manually excluded")
+  mexp <- exclude_analyses(mexp, c("Longit_batch1_4", "Longit_batch6_51"), clear_existing = TRUE)
+  mexp <- exclude_features(mexp, c("PC 32:1", "PC 40:8"), clear_existing = TRUE)
+  text_output <- toString(cli::cli_fmt(print(mexp)))
+  expect_match(text_output, "Longit_batch1_4", fixed=TRUE)
+  expect_match(text_output, "PC 32:1, and PC 40:8", fixed=TRUE)
 
-  mexp <- exclude_analyses(mexp, c("030_SPL_S010", "107_SPL_S075"), clear_existing = TRUE)
-  mexp <- exclude_features(mexp, c("S1P d20:1 [M>60]", "S1P d20:1 [M>113]"), clear_existing = TRUE)
-  mexp
 })
 
 
@@ -74,27 +79,27 @@ test_that("check_integrity_analyses works", {
   mexp_temp <- mexp
   mexp_temp@annot_analyses <- mexp_temp@annot_analyses[c(-10, -2),]
   expect_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = FALSE),
-               "No metadata present for 2 of 65 analyses\\: 007_SOLV_Blank01\\, 015_TQCd\\-100_TQC\\-100percent")
+               "No metadata present for 2 of 499 analyses: Longit_B-ISTD 01 Extr, Longit_TQC-100%", fixed = TRUE)
 
   expect_no_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = TRUE))
   expect_no_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = TRUE, silent = FALSE))
 
   mexp_temp@annot_analyses <- mexp_temp@annot_analyses[c(-10, -1, -2, -4),]
   expect_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = FALSE, max_num_print= 2),
-               "6 of 65 analyses have no matching metadata.")
+               "6 of 499 analyses have no matching metadata.")
 
   expect_true(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = TRUE, silent = TRUE))
   expect_false(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = TRUE))
 
   mexp_temp <- mexp
-  mexp_temp@dataset_orig <- mexp_temp@dataset_orig[mexp_temp@dataset_orig$analysis_id != "007_SOLV_Blank01" &
-                                                     mexp_temp@dataset_orig$analysis_id != "015_TQCd-100_TQC-100percent",]
+  mexp_temp@dataset_orig <- mexp_temp@dataset_orig[mexp_temp@dataset_orig$analysis_id != "Longit_B-ISTD 01 Extr" &
+                                                     mexp_temp@dataset_orig$analysis_id != "Longit_TQC-100%",]
 
   expect_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = FALSE),
-               "ollowing 2 analyses defined in the metadata are not present in the measurement data\\: 007_SOLV_Blank01\\, 015_TQCd\\-100_TQC-100percent")
+               "Following 2 analyses defined in the metadata are not present in the measurement data: Longit_B-ISTD 01 Extr, Longit_TQC-100%", fixed = TRUE)
 
   expect_error(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = FALSE, max_num_print= 1),
-               "2 of 65 analyses defined in the metadata are not present in the measurement data")
+               "2 of 499 analyses defined in the metadata are not present in the measurement data")
 
   expect_false(check_integrity_analyses(mexp_temp, excl_unmatched_analyses = FALSE, silent = TRUE))
 

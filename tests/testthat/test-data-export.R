@@ -211,3 +211,55 @@ test_that("save_feature_qc_metrics exports QC metrics to CSV", {
   expect_equal(dim(written_data),c(29, 92))
 })
 
+
+test_that("save_metadata_templates() copies the file correctly and sends correct errors if required", {
+  temp_file <- tempfile(fileext = "test.xlsx")
+
+  expect_message(save_metadata_templates(temp_file), "Metadata table templates were saved to")
+  expect_true(file.exists(temp_file))
+  expect_error(save_metadata_templates(temp_file), "A file with this name already exists at the specified location.")
+  unlink(temp_file)
+
+  default_file <- "metadata_template.xlsx"
+  if (file.exists(default_file)) unlink(default_file)
+
+  expect_message(save_metadata_templates(), "Metadata table templates were saved to 'metadata_template.xlsx'")
+  expect_true(file.exists(default_file))
+  unlink(default_file)
+})
+
+test_that("save_metadata_templates() returns an error if template is missing", {
+  # Temporarily change the system.file() return to an empty string
+  mock_template_path <- function(...) { "" }
+
+  with_mocked_bindings(
+    `system.file` = mock_template_path,
+    expect_error(save_metadata_templates(tempfile()), "Template file not found in package")
+  )
+})
+
+test_that("save_metadata_msorganizer_template() copies the file correctly and sends correct errors if required", {
+  temp_file <- tempfile(fileext = ".xlsx")
+
+  expect_message(save_metadata_msorganizer_template(temp_file), "A MiDAR Metadata Organizer template was saved")
+  expect_true(file.exists(temp_file))
+  expect_error(save_metadata_msorganizer_template(temp_file), "A file with this name already exists at the specified location.")
+  unlink(temp_file)
+
+  default_file <- "metadata_msorganizer_template.xlsm"
+  if (file.exists(default_file)) unlink(default_file)
+
+  expect_message(save_metadata_msorganizer_template(), "A MiDAR Metadata Organizer template was saved to 'metadata_msorganizer_template.xlsm'")
+  expect_true(file.exists(default_file))
+  unlink(default_file)
+})
+
+test_that("save_metadata_templates() returns an error if template is missing", {
+  # Temporarily change the system.file() return to an empty string
+  mock_template_path <- function(...) { "" }
+
+  with_mocked_bindings(
+    `system.file` = mock_template_path,
+    expect_error(save_metadata_msorganizer_template(tempfile()), "Template file not found in package")
+  )
+})

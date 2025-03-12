@@ -7,7 +7,8 @@
 correct_interferences(
   data = NULL,
   variable = "feature_intensity",
-  sequential_correction = TRUE
+  sequential_correction = TRUE,
+  neg_to_na = FALSE
 )
 }
 \arguments{
@@ -21,6 +22,8 @@ corrections sequentially, starting with the most downstream feature.  If
 \code{FALSE}, corrections are based on the raw signal of the interfering
 features. If \code{FALSE}, the correction will be based on the raw signal of the
 interfering feature.}
+
+\item{neg_to_na}{If \code{TRUE}, negative or zero values after correction will be replaced with \code{NA}. Default: \code{FALSE}.}
 }
 \value{
 MidarExperiment object with feature intensities corrected for

@@ -35,7 +35,8 @@ plot_rla_boxplot(
 
 \item{rla_type_batch}{Character, must be either "within" or "across", defining whether to use within-batch or across-batch RLA}
 
-\item{variable}{Variable to plot, must be one of "intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm".}
+\item{variable}{Variable to plot, must be one of "intensity", "norm_intensity", "conc", "area", "height", "fwhm", or one of
+"intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"}
 
 \item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{filter_features_qc()}.}
 

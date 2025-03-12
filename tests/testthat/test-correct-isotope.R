@@ -1,6 +1,9 @@
 mexp_orig <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
-
 mexp <- mexp_orig
+
+mexp2 <- lipidomics_dataset
+
+mexp2@annot_features$interference_contribution[9] <- 0.5
 
 test_that("correct_interferences corrects overlapping interferences", {
   # d18:2 is interfering with d18:1, which in turn is interfering with d18:0
@@ -287,4 +290,70 @@ test_that("correct_interferences corrects overlapping interferences", {
     ),
     "is already present in the dataset"
   )
+})
+
+test_that("Handles corrections that lead to negative values",{
+  expect_message(
+    mexp3 <- correct_interference_manual(
+      mexp2,
+      variable = "feature_intensity",
+      feature = "PC 28:0|SM 32:1 M+3",
+      interfering_feature = "SM 32:1",
+      interference_contribution = 0.1,
+      updated_feature_id = "PC 28:0"
+    ),
+    "Interference correction led to 478 negative or zero values in samples/QCs. Please verify",
+    fixed = TRUE
+  )
+
+  a <- mexp3@dataset |>
+    group_by(feature_id) |>
+    summarise(nas = sum(is.na(feature_intensity)))
+
+  expect_equal(max(a$nas), 0)
+
+  expect_message(
+    mexp3 <- correct_interference_manual(
+      mexp2,
+      variable = "feature_intensity",
+      feature = "PC 28:0|SM 32:1 M+3",
+      interfering_feature = "SM 32:1",
+      interference_contribution = 0.1,
+      neg_to_na = TRUE,
+      updated_feature_id = "PC 28:0"
+    ),
+    "Interference correction led to 478 negative or zero values in samples/QCs. All negative/zero values",
+    fixed = TRUE
+  )
+
+  a <- mexp3@dataset |>
+    group_by(feature_id) |>
+    summarise(nas = sum(is.na(feature_intensity)))
+
+    expect_equal(max(a$nas), 479)
+
+  expect_message(
+    mexp_res <-
+      correct_interferences(
+        mexp2,
+        variable = "feature_intensity",
+        sequential_correction = TRUE
+      ),
+    "Interference correction led to negative or zero values in 1 feature(s) in samples/QCs. Please verify ",
+    fixed = TRUE
+  )
+
+  expect_message(
+    mexp_res <-
+      correct_interferences(
+        mexp2,
+        variable = "feature_intensity",
+        sequential_correction = TRUE,
+        neg_to_na = TRUE
+      ),
+    "Interference correction led to negative or zero values in 1 feature(s) in samples/QCs. All negative/zero values ",
+    fixed = TRUE
+  )
+
+
 })
