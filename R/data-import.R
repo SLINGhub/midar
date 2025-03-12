@@ -623,7 +623,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   variable_name_sym = rlang::sym(variable_name)
 
 
-  d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "n", na = na_strings, progress = FALSE, name_repair = "minimal")
+  d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "?", na = na_strings, progress = FALSE, name_repair = "minimal")
 
   if (!is.null(analysis_id_col) & !is.na(analysis_id_col)){
     # a column name was provided as analysis_id
@@ -676,12 +676,8 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 
   analysis_id_col_sym = rlang::sym(analysis_id_col)
 
-  n_dup <- sum(duplicated(d[analysis_id_col]))
-  if(n_dup > 0) {
-    cli::cli_abort(col_red("{n_dup} duplicated `analysis_id` present in the data file. Please verify the data."))
-  }
 
-  n_dup <- sum(duplicated(d[analysis_id_col]))
+  n_dup <- sum(duplicated(d[[analysis_id_col]]))
   if(n_dup > 0) {
     cli::cli_abort(col_red("{n_dup} duplicated `analysis_id` present in the data file. Please verify the data."))
   }
@@ -703,7 +699,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
         first_feature_column_ix <- first_feature_column
       }
     }
-    sel_feature_names <- d |> select(first_feature_column_ix:dplyr::last_col()) |>  names()
+    sel_feature_names <- d[, first_feature_column_ix:ncol(d)]|>  names()
   } else {
     sel_feature_names <- d  |>  names()
   }

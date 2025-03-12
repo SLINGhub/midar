@@ -88,10 +88,10 @@ testthat::test_that("Parsing nested MH Quant .csv without 'outlier'/'quant messa
 
 
 testthat::test_that("Parses nested MH Quant .csv file containing QUALIFIER peak info", {
-    d <- parse_masshunter_csv(
-      testthat::test_path("9_Testdata_MHQuant_withQuantMethods_withQualifierMethResults.csv"),
-      expand_qualifier_names = TRUE
-    )
+  d <- parse_masshunter_csv(
+    testthat::test_path("9_Testdata_MHQuant_withQuantMethods_withQualifierMethResults.csv"),
+    expand_qualifier_names = TRUE
+  )
   expect_equal(ncol(d), 18)
   expect_equal(nrow(d), 1040)
   expect_equal(d[[1, "feature_rt"]], 3.422)
@@ -264,12 +264,12 @@ testthat::test_that("Imports multiple MH Quant .csv files into one MidarExperime
 
   expect_error(
     mexp <- import_data_masshunter(
-    mexp,
-    testthat::test_path("testdata/MQquant_multiple_duplicates/"),
-    import_metadata = TRUE,
-    expand_qualifier_names = TRUE
-  ),
-  regexp = "duplicated reportings \\(analysis and feature pairs\\) with identical")
+      mexp,
+      testthat::test_path("testdata/MQquant_multiple_duplicates/"),
+      import_metadata = TRUE,
+      expand_qualifier_names = TRUE
+    ),
+    regexp = "duplicated reportings \\(analysis and feature pairs\\) with identical")
 })
 
 # Splitted above file into 2 files with 1 overlapping (duplicated) feature with different values and import as folder
@@ -284,7 +284,7 @@ testthat::test_that("Imports multiple MH Quant .csv files into one MidarExperime
       expand_qualifier_names = TRUE
     ),
     regexp = "duplicated reportings \\(analysis and feature pairs\\) with different"
-    )
+  )
 
 })
 
@@ -351,7 +351,7 @@ testthat::test_that("Parses plain csv file with metadata with correct column nam
 
 testthat::test_that("Returns error when plain csv file with columns containing text is read, when import_metadata = FALSE", {
   expect_message(parse_plain_csv(testthat::test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = FALSE),
-               regexp = "Metadata column(s) 'qc_type, batch_id' found and ignored", fixed = TRUE)
+                 regexp = "Metadata column(s) 'qc_type, batch_id' found and ignored", fixed = TRUE)
 })
 
 testthat::test_that("Returns error when plain csv file with analysis_id_col set that does not exist", {
@@ -376,8 +376,8 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
                             path = path,
                             variable_name = "conc",
                             import_metadata = TRUE),
-  "Imported 87 analyses with 5 features",
-  fixed = TRUE)
+    "Imported 87 analyses with 5 features",
+    fixed = TRUE)
 
   mexp <- MidarExperiment()
   expect_message(
@@ -388,7 +388,7 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
     "Metadata column(s) 'analysis_order, qc_type, batch_id' imported",
     fixed = TRUE)
 
-   expect_in(c("analysis_id", "batch_id", "replicate_no", "is_istd", "feature_conc"), names(mexp@dataset))
+  expect_in(c("analysis_id", "batch_id", "replicate_no", "is_istd", "feature_conc"), names(mexp@dataset))
   expect_equal(mexp@dataset[[111,"feature_conc"]], 892.82088)
   expect_equal(mexp@dataset[[50,"qc_type"]], "SPL")
   expect_equal(mexp@dataset[[255,"analysis_order"]], 51L)
@@ -402,11 +402,11 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
   mexp <- MidarExperiment()
 
   expect_message(
-   mexp <- import_data_csv(data = mexp,
-                           path = path,
-                           variable_name = "conc",
-                           import_metadata = FALSE),
-   "Metadata column(s) 'analysis_order, qc_type, batch_id' found and ignored", fixed = TRUE
+    mexp <- import_data_csv(data = mexp,
+                            path = path,
+                            variable_name = "conc",
+                            import_metadata = FALSE),
+    "Metadata column(s) 'analysis_order, qc_type, batch_id' found and ignored", fixed = TRUE
   )
 
   expect_in(c("analysis_id", "batch_id", "replicate_no", "is_istd", "feature_conc"), names(mexp@dataset))
@@ -418,13 +418,13 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
 
   mexp <- MidarExperiment()
   expect_message(
-   mexp <- import_data_csv(data = mexp,
-                           path = path,
-                           variable_name = "conc",
-                           analysis_id_col = "analysis_id",
-                           import_metadata = FALSE
-                           ),
-   "Metadata column(s) 'analysis_order, qc_type, batch_id' found and ignored", fixed = TRUE
+    mexp <- import_data_csv(data = mexp,
+                            path = path,
+                            variable_name = "conc",
+                            analysis_id_col = "analysis_id",
+                            import_metadata = FALSE
+    ),
+    "Metadata column(s) 'analysis_order, qc_type, batch_id' found and ignored", fixed = TRUE
   )
 
   mexp <- MidarExperiment()
@@ -507,7 +507,7 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
   mexp <- MidarExperiment()
   expect_error(
     mexp <- import_data_csv(data = mexp,
-                            path = testthat::test_path("testdata/plain_wide_dataset dup_featid.csv"),
+                            path = testthat::test_path("testdata/plain_wide_dataset_dup_featid.csv"),
                             variable_name = "conc",
                             analysis_id_col = "analysis_id",
                             import_metadata = TRUE
@@ -565,5 +565,54 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
     "`analysis_order` contains duplicated values", fixed = TRUE
   )
 
- })
+  # Other dataset
+
+  mexp <- MidarExperiment()
+  expect_message(
+    mexp <- import_data_csv(data = mexp,
+                            path = testthat::test_path("testdata/plain_wide_dataset2_22rows.csv"),
+                            variable_name = "area",
+                            import_metadata = TRUE),
+    "Metadata column(s) 'qc_type, batch_id' imported.",
+    fixed = TRUE)
+
+  expect_in(c("analysis_id", "batch_id", "replicate_no", "is_istd", "feature_area"), names(mexp@dataset))
+  expect_equal(mexp@dataset[[11,"feature_area"]], 2276.88770)
+  expect_equal(mexp@dataset[[50,"qc_type"]], "SPL")
+  expect_equal(mexp@dataset[[13,"analysis_order"]], 2L)
+  expect_equal(mexp@dataset[[13,"analysis_id"]], "P001-A02")
+  expect_equal(mexp@annot_analyses[[9,"analysis_id"]], "P001-A09")
+  expect_equal(mexp@annot_features[[2,"feature_id"]], "Cer d18:1/16:0 d7")
+  expect_type(mexp@dataset$is_istd, "logical")
+  expect_type(mexp@dataset$batch_id, "character")
+
+  mexp2 <- MidarExperiment()
+  expect_message(
+    mexp2 <- import_data_csv(data = mexp,
+                             path = testthat::test_path("testdata/plain_wide_dataset2_10rows_orderid.csv"),
+                             variable_name = "area",
+                             import_metadata = TRUE),
+    "Metadata column(s) 'analysis_order, qc_type, batch_id' imported.",
+    fixed = TRUE)
+
+  expect_equal(mexp2@annot_analyses[[9,"analysis_id"]], "P001-A09")
+  expect_equal(mexp2@dataset[[13,"analysis_order"]], 2L)
+  expect_equal(mexp2@dataset[[13,"analysis_id"]], "P001-A09")
+
+  expect_message(
+    mexp <-correct_drift_gaussiankernel(mexp, variable = "intensity", reference_qc_types = "SPL"),
+    "-0.88% to -0.10%)", fixed = TRUE)
+
+  expect_message(
+    mexp <-correct_batch_centering(mexp, variable = "intensity", reference_qc_types = "SPL"),
+    "-7.30% to 0.10%)", fixed = TRUE)
+
+  p <- plot_runscatter(mexp, variable = "intensity", return_plot = TRUE)
+
+  plot_data <- ggplot_build(p[[1]])$data
+  expect_equal(dim(plot_data[[2]]),c(176, 10))
+
+})
+
+
 
