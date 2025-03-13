@@ -586,6 +586,7 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
   expect_type(mexp@dataset$is_istd, "logical")
   expect_type(mexp@dataset$batch_id, "character")
 
+  # CHeck order iD imported and batch id is string
   mexp2 <- MidarExperiment()
   expect_message(
     mexp2 <- import_data_csv(data = mexp,
@@ -598,6 +599,7 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
   expect_equal(mexp2@annot_analyses[[9,"analysis_id"]], "P001-A09")
   expect_equal(mexp2@dataset[[13,"analysis_order"]], 2L)
   expect_equal(mexp2@dataset[[13,"analysis_id"]], "P001-A09")
+  expect_equal(mexp2@dataset[[13,"batch_id"]], "2") # must be text
 
   expect_message(
     mexp <-correct_drift_gaussiankernel(mexp, variable = "intensity", reference_qc_types = "SPL"),
@@ -611,6 +613,27 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
 
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(176, 10))
+
+  expect_error(
+    mexp <- import_data_csv(data = mexp,
+                            path = testthat::test_path("testdata/plain_wide_dataset2_10rows_orderidtext.csv"),
+                            variable_name = "conc",
+                            analysis_id_col = "analysis_id",
+                            import_metadata = TRUE,
+                            first_feature_column = 10
+    ),
+    "Column `analysis_order` must contain unique numbers", fixed = TRUE
+  )
+
+    mexp <- import_data_csv(data = mexp,
+                            path = testthat::test_path("testdata/plain_wide_dataset2_10rows_analysisidnumber.csv"),
+                            variable_name = "conc",
+                            analysis_id_col = "analysis_id",
+                            import_metadata = TRUE,
+                            first_feature_column = 10
+    )
+
+    expect_equal(mexp@dataset[[13,"analysis_id"]], "6") # must be text even if was number
 
 })
 

@@ -416,6 +416,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_accuracy" = "Results_Accuracy",
     "feature_conc_calc" = "Results_Calc Conc",
     "feature_conc" = "Results_Final Conc",
+    "feature_ionratio" = "Results_Ratio",
     "feature_fwhm" = "Results_FWHM",
     "feature_width" = "Results_Width",
     "feature_sn_ratio" = "Results_SN",
@@ -641,6 +642,11 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   }
 
 
+  n_dup <- sum(duplicated(names(d)))
+  if(n_dup > 0) {
+    cli::cli_abort(col_red("{n_dup} duplicated column name(s) present in the data file. Please verify the data."))
+  }
+
   analysis_metadata_cols <- c(
     "analysis_order",
     "qc_type",
@@ -660,7 +666,27 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
           cli::cli_abort(col_red("`analysis_order` contains duplicated values. Please verify your data."))
       }
 
-      cli::cli_alert_info(col_green("Metadata column(s) '{txt}' imported. To ignore, set `import_metadata = FALSE`"))
+      d <- d |>
+        mutate(
+          across(
+            .cols = dplyr::any_of(names(c("qc_type", "batch_id"))),
+            .fns = \(x) str_squish(as.character(x))
+          )
+        ) |>
+        mutate(
+          across(
+            .cols = dplyr::any_of(names(c("is_quantifier", "is_istd"))),
+            .fns = \(x) as.logical(str_squish(as.character(x)))
+          )
+        ) |>
+        mutate(
+          across(
+            .cols = dplyr::any_of(names(c("analysis_order"))),
+            .fns = \(x) as.numeric(str_squish(as.character(x)))
+          )
+        )
+
+       cli::cli_alert_info(col_green("Metadata column(s) '{txt}' imported. To ignore, set `import_metadata = FALSE`"))
 
 
     } else {
@@ -669,12 +695,17 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
       cli::cli_alert_info(cli::col_grey("Metadata column(s) '{txt}' found and ignored. To import the metadata, set `import_metadata = TRUE`"))
 
     }
-
   } else {
     analysis_metadata_cols = NULL
   }
 
+
+
+
+
   analysis_id_col_sym = rlang::sym(analysis_id_col)
+
+  d[[analysis_id_col]] <- factor(d[[analysis_id_col]])
 
 
   n_dup <- sum(duplicated(d[[analysis_id_col]]))
@@ -704,10 +735,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
     sel_feature_names <- d  |>  names()
   }
 
-  n_dup <- sum(duplicated(sel_feature_names))
-  if(n_dup > 0) {
-    cli::cli_abort(col_red("{n_dup} duplicated column name(s) present in the data file. Please verify the data."))
-  }
+
 
   val_cols <- setdiff(sel_feature_names, c(analysis_id_col, analysis_metadata_cols))
   analysis_cols <- setdiff(names(d), c(val_cols))

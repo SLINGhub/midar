@@ -2,7 +2,7 @@
 title: "MiDAR: Quantitative Mass Spectrometry Data Processing and Quality Control "
 ---
 
-# MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
+# MiDAR <img src="docs/logo.png" align="right" height="139"/>
 
 <!-- badges: start -->
 
