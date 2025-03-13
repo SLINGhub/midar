@@ -47,7 +47,7 @@ pak::pkg_install("SLINGhub/midar")
 
 ```{r}
 library(midar)
-
+itle = "sPerfect"
 # Create a MidarExperiment object
 myexp <- midar::MidarExperiment(title = "sPerfect")
 

@@ -9,7 +9,14 @@ testthat::test_that("Parses basic Agilent MH-Quant .csv file with only peak area
   expect_contains(unname(unlist(lapply(d, \(x) class(x)[[1]]))), c("integer", "character", "character", "character", "POSIXct", "character", "numeric"))
 })
 
+testthat::test_that("Parses basic Agilent MH-Quant .csv file without sample_name", {
+  d <- parse_masshunter_csv(testthat::test_path("1_Testdata_MHQuant_DefaultSampleInfo_AreaOnly.csv"))
 
+  expect_contains(names(d), c("file_analysis_order", "raw_data_filename", "sample_name", "sample_type", "acquisition_time_stamp", "feature_id", "feature_area"))
+  expect_equal(nrow(d), 1040)
+  expect_equal(mean(d$feature_area, na.rm = TRUE), 17237.244)
+  expect_contains(unname(unlist(lapply(d, \(x) class(x)[[1]]))), c("integer", "character", "character", "character", "POSIXct", "character", "numeric"))
+})
 
 testthat::test_that("Parses nested Agilent MH-Quant .csv file with diverse peak variables", {
   d <- parse_masshunter_csv(testthat::test_path("3_Testdata_MHQuant_DefaultSampleInfo_DetailedResults.csv"))
@@ -610,6 +617,8 @@ testthat::test_that("Imports plain csv file with metadata parsing the numbers to
     "-7.30% to 0.10%)", fixed = TRUE)
 
   p <- plot_runscatter(mexp, variable = "intensity", return_plot = TRUE)
+
+ plot_runsequence(data = mexp2)
 
   plot_data <- ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(176, 10))

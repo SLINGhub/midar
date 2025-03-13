@@ -65,8 +65,9 @@ plot_runsequence <- function(data = NULL,
   }
 
   # Convert qc_type to factor and create sample_category
-  d_filt$qc_type <- factor(d_filt$qc_type,
-                           levels = pkg.env$qc_type_annotation$qc_type_levels) |>
+  # d_filt$qc_type <- factor(d_filt$qc_type,
+  #                          levels = pkg.env$qc_type_annotation$qc_type_levels) |>
+  d_filt$qc_type <- factor(d_filt$qc_type) |>
     forcats::fct_drop()
   d_filt$sample_category <- as.character(d_filt$qc_type)
 
@@ -437,7 +438,11 @@ plot_runscatter <- function(data = NULL,
 
 
   # Reorder QC types and assign values
-  d_filt$qc_type <- factor(as.character(d_filt$qc_type), pkg.env$qc_type_annotation$qc_type_levels)
+  d_filt$qc_type <- d_filt$qc_type |>
+    factor() |>
+    forcats::fct_expand(pkg.env$qc_type_annotation$qc_type_levels) |>
+    forcats::fct_relevel(pkg.env$qc_type_annotation$qc_type_levels)
+
   d_filt <- d_filt |>
     dplyr::mutate(value = !!variable_sym)
 
@@ -593,7 +598,14 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     dplyr::arrange(.data$feature_id, .data$analysis_order) |>
     dplyr::slice(row_start:row_end)
 
-  d_subset$qc_type <- forcats::fct_relevel(d_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
+  #d_subset$qc_type <- forcats::fct_relevel(d_subset$qc_type, pkg.env$qc_type_annotation$qc_type_levels)
+
+  # Reorder QC types and assign values
+  d_subset$qc_type <- d_subset$qc_type |>
+    factor() |>
+    forcats::fct_expand(pkg.env$qc_type_annotation$qc_type_levels) |>
+    forcats::fct_relevel(pkg.env$qc_type_annotation$qc_type_levels)
+
   d_subset <- d_subset |>
     dplyr::arrange(rev(.data$qc_type))
 
