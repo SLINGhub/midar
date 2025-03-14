@@ -24,7 +24,7 @@ import_metadata_from_data<- function(data = NULL, qc_type_column_name = "qc_type
   # get feature metadata
 
   annot_features <- data@dataset_orig |>
-    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "precursor_mz", "product_mz", "istd_feature_id"))) |>
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "precursor_mz", "product_mz", "istd_feature_id", "is_quantifier"))) |>
     dplyr::distinct()
   annot_features <- clean_feature_metadata(annot_features)
 

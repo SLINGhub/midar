@@ -296,6 +296,17 @@ testthat::test_that("Imports multiple MH Quant .csv files into one MidarExperime
 })
 
 
+testthat::test_that("Imports MH with ExpConc, missing Name (sample name) and Sample header", {
+  mexp <- MidarExperiment()
+
+  expect_message(
+  mexp <- import_data_masshunter(
+      mexp,
+      testthat::test_path("testdata/QuantLCMS_Example_MassHunter-NoHdrSampleName.csv"), expand_qualifier_names = TRUE),
+  "Imported 25 analyses with 16 features (8 quantifiers, 8 qualifiers)", fixed = TRUE
+  )
+})
+
 testthat::test_that("Imports MRMkit result file (long format) into a MidarExperiment", {
   mexp <- MidarExperiment()
   mexp <- import_data_mrmkit(

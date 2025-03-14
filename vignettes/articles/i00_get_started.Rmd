@@ -38,7 +38,7 @@ MiDAR emphasises fully documented, reproducible data processing workflows and al
 
 In the console run:
 
-```{r}
+```{r, echo=FALSE, eval=FALSE}
 if (require("pak")) install.packages("pak")
 pak::pkg_install("SLINGhub/midar")
 ```

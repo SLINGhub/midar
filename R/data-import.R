@@ -177,6 +177,8 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
       relocate("analysis_order", .before = 1)
   }
 
+
+
   # VERIFY DATA, i.e. analysis_ids, feature_ids, and values are replicated ===
   ## which can be result of multiple imports of the same/overlapping data or due to parsing error
   n_idpairs_distinct <- d_raw |>
@@ -188,7 +190,8 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 
     n_idvalpairs_distinct <- d_raw |>
       select("analysis_order", "analysis_id", "feature_id",
-        any_of(c("feature_area", "feature_rt", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>
+        any_of(c("method_precursor_mz", "method_product_mz", "method_collision_energy", "method_polarity", "method_conc_expected",
+          "feature_area", "feature_rt", "feature_fwhm", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>
       distinct(.keep_all = FALSE) |>
       nrow()
 
@@ -425,7 +428,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_symetry" = "Results_Symmetry",
     "feature_istd_responseratio" = "Results_ISTD Resp. Ratio",
     "method_target_rt" = "Method_RT",
-    "method_conc_expected" = "Method_Exp Conc",
+    "method_conc_expected" = "Method_ExpConc",
     "method_precursor_mz" = "Method_Precursor Ion",
     "method_product_mz" = "Method_Product Ion",
     "method_collision_energy" = "Method_Collision Energy",
@@ -484,7 +487,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     ) |>
     dplyr::mutate(raw_data_filename = stringr::str_replace(.data$raw_data_filename, "\\.d", "")) |>
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish)) |>
-    dplyr::relocate("sample_name", .after = "raw_data_filename")
+    dplyr::relocate(any_of("sample_name"), .after = "raw_data_filename")
 
 
   datLong <- datLong |>
