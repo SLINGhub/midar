@@ -9,17 +9,25 @@ import_data_masshunter(
   path,
   import_metadata = TRUE,
   expand_qualifier_names = TRUE,
+  conc_column = "conc_final",
   silent = FALSE
 )
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{path}{One or more file paths, or a directory path (in which case all matching files will be imported)}
+\item{path}{One or more file paths, or a directory path (in which case all
+matching files will be imported)}
 
-\item{import_metadata}{Logical, whether to extract and add metadata from the analysis result file}
+\item{import_metadata}{Logical, whether to extract and add metadata from the
+analysis result file}
 
-\item{expand_qualifier_names}{Logical, whether to add the quantifier name in front of the qualifier name (the latter only has the m/z transition values)}
+\item{expand_qualifier_names}{Logical, whether to add the quantifier name in
+front of the qualifier name (the latter only has the m/z transition values)}
+
+\item{conc_column}{Which concentration field of the masshunter data to use, in
+case "Calc. Conc." and "Final. Conc." are present.  Default is "conc_final".
+Must be one of "conc_calc" or "conc_final" (default).}
 
 \item{silent}{Logical, whether to suppress most notifications}
 }
@@ -27,12 +35,20 @@ import_data_masshunter(
 MidarExperiment object with the imported data
 }
 \description{
-Imports .csv files exported from Agilent MassHunter Quantitative Analysis software, containing peak integration results.
-The input files must have anlyses (samples) in rows, features/compounds in columns, and either peak areas, peak heights, or response as the values.
-Additional columns, such as retention time (RT), full-width at half-maximum (FWHM), precursor m/z (PrecursorMZ), and collision energy (CE), will also be imported and made available in the \code{MidarExperiment} object for downstream analyses.
+Imports .csv files exported from Agilent MassHunter Quantitative
+Analysis software, containing peak integration results. The input files must
+have anlyses (samples) in rows, features/compounds in columns, and either
+peak areas, peak heights, or response as the values. Additional columns, such
+as retention time (RT), full-width at half-maximum (FWHM), precursor m/z
+(PrecursorMZ), and collision energy (CE), will also be imported and made
+available in the \code{MidarExperiment} object for downstream analyses.
 
-When a directory path is provided, all matching .csv files in that directory will be imported and merged into a single dataset. This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
-Each unique combination of feature and raw data file must only occur once across all source data files. Duplicate combinations will result in an error.
+When a directory path is provided, all matching .csv files in that directory
+will be imported and merged into a single dataset. This is useful when
+importing datasets that were pre-processed in blocks, resulting in multiple
+files. Each unique combination of feature and raw data file must only occur
+once across all source data files. Duplicate combinations will result in an
+error.
 }
 \examples{
 mexp <- MidarExperiment()

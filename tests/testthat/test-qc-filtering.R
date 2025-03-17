@@ -1,5 +1,5 @@
-library(testthat)
-library(dplyr)
+# library(testthat)
+# library(dplyr)
 
 mexp_orig <- lipidomics_dataset
 mexp <- exclude_analyses(mexp_orig, analyses = "Longit_batch6_51", clear_existing = TRUE )

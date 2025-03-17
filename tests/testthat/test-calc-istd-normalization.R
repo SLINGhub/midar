@@ -1,5 +1,5 @@
-library(testthat)
-library(dplyr)
+# library(testthat)
+# library(dplyr)
 mexp_orig <- lipidomics_dataset
 
 test_that("istd-based normalization is correct and overwites previous if present", {

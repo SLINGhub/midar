@@ -1,17 +1,30 @@
 
 #' @title Import Agilent MassHunter Quantitative Analysis CSV files
-#' @description
-#' Imports .csv files exported from Agilent MassHunter Quantitative Analysis software, containing peak integration results.
-#' The input files must have anlyses (samples) in rows, features/compounds in columns, and either peak areas, peak heights, or response as the values.
-#' Additional columns, such as retention time (RT), full-width at half-maximum (FWHM), precursor m/z (PrecursorMZ), and collision energy (CE), will also be imported and made available in the `MidarExperiment` object for downstream analyses.
+#' @description Imports .csv files exported from Agilent MassHunter Quantitative
+#' Analysis software, containing peak integration results. The input files must
+#' have anlyses (samples) in rows, features/compounds in columns, and either
+#' peak areas, peak heights, or response as the values. Additional columns, such
+#' as retention time (RT), full-width at half-maximum (FWHM), precursor m/z
+#' (PrecursorMZ), and collision energy (CE), will also be imported and made
+#' available in the `MidarExperiment` object for downstream analyses.
 #'
-#' When a directory path is provided, all matching .csv files in that directory will be imported and merged into a single dataset. This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
-#' Each unique combination of feature and raw data file must only occur once across all source data files. Duplicate combinations will result in an error.
+#' When a directory path is provided, all matching .csv files in that directory
+#' will be imported and merged into a single dataset. This is useful when
+#' importing datasets that were pre-processed in blocks, resulting in multiple
+#' files. Each unique combination of feature and raw data file must only occur
+#' once across all source data files. Duplicate combinations will result in an
+#' error.
 #'
 #' @param data MidarExperiment object
-#' @param path One or more file paths, or a directory path (in which case all matching files will be imported)
-#' @param import_metadata Logical, whether to extract and add metadata from the analysis result file
-#' @param expand_qualifier_names Logical, whether to add the quantifier name in front of the qualifier name (the latter only has the m/z transition values)
+#' @param path One or more file paths, or a directory path (in which case all
+#'   matching files will be imported)
+#' @param import_metadata Logical, whether to extract and add metadata from the
+#'   analysis result file
+#' @param expand_qualifier_names Logical, whether to add the quantifier name in
+#'   front of the qualifier name (the latter only has the m/z transition values)
+#' @param conc_column Which concentration field of the masshunter data to use, in
+#' case "Calc. Conc." and "Final. Conc." are present.  Default is "conc_final".
+#' Must be one of "conc_calc" or "conc_final" (default).
 #' @param silent Logical, whether to suppress most notifications
 #' @return MidarExperiment object with the imported data
 #' @examples
@@ -29,28 +42,39 @@
 #'
 #' @export
 
-import_data_masshunter <- function(data = NULL, path, import_metadata = TRUE, expand_qualifier_names = TRUE, silent = FALSE) {
+import_data_masshunter <- function(data = NULL,
+                                   path,
+                                   import_metadata = TRUE,
+                                   expand_qualifier_names = TRUE,
+                                   conc_column = "conc_final",
+                                   silent = FALSE) {
   check_data(data)
+  rlang::arg_match(conc_column, c("conc_calc", "conc_final"))
   #if (fs::path_ext(path) == "csv") {
-    data <- import_data_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent)
-    data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
-    if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "sample_type")
-    data
-  #} else {
-  #  cli::cli_abort(glue::glue("This function currently only supports MH exports in the '*.csv' format, '{file_format}' is not supported)"))
-  #}
+  data <- import_data_main(data, path, "parse_masshunter_csv", "*.csv", expand_qualifier_names = expand_qualifier_names, silent = silent, conc_column = conc_column)
+  data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_response", "feature_height")
+  if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "sample_type")
+  data
+
 }
 
 #' @title Import MRMkit peak integration results
 #' @description
-#' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak integration results.
-#' The input files must be in a long format with columns for the raw data file name, feature ID, peak intensity, and other arguments
-#' Additional information, such as retention time, FWHM, precursor/product m/z, and CE will also be imported and made available in the `MidarExperiment` object for downstream analyses.
+#' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak
+#' integration results. The input files must be in a long format with columns
+#' for the raw data file name, feature ID, peak intensity, and other arguments
+#' Additional information, such as retention time, FWHM, precursor/product m/z,
+#' and CE will also be imported and made available in the `MidarExperiment`
+#' object for downstream analyses. Concentrations will also be imported if present,
+#' whereby when both `Calc. Conc.` and `Final Conc.` are present in the files,
+#' the argument `conc_column` can be used to specify which concentration field as
+#' 'concentration' to use in downstream analyses.
 #'
-#' When a directory path is provided, all matching files in that directory will be imported and merged into a single dataset.
-#' This is useful when importing datasets that were pre-processed in blocks, resulting in multiple files.
-#' Each unique combination of feature and raw data file must only occur once across all source data files.
-#' Duplicate combinations will result in an error.
+#' When a directory path is provided, all matching files in that directory will
+#' be imported and merged into a single dataset. This is useful when importing
+#' datasets that were pre-processed in blocks, resulting in multiple files. Each
+#' unique combination of feature and raw data file must only occur once across
+#' all source data files. Duplicate combinations will result in an error.
 #'
 #' @param data MidarExperiment object
 #' @param path One or more file paths, or a directory path (in which case all matching files will be imported)
@@ -227,6 +251,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
     }
   }
 
+  data@feature_intensity_var = ""
   data@status_processing <- "Raw data imported"
 
   data
@@ -238,7 +263,13 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 #'
 #' @param path File path of MassHunter Quant CSV file
 #' @param silent Suppress messages
-#' @param expand_qualifier_names If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. `Qualifier (422.3 -> 113.0)` transition names of quantifier will be added to qualifier names
+#' @param expand_qualifier_names If TRUE, original qualifier names will be
+#'   renamed by adding the quantifier name in front and placing qualifier name
+#'   into square brackets(e.g. `Qualifier (422.3 -> 113.0)` transition names of
+#'   quantifier will be added to qualifier names
+#' @param conc_column Which concentration field of the masshunter data to use,
+#'   in case "Calc. Conc." and "Final. Conc." are present.  Default is
+#'   "conc_final".
 #' @return A tibble with the parse results in the long format
 #' @examples
 #' file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
@@ -250,7 +281,8 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 #' head(tbl)
 #' @export
 
-parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE) {
+parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = FALSE, conc_column = "conc_final") {
+
   # if(!silent) print(glue::glue("Reading [{basename(path)}] ..."))
   # if (shiny::isRunning())
   #   incProgress(1 / length(n_datafiles), detail = paste0(", basename(file)))
@@ -417,8 +449,8 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_height" = "Results_Height",
     "feature_area" = "Results_Area",
     "feature_accuracy" = "Results_Accuracy",
-    "feature_conc_calc" = "Results_Calc Conc",
-    "feature_conc" = "Results_Final Conc",
+    "feature_conc_calc" = "Results_CalcConc",
+    "feature_conc_final" = "Results_Final Conc",
     "feature_ionratio" = "Results_Ratio",
     "feature_fwhm" = "Results_FWHM",
     "feature_width" = "Results_Width",
@@ -437,7 +469,6 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "method_noise_raw_signal" = "Method_Noise of Raw Signal",
     "inj_volume" = "inj_volume"
   )
-
 
 
   new_int_colnames <- c("method_time_segment" = "Method_TS")
@@ -460,6 +491,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   datLong <- datLong |>
     dplyr::rename(dplyr::any_of(c(new_numeric_colnames, new_int_colnames, new_logical_colnames, new_factor_colnames, new_char_colnames)))
+
 
   # replace , with . for german systems
   datLong <- datLong |>
@@ -489,6 +521,24 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish)) |>
     dplyr::relocate(any_of("sample_name"), .after = "raw_data_filename")
 
+
+  if("feature_conc_calc" %in% names(datLong) || "feature_conc_final" %in% names(datLong)){
+    if("feature_conc_calc" %in% names(datLong) && "feature_conc_final" %in% names(datLong)){
+      if(conc_column == "conc_calc" && "feature_conc_calc" %in% names(datLong)){
+        datLong <- datLong |>
+          dplyr::mutate(feature_conc = .data$feature_conc_calc)
+      } else if(conc_column == "conc_final" & "feature_conc_final" %in% names(datLong)){
+        datLong <- datLong |>
+          dplyr::mutate(feature_conc = .data$feature_conc_final)
+      }
+    } else if("feature_conc_calc" %in% names(datLong)){
+      datLong <- datLong |>
+        dplyr::mutate(feature_conc = .data$feature_conc_calc)
+    } else if("feature_conc_final" %in% names(datLong)){
+      datLong <- datLong |>
+        dplyr::mutate(feature_conc = .data$feature_conc_final)
+    }
+  }
 
   datLong <- datLong |>
     mutate(

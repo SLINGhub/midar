@@ -1,7 +1,7 @@
-library(testthat)
-library(tibble)
-library(cli)
-library(pillar)
+# library(testthat)
+# library(tibble)
+# library(cli)
+# library(pillar)
 
 # Tests for `as_assertr_tibble`
 test_that("as_assertr_tibble correctly converts data.frame to assertr_tibble", {

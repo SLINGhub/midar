@@ -1,5 +1,5 @@
-library(testthat)
-library(dplyr)
+# library(testthat)
+# library(dplyr)
 
 mexp <- quant_lcms_dataset
 mexp_norm <- normalize_by_istd(mexp)

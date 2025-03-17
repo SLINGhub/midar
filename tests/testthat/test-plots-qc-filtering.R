@@ -1,8 +1,8 @@
-library(fs)
-library(vdiffr)
-library(ggplot2)
-library(testthat)
-library(scales)
+# library(fs)
+# library(vdiffr)
+# library(ggplot2)
+# library(testthat)
+# library(scales)
 
 mexp_orig <- lipidomics_dataset
 mexp <- normalize_by_istd(mexp_orig)

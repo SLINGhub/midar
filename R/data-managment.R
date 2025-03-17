@@ -638,8 +638,8 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
     data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int_"))
 
 
-
-  data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
+  if(data@feature_intensity_var != "")
+    data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
 
 
   data@is_isotope_corr <- FALSE

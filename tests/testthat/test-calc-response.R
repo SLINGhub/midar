@@ -1,5 +1,5 @@
-library(testthat)
-library(dplyr)
+# library(testthat)
+# library(dplyr)
 
 mexp_orig <- lipidomics_dataset
 mexp <- normalize_by_istd(mexp_orig)

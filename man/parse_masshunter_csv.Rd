@@ -4,14 +4,26 @@
 \alias{parse_masshunter_csv}
 \title{Reads and parses one Agilent MassHunter Quant CSV result file}
 \usage{
-parse_masshunter_csv(path, expand_qualifier_names = TRUE, silent = FALSE)
+parse_masshunter_csv(
+  path,
+  expand_qualifier_names = TRUE,
+  silent = FALSE,
+  conc_column = "conc_final"
+)
 }
 \arguments{
 \item{path}{File path of MassHunter Quant CSV file}
 
-\item{expand_qualifier_names}{If TRUE, original qualifier names will be renamed by adding the quantifier name in front and placing qualifier name into square brackets(e.g. \code{Qualifier (422.3 -> 113.0)} transition names of quantifier will be added to qualifier names}
+\item{expand_qualifier_names}{If TRUE, original qualifier names will be
+renamed by adding the quantifier name in front and placing qualifier name
+into square brackets(e.g. \code{Qualifier (422.3 -> 113.0)} transition names of
+quantifier will be added to qualifier names}
 
 \item{silent}{Suppress messages}
+
+\item{conc_column}{Which concentration field of the masshunter data to use,
+in case "Calc. Conc." and "Final. Conc." are present.  Default is
+"conc_final".}
 }
 \value{
 A tibble with the parse results in the long format
