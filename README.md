@@ -1,20 +1,12 @@
----
-title: "MiDAR: Quantitative Mass Spectrometry Data Processing and Quality Control "
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
-# MiDAR <img src="docs/logo.png" align="right" height="139"/>
+# MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
 
 <!-- badges: start -->
+
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![R-CMD-check](https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/slinghub/midar/branch/main/graph/badge.svg)](https://app.codecov.io/gh/slinghub/midar?branch=main)
+
 <!-- badges: end -->
-
-  
-
 
 
 `MiDAR` is an R package designed for the reproducible post-processing,
