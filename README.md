@@ -4,7 +4,7 @@
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![R-CMD-check](https://github.com/SLINGhub/midar/actions/workflows/build-check.yml/badge.svg)
-[![Codecov test coverage](https://codecov.io/gh/slinghub/midar/branch/main/graph/badge.svg)](https://app.codecov.io/gh/slinghub/midar?branch=main)
+[![Codecov test coverage](https://codecov.io/gh/slinghub/midar/branch/development/graph/badge.svg)](https://app.codecov.io/gh/slinghub/midar?branch=development)
 
 <!-- badges: end -->
 
