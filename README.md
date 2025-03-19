@@ -3,7 +3,7 @@
 <!-- badges: start -->
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
-[![R-CMD-check](https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/SLINGhub/midar/actions/workflows/build-check.yml/badge.svg)
 [![Codecov test coverage](https://codecov.io/gh/slinghub/midar/branch/main/graph/badge.svg)](https://app.codecov.io/gh/slinghub/midar?branch=main)
 
 <!-- badges: end -->
