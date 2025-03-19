@@ -32,8 +32,7 @@ file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 
 tbl <- parse_masshunter_csv(
   path = file_path,
-  expand_qualifier_names = TRUE,
-  ignore_warnings = TRUE)
+  expand_qualifier_names = TRUE)
 
 head(tbl)
 }

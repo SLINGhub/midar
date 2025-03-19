@@ -15,16 +15,16 @@ navbar:
       text: Tutorials/Recipes
       menu:
       - text: Tutorials
-      - text: Preparing and import data and metadata
+      - text: Preparing and importing data
         href: articles/T01_prepdata.html
       - text: Setting Up a Basic MiDAR Workflow
         href: articles/T02_settingup_workflow.html
+      - text: Targeted lipidomics with QC
+        href: articles/T01_targetlipidomics_workflow.html
       - text: '-------'
       - text: Recipes
-      - text: Targeted lipidomics postprocessing and QC
-        href: articles/T01_targetlipidomics_workflow.html
-      - text: Quantitative Assay with external calibration
-        href: articles/T01_targetlipidomics_workflow.html
+      - text: Quantitative assay with ext. calibration and QC
+        href: articles/R01_quantms.html
     articles:
       text: Manual
       menu:

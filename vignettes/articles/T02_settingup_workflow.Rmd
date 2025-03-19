@@ -58,7 +58,7 @@ myexp <- MidarExperiment()
 
 # Importing analysis results
 
-As introduced in [Preparing and Import Data and Metadata](articles/T01_prepdata.html)  
+As introduced in [Preparing and importing data](articles/T01_prepdata.html)  
 we first import the analytical data, in this case from [MRMkit](https://github.com/MRMkit/MRMkit) file.
 This file also contains some metadata, such as `qc_type` and `batch_id` (see [Data Identifiers in MiDAR](articles/02_keydataids.html)) 
 which we will import as well.
@@ -74,7 +74,7 @@ myexp <- import_data_mrmkit(data = myexp,
 The subsequent processing steps require additional infomation that is not available
 from the imported analysis data. This includes information such as which internal standards are used to normalize, their concentrations and the sample amounts analysed.
 These metadata can be imported from separate files or R data frames as 
-described in [Preparing and Import Data and Metadata](articles/T01_prepdata.html).
+described in [Preparing and importing data](articles/T01_prepdata.html).
 To keep the code concience in this example, we will import metadata from an MSOrganizer
 template. The validation checks result in some warnings, which will by default result in a failed metadata import.
 However, assuming we understand what we are doing, 
@@ -128,6 +128,8 @@ features across the analytical series in different QC sample types.
 The plot can also be saved to a PDF file. 
 
 ```{r}
+#| fig.alt: >
+#|   RunScatter plot with 2x3 panels
   plot_runscatter(
     data = myexp,
     variable = "conc",

@@ -98,6 +98,8 @@ date, duration, and run time of the analysis.
 </details>
 
 ```{r runsequence}
+#| fig.alt: >
+#|   RunSequence plot
 plot_runsequence(
   myexp, 
   qc_types = NA, 
@@ -127,6 +129,8 @@ intensities in all samples and sample types.
 
 ```{r runscatter}
 #| message: true
+#| fig.alt: >
+#|   RunScatter plot
 plot_runscatter(
   data = myexp,
   variable = "intensity",
@@ -199,6 +203,8 @@ instrument sensitivity changes.
 </details>
 
 ```{r rla-plot}
+#| fig.alt: >
+#|   RLA plot
 midar::plot_rla_boxplot(
   data = myexp,
   rla_type_batch = c("within"),
@@ -232,6 +238,8 @@ technical outliers, and differences between the sample types.
 </details>
 
 ```{r pca-before}
+#| fig.alt: >
+#|   PCA plot
 plot_pca(
   data = myexp, 
   variable = "feature_intensity", 
@@ -260,6 +268,8 @@ decided to remove it from all downstream processing via the function
 </details>
 
 ```{r outlier-removal}
+#| fig.alt: >
+#|   PCA plot
  # Exclude the sample from the processing
 myexp <- exclude_analyses(myexp, analyses = c("Longit_batch6_51"), clear_existing  = TRUE)
 
@@ -302,6 +312,8 @@ injection volume series at the start and end of this analysis as a QC.
 </details>
 
 ```{r responsecurves}
+#| fig.alt: >
+#|   Response curve plots
 # Exclude very low abundant features
 myexp <- midar::filter_features_qc(myexp, 
                                    include_qualifier = FALSE,
@@ -394,6 +406,8 @@ variability of QC and samples before and after normalization.
 </details>
 
 ```{r norm-effects}
+#| fig.alt: >
+#|   Normalization QC plot
 myexp <- midar::filter_features_qc(myexp, 
                                    include_qualifier = FALSE,
                                    include_istd = TRUE,
@@ -441,6 +455,7 @@ using the same plot on several occasions, we create a simple function
 that wraps the plot with many parameters preset.
 
 ```{r trendplot-fun}
+
 # Define a wrapper function
 
 my_trend_plot <- function(variable, feature){
@@ -477,6 +492,8 @@ my_trend_plot <- function(variable, feature){
 </details>
 
 ```{r plot-trends}
+#| fig.alt: >
+#|   RunScatter plots with trends before after corrections  
 my_trend_plot("conc_before", "PC 40:8")
 my_trend_plot("conc", "PC 40:8")
 ```
@@ -536,6 +553,8 @@ all available options for `plot_runscatter()`.
 
 ```{r saving-runscatter}
 #| eval: false
+#| fig.alt: >
+#|   Runscatter plot
 plot_runscatter(
   data = myexp,
   variable = "conc",
@@ -617,6 +636,8 @@ and `LOD`).
 </details>
 
 ```{r qc-summary-1}
+#| fig.alt: >
+#|   Feature QC filter plot by class
 midar::plot_qc_summary_byclass(myexp)
 ```
 
@@ -638,6 +659,8 @@ particular filtering criterion.
 </details>
 
 ```{r qc-summary-2}
+#| fig.alt: >
+#|   Feature QC filter plot overall
 midar::plot_qc_summary_overall(myexp)
 ```
 

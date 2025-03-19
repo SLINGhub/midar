@@ -1,4 +1,4 @@
-# MiDAR <img src="man/figures/logo.png" align="right" height="139"/>
+# MiDAR <a href="https://slinghub.github.io/midar/"><img src="man/figures/logo.svg" align="right" height="139" alt="midar website" /></a>
 
 <!-- badges: start -->
 

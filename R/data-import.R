@@ -272,8 +272,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 #'
 #' tbl <- parse_masshunter_csv(
 #'   path = file_path,
-#'   expand_qualifier_names = TRUE,
-#'   ignore_warnings = TRUE)
+#'   expand_qualifier_names = TRUE)
 #'
 #' head(tbl)
 #' @export

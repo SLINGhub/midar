@@ -88,6 +88,8 @@
 #'   `"PORTRAIT"`. Default is `"LANDSCAPE
 #' @param show_progress Logical. If `TRUE`, displays a progress bar during
 #'   plot creation.
+#'
+#' @export
 plot_calibrationcurves <- function(data = NULL,
                                    variable = "norm_intensity",
                                    qc_types = NA,

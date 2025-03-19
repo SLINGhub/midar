@@ -55,6 +55,8 @@ myexp <- correct_batch_centering(
 Now let's plot the data before and after batch correction.
 
 ```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
 #| results: false 
 plot_runscatter(myexp, variable = "conc_before", rows_page = 1, cols_page = 1)
 plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
@@ -63,6 +65,8 @@ plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
 Next, we correct the batch effects again, this time with scaling of variance. 
 
 ```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
 #| results: false 
 # Correct batch effects - WITH scaling of variance
 myexp <- midar::correct_batch_centering(
@@ -81,6 +85,8 @@ Finally, we can export the corrected data using the `save_dataset_csv()` functio
 ## Drift Correction and Batch-Centering
 
 ```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
 #| results: false  
 
 # Created a data object

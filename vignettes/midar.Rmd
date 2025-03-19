@@ -65,6 +65,8 @@ pak::pkg_install("SLINGhub/midar")
 ## Example Workflow
 
 ```{r}
+#| fig.alt: >
+#|   RunScatter plot
 # Path of example files included with this package
 dir_path <- system.file("extdata",  package = "midar")
 
