@@ -2,7 +2,6 @@
 title: "Getting Started"
 author: "Bo Burla"
 date: "`r Sys.Date()`"
-
 output: 
   rmarkdown::html_vignette:
     toc: true
@@ -11,8 +10,11 @@ output:
     fig_height: 4
 vignette: >
   %\VignetteIndexEntry{Getting Started}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r pkgs, include=FALSE}
@@ -24,49 +26,94 @@ knitr::opts_chunk$set(
 )
 ```
 
-`MiDAR` is an R package designed to assist with the reproducible post-processing, assessment, quality control, and reporting of small-molecule mass spectrometry (MS) datasets, such as those from targeted lipidomics and metabolomics experiments.
 
-This package is aimed at experimental lab scientists and analysts, enabling them to process their data with only basic coding or R skills required.
+`MiDAR` is an R package designed for the reproducible post-processing,
+quality control, and reporting of quantitative small-molecule mass
+spectrometry (MS) data. Its modular functionalities and defined data
+structure, support diverse analytical designs, data formats, and
+processing tasks, including metabolomics and lipidomics. `MiDAR` is
+intended for both analytical and bioinformatics scientists and to
+facilitate collaboration between them. It enables the creation of
+customizable, supervisable, and documented data processing workflows
+through intuitive high-level R functions and data objects.
 
-MiDAR can handle different analytical designs and data types, offering functions to import data from various software platforms. It includes options for normalization, quantification, and drift/batch corrections, as well as quality control metrics, feature filtering, and visualizations. Functions to produce reports and data exports are also available, allowing users to share full datasets along with processing information.
+`MiDAR`'s core tools, accessible also to those with limited R
+experience, allow analysts to annotate, inspect, and process data. This
+includes importing data and metadata from various file formats, managing
+and organizing data with integrity checks, performing processing tasks
+such as quantification, drift/batch correction, and applying QC-based
+feature filtering. Users can assess data quality using QC metrics and
+diagnostic plots, and share both raw and processed data along with the
+entire processing workflow for further analyses and documentation.
 
-With MiDAR, both analytical and bioinformatics scientists can manage their mass spectrometry data more easily and independently, facilitating collaboration on datasets.
+`MiDAR` also serves as a software library for building robust and
+scalable data processing pipelines.
+
+## Getting Started
+
+Visit the [MiDAR Documentation page
+(https://slinghub.github.io/midar)](https://slinghub.github.io/midar/)
+for a detailed introduction and comprehensive documentation on this
+package.
+
+## Installation
+```{r, eval=FALSE}
+if (!require("pak")) install.packages("pak")
+pak::pkg_install("SLINGhub/midar")
+```
 
 ## Example Workflow
 
-Below is example of a simple data processing workflow, starting with the peak integration results from `MRMkit` ([https://github.com/MRMkit](https://github.com/MRMkit/MRMkit))
-
 ```{r}
+# Path of example files included with this package
+dir_path <- system.file("extdata",  package = "midar")
 
-
-# Get paths of example files included with this package
-file_path <- system.file("extdata", "MRMkit_demo.tsv", package = "midar")
-
-# Create a MidarExperiment object (S4)
+# Create a MidarExperiment object
 mexp <- MidarExperiment()
 
 # Load data and metadata
-mexp <- midar::import_data_mrmkit(data = mexp, 
-                                  path = file_path, 
-                                  import_metadata = FALSE)
+mexp <- import_data_mrmkit(mexp,
+                           path = file.path(dir_path, "MRMkit_demo.tsv"),
+                           import_metadata = TRUE)
 
-# # Normalize and quantitate each feature by internal standards
-# mexp <- normalize_by_istd(mexp)
-# 
-# # Get QC metrics for each feature
-# mexp <- calc_qc_metrics(mexp)
-# 
-# # Filter features according to QC criteria
-# mexp <- filter_features_qc(
-#   data = mexp, 
-#   missing.normintensity.spl.prop.max = 0.2,
-#   max.cv.conc.bqc = 30,
-#   min.min.min.min.signalblank.median.spl.pblk = 3,
-#   include_qualifier = TRUE, 
-#   include_istd = FALSE
-#)
+mexp <- import_metadata_analyses(mexp, 
+                                 path = file.path(dir_path, "MRMkit_AnalysesAnnot.csv"), 
+                                 ignore_warnings = T)
+mexp <- import_metadata_istds(mexp, 
+                              path = file.path(dir_path, "MRMkit_ISTDconc.csv"))
+
+# Normalize and quantitate features by internal standards
+mexp <- normalize_by_istd(mexp)
+mexp <- quantify_by_istd(mexp)
+
+# Drift and batch-effect correction
+mexp <- correct_drift_cubicspline(mexp, variable = "conc", ref_qc_types = "BQC")
+mexp <- correct_batch_centering(mexp, variable = "conc", ref_qc_types = "BQC")
+
+# Plot analysis time-trends of final concentrations of each feature 
+plot_runscatter(mexp,
+                variable = "conc",
+                qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
+                cap_outliers = TRUE,
+                output_pdf = FALSE,
+                path = "./output/runscatter_istd.pdf")
+
+# Set features QC-filter criteria   
+ mexp <- filter_features_qc(mexp,
+                            max.cv.conc.bqc = 25,
+                            min.signalblank.median.spl.pblk = 3,
+                            include_qualifier = FALSE,
+                            include_istd = FALSE)
+ 
+# Save concentration data
+ save_dataset_csv( mexp, 
+                   path = "mydata.csv", 
+                   variable = "conc", 
+                   filter_data = TRUE)
 ```
-
 ## Contributor Code of Conduct
 
-Please note that the midar project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+Please note that the midar project is released with a [Contributor Code
+of
+Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html).
+By contributing to this project, you agree to abide by its terms.

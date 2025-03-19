@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,12 +38,17 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/i00_get_started.html">Getting Started</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/00_get_started.html">Get started</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
-<li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Targeted Lipidomics processing</a></li>
-    <li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Quantitative LC-MS</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
+<li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
+    <li><a class="dropdown-item" href="articles/T01_prepdata.html">Preparing and import data and metadata</a></li>
+    <li><a class="dropdown-item" href="articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
+    <li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Targeted lipidomics postprocessing and QC</a></li>
+    <li><a class="dropdown-item" href="articles/T01_targetlipidomics_workflow.html">Quantitative Assay with external calibration</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -62,7 +67,7 @@
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/updates.html">News</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -83,45 +88,80 @@
 </div>
 <!-- badges: start -->
 
-<!-- badges: end -->
-<p>MiDAR is an R package for reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data.It offers a complete workflow, allowing users to import data, apply normalization and quantification methods, perform isotope correction, and address drift and batch effects.Additionally, MiDAR supports feature filtering, sharing curated datasets in various formats, and generating quality control plots and metrics to evaluate analytical data quality and the effects of post-processing steps.</p>
-<p>The intended users of MiDAR are analytical and bioinformatics scientists. Its core tools are accessible to users with a basic understanding of R or coding, while also allowing for more advanced customisations and access to all data.The package supports analysts in annotating, inspecting, and processing their data independently, and facilitates the sharing of detailed annotated datasets and processing information for collaboration with colleagues, including bioinformaticians, for further analyses.</p>
-<p>MiDAR emphasises fully documented, reproducible data processing workflows and also serves as a software library for creating automated data processing pipelines. ## Installation</p>
-<p>In the console run:</p>
+<p><code>MiDAR</code> is an R package designed for the reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data. Its modular functionalities and defined data structure, support diverse analytical designs, data formats, and processing tasks, including metabolomics and lipidomics. <code>MiDAR</code> is intended for both analytical and bioinformatics scientists and to facilitate collaboration between them. It enables the creation of customizable, supervisable, and documented data processing workflows through intuitive high-level R functions and data objects.</p>
+<p><code>MiDAR</code>’s core tools, accessible also to those with limited R experience, allow analysts to annotate, inspect, and process data. This includes importing data and metadata from various file formats, managing and organizing data with integrity checks, performing processing tasks such as quantification, drift/batch correction, and applying QC-based feature filtering. Users can assess data quality using QC metrics and diagnostic plots, and share both raw and processed data along with the entire processing workflow for further analyses and documentation.</p>
+<p><code>MiDAR</code> also serves as a validated software framework for building robust and scalable data processing pipelines.</p>
+<div class="section level2">
+<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h2>
+<p>Please visit the <a href="https://slinghub.github.io/midar/">Getting Started</a> article for an overview of available tutorials and documentation on <code>MiDAR</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://pak.r-lib.org/" class="external-link">"pak"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"SLINGhub/midar"</span><span class="op">)</span></span></code></pre></div>
+</div>
 <div class="section level2">
-<h2 id="example-workflow">Example workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
+<h2 id="example-workflow">Example Workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SLINGhub/midar" class="external-link">midar</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Path of example files included with this package</span></span>
+<span><span class="va">dir_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>,  package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create a MidarExperiment object</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load data and available metadata</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"data.tsv"</span><span class="op">)</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_metadata_msorganizer.html">import_metadata_msorganizer</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"metadata.csv"</span><span class="op">)</span></span>
+<span><span class="co"># Load data and metadata</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                           path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_demo.tsv"</span><span class="op">)</span>,</span>
+<span>                           import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_metadata_analyses.html">import_metadata_analyses</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
+<span>                                 path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_AnalysesAnnot.csv"</span><span class="op">)</span>, </span>
+<span>                                 ignore_warnings <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/import_metadata_istds.html">import_metadata_istds</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
+<span>                              path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_ISTDconc.csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Normalize and quantitate each feature by internal standards</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
+<span><span class="co"># Normalize and quantitate features by internal standards</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Filter features according to QC criteria</span></span>
-<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">mexp</span>, </span>
-<span>  max.cv.conc.bqc <span class="op">=</span> <span class="fl">30</span>,</span>
-<span>  min.min.min.min.signalblank.median.spl.pblk <span class="op">=</span> <span class="fl">3</span>,</span>
-<span><span class="op">)</span></span>
+<span><span class="co"># Drift and batch-effect correction</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/correct_drift_cubicspline.html">correct_drift_cubicspline</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Export concentration data</span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span></span>
-<span>  <span class="va">myexp</span>, </span>
-<span>  path <span class="op">=</span> <span class="st">"mydata.csv"</span>, </span>
-<span>  variable <span class="op">=</span> <span class="st">"norm_intensity"</span>, </span>
-<span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Plot analysis time-trends of final concentrations of each feature </span></span>
+<span><span class="fu"><a href="reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
+<span>                qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"TQC"</span>, <span class="st">"SPL"</span>, <span class="st">"PBLK"</span>, <span class="st">"SBLK"</span><span class="op">)</span>,</span>
+<span>                cap_outliers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                output_pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                path <span class="op">=</span> <span class="st">"./output/runscatter_istd.pdf"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set features QC-filter criteria   </span></span>
+<span> <span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                            max.cv.conc.bqc <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>                            min.signalblank.median.spl.pblk <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>                            include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                            include_istd <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span> </span>
+<span><span class="co"># Save concentration data</span></span>
+<span> <span class="fu"><a href="reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span> <span class="va">mexp</span>, </span>
+<span>                   path <span class="op">=</span> <span class="st">"mydata.csv"</span>, </span>
+<span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
+<span>                   filter_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>The <a href="https://slinghub.github.io/midar/">MiDAR Documentation</a> is available from <a href="https://slinghub.github.io/midar/">(https://slinghub.github.io/midar)</a></p>
+</div>
+<div class="section level2">
+<h2 id="contributor-code-of-conduct">Contributor Code of Conduct<a class="anchor" aria-label="anchor" href="#contributor-code-of-conduct"></a>
+</h2>
+<p>Please note that the midar project is released with a <a href="https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html" class="external-link">Contributor Code of Conduct</a>. By contributing to this project, you agree to abide by its terms.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -164,8 +204,9 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
-<li><a href="https://app.codecov.io/gh/SLINGhub/midar?branch=master" class="external-link"><img src="https://codecov.io/gh/SLINGhub/midar/branch/master/graph/badge.svg" alt="Codecov test coverage"></a></li>
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
+<li><a href="https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/SLINGhub/midar/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://app.codecov.io/gh/slinghub/midar?branch=main" class="external-link"><img src="https://codecov.io/gh/slinghub/midar/branch/main/graph/badge.svg" alt="Codecov test coverage"></a></li>
 </ul>
 </div>
 

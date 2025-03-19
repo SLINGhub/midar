@@ -7,7 +7,7 @@
 correct_drift_gaussiankernel(
   data = NULL,
   variable,
-  reference_qc_types,
+  ref_qc_types,
   batch_wise = TRUE,
   ignore_istd = TRUE,
   replace_previous = TRUE,
@@ -31,7 +31,7 @@ correct_drift_gaussiankernel(
 \item{variable}{The target variable for drift correction; options include
 "intensity", "norm_intensity", or "conc".}
 
-\item{reference_qc_types}{QC types used for drift correction, typically
+\item{ref_qc_types}{QC types used for drift correction, typically
 including study samples (\code{SPL}).}
 
 \item{batch_wise}{Logical. Apply the correction to each batch separately

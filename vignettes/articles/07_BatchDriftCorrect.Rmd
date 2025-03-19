@@ -47,7 +47,7 @@ myexp <- import_data_csv(
 myexp <- correct_batch_centering(
   data = myexp, 
   variable = "conc",
-  reference_qc_types = "SPL", 
+  ref_qc_types = "SPL", 
   correct_scale = FALSE)
 
 ```
@@ -67,7 +67,7 @@ Next, we correct the batch effects again, this time with scaling of variance.
 # Correct batch effects - WITH scaling of variance
 myexp <- midar::correct_batch_centering(
   myexp, 
-  reference_qc_types = "SPL", 
+  ref_qc_types = "SPL", 
   variable = "conc",
   correct_scale = TRUE)
 
@@ -95,7 +95,7 @@ myexp <- import_data_csv(data = myexp,
 # Within-batch drift correction (smoothing) based on study samples
 myexp <- midar::correct_drift_gaussiankernel(myexp,
                                         variable = "conc",
-                                        reference_qc_types = "SPL", 
+                                        ref_qc_types = "SPL", 
                                         batch_wise = TRUE, 
                                         kernel_size = 10, 
                                         recalc_trend_after = TRUE,show_progress = T)
@@ -109,7 +109,7 @@ plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1,
 # Correct between-batch effects (median centering)
 myexp <- midar::correct_batch_centering(myexp, 
                                         variable = "conc",
-                                        reference_qc_types = "SPL", 
+                                        ref_qc_types = "SPL", 
                                         correct_scale = TRUE)
 #Plot again the fully corrected data
 plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1, 

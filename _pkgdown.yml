@@ -9,15 +9,22 @@ navbar:
   components:
     home: ~
     intro:
-      text: Getting Started
-      href: articles/i00_get_started.html
+      text: Get started
+      href: articles/00_get_started.html
     tutorials:
-      text: Workflows/Recipes
+      text: Tutorials/Recipes
       menu:
-       - text: Targeted Lipidomics processing
-         href: articles/T01_targetlipidomics_workflow.html
-       - text: Quantitative LC-MS
-         href: articles/T01_targetlipidomics_workflow.html
+      - text: Tutorials
+      - text: Preparing and import data and metadata
+        href: articles/T01_prepdata.html
+      - text: Setting Up a Basic MiDAR Workflow
+        href: articles/T02_settingup_workflow.html
+      - text: '-------'
+      - text: Recipes
+      - text: Targeted lipidomics postprocessing and QC
+        href: articles/T01_targetlipidomics_workflow.html
+      - text: Quantitative Assay with external calibration
+        href: articles/T01_targetlipidomics_workflow.html
     articles:
       text: Manual
       menu:
@@ -39,7 +46,7 @@ navbar:
         href: articles/07_BatchDriftCorrect.html
     news:
       text: News
-      href: articles/updates.html
+      href: news/index.html
 
 reference:
 - title: MidarExperiment

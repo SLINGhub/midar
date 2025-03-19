@@ -487,7 +487,7 @@ test_that("plot_runscatter show trend works", {
     variable = "intensity",
     recalc_trend_after = TRUE,
 
-    reference_qc_types = "SPL",
+    ref_qc_types = "SPL",
     ignore_istd = FALSE)
 
   p <- plot_runscatter(
@@ -625,7 +625,7 @@ test_that("plot_runscatter show trend works", {
     variable = "intensity",
     recalc_trend_after = TRUE,
 
-    reference_qc_types = "SPL",
+    ref_qc_types = "SPL",
     ignore_istd = FALSE)
 
   mexp_drift2 <- correct_batch_centering(

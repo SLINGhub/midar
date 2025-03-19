@@ -63,7 +63,7 @@ The drift correction function needs to be provided by the user. See <code>smooth
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">smooth_fun</span>,</span>
 <span>  <span class="va">variable</span>,</span>
-<span>  <span class="va">reference_qc_types</span>,</span>
+<span>  <span class="va">ref_qc_types</span>,</span>
 <span>  <span class="va">batch_wise</span>,</span>
 <span>  replace_previous <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  log_transform_internal <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -87,7 +87,7 @@ The drift correction function needs to be provided by the user. See <code>smooth
 
 
 <dt id="arg-smooth-fun">smooth_fun<a class="anchor" aria-label="anchor" href="#arg-smooth-fun"></a></dt>
-<dd><p>Function that performs drift correction. Function need to have following parameter <code>data</code> (<code>MidarExperiment</code>), <code>reference_qc_types</code> (one or more strings), and <code>span_width</code> (numerical).
+<dd><p>Function that performs drift correction. Function need to have following parameter <code>data</code> (<code>MidarExperiment</code>), <code>ref_qc_types</code> (one or more strings), and <code>span_width</code> (numerical).
 Function needs to return a numerical vector with the length of number of rows in <code>data</code>. In case functions fails a vector with NA_real_ needs be returned</p></dd>
 
 
@@ -95,7 +95,7 @@ Function needs to return a numerical vector with the length of number of rows in
 <dd><p>The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"</p></dd>
 
 
-<dt id="arg-reference-qc-types">reference_qc_types<a class="anchor" aria-label="anchor" href="#arg-reference-qc-types"></a></dt>
+<dt id="arg-reference-qc-types">ref_qc_types<a class="anchor" aria-label="anchor" href="#arg-reference-qc-types"></a></dt>
 <dd><p>QC types used for drift correction</p></dd>
 
 

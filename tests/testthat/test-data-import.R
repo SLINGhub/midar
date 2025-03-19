@@ -668,11 +668,11 @@ test_that("Imports plain csv file with metadata parsing the numbers to 'analysis
   expect_equal(mexp2@dataset[[13,"batch_id"]], "2") # must be text
 
   expect_message(
-    mexp <-correct_drift_gaussiankernel(mexp, variable = "intensity", reference_qc_types = "SPL"),
+    mexp <-correct_drift_gaussiankernel(mexp, variable = "intensity", ref_qc_types = "SPL"),
     "-0.88% to -0.10%)", fixed = TRUE)
 
   expect_message(
-    mexp <-correct_batch_centering(mexp, variable = "intensity", reference_qc_types = "SPL"),
+    mexp <-correct_batch_centering(mexp, variable = "intensity", ref_qc_types = "SPL"),
     "-7.30% to 0.10%)", fixed = TRUE)
 
   p <- plot_runscatter(mexp, variable = "intensity", return_plot = TRUE)

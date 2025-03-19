@@ -1,0 +1,168 @@
+---
+title: "A basic MiDAR workflow"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{A basic MiDAR workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = TRUE, message = TRUE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+This tutorial outlines some key steps in a MiDAR workflow, based on a lipidomics dataset.
+See the tutorial [Lipidomics Data Processing](articles/T01_targetlipidomics_workflow.html) for a more detailed example.
+
+Keep in mind that these examples below are simplified and may not be applicable to your data and experimental setup.
+Please consult other tutorials and recipes for information on other workflows and data types.
+
+# Setting up a RStudio project
+
+To start a new MiDAR data analysis, creating a RStudio project is recommended. 
+(See [Using RStudio Projects](https://support.posit.co/hc/en-us/articles/200526207-Using-RStudio-Projects)).
+This will help to keep the data analysis organized and makes it easier to share with others. 
+The project should contain the following subfolders: `data` and `output`. Add data and metadata files to the `data` folder.
+
+Notebooks such as R/Notebook (.rmd) or [Quarto Notebook](https://docs.posit.co/ide/user/ide/guide/documents/quarto-project.html) (.qmd) are 
+good choices to create documented data processing workflows. These formats allow 
+combining code with formatted text to document the data processing steps.
+
+Start with a new notebook or R script and load the `midar` package
+
+```{r}
+library(midar)
+```
+
+# Creating a MidarExperiment object
+The `MidarExperiment` object is the main **data container** used in the MiDAR workflow. 
+See (The `MidarExperiment` data object)[articles/03_midarexperiment.html] for more information.
+
+We start by creating a new `MidarExperiment` object (`myexp`), which will be used 
+in all subsequent steps.
+
+```{r}
+myexp <- MidarExperiment()
+```
+
+
+# Importing analysis results
+
+As introduced in [Preparing and Import Data and Metadata](articles/T01_prepdata.html)  
+we first import the analytical data, in this case from [MRMkit](https://github.com/MRMkit/MRMkit) file.
+This file also contains some metadata, such as `qc_type` and `batch_id` (see [Data Identifiers in MiDAR](articles/02_keydataids.html)) 
+which we will import as well.
+
+```{r load-rawdata}
+myexp <- import_data_mrmkit(data = myexp, 
+                            path = "datasets/sPerfect_MRMkit.tsv", 
+                            import_metadata = TRUE)
+```
+
+# Adding metadata
+
+The subsequent processing steps require additional infomation that is not available
+from the imported analysis data. This includes information such as which internal standards are used to normalize, their concentrations and the sample amounts analysed.
+These metadata can be imported from separate files or R data frames as 
+described in [Preparing and Import Data and Metadata](articles/T01_prepdata.html).
+To keep the code concience in this example, we will import metadata from an MSOrganizer
+template. The validation checks result in some warnings, which will by default result in a failed metadata import.
+However, assuming we understand what we are doing, 
+we decided to ignore these warnings by setting `ignore_warnings = TRUE`. They will still be shown
+in the table printed in the console, labelled with an asterix (*) in the `status` column.
+
+```{r import-metadata}
+myexp <- import_metadata_msorganizer(
+  myexp, 
+  path = "datasets/sPerfect_Metadata.xlsm", 
+  ignore_warnings = TRUE
+)
+
+```
+
+# Applying Data Processing
+Now we are ready to proceed with data processing. In this example we will 
+employ some basic data processing steps, whereby the corresponding code should be 
+self explanatory. At the end of this code block we also set criteria based on which 
+features are filtered on demand later in the workflow.
+
+```{r processinh}
+myexp <- normalize_by_istd(myexp)
+myexp <- quantify_by_istd(myexp)
+
+myexp <- correct_drift_gaussiankernel(
+  data = myexp,
+  variable = "conc",
+  ref_qc_types = c("SPL"))
+
+myexp <- midar::correct_batch_centering(
+  myexp, 
+  variable = "conc",
+  ref_qc_types = "SPL")
+
+myexp <- filter_features_qc(
+  data = myexp,
+  include_qualifier = FALSE,
+  include_istd = FALSE, 
+  min.signalblank.median.spl.sblk = 10,
+  max.cv.conc.bqc = 25)
+```
+
+# Plotting data
+MiDAR provides various plot function that can be useful in understanding analytical 
+performance, trends and isses in the data. Plots are also available to inspect the 
+effect of data processing (e.g. drift/bath-effect correction) and QC-based feature filtering.
+
+Below we create a `runscatter` plot to visualize the concentration of specific
+features across the analytical series in different QC sample types. 
+The plot can also be saved to a PDF file. 
+
+```{r}
+  plot_runscatter(
+    data = myexp,
+    variable = "conc",
+    include_feature_filter = "PC 4",
+    include_istd = FALSE,
+    cap_outliers = TRUE,
+    log_scale = FALSE,
+    output_pdf = FALSE,
+    path = "./output/runscatter_PC408_beforecorr.pdf",
+    cols_page = 3, rows_page = 2,
+  )
+```
+
+
+# Exporting and sharing data
+Finally, we can export specific datasets as plain csv tables, create a detailed data report, 
+and share the entire `MidarExperiment` object with someone else without any code, 
+who can run own data processing, plots and QC checks.
+
+```{r save-report}
+# Saves a detailed report in Excel format with multiple sheets
+midar::save_report_xlsx(myexp, path = "./output/myexp-midar_report.xlsx")
+
+# Saves flat csv table with concentration values that passed the previously set
+# QC criteria, for each feature in each sample. 
+midar::save_dataset_csv(
+  data = myexp, 
+  path = "./output/sperfect_filt_uM.csv",
+  variable = "conc", 
+  qc_types = "SPL", 
+  include_qualifier = FALSE,
+  filter_data = TRUE)
+
+# Saves the entire MidarExperiment object as an RDS file, which can be
+# opened in R without MiDAR or used with MiDAR again.
+saveRDS(myexp, file = "./output/myexp-midar.rds", compress = TRUE)
+```
+

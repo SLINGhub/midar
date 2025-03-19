@@ -4,12 +4,12 @@
 \alias{fun_gam_smooth}
 \title{Generalized Additive Model (GAM) smoothing helper function}
 \usage{
-fun_gam_smooth(tbl, reference_qc_types, log_transform_internal = TRUE, ...)
+fun_gam_smooth(tbl, ref_qc_types, log_transform_internal = TRUE, ...)
 }
 \arguments{
 \item{tbl}{Table (\code{tibble} or \code{data.frame}) containing the fields \code{qc_type}, \code{x} (run order number), and \code{y} (variable)}
 
-\item{reference_qc_types}{QC types used for the smoothing (fit) by GAM}
+\item{ref_qc_types}{QC types used for the smoothing (fit) by GAM}
 
 \item{log_transform_internal}{Apply log transformation internally for smoothing if \code{TRUE} (default). This does not affect the final data, which remains untransformed.}
 

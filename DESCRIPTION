@@ -11,7 +11,7 @@ License: MIT + file LICENSE
 URL: https://github.com/SLINGhub/midar, https://slinghub.github.io/midar/
 BugReports: https://github.com/SLINGhub/midar/issues
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.2.0)
 Imports: 
     assertr,
     methods,

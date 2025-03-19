@@ -513,7 +513,7 @@ setting <code>scale_smooth = TRUE</code>.</p>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  ignore_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
-<span>  reference_qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span><span class="op">)</span>,</span>
+<span>  ref_qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span><span class="op">)</span>,</span>
 <span>  batch_wise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  replace_previous <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  recalc_trend_after <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -597,7 +597,7 @@ to center the batches. What do you observe?</p>
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
-<span>  reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>,</span>
+<span>  ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>,</span>
 <span>  replace_previous <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  correct_location <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">TRUE</span>, </span>

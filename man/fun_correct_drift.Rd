@@ -8,7 +8,7 @@ fun_correct_drift(
   data = NULL,
   smooth_fun,
   variable,
-  reference_qc_types,
+  ref_qc_types,
   batch_wise,
   replace_previous = TRUE,
   log_transform_internal = TRUE,
@@ -25,12 +25,12 @@ fun_correct_drift(
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{reference_qc_types} (one or more strings), and \code{span_width} (numerical).
+\item{smooth_fun}{Function that performs drift correction. Function need to have following parameter \code{data} (\code{MidarExperiment}), \code{ref_qc_types} (one or more strings), and \code{span_width} (numerical).
 Function needs to return a numerical vector with the length of number of rows in \code{data}. In case functions fails a vector with NA_real_ needs be returned}
 
 \item{variable}{The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"}
 
-\item{reference_qc_types}{QC types used for drift correction}
+\item{ref_qc_types}{QC types used for drift correction}
 
 \item{batch_wise}{Apply to each batch separately if \code{TRUE} (the default)}
 

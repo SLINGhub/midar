@@ -3,19 +3,19 @@
 #' Function for Gaussian kernel-based smoothing, for use by `fun_correct_drift`.
 #' @author Hyung Won Choi
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
-#' @param reference_qc_types QC types used for the smoothing (fit) by loess
+#' @param ref_qc_types QC types used for the smoothing (fit) by loess
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This does not affect the final data, which remains untransformed.
 #' @param ... Additional arguments
 #' @return List with a `data.frame` containing original `x` and the smoothed `y` values, and a `boolean` value indicting whether the fit failed or not not.
 
 ### Function to clean up serial trend within a batch
-fun_gauss.kernel.smooth = function(tbl, reference_qc_types, log_transform_internal, ...) {
+fun_gauss.kernel.smooth = function(tbl, ref_qc_types, log_transform_internal, ...) {
   arg <- list(...)
   xx <- seq(1, length(tbl$x))
 
   if (log_transform_internal) tbl$y <- log10(tbl$y)
   yy <- tbl$y
-  s.train <- tbl$qc_type %in% reference_qc_types # Use sample for training
+  s.train <- tbl$qc_type %in% ref_qc_types # Use sample for training
 
   n = length(yy) ## number of data points
 
@@ -111,11 +111,11 @@ fun_gauss.kernel.smooth = function(tbl, reference_qc_types, log_transform_intern
 #' @description
 #' Function for loess-based smoothing, for use by `fun_correct_drift`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
-#' @param reference_qc_types QC types used for the smoothing (fit) by loess
+#' @param ref_qc_types QC types used for the smoothing (fit) by loess
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This does not affect the final data, which remains untransformed.
 #' @param ... Additional arguments forwarded to Loess
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicting whether the fit failed or not not.
-fun_loess <- function(tbl, reference_qc_types, log_transform_internal, ...) {
+fun_loess <- function(tbl, ref_qc_types, log_transform_internal, ...) {
   arg <- list(...)
   surface <- ifelse(arg$extrapolate, "direct", "interpolate")
 
@@ -125,7 +125,7 @@ fun_loess <- function(tbl, reference_qc_types, log_transform_internal, ...) {
   res <- tryCatch(
     {
       withCallingHandlers({
-        tbl_train <- tbl[tbl$qc_type %in% reference_qc_types,]
+        tbl_train <- tbl[tbl$qc_type %in% ref_qc_types,]
         res_fit <- stats::loess(y ~ x,
           span = arg$span, family = "symmetric", degree = arg$degree, normalize = FALSE, iterations = 4, surface = surface,
           data = tbl_train
@@ -169,11 +169,11 @@ fun_loess <- function(tbl, reference_qc_types, log_transform_internal, ...) {
 #' @description
 #' Function for cubic spline-based smoothing with optional cross-validation, for use by `fun_correct_drift`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
-#' @param reference_qc_types QC types used for the smoothing (fit) by cubic spline
+#' @param ref_qc_types QC types used for the smoothing (fit) by cubic spline
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This does not affect the final data, which remains untransformed.
 #' @param ... Additional arguments forwarded to `smooth.spline`
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicating whether the fit failed or not.
-fun_cspline <- function(tbl, reference_qc_types, log_transform_internal, ...) {
+fun_cspline <- function(tbl, ref_qc_types, log_transform_internal, ...) {
   arg <- list(...)
 
   # Apply log transformation if required (used internally for better smoothing performance)
@@ -184,7 +184,7 @@ fun_cspline <- function(tbl, reference_qc_types, log_transform_internal, ...) {
     {
       withCallingHandlers({
         # Subset the data to include only reference QC types for training
-        tbl_train <- tbl[tbl$qc_type %in% reference_qc_types,]
+        tbl_train <- tbl[tbl$qc_type %in% ref_qc_types,]
         # Fit cubic spline model, using cross-validation if specified
 
         if (is.null(arg$lambda))
@@ -231,11 +231,11 @@ fun_cspline <- function(tbl, reference_qc_types, log_transform_internal, ...) {
 #' @description
 #' Function for penalized spline-based smoothing using GAM, for use by `fun_correct_drift`
 #' @param tbl Table (`tibble` or `data.frame`) containing the fields `qc_type`, `x` (run order number), and `y` (variable)
-#' @param reference_qc_types QC types used for the smoothing (fit) by GAM
+#' @param ref_qc_types QC types used for the smoothing (fit) by GAM
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This does not affect the final data, which remains untransformed.
 #' @param ... Additional arguments forwarded to `mgcv::gam`
 #' @return List with a `data.frame` containing original x and the smoothed y values, and a `boolean` value indicating whether the fit failed or not.
-fun_gam_smooth <- function(tbl, reference_qc_types, log_transform_internal = TRUE, ...) {
+fun_gam_smooth <- function(tbl, ref_qc_types, log_transform_internal = TRUE, ...) {
 
   arg <- list(...)
 
@@ -247,7 +247,7 @@ fun_gam_smooth <- function(tbl, reference_qc_types, log_transform_internal = TRU
     {
       withCallingHandlers({
         # Subset the data to include only reference QC types for training
-        tbl_train <- tbl[tbl$qc_type %in% reference_qc_types,]
+        tbl_train <- tbl[tbl$qc_type %in% ref_qc_types,]
 
         # Fit GAM with user-defined spline type, basis functions (k), and smoothing parameter (sp)
         res_fit <- mgcv::gam(y ~ s(x, bs = arg$bs, k = arg$k), data = tbl_train, method = "REML", sp = arg$sp)
@@ -294,10 +294,10 @@ fun_gam_smooth <- function(tbl, reference_qc_types, log_transform_internal = TRU
 #' #' @details
 #' The drift correction function needs to be provided by the user. See `smooth_fun` for details.
 #' @param data MidarExperiment object
-#' @param smooth_fun Function that performs drift correction. Function need to have following parameter `data` (`MidarExperiment`), `reference_qc_types` (one or more strings), and `span_width` (numerical).
+#' @param smooth_fun Function that performs drift correction. Function need to have following parameter `data` (`MidarExperiment`), `ref_qc_types` (one or more strings), and `span_width` (numerical).
 #' Function needs to return a numerical vector with the length of number of rows in `data`. In case functions fails a vector with NA_real_ needs be returned
 #' @param variable  The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"
-#' @param reference_qc_types QC types used for drift correction
+#' @param ref_qc_types QC types used for drift correction
 #' @param batch_wise Apply to each batch separately if `TRUE` (the default)
 #' @param replace_previous Logical. Replace previous correction (`TRUE`), or adds on top of previous correction (`FALSE`). Default is `TRUE`.
 #' @param log_transform_internal Apply log transformation internally for smoothing if `TRUE` (default). This enhances robustness against outliers but does not affect the final data, which remains untransformed.
@@ -316,7 +316,7 @@ fun_gam_smooth <- function(tbl, reference_qc_types, log_transform_internal = TRU
 fun_correct_drift <- function(data = NULL,
                            smooth_fun,
                            variable,
-                           reference_qc_types,
+                           ref_qc_types,
                            batch_wise,
                            replace_previous = TRUE,
                            log_transform_internal = TRUE,
@@ -332,7 +332,7 @@ fun_correct_drift <- function(data = NULL,
 
   check_data(data)
 
-  if (!all(reference_qc_types %in% unique(data@dataset$qc_type))) {
+  if (!all(ref_qc_types %in% unique(data@dataset$qc_type))) {
     cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
   }
 
@@ -447,7 +447,7 @@ fun_correct_drift <- function(data = NULL,
   d_smooth_res <- d_smooth_res |>
     purrr::map2(seq_along(d_smooth_res), \(x, i) {
       if(show_progress) update_progress(i)
-      do.call(smooth_fun, list(x, reference_qc_types, log_transform_internal, ...))
+      do.call(smooth_fun, list(x, ref_qc_types, log_transform_internal, ...))
     }, .progress = FALSE) |>
     bind_rows()
 
@@ -470,7 +470,7 @@ fun_correct_drift <- function(data = NULL,
     d_smooth_recalc <- d_smooth_recalc |>
       purrr::map2(seq_along(d_smooth_recalc), \(x, i) {
         if(show_progress) update_progress(i)
-        do.call(smooth_fun, list(x, reference_qc_types, log_transform_internal, ...))
+        do.call(smooth_fun, list(x, ref_qc_types, log_transform_internal, ...))
       }, .progress = FALSE) |>
       bind_rows() |>
       select("analysis_id", "qc_type", "feature_id", "batch_id", y_fit_after = "y_fit")
@@ -661,7 +661,7 @@ fun_correct_drift <- function(data = NULL,
 
     txt_final <- paste(c(txt_1, txt_2, txt_3, txt_4, txt_5), collapse = ", ")
     if (txt_final != "") {
-      txt <- glue::glue_collapse(reference_qc_types, sep = ", ", last = ", and ")
+      txt <- glue::glue_collapse(ref_qc_types, sep = ", ", last = ", and ")
       cli_alert_warning(col_yellow("{txt_final} were excluded from correction as they fall outside the regions spanned by the QCs/samples used for smoothing ({.emph {txt}})."))
     }
   }
@@ -753,7 +753,7 @@ fun_correct_drift <- function(data = NULL,
 #' @param data A MidarExperiment object.
 #' @param variable The target variable for drift correction; options include
 #' "intensity", "norm_intensity", or "conc".
-#' @param reference_qc_types QC types used for drift correction, typically
+#' @param ref_qc_types QC types used for drift correction, typically
 #' including study samples (`SPL`).
 #' @param batch_wise Logical. Apply the correction to each batch separately
 #' (`TRUE`, default) or across all batches (`FALSE`).
@@ -793,7 +793,7 @@ fun_correct_drift <- function(data = NULL,
 #' @export
 correct_drift_gaussiankernel <- function(data = NULL,
                                       variable,
-                                      reference_qc_types,
+                                      ref_qc_types,
                                       batch_wise = TRUE,
                                       ignore_istd = TRUE,
                                       replace_previous = TRUE,
@@ -830,7 +830,7 @@ correct_drift_gaussiankernel <- function(data = NULL,
     data = data,
     smooth_fun = "fun_gauss.kernel.smooth",
     variable = variable,
-    reference_qc_types = reference_qc_types,
+    ref_qc_types = ref_qc_types,
     batch_wise = batch_wise ,
     replace_previous = replace_previous,
     conditional_correction = conditional_correction,
@@ -905,7 +905,7 @@ correct_drift_gaussiankernel <- function(data = NULL,
 #' change being the median of these batch medians across features.
 #'
 #' @param data MidarExperiment object
-#' @param reference_qc_types QC types used for drift correction
+#' @param ref_qc_types QC types used for drift correction
 #' @param variable  The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"
 #' @param batch_wise Logical. Apply the correction to each batch separately
 #' (`TRUE`, default) or across all batches (`FALSE`).
@@ -929,7 +929,7 @@ correct_drift_gaussiankernel <- function(data = NULL,
 #' @export
 correct_drift_loess <- function(data = NULL,
                                 variable,
-                                reference_qc_types,
+                                ref_qc_types,
                                 batch_wise = TRUE,
                                 ignore_istd = TRUE,
                                 replace_previous = TRUE,
@@ -955,7 +955,7 @@ correct_drift_loess <- function(data = NULL,
   fun_correct_drift(
     data = data,
     smooth_fun = "fun_loess",
-    reference_qc_types = reference_qc_types,
+    ref_qc_types = ref_qc_types,
     variable = variable,
     batch_wise = batch_wise,
     replace_previous = replace_previous,
@@ -1031,7 +1031,7 @@ correct_drift_loess <- function(data = NULL,
 
 #'
 #' @param data MidarExperiment object
-#' @param reference_qc_types QC types used for drift correction
+#' @param ref_qc_types QC types used for drift correction
 #' @param variable  The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"
 #' @param batch_wise Logical. Apply the correction to each batch separately (`TRUE`, default) or across all batches (`FALSE`).
 #' @param ignore_istd Logical. Exclude internal standards (ISTDs) from correction if `TRUE`.
@@ -1061,7 +1061,7 @@ correct_drift_loess <- function(data = NULL,
 #' @seealso \code{\link[stats]{smooth.spline}}
 correct_drift_cubicspline <- function(data = NULL,
                                  variable,
-                                 reference_qc_types,
+                                 ref_qc_types,
                                  batch_wise = TRUE,
                                  ignore_istd = TRUE,
                                  replace_previous = TRUE,
@@ -1088,7 +1088,7 @@ correct_drift_cubicspline <- function(data = NULL,
 
   fun_correct_drift(
     data = data,
-    reference_qc_types = reference_qc_types,
+    ref_qc_types = ref_qc_types,
     variable = variable,
     batch_wise = batch_wise,
     replace_previous = replace_previous,
@@ -1154,7 +1154,7 @@ correct_drift_cubicspline <- function(data = NULL,
 #' This smoothing is based on Generalized Additive Models (GAM) using penalized splines, implemented via `mgcv::gam()`.
 #'
 #' @param data MidarExperiment object
-#' @param reference_qc_types QC types used for drift correction
+#' @param ref_qc_types QC types used for drift correction
 #' @param variable  The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"
 #' @param batch_wise Logical. Apply the correction to each batch separately (`TRUE`, default) or across all batches (`FALSE`).
 #' @param ignore_istd Logical. Exclude internal standards (ISTDs) from correction if `TRUE`.
@@ -1174,7 +1174,7 @@ correct_drift_cubicspline <- function(data = NULL,
 #' @seealso [mgcv::gam()]
 correct_drift_gam <- function(data = NULL,
                               variable,
-                              reference_qc_types,
+                              ref_qc_types,
                               batch_wise = TRUE,
                               ignore_istd = TRUE,
                               replace_previous = TRUE,
@@ -1199,7 +1199,7 @@ correct_drift_gam <- function(data = NULL,
 
   fun_correct_drift(
     data = data,
-    reference_qc_types = reference_qc_types,
+    ref_qc_types = ref_qc_types,
     variable = variable,
     batch_wise = batch_wise,
     replace_previous = replace_previous,
@@ -1222,7 +1222,7 @@ correct_drift_gam <- function(data = NULL,
 #' @description
 #' This function performs batch centering correction on each feature.
 #' Optionally, the scale of the batches can be equalized across batches.
-#' The selected QC types (`reference_qc_types`) are used to calculate
+#' The selected QC types (`ref_qc_types`) are used to calculate
 #' the medians, which are then used to align all other samples. The
 #' correction can be applied to one of three variables: "intensity",
 #' "norm_intensity", or "conc". The correction can either be applied
@@ -1232,7 +1232,7 @@ correct_drift_gam <- function(data = NULL,
 #'   This object must include information about QC types and measurements.
 #' @param variable The variable to be corrected. Must be one of "intensity",
 #'   "norm_intensity", or "conc".
-#' @param reference_qc_types A character vector specifying the QC types to be
+#' @param ref_qc_types A character vector specifying the QC types to be
 #'   used as references for batch centering.
 #' @param correct_scale A logical value indicating whether to equalize the scale
 #' of the batches in addition to center them. Defaults to `FALSE`.
@@ -1251,7 +1251,7 @@ correct_drift_gam <- function(data = NULL,
 
 correct_batch_centering <- function(data = NULL,
                                     variable,
-                                    reference_qc_types,
+                                    ref_qc_types,
                                    #correct_location = TRUE,
                                     correct_scale = FALSE,
                                     replace_previous = TRUE,
@@ -1260,7 +1260,7 @@ correct_batch_centering <- function(data = NULL,
                                     ...) {
   check_data(data)
 
-  if (!all(reference_qc_types %in% unique(data@dataset$qc_type))) {
+  if (!all(ref_qc_types %in% unique(data@dataset$qc_type))) {
     cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
   }
 
@@ -1346,7 +1346,7 @@ correct_batch_centering <- function(data = NULL,
 
         # Use median horizontal lines to indicate fits if data was not drift corrected before
         data@dataset <- data@dataset |>
-            mutate(!!variable_fit_sym := median(.data[[variable_sym]][.data$qc_type %in% reference_qc_types ], na.rm = TRUE), .by = c("feature_id", "batch_id"))
+            mutate(!!variable_fit_sym := median(.data[[variable_sym]][.data$qc_type %in% ref_qc_types ], na.rm = TRUE), .by = c("feature_id", "batch_id"))
         data@dataset[[variable_fit_after]] <- data@dataset[[variable_fit]]
       }
 
@@ -1354,7 +1354,7 @@ correct_batch_centering <- function(data = NULL,
 
   if(replace_exisiting_trendcurves){
     data@dataset <- data@dataset |>
-      mutate(!!variable_fit_sym := median(.data[[variable_sym]][.data$qc_type %in% reference_qc_types ], na.rm = TRUE), .by = c("feature_id", "batch_id"))
+      mutate(!!variable_fit_sym := median(.data[[variable_sym]][.data$qc_type %in% ref_qc_types ], na.rm = TRUE), .by = c("feature_id", "batch_id"))
     data@dataset[[variable_fit_after]] <- data@dataset[[variable_fit]]
   }
 
@@ -1369,7 +1369,7 @@ correct_batch_centering <- function(data = NULL,
     group_by(.data$feature_id) |>
       nest() |>
       mutate(
-        res = purrr::map(data, \(x) do.call("fun_batch.correction", list(x, reference_qc_types, correct_scale, log_transform_internal,...))),
+        res = purrr::map(data, \(x) do.call("fun_batch.correction", list(x, ref_qc_types, correct_scale, log_transform_internal,...))),
       ) |>
       unnest(cols = c("res")) |>
       select(-"data")
@@ -1450,7 +1450,7 @@ correct_batch_centering <- function(data = NULL,
 
 
 fun_batch.correction = function(tab,
-                            reference_qc_types,
+                            ref_qc_types,
                             correct_scale,
                             log_transform_internal, ...) {
 
@@ -1462,7 +1462,7 @@ fun_batch.correction = function(tab,
     val <- log10(val)
     y_fit_after <- log10(y_fit_after)
   }
-  sample.for.loc <- tab$qc_type %in% reference_qc_types # Use sample for location median
+  sample.for.loc <- tab$qc_type %in% ref_qc_types # Use sample for location median
 
   ubatch <- unique(batch)
   nbatch <- length(ubatch)

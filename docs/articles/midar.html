@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.9003</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,30 +35,36 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/getstarted.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/00_get_started.html">Get started</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-workflows-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Workflows/Recipes</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-workflows-recipes">
-<li><a class="dropdown-item" href="../articles/dataimport.html">Targeted MRM panel</a></li>
-    <li><a class="dropdown-item" href="../articles/dataimport.html">Quantitative LC-MS</a></li>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials/Recipes</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
+<li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
+    <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and import data and metadata</a></li>
+    <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics postprocessing and QC</a></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Quantitative Assay with external calibration</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
 <li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="../articles/datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="../articles/midarexperiment.html">MidarExperiment</a></li>
+    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data Structures</a></li>
+    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data Indentifier</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
-    <li><a class="dropdown-item" href="../articles/dataimport.html">Importing</a></li>
-    <li><a class="dropdown-item" href="../articles/annotating.html">Annotating (Metadata)</a></li>
+    <li><a class="dropdown-item" href="../articles/03_midarexperiment.html">MidarExperiment Object</a></li>
+    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
+    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_BatchDriftCorrect.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/updates.html">News</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -80,7 +86,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Getting Started</h1>
                         <h4 data-toc-skip class="author">Bo Burla</h4>
             
-            <h4 data-toc-skip class="date">2025-03-10</h4>
+            <h4 data-toc-skip class="date">2025-03-19</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/midar.Rmd" class="external-link"><code>vignettes/midar.Rmd</code></a></small>
       <div class="d-none name"><code>midar.Rmd</code></div>
@@ -88,59 +94,114 @@
 
     
     
-<p><code>MiDAR</code> is an R package designed to assist with the
-reproducible post-processing, assessment, quality control, and reporting
-of small-molecule mass spectrometry (MS) datasets, such as those from
-targeted lipidomics and metabolomics experiments.</p>
-<p>This package is aimed at experimental lab scientists and analysts,
-enabling them to process their data with only basic coding or R skills
-required.</p>
-<p>MiDAR can handle different analytical designs and data types,
-offering functions to import data from various software platforms. It
-includes options for normalization, quantification, and drift/batch
-corrections, as well as quality control metrics, feature filtering, and
-visualizations. Functions to produce reports and data exports are also
-available, allowing users to share full datasets along with processing
-information.</p>
-<p>With MiDAR, both analytical and bioinformatics scientists can manage
-their mass spectrometry data more easily and independently, facilitating
-collaboration on datasets.</p>
+<p><code>MiDAR</code> is an R package designed for the reproducible
+post-processing, quality control, and reporting of quantitative
+small-molecule mass spectrometry (MS) data. Its modular functionalities
+and defined data structure, support diverse analytical designs, data
+formats, and processing tasks, including metabolomics and lipidomics.
+<code>MiDAR</code> is intended for both analytical and bioinformatics
+scientists and to facilitate collaboration between them. It enables the
+creation of customizable, supervisable, and documented data processing
+workflows through intuitive high-level R functions and data objects.</p>
+<p><code>MiDAR</code>’s core tools, accessible also to those with
+limited R experience, allow analysts to annotate, inspect, and process
+data. This includes importing data and metadata from various file
+formats, managing and organizing data with integrity checks, performing
+processing tasks such as quantification, drift/batch correction, and
+applying QC-based feature filtering. Users can assess data quality using
+QC metrics and diagnostic plots, and share both raw and processed data
+along with the entire processing workflow for further analyses and
+documentation.</p>
+<p><code>MiDAR</code> also serves as a software library for building
+robust and scalable data processing pipelines.</p>
+<div class="section level2">
+<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h2>
+<p>Visit the <a href="https://slinghub.github.io/midar/">MiDAR
+Documentation page (https://slinghub.github.io/midar)</a> for a detailed
+introduction and comprehensive documentation on this package.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://pak.r-lib.org/" class="external-link">"pak"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"SLINGhub/midar"</span><span class="op">)</span></span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="example-workflow">Example Workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
 </h2>
-<p>Below is example of a simple data processing workflow, starting with
-the peak integration results from <code>MRMkit</code> (<a href="https://github.com/MRMkit/MRMkit" class="external-link">https://github.com/MRMkit</a>)</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Path of example files included with this package</span></span>
+<span><span class="va">dir_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>,  package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get paths of example files included with this package</span></span>
-<span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"MRMkit_demo.tsv"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Create a MidarExperiment object (S4)</span></span>
+<span><span class="co"># Create a MidarExperiment object</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Load data and metadata</span></span>
-<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">mexp</span>, </span>
-<span>                                  path <span class="op">=</span> <span class="va">file_path</span>, </span>
-<span>                                  import_metadata <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                           path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_demo.tsv"</span><span class="op">)</span>,</span>
+<span>                           import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Imported 499 analyses with 28 features</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">`feature_area` selected as default feature intensity. Modify with `set_intensity_var()`.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 28 features.</span></span></span>
 <span></span>
-<span><span class="co"># # Normalize and quantitate each feature by internal standards</span></span>
-<span><span class="co"># mexp &lt;- normalize_by_istd(mexp)</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># # Get QC metrics for each feature</span></span>
-<span><span class="co"># mexp &lt;- calc_qc_metrics(mexp)</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># # Filter features according to QC criteria</span></span>
-<span><span class="co"># mexp &lt;- filter_features_qc(</span></span>
-<span><span class="co">#   data = mexp, </span></span>
-<span><span class="co">#   missing.normintensity.spl.prop.max = 0.2,</span></span>
-<span><span class="co">#   max.cv.conc.bqc = 30,</span></span>
-<span><span class="co">#   min.min.min.min.signalblank.median.spl.pblk = 3,</span></span>
-<span><span class="co">#   include_qualifier = TRUE, </span></span>
-<span><span class="co">#   include_istd = FALSE</span></span>
-<span><span class="co">#)</span></span></code></pre></div>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_analyses.html">import_metadata_analyses</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
+<span>                                 path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_AnalysesAnnot.csv"</span><span class="op">)</span>, </span>
+<span>                                 ignore_warnings <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 28 features.</span></span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_istds.html">import_metadata_istds</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
+<span>                              path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">dir_path</span>, <span class="st">"MRMkit_ISTDconc.csv"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 28 features.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 9 ISTDs.</span></span></span>
+<span></span>
+<span><span class="co"># Normalize and quantitate features by internal standards</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">19 features normalized with 9 ISTDs in 499 analyses.</span></span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">19 feature concentrations calculated based on 9 ISTDs and sample amounts of 499 analyses.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in μmol/L.</span></span></span>
+<span></span>
+<span><span class="co"># Drift and batch-effect correction</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_drift_cubicspline.html">correct_drift_cubicspline</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
+<span><span class="co">#&gt;   |                                                    |                                            |   0%  |                                                    |=                                           |   3%  |                                                    |==                                          |   5%  |                                                    |===                                         |   8%  |                                                    |=====                                       |  11%  |                                                    |======                                      |  13%  |                                                    |=======                                     |  16%  |                                                    |========                                    |  18%  |                                                    |=========                                   |  21%  |                                                    |==========                                  |  24%  |                                                    |============                                |  26%  |                                                    |=============                               |  29%  |                                                    |==============                              |  32%  |                                                    |===============                             |  34%  |                                                    |================                            |  37%  |                                                    |=================                           |  39%  |                                                    |===================                         |  42%  |                                                    |====================                        |  45%  |                                                    |=====================                       |  47%  |                                                    |======================                      |  50%  |                                                    |=======================                     |  53%  |                                                    |========================                    |  55%  |                                                    |=========================                   |  58%  |                                                    |===========================                 |  61%  |                                                    |============================                |  63%  |                                                    |=============================               |  66%  |                                                    |==============================              |  68%  |                                                    |===============================             |  71%  |                                                    |================================            |  74%  |                                                    |==================================          |  76%  |                                                    |===================================         |  79%  |                                                    |====================================        |  82%  |                                                    |=====================================       |  84%  |                                                    |======================================      |  87%  |                                                    |=======================================     |  89%  |                                                    |=========================================   |  92%  |                                                    |==========================================  |  95%  |                                                    |=========================================== |  97%  |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend smoothing done!</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 19 of 19 features (batch-wise).</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">0.57%</span><span style="color: #555555;"> (range: -0.72% to 2.66%). The median absolute CV of all features across batches </span><span style="color: #555555; font-weight: bold;">increased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">33.20% to 35.31%</span><span style="color: #555555;">.</span></span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 6 batches was applied to drift-corrected concentrations of all 19 features.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">0.01%</span><span style="color: #555555;"> (range: -7.60% to 2.50%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">increased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">36.14% to 36.76%</span><span style="color: #555555;">.</span></span></span>
+<span></span>
+<span><span class="co"># Plot analysis time-trends of final concentrations of each feature </span></span>
+<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
+<span>                qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"TQC"</span>, <span class="st">"SPL"</span>, <span class="st">"PBLK"</span>, <span class="st">"SBLK"</span><span class="op">)</span>,</span>
+<span>                cap_outliers <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>                output_pdf <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                path <span class="op">=</span> <span class="st">"./output/runscatter_istd.pdf"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (4 pages)...</span></span></span></code></pre></div>
+<p><img src="midar_files/figure-html/unnamed-chunk-2-1.png" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-2.png" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-3.png" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-4.png" width="700"></p>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
+<span></span>
+<span><span class="co"># Set features QC-filter criteria   </span></span>
+<span> <span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
+<span>                            max.cv.conc.bqc <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>                            min.signalblank.median.spl.pblk <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>                            include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                            include_istd <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Calculating feature QC metrics - please wait...</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 19 of 19 quantifier features meet QC criteria (not including the 9 quantifier ISTD features).</span></span></span>
+<span> </span>
+<span><span class="co"># Save concentration data</span></span>
+<span> <span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span> <span class="va">mexp</span>, </span>
+<span>                   path <span class="op">=</span> <span class="st">"mydata.csv"</span>, </span>
+<span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
+<span>                   filter_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 499 analyses and 19 features have been exported to 'mydata.csv'.</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="contributor-code-of-conduct">Contributor Code of Conduct<a class="anchor" aria-label="anchor" href="#contributor-code-of-conduct"></a>

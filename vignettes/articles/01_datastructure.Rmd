@@ -1,5 +1,5 @@
 ---
-title: "Data Structure of MiDAR"
+title: "Data and Metadata in MiDAR"
 output: 
   rmarkdown::html_vignette:
     fig_width: 6
@@ -7,7 +7,7 @@ output:
 description: |
   MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
 vignette: >
-  %\VignetteIndexEntry{Data Structure of MiDAR}
+  %\VignetteIndexEntry{Data and Metadata in MiDAR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 
@@ -22,37 +22,20 @@ set.seed(1041)
 options(dplyr.print_max = 10)
 ```
 
-# Overview
-
-The **`MidarExperiment`** object organizes data into two main categories: `data`
-and `metadata.` The `data` category includes tables for raw data, processed
-data, and feature metrics, while the `metadata` category encompasses
-analysis annotations, feature annotations, internal standard annotations, batch
-annotations, response curve annotations, and calibration curves. Key
-identifiers, such as `analysis_id` for analyses and `feature_id` for
-features, are used to link data and metadata and are integral to the functions
-of the package.
-
---------------------------------------------------------------------------------
-
 # MidarExperiment
 
 The **`MidarExperiment`** object is the **primary data container** in the MiDAR workflow. 
 It holds all the experimental and processed data and metadata, as well as details 
-of the applied processing steps and the current status of the data.
-
-Most `MiDAR` functions take an `MidarExperiment` object as input. Functions that 
-process the data return a modified `MidarExperiment` object, which is then be used 
-in subsequent steps. Multiple `MidarExperiment` objects can be independently 
-created and processed within the same script.
-
-# Data and Metadata
+of the applied processing steps and the current status of the data. Most `MiDAR` functions take the `MidarExperiment` object as data input. Functions that 
+process the data return an updated `MidarExperiment` object, which can then be 
+used in subsequent steps.
 
 Data within the `MidarExperiment` is organized into
 [**data**]{style="color: blue;"} and [**metadata**]{style="color: blue;"}
 categories, each divided into tables (data.frames).
 
-## Data
+# Data
+
 
 | Category | Table name (Slot) | Description |
 |---------------------------|---------------------------|---------------------------|
@@ -60,7 +43,7 @@ categories, each divided into tables (data.frames).
 | Processed Data | `dataset` | Annotated raw and processed data with available metadata. |
 | Feature metrics | `feature_metrics` | Information and various quality control metrics for features. |
 
-## Metadata
+# Metadata
 
 | Data Type | Table name (Slot) | Description |
 |---------------------------|---------------------------|---------------------------|

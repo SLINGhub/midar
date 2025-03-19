@@ -1,5 +1,5 @@
 ---
-title: "MiDAR workflow"
+title: "Lipidomics Data Processing"
 output: 
   rmarkdown::html_vignette:
     fig_width: 6
@@ -7,7 +7,7 @@ output:
 description: |
   MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
 vignette: >
-  %\VignetteIndexEntry{MiDAR workflow}
+  %\VignetteIndexEntry{Lipidomics Data Processing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 
@@ -422,7 +422,7 @@ myexp <- midar::correct_drift_gaussiankernel(
   data = myexp,
   ignore_istd = TRUE,
   variable = "conc",
-  reference_qc_types = c("SPL"),
+  ref_qc_types = c("SPL"),
   batch_wise = TRUE,
   replace_previous = TRUE,
   recalc_trend_after = TRUE,
@@ -504,7 +504,7 @@ example lipid species again.
 myexp <- midar::correct_batch_centering(
   myexp, 
   variable = "conc",
-  reference_qc_types = "SPL",
+  ref_qc_types = "SPL",
   replace_previous = TRUE,
   correct_location = TRUE, 
   correct_scale = TRUE, 

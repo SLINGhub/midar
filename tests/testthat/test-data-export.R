@@ -16,7 +16,7 @@ mexp <- calc_qc_metrics(mexp)  # Ensure calc_qc_metrics is executed before
 mexp_drift <- correct_drift_gaussiankernel(
   mexp_orig,
   variable = "intensity",
-  reference_qc_types = "SPL",
+  ref_qc_types = "SPL",
   ignore_istd = FALSE)
 
 

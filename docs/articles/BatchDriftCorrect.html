@@ -105,7 +105,7 @@ data.</p>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
-<span>  reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
+<span>  ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction to `conc` data.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to raw concentrations of all 2 features.</span></span></span>
@@ -126,7 +126,7 @@ variance.</p>
 <code class="sourceCode R"><span><span class="co"># Correct batch effects - WITH scaling of variance</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
-<span>  reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
+<span>  ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>  correct_scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Replacing previous `conc` batch correction.</span></span></span>
@@ -162,7 +162,7 @@ variance.</p>
 <span><span class="co"># Within-batch drift correction (smoothing) based on study samples</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span><span class="va">myexp</span>,</span>
 <span>                                        variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
-<span>                                        reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
+<span>                                        ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>                                        batch_wise <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                                        kernel_size <span class="op">=</span> <span class="fl">10</span>, </span>
 <span>                                        recalc_trend_after <span class="op">=</span> <span class="cn">TRUE</span>,show_progress <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
@@ -185,7 +185,7 @@ variance.</p>
 <span><span class="co"># Correct between-batch effects (median centering)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                        variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
-<span>                                        reference_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
+<span>                                        ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
 <span>                                        correct_scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction on top of `conc` drift-correction.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to drift-corrected concentrations of all 1 features.</span></span></span>

@@ -7,7 +7,7 @@
 correct_batch_centering(
   data = NULL,
   variable,
-  reference_qc_types,
+  ref_qc_types,
   correct_scale = FALSE,
   replace_previous = TRUE,
   log_transform_internal = TRUE,
@@ -22,7 +22,7 @@ This object must include information about QC types and measurements.}
 \item{variable}{The variable to be corrected. Must be one of "intensity",
 "norm_intensity", or "conc".}
 
-\item{reference_qc_types}{A character vector specifying the QC types to be
+\item{ref_qc_types}{A character vector specifying the QC types to be
 used as references for batch centering.}
 
 \item{correct_scale}{A logical value indicating whether to equalize the scale
@@ -47,7 +47,7 @@ A \code{MidarExperiment} object containing the corrected data.
 \description{
 This function performs batch centering correction on each feature.
 Optionally, the scale of the batches can be equalized across batches.
-The selected QC types (\code{reference_qc_types}) are used to calculate
+The selected QC types (\code{ref_qc_types}) are used to calculate
 the medians, which are then used to align all other samples. The
 correction can be applied to one of three variables: "intensity",
 "norm_intensity", or "conc". The correction can either be applied

@@ -13,3 +13,5 @@
 ^data-raw$
 plot-methods.R
 .covrignore
+^doc$
+^Meta$

@@ -38,7 +38,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = FALSE,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "Drift correction was applied to 20 of 29 features (batch-wise)", fixed = TRUE
   )
@@ -55,7 +55,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = FALSE,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "Drift correction was applied to 20 of 29 features (batch-wise)", fixed = TRUE
   )
@@ -69,7 +69,7 @@ test_that("correct_drift_gaussiankernel works", {
         outlier_filter = TRUE,
         kernel_size = 10,
         batch_wise = TRUE,
-        reference_qc_types = "SPL",
+        ref_qc_types = "SPL",
         ignore_istd = TRUE),
     "-1.70% to 2.39%",
     fixed = TRUE
@@ -83,7 +83,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = FALSE,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "(range: -2.47% to 0.04%)",
     fixed = TRUE
@@ -96,7 +96,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = F,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "(range: -2.10% to -0.27%)",
     fixed = TRUE
@@ -109,7 +109,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = F,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "Drift correction was applied to 29 of 29 features",
     fixed = TRUE
@@ -123,7 +123,7 @@ test_that("correct_drift_gaussiankernel works", {
       cv_diff_threshold = 0,
       kernel_size = 10,
       batch_wise = TRUE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "was applied to 29 of 29 features",
     fixed = TRUE
@@ -138,7 +138,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = FALSE,
       kernel_size = 10,
       batch_wise = FALSE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "(range: -11.46% to -0.74%)",
     fixed = TRUE
@@ -152,7 +152,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = TRUE,
       kernel_size = 10,
       batch_wise = FALSE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "(range: -11.46% to -0.74%)",
     fixed = TRUE
@@ -166,7 +166,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = T,
       kernel_size = 10,
       batch_wise = FALSE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "(range: -19.06% to -0.51%)",
     fixed = TRUE
@@ -179,7 +179,7 @@ test_that("correct_drift_gaussiankernel works", {
       conditional_correction = T,
       kernel_size = 10,
       batch_wise = FALSE,
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "(range: -12.78% to -0.99%)",
     fixed = TRUE
@@ -192,7 +192,7 @@ test_that("using sample types other than SPL", {
       mexp,
       batch_wise = TRUE,
       variable = "conc",
-      reference_qc_types = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       ignore_istd = TRUE),
     "(range: -1.39% to 0.92%)",
     fixed = TRUE
@@ -204,7 +204,7 @@ test_that("using sample types other than SPL", {
       mexp,
       batch_wise = TRUE,
       variable = "conc",
-      reference_qc_types = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       ignore_istd = TRUE),
     "decreased from",
     fixed = TRUE
@@ -219,7 +219,7 @@ test_that("replace_previous FALSE works", {
     variable = "conc",
     conditional_correction = F,
     kernel_size = 10,
-    reference_qc_types = "BQC",
+    ref_qc_types = "BQC",
     ignore_istd = TRUE)
 
   expect_message(
@@ -230,7 +230,7 @@ test_that("replace_previous FALSE works", {
       variable = "conc",
       conditional_correction = F,
       kernel_size = 10,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "Replacing previous `conc` drift corrections",
     fixed = TRUE
   )
@@ -244,7 +244,7 @@ test_that("replace_previous FALSE works", {
       conditional_correction = F,
       kernel_size = 10,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "-11.46% to -0.74%)",
     fixed = TRUE
   )
@@ -259,7 +259,7 @@ test_that("replace_previous FALSE works", {
       conditional_correction = F,
       kernel_size = 5,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "Adding correction on top of previous",
     fixed = TRUE
   )
@@ -273,7 +273,7 @@ test_that("replace_previous FALSE works", {
       conditional_correction = F,
       kernel_size = 5,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "-3.66% to -0.57%)",
     fixed = TRUE
   )
@@ -290,7 +290,7 @@ test_that("applying corrections to a variable of 'lower' processing order is wor
       conditional_correction = F,
       kernel_size = 10,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "normalized intensities and concentrations are no longer valid. Please reprocess",
     fixed = TRUE
   )
@@ -304,7 +304,7 @@ test_that("applying corrections to a variable of 'lower' processing order is wor
       conditional_correction = F,
       kernel_size = 10,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "Concentrations are no longer valid. Please reprocess",
     fixed = TRUE
   )
@@ -318,7 +318,7 @@ test_that("applying corrections to a variable of 'lower' processing order is wor
       conditional_correction = F,
       kernel_size = 10,
       ignore_istd = TRUE,
-      reference_qc_types = "SPL"),
+      ref_qc_types = "SPL"),
     "Normalized intensities are no longer valid. Please reprocess",
     fixed = TRUE
   )
@@ -332,7 +332,7 @@ test_that("recalc_trend_after works", {
       replace_previous = TRUE,
       recalc_trend_after = TRUE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "-2.47% to 0.04%)",
     fixed = TRUE
@@ -364,7 +364,7 @@ test_that("Scale smooth works", {
       recalc_trend_after = FALSE,
       scale_smooth = TRUE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "decreased",
     fixed = TRUE
@@ -378,7 +378,7 @@ test_that("Scale smooth works", {
       recalc_trend_after = TRUE,
       scale_smooth = TRUE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "range: -14.86% to -1.31%",
     fixed = TRUE
@@ -405,7 +405,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = 0,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-11.46% to -0.74%",
     fixed = TRUE
@@ -421,7 +421,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = 2,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-11.46% to -0.74%",
     fixed = TRUE
@@ -437,7 +437,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = -1,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-11.46% to -1.10",
     fixed = TRUE
@@ -453,7 +453,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = -6,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-11.46% to -6.18%)",
     fixed = TRUE
@@ -469,7 +469,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = -6,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "applied to 3 of 20 features (across all batches)",
     fixed = TRUE
@@ -485,7 +485,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = 0,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-4.48% to -0.43%)",
     fixed = TRUE
@@ -501,7 +501,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = 11,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-2.47% to 0.04%)",
     fixed = TRUE
@@ -516,7 +516,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = -3,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = TRUE),
     "-7.13% to -3.28%",
     fixed = TRUE
@@ -533,7 +533,7 @@ test_that("conditional correction works", {
       cv_diff_threshold = -3,
       scale_smooth = FALSE,
       variable = "conc",
-      reference_qc_types = "SPL",
+      ref_qc_types = "SPL",
       ignore_istd = FALSE),
     "-7.13% to -3.28%",
     fixed = TRUE
@@ -546,7 +546,7 @@ test_that("conditional correction works", {
 #       mexp,
 #       batch_wise = FALSE,
 #       variable = "conc",
-#       reference_qc_types = "SPL",
+#       ref_qc_types = "SPL",
 #       ignore_istd = FALSE),
 #     "(-60.7 to 15.9%)", fixed = T)
 #
@@ -578,7 +578,7 @@ test_that("correct_drift_loess works", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "-0.29% to 1.40%",
@@ -602,7 +602,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = FALSE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "-0.56% to 1.42%",
@@ -616,7 +616,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = FALSE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       feature_list = c("CE 18:1", "PC 40:8"),
       ignore_istd = TRUE),
@@ -631,7 +631,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = FALSE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       feature_list = c("CE 18:1", "NO PC 40:9","NOPE"),
       ignore_istd = TRUE),
@@ -646,7 +646,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = FALSE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       feature_list = "^PC",
       ignore_istd = TRUE),
@@ -661,7 +661,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = FALSE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       feature_list = "^NOPE",
       ignore_istd = TRUE),
@@ -676,7 +676,7 @@ test_that("correct_drift_loess works", {
       replace_previous = TRUE,
       log_transform_internal = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "2 feature(s) contain one or more zero or negative `conc` values",
@@ -692,7 +692,7 @@ test_that("correct_drift_loess warnigs report work", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Issues (warnings) occured during smoothing of all features",
@@ -706,7 +706,7 @@ test_that("correct_drift_loess warnigs report work", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
   "Issues (warnings) occured during the smoothing of 11 feature(s)",
@@ -721,7 +721,7 @@ test_that("correct_drift_loess warnigs report work", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = c("BQC","NOQC"),
+      ref_qc_types = c("BQC","NOQC"),
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "One or more specified `qc_types` are not present",
@@ -735,7 +735,7 @@ test_that("correct_drift_loess warnigs report work", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = c("SPL"),
+      ref_qc_types = c("SPL"),
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "27 of 62 BQCs, 6 of 41 TQCs, 3 of 3 LTRs",
@@ -753,7 +753,7 @@ test_that("correct_drift_gaussiankernel fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Currently only `log_transform_internal = TRUE` is supported.",
@@ -767,7 +767,7 @@ test_that("correct_drift_gaussiankernel fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Argument `kernel_size` must larger than 0",
@@ -780,7 +780,7 @@ test_that("correct_drift_gaussiankernel fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       outlier_ksd = 0,
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
@@ -800,7 +800,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Argument `span` must larger than 0",
@@ -814,7 +814,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Argument `degree` must be 1 or 2",
@@ -828,7 +828,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Smoothing failed for 4 feature(s) in all batches",
@@ -842,7 +842,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Issues (warnings) occured during the smoothing of 17 feature(s)",
@@ -856,7 +856,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "2 of 41 TQCs, 2 of 3 LTRs were excluded from correction as",
@@ -870,7 +870,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Issues (warnings) occured during smoothing of all features ",
@@ -884,7 +884,7 @@ test_that("correct_drift_loess fit error are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       ignore_istd = TRUE),
     "Issues (warnings) occured during the smoothing of 11 feature(s)",
@@ -902,7 +902,7 @@ test_that("fits resulting in invalid values are handeled", {
       batch_wise = FALSE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -924,7 +924,7 @@ test_that("fits resulting in invalid values are handeled", {
       batch_wise = FALSE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = TRUE,
       ignore_istd = TRUE),
@@ -940,7 +940,7 @@ test_that("fits resulting in invalid values are handeled", {
       batch_wise = TRUE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = TRUE,
       ignore_istd = TRUE),
@@ -956,7 +956,7 @@ test_that("correct_drift_cubicspline works", {
       batch_wise = FALSE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -975,7 +975,7 @@ test_that("correct_drift_cubicspline works", {
       replace_previous = TRUE,
       variable = "conc",
       cv = FALSE,  # use ‘generalized’ cross-validation (GCV)
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -995,7 +995,7 @@ test_that("correct_drift_cubicspline works", {
       replace_previous = TRUE,
       variable = "conc",
       log_transform_internal = FALSE,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1011,7 +1011,7 @@ test_that("correct_drift_cubicspline works", {
       variable = "conc",
       cv = TRUE,  # use ‘generalized’ cross-validation (GCV)
       lambda = 0.01,   # define a fixed lambda
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1031,7 +1031,7 @@ test_that("correct_drift_cubicspline works", {
       variable = "conc",
       cv = TRUE,  # use ‘generalized’ cross-validation (GCV)
       penalty = 1.1,   # define a fixed lambda
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1052,7 +1052,7 @@ test_that("correct_drift_cubicspline works", {
       variable = "conc",
       cv = TRUE,
       spar = 0.8,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1072,7 +1072,7 @@ test_that("correct_drift_cubicspline works", {
       variable = "conc",
       cv = TRUE,
       spar = NA,# use ‘generalized’ cross-validation (GCV)
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1088,7 +1088,7 @@ test_that("correct_drift_cubicspline works", {
       cv = TRUE,
       spar = 0.7,# use ‘generalized’ cross-validation (GCV)
       lambda = 0.1,   # define a fixed lambda
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1105,7 +1105,7 @@ test_that("correct_drift_gam works", {
       batch_wise = FALSE,
       replace_previous = TRUE,
       variable = "conc",
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1124,7 +1124,7 @@ test_that("correct_drift_gam works", {
       replace_previous = TRUE,
       variable = "conc",
       bs = "tp",  # thin plate
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1143,7 +1143,7 @@ test_that("correct_drift_gam works", {
       replace_previous = TRUE,
       variable = "conc",
       sp = 0.01,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1162,7 +1162,7 @@ test_that("correct_drift_gam works", {
       replace_previous = TRUE,
       variable = "conc",
       k = 10,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1183,7 +1183,7 @@ test_that("correct_drift_gam works", {
       variable = "conc",
       log_transform_internal = FALSE,
       k = 10,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1198,7 +1198,7 @@ test_that("correct_drift_gam works", {
       variable = "conc",
       log_transform_internal = FALSE,
       sp = FALSE,
-      reference_qc_types = "BQC",
+      ref_qc_types = "BQC",
       recalc_trend_after = TRUE,
       use_original_if_fail = FALSE,
       ignore_istd = TRUE),
@@ -1213,7 +1213,7 @@ mexp_dcorr <- correct_drift_gaussiankernel(
   conditional_correction = FALSE,
   kernel_size = 10,
   batch_wise = TRUE,recalc_trend_after = TRUE,
-  reference_qc_types = "SPL",
+  ref_qc_types = "SPL",
   ignore_istd = FALSE)
 
 
@@ -1524,6 +1524,6 @@ test_that("correct_batch_centering handels other errors", {
 test_that("fun_batch.correction handles non log setting when batch scaling", {
   expect_error(
     fun_batch.correction(tibble(x = 1:10, y = 1:10, batch_id = 1, y_fit_after = 1:10, qc_type = "BQC"),
-                     log_transform_internal = FALSE, reference_qc_types = "BQC", correct_scale = TRUE),
+                     log_transform_internal = FALSE, ref_qc_types = "BQC", correct_scale = TRUE),
     "Currently data must be log-transformed for batch scaling")
 })

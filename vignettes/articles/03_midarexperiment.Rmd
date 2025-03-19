@@ -1,5 +1,5 @@
 ---
-title: "MidarExperiment object"
+title: "The `MidarExperiment` data object"
 output: 
   rmarkdown::html_vignette:
     fig_width: 6
@@ -7,7 +7,7 @@ output:
 description: |
   MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
 vignette: >
-  %\VignetteIndexEntry{MidarExperiment object}
+  %\VignetteIndexEntry{The `MidarExperiment` data object}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 

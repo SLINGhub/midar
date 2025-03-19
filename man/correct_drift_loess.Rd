@@ -7,7 +7,7 @@
 correct_drift_loess(
   data = NULL,
   variable,
-  reference_qc_types,
+  ref_qc_types,
   batch_wise = TRUE,
   ignore_istd = TRUE,
   replace_previous = TRUE,
@@ -27,7 +27,7 @@ correct_drift_loess(
 
 \item{variable}{The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"}
 
-\item{reference_qc_types}{QC types used for drift correction}
+\item{ref_qc_types}{QC types used for drift correction}
 
 \item{batch_wise}{Logical. Apply the correction to each batch separately
 (\code{TRUE}, default) or across all batches (\code{FALSE}).}
