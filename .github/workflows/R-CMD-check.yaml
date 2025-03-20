@@ -53,6 +53,10 @@ jobs:
         run: |
           Rscript -e 'install.packages(c("assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "bibtex", "here"), repos = "https://cloud.r-project.org")'
 
+      - name: Create lockfile
+        run: |
+          Rscript -e 'pak::lockfile_create(c("assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "bibtex", "here", "rcmdcheck", "sessioninfo"), lockfile = ".github/pkg.lock")'
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
