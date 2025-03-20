@@ -67,14 +67,14 @@ get_metadata_batches <- function(annot_analyses){
 #' @examples
 #' mexp <- MidarExperiment()
 #'
-#' mexp <- import_data_masshunter(
+#' mexp <- import_data_mrmkit(
 #'   data = mexp,
-#'   path = system.file("extdata", "Example_MHQuant_Small.csv", package = "midar"),
+F#'   path = system.file("extdata", "MRMkit_demo.tsv", package = "midar"),
 #'   import_metadata = TRUE)
 #'
 #' mexp <- import_metadata_msorganizer(
 #'  data = mexp,
-#'  path = system.file("extdata", "Example_Metadata_Small.xlsm", package = "midar"),
+#'  path = system.file("extdata", "Example_Metadata_1.xlsm, package = "midar"),
 #'  excl_unmatched_analyses = FALSE)
 #'
 #' print(mexp)

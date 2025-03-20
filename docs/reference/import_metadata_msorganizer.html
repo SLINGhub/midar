@@ -113,10 +113,7 @@
 <span class="r-in"><span> data <span class="op">=</span> <span class="va">mexp</span>,</span></span>
 <span class="r-in"><span> path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Example_Metadata_Small.xlsm"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> excl_unmatched_analyses <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 16 features.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 2 ISTDs.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Response curve metadata associated with 12 annotated analyses.</span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in openxlsx2::wb_load(path):</span> File does not exist.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
@@ -135,8 +132,8 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Analyses/samples: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Features/analytes: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Internal standards: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Response curves: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Internal standards: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Response curves: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Calibrants/QC concentrations: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Study samples: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
