@@ -5,7 +5,6 @@
 .httr-oauth
 .DS_Store
 .testing
-docs
 inst/doc
 /doc/
 /Meta/
