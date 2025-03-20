@@ -518,6 +518,8 @@ example lipid species again.
 </details>
 
 ```{r batch-effect-corr}
+#| fig.alt: >
+#|   Feature QC filter plot overall
 myexp <- midar::correct_batch_centering(
   myexp, 
   variable = "conc",
