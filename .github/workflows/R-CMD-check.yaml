@@ -41,13 +41,13 @@ jobs:
         run: |
           Rscript -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
 
-      - name: Install dependencies
-        run: |
-          Rscript -e 'install.packages(c("assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "bibtex", "here"), repos = "https://cloud.r-project.org")'
-
       - name: Install lancer from GitHub
         run: |
           Rscript -e 'devtools::install_github("SLINGhub/lancer")'
+
+      - name: Install other dependencies
+        run: |
+          Rscript -e 'install.packages(c("assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "bibtex", "here"), repos = "https://cloud.r-project.org")'
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
