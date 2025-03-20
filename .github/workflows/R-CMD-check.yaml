@@ -57,10 +57,10 @@ jobs:
       - name: Setup R Dependencies
         run: |
           Rscript -e 'pak::pkg_install(c("any::rcmdcheck"), dependencies = TRUE)'
-          Rscript -e 'pak::pkg_install(c("devtools", "assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x"), dependencies = TRUE)'
+          Rscript -e 'pak::pkg_install(c("devtools", "assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", ggvenn,
+          "ggbeeswarm"", "ggsignif"", "ggforce"", "ggpmisc"", "ggnewscale"", "ggrepel, "ComplexHeatmap", "ggExtr"', "bibtex", "here"), dependencies = TRUE)'
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          build_args: 'c("--no-manual","-no-tests", "--compact-vignettes=gs+qpdf")'
-
+          build_args: 'c("--no-manual","--no-tests", "--compact-vignettes=gs+qpdf")'
