@@ -543,8 +543,7 @@ setting <code>scale_smooth = TRUE</code>.</p>
 using the same plot on several occasions, we create a simple function
 that wraps the plot with many parameters preset.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># Define a wrapper function</span></span>
+<code class="sourceCode R"><span><span class="co"># Define a wrapper function</span></span>
 <span></span>
 <span><span class="va">my_trend_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">variable</span>, <span class="va">feature</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span></span>
@@ -615,7 +614,7 @@ to center the batches. What do you observe?</p>
 <span></span>
 <span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
-<p><img src="T01_targetlipidomics_workflow_files/figure-html/batch-effect-corr-1.png" width="100%"></p>
+<p><img src="T01_targetlipidomics_workflow_files/figure-html/batch-effect-corr-1.png" alt="RunScatter plots with trends after corrections" width="100%"></p>
 <pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">

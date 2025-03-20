@@ -49,6 +49,10 @@ navbar:
     news:
       text: News
       href: news/index.html
+    links:
+    - text: "License (BSD-3-Clause)"
+      href: LICENSE
+
 
 reference:
 - title: MidarExperiment
