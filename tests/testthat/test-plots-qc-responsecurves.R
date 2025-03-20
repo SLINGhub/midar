@@ -22,10 +22,10 @@ test_that("plot_responsecurves generates a plot", {
   expect_s3_class(p[[1]], "gg")
   # Check how many pages
   expect_equal(length(p), 3)
-  expect_doppelganger("default plot_responsecurves plot", p[[1]])
+  vdiffr::expect_doppelganger("default plot_responsecurves plot", p[[1]])
 
   # Test if the number of points in the plot matches the expected value
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 1920)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
@@ -179,7 +179,7 @@ test_that("curve color definition works", {
       return_plots = TRUE
     )
 
-    smooth_data <- ggplot_build(p[[1]])$data
+    smooth_data <- ggplot2::ggplot_build(p[[1]])$data
     expect_equal(unique(smooth_data[[1]]$colour), c("red", "blue"))
 
     p <- plot_responsecurves(
@@ -192,7 +192,7 @@ test_that("curve color definition works", {
       specific_page = 3,
       return_plots = TRUE
     )
-    smooth_data <- ggplot_build(p[[1]])$data
+    smooth_data <- ggplot2::ggplot_build(p[[1]])$data
     expect_equal(unique(smooth_data[[1]]$colour), c("#4575b4","#91bfdb"))
 
     mexp_temp <- mexp
@@ -207,7 +207,7 @@ test_that("curve color definition works", {
       specific_page = 3,
       return_plots = TRUE)
 
-    smooth_data <- ggplot_build(p[[1]])$data
+    smooth_data <- ggplot2::ggplot_build(p[[1]])$data
     expect_equal(unique(smooth_data[[1]]$colour), c("#F8766D" ,"#B79F00", "#00BA38","#00BFC4" ,"#619CFF" ,"#F564E3"))
 })
 
@@ -227,7 +227,7 @@ test_that("`max_regression_value` works", {
 
   # Extract the regression data from the ggplot object
   # We need to extract the smooth line data for the regression (method = "lm")
-  smooth_data <- ggplot_build(p[[1]])$data[[1]]
+  smooth_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
 
   # Check that the 'analyzed_amount' values used for regression are <= max_reg_value
   expect_true(all(smooth_data$x <= 80), info = "Regression data exceeds max_regression_value")
@@ -250,7 +250,7 @@ test_that("plot_responsecurves feature filters work", {
   expect_equal(length(p), 1)
 
   # Test if the number of points in the plot matches the expected value
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 960)
   expect_equal(mean(plot_data$y), 977995.276)
 
@@ -282,7 +282,7 @@ test_that("plot_responsecurves feature filters work", {
     return_plots = TRUE)
 
   # Test if the number of points in the plot matches the expected value
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 960)
   expect_equal(mean(plot_data$y), 0.35804775)
 
@@ -297,7 +297,7 @@ test_that("plot_responsecurves feature filters work", {
     return_plots = TRUE)
 
   # Test if the number of points in the plot matches the expected value
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 320)
   expect_equal(mean(plot_data$y), 0.31212162)
 

@@ -17,7 +17,7 @@ mexp_filt_all <- filter_features_qc(
   min.intensity.lowest.tqc = 0)
 
 get_feature_n <- function(plt) {
-  df <- ggplot_build(plt)$data |> as.data.frame() |> filter(group == 1)
+  df <- ggplot2::ggplot_build(plt)$data |> as.data.frame() |> filter(group == 1)
   sum(df$y)
 }
 
@@ -35,7 +35,7 @@ test_that("plot_qc_summary_byclass plots correctly", {
   expect_equal( get_feature_n(p), 19)
 
   p <- plot_qc_summary_overall(mexp_res )
-  expect_doppelganger("plot_qc_summary_summ with no fails ", p)
+  vdiffr::expect_doppelganger("plot_qc_summary_summ with no fails ", p)
 
   mexp_res <- filter_features_qc(
     mexp_proc,
@@ -47,7 +47,7 @@ test_that("plot_qc_summary_byclass plots correctly", {
   p <- plot_qc_summary_byclass(mexp_res)
   expect_equal( get_feature_n(p), 29)
   p <- plot_qc_summary_overall(mexp_res )
-  expect_doppelganger("plot_qc_summary_summ with no fails with qual ", p)
+  vdiffr::expect_doppelganger("plot_qc_summary_summ with no fails with qual ", p)
 
   mexp_res2 <- filter_features_qc(
     mexp_proc,
@@ -65,13 +65,13 @@ test_that("plot_qc_summary_byclass plots correctly", {
 
   p <- plot_qc_summary_byclass(mexp_res2)
   expect_equal( get_feature_n(p), 19)
-  expect_doppelganger("plot_qc_summary_byclass with fails 1", p)
+  vdiffr::expect_doppelganger("plot_qc_summary_byclass with fails 1", p)
 
   p <- plot_qc_summary_overall(mexp_res2 )
-  expect_doppelganger("plot_qc_summary_summ with fails ", p)
+  vdiffr::expect_doppelganger("plot_qc_summary_summ with fails ", p)
 
   p <- plot_qc_summary_overall(mexp_res2,with_venn = FALSE )
-  expect_doppelganger("plot_qc_summary_summ with fails no venn", p)
+  vdiffr::expect_doppelganger("plot_qc_summary_summ with fails no venn", p)
 
 })
 

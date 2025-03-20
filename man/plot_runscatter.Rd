@@ -28,7 +28,7 @@ plot_runscatter(
   cap_qc_k_mad = 4,
   cap_top_n_outliers = NA,
   show_reference_lines = FALSE,
-  reference_qc_type = NA,
+  ref_qc_types = NA,
   reference_k_sd = 2,
   reference_batchwise = FALSE,
   reference_line_color = "#04bf9a",
@@ -102,7 +102,7 @@ is supplied, only features with exactly these names are excluded (applied indivi
 
 \item{show_reference_lines}{Whether to display reference lines (mean \eqn{\pm} n x SD).}
 
-\item{reference_qc_type}{QC type for which the reference lines are calculated.}
+\item{ref_qc_types}{QC type for which the reference lines are calculated.}
 
 \item{reference_k_sd}{Multiplier for standard deviations to define SD reference lines.}
 

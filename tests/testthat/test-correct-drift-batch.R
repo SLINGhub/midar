@@ -345,12 +345,12 @@ test_that("recalc_trend_after works", {
   p <- plot_runscatter(mexp_drift2, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("gaussiankernel runscatter plot before 1 ", p[[1]])
+  vdiffr::expect_doppelganger("gaussiankernel runscatter plot before 1 ", p[[1]])
 
   p <- plot_runscatter(mexp_drift2, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("gaussiankernel runscatter plot after 1 ", p[[1]])
+  vdiffr::expect_doppelganger("gaussiankernel runscatter plot after 1 ", p[[1]])
 
 })
 
@@ -386,7 +386,7 @@ test_that("Scale smooth works", {
   p <- plot_runscatter(mexp_drift2, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("gaussiankernel_runscatter_scalesmooth_after_1 ", p[[1]])
+  vdiffr::expect_doppelganger("gaussiankernel_runscatter_scalesmooth_after_1 ", p[[1]])
 
 })
 
@@ -556,7 +556,7 @@ test_that("conditional correction works", {
 #       mexp,
 #       correct_location = FALSE,
 #       correct_scale = FALSE,
-#       reference_qc_type = "BQC",
+#       ref_qc_types = "BQC",
 #       variable = "conc"),
 #   "(-14.1 to 59.1%)")
 #
@@ -564,7 +564,7 @@ test_that("conditional correction works", {
 #     mexp,
 #     correct_location = TRUE,
 #     correct_scale = TRUE,
-#     reference_qc_type = "BQC",
+#     ref_qc_types = "BQC",
 #     variable = "conc")
 #
 # })
@@ -587,12 +587,12 @@ test_that("correct_drift_loess works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_loess_before ", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_loess_before ", p[[2]])
 
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_loess_after", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_loess_after", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_loess(
@@ -912,7 +912,7 @@ test_that("fits resulting in invalid values are handeled", {
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_cubicspline_withinvalid_smooths_1 ", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_cubicspline_withinvalid_smooths_1 ", p[[2]])
 
 
   expect_message(
@@ -966,7 +966,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_cubicspline_basic_after", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_cubicspline_basic_after", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_cubicspline(
@@ -985,7 +985,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_cubicspline_basic_cvfalse_after", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_cubicspline_basic_cvfalse_after", p[[2]])
 
 
   expect_message(
@@ -1021,7 +1021,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("drift_cubicspline_withlambda_bef", p[[2]])
+  vdiffr::expect_doppelganger("drift_cubicspline_withlambda_bef", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_cubicspline(
@@ -1041,7 +1041,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("cubicspline_withpanalty_bef", p[[2]])
+  vdiffr::expect_doppelganger("cubicspline_withpanalty_bef", p[[2]])
 
 
   expect_message(
@@ -1062,7 +1062,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("cubicspline_withspar_bef", p[[2]])
+  vdiffr::expect_doppelganger("cubicspline_withspar_bef", p[[2]])
 
   expect_error(
     mexp_drift1 <- correct_drift_cubicspline(
@@ -1115,7 +1115,7 @@ test_that("correct_drift_gam works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_gam_ps_before1", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_gam_ps_before1", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_gam(
@@ -1134,7 +1134,7 @@ test_that("correct_drift_gam works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_gam_tp_before1", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_gam_tp_before1", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_gam(
@@ -1153,7 +1153,7 @@ test_that("correct_drift_gam works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_gam_sp001_before1", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_gam_sp001_before1", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_gam(
@@ -1172,7 +1172,7 @@ test_that("correct_drift_gam works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_drift_gam_k10_before1", p[[2]])
+  vdiffr::expect_doppelganger("correct_drift_gam_k10_before1", p[[2]])
 
 
   expect_message(
@@ -1223,7 +1223,7 @@ test_that("correct_batch_centering works", {
     mexp_batch1 <- correct_batch_centering(
       mexp_dcorr,
       correct_scale = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc"),
     "Adding batch correction on top of `conc` drift-correction",
     fixed = TRUE)
@@ -1232,7 +1232,7 @@ test_that("correct_batch_centering works", {
     mexp_batch1 <- correct_batch_centering(
       mexp_dcorr,
       correct_scale = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc"),
     "Batch median-centering of 6 batches was applied to drift-corrected concentrations of all 20 features",
     fixed = TRUE)
@@ -1241,7 +1241,7 @@ test_that("correct_batch_centering works", {
     mexp_batch1 <- correct_batch_centering(
       mexp_dcorr,
       correct_scale = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc"),
     "range: -8.40% to 2.20%",
     fixed = TRUE)
@@ -1249,14 +1249,14 @@ test_that("correct_batch_centering works", {
   p <- plot_runscatter(mexp_batch1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("batch_centering_batchcenter1", p[[2]])
+  vdiffr::expect_doppelganger("batch_centering_batchcenter1", p[[2]])
 
  #replacing the trend curves from gaussiankernel with the new batch centering trend lines
   expect_message(
     mexp_batch1 <- correct_batch_centering(
       mexp_dcorr,
       correct_scale = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc",
       replace_exisiting_trendcurves = TRUE),
     "-8.40% to 2.20%",
@@ -1265,13 +1265,13 @@ test_that("correct_batch_centering works", {
   p <- plot_runscatter(mexp_batch1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("correct_batch_centering_replacetrends ", p[[2]])
+  vdiffr::expect_doppelganger("correct_batch_centering_replacetrends ", p[[2]])
 
   expect_message(
     mexp_batch1 <- correct_batch_centering(
       mexp,
       correct_scale = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-9.40% to 2.60%",
@@ -1280,13 +1280,13 @@ test_that("correct_batch_centering works", {
   p <- plot_runscatter(mexp_batch1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("batch_centering_nodriftbefore ", p[[2]])
+  vdiffr::expect_doppelganger("batch_centering_nodriftbefore ", p[[2]])
 
   expect_message(
     mexp_batch1 <- correct_batch_centering(
       mexp,
       correct_scale = TRUE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-11.00% to 2.80%",
@@ -1295,7 +1295,7 @@ test_that("correct_batch_centering works", {
   p <- plot_runscatter(mexp_batch1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("batch_centering_correctscalelocation ", p[[2]])
+  vdiffr::expect_doppelganger("batch_centering_correctscalelocation ", p[[2]])
 
 
   #TODO: log transform has no impcat on the scale correction?
@@ -1304,7 +1304,7 @@ test_that("correct_batch_centering works", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       variable = "conc",
       log_transform_internal = FALSE,
       replace_exisiting_trendcurves = FALSE),
@@ -1316,7 +1316,7 @@ test_that("correct_batch_centering works", {
       mexp_dcorr,
       correct_scale = TRUE,
       replace_previous = TRUE,
-      reference_qc_type = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       variable = "conc",
       log_transform_internal = FALSE,
       replace_exisiting_trendcurves = FALSE),
@@ -1328,7 +1328,7 @@ test_that("correct_batch_centering works", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-5.90% to 4.90%)",
@@ -1339,7 +1339,7 @@ test_that("correct_batch_centering works", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = c("BQC", "TQC"),
+      ref_qc_types = c("BQC", "TQC"),
       variable = "intensity",
       replace_exisiting_trendcurves = FALSE),
     "-16.40% to 1.40%)",
@@ -1350,7 +1350,7 @@ test_that("correct_batch_centering works", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = c("BQC", "EQC"),
+      ref_qc_types = c("BQC", "EQC"),
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "One or more specified `qc_types` are not present ",
@@ -1366,7 +1366,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-4.30% to 3.10%)",
@@ -1380,7 +1380,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp_batch1,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "SPL",
+      ref_qc_types = "SPL",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-4.10% to -0.10%)",
@@ -1389,14 +1389,14 @@ test_that("correct_batch_centering works with replace_previous", {
   p <- plot_runscatter(mexp_batch2, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  expect_doppelganger("batch_centering_replaceprevious", p[[2]])
+  vdiffr::expect_doppelganger("batch_centering_replaceprevious", p[[2]])
 
   expect_message(
     mexp_batch2 <- correct_batch_centering(
       mexp_batch1,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-4.30% to 3.10%)",
@@ -1407,7 +1407,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp_batch1,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "Replacing previous `conc` batch correction",
@@ -1418,7 +1418,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "-7.00% to 2.70%)",
@@ -1429,7 +1429,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "Adding batch correction to `conc` data",
@@ -1440,7 +1440,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp_batch1,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "TQC",
+      ref_qc_types = "TQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "Adding batch correction on top of previous `conc` batch correction.",
@@ -1451,7 +1451,7 @@ test_that("correct_batch_centering works with replace_previous", {
       mexp_batch1,
       correct_scale = FALSE,
       replace_previous = TRUE,
-      reference_qc_type = "TQC",
+      ref_qc_types = "TQC",
       variable = "conc",
       replace_exisiting_trendcurves = FALSE),
     "Replacing previous `conc` batch correction.",
@@ -1468,7 +1468,7 @@ test_that("correct_batch_centering invalidates downstream states when correcting
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "intensity",
       replace_exisiting_trendcurves = FALSE),
     "The normalized intensities and concentrations are no longer valid. Please reprocess the data",
@@ -1480,7 +1480,7 @@ test_that("correct_batch_centering invalidates downstream states when correcting
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "norm_intensity",
       replace_exisiting_trendcurves = FALSE),
     "Concentrations are no longer valid. Please reprocess the data.",
@@ -1501,7 +1501,7 @@ test_that("correct_batch_centering handels other errors", {
       mexp_dcorr_tmp,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "intensity",
       replace_exisiting_trendcurves = FALSE),
     "Batch correction was not applied as there is only one batch.",
@@ -1513,7 +1513,7 @@ test_that("correct_batch_centering handels other errors", {
       mexp_dcorr,
       correct_scale = FALSE,
       replace_previous = FALSE,
-      reference_qc_type = "BQC",
+      ref_qc_types = "BQC",
       variable = "norm_intensity",
       replace_exisiting_trendcurves = FALSE),
     "Concentrations are no longer valid. Please reprocess the data.",

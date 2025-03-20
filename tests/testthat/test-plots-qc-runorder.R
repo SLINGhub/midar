@@ -28,9 +28,9 @@ test_that("plot_runscatter generates a plot", {
   expect_equal(length(p), 3)
 
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data[[2]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
   expect_equal(nrow(plot_data), 5988)
-  expect_doppelganger("default plot_responsecurves plot", p)
+  vdiffr::expect_doppelganger("default_runscatte", p)
 
   # log y axis
   p <- plot_runscatter(
@@ -43,9 +43,9 @@ test_that("plot_runscatter generates a plot", {
     log_scale = TRUE,
     return_plots = TRUE
   )
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(max(plot_data[[2]]$y),7.09307642)
-  expect_doppelganger("log plot_responsecurves plot", p)
+  vdiffr::expect_doppelganger("log_runscat", p)
 
   mexp_withzero <- mexp
   mexp_withzero@dataset$feature_intensity[sample(1:499, 10)] <- 0
@@ -85,10 +85,10 @@ test_that("plot_runscatter generates a plot", {
   )
   expect_false(is.null(p))
   expect_equal(max(p[[1]]$data$value_mod),18.2841845)
-  plot_data <- ggplot_build(p[[1]])$data[[2]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
   expect_equal(nrow(plot_data), 5988)
 
-  temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
+  temp_pdf_path <- file.path(tempdir(), "midar_test_runscay.pdf")
   p <- plot_runscatter(
     data = mexp,
     variable = "conc",
@@ -119,9 +119,9 @@ test_that("plot_runscatter filter work", {
     return_plots = TRUE
   )
   expect(length(p), 1)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 3456)
-  expect_doppelganger("filtered plot_responsecurves plot", p)
+  vdiffr::expect_doppelganger("filtered plot_runscat plot", p)
 
   # Test range filter and also regex for qc type
   p <- plot_runscatter(
@@ -137,10 +137,10 @@ test_that("plot_runscatter filter work", {
     return_plots = TRUE
   )
   expect(length(p), 1)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 3456)
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  expect_doppelganger("filtered range plot_responsecurves plot 2", p)
+  vdiffr::expect_doppelganger("range_runscat", p)
 
   # Test include e
   p <- plot_runscatter(
@@ -155,10 +155,10 @@ test_that("plot_runscatter filter work", {
     return_plots = TRUE
   )
   expect(length(p), 1)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 864)
   expect_equal(max(p[[1]]$data$value_mod),9364398.0)
-  expect_doppelganger("filtered range plot_responsecurves plot", p)
+  vdiffr::expect_doppelganger("filtered_runscat2", p)
 
   expect_error(
     p <- plot_runscatter(
@@ -218,7 +218,7 @@ test_that("plot_runscatter show batches works", {
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   # No batches lines/shapes, so data is in first item
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 5988)
 
   p <- plot_runscatter(
@@ -232,7 +232,7 @@ test_that("plot_runscatter show batches works", {
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   # No batches lines/shapes, so data is in first item
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 36)
 
 })
@@ -252,7 +252,7 @@ test_that("plot_runscatter outlier cap works", {
     cap_qc_k_mad = 2
   )
   expect_equal(max(p[[1]]$data$value_mod),6469419.7)
-  plot_data <- ggplot_build(p[[1]])$data[[3]] # not fully understand this test
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[3]] # not fully understand this test
   expect_equal(nrow(plot_data), 5988)
 
   p <- plot_runscatter(
@@ -333,7 +333,7 @@ test_that("plot_runscatter show reference lines works", {
     variable = "intensity",
     show_batches = TRUE,
     show_reference_lines = TRUE,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     reference_batchwise = FALSE,
     reference_sd_shade = FALSE,
     reference_k_sd = 2,
@@ -342,7 +342,7 @@ test_that("plot_runscatter show reference lines works", {
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data[[4]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[4]]
   expect_equal(unique(plot_data$linetype),"dashed")
 
 
@@ -352,7 +352,7 @@ test_that("plot_runscatter show reference lines works", {
     variable = "intensity",
     show_batches = TRUE,
     show_reference_lines = TRUE,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     reference_batchwise = FALSE,
     reference_sd_shade = TRUE,
     reference_k_sd = 2,
@@ -361,7 +361,7 @@ test_that("plot_runscatter show reference lines works", {
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data[[2]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
   expect_equal(unique(plot_data$alpha),0.15)
 
   # batch-wise reference lines
@@ -371,7 +371,7 @@ test_that("plot_runscatter show reference lines works", {
     variable = "intensity",
     show_batches = TRUE,
     show_reference_lines = TRUE,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     reference_batchwise = TRUE,
     reference_sd_shade = FALSE,
     reference_k_sd = 2,
@@ -380,7 +380,7 @@ test_that("plot_runscatter show reference lines works", {
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),6)
   expect_equal(mean(plot_data[[3]]$yend),2103609.1)
 
@@ -390,7 +390,7 @@ test_that("plot_runscatter show reference lines works", {
     variable = "intensity",
     show_batches = TRUE,
     show_reference_lines = TRUE,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     reference_batchwise = TRUE,
     reference_sd_shade = TRUE,
     reference_k_sd = 2,
@@ -399,11 +399,11 @@ test_that("plot_runscatter show reference lines works", {
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),5)
   expect_equal(unique(plot_data[[2]]$alpha),0.15)
   expect_equal(mean(plot_data[[2]]$ymax),2408485.4)
-  expect_doppelganger("extended plot_responsecurves plot with ref", p)
+  vdiffr::expect_doppelganger("ext_runscatter_ref", p)
 
   p <- plot_runscatter(
     data = mexp,
@@ -411,14 +411,14 @@ test_that("plot_runscatter show reference lines works", {
     show_batches = TRUE,
     show_reference_lines = TRUE,
     reference_batchwise = FALSE,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     reference_k_sd = NA,
     rows_page = 3,
     cols_page = 4,
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(length(plot_data),4)
   expect_equal(mean(plot_data[[3]]$yintercept), 2103633.9)
 
@@ -428,14 +428,14 @@ test_that("plot_runscatter show reference lines works", {
     show_batches = TRUE,
     show_reference_lines = TRUE,
     reference_batchwise = TRUE,
-    reference_qc_type = "SPL",
+    ref_qc_types = "SPL",
     reference_k_sd = 2,
     rows_page = 3,
     cols_page = 4,
     return_plots = TRUE
   )
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  plot_data <- ggplot_build(p[[1]])$data[[5]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[5]]
   expect_equal(dim(plot_data),c(72,10))
 
 
@@ -457,13 +457,13 @@ test_that("plot_runscatter show reference lines works", {
       data = mexp,
       variable = "intensity",
       show_reference_lines = TRUE,
-      reference_qc_type = "CAL",
+      ref_qc_types = "CAL",
       rows_page = 3,
       cols_page = 4,
       show_trend = TRUE,
       return_plots = TRUE
     ),
-    "Selected `reference_qc_type` not"
+    "Selected `ref_qc_types` not"
   )
 })
 
@@ -500,7 +500,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184,10))
   expect_equal(mean(plot_data[[2]]$y),2054300.962) #  data points
   expect_equal(dim(plot_data[[3]]),c(5184,9)) # smoothed ref data points
@@ -516,7 +516,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
@@ -532,7 +532,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
@@ -540,7 +540,7 @@ test_that("plot_runscatter show trend works", {
 
   mexp_drift <- correct_batch_centering(
     mexp_orig,
-    reference_qc_type = "BQC",
+    ref_qc_types = "BQC",
     variable = "intensity")
 
   p <- plot_runscatter(
@@ -553,7 +553,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # ref data points
   expect_equal(mean(plot_data[[2]]$y),2039591.3) #  data points
@@ -569,7 +569,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
@@ -585,7 +585,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
 
@@ -599,7 +599,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
@@ -616,7 +616,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184,10))
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
 
@@ -630,7 +630,7 @@ test_that("plot_runscatter show trend works", {
 
   mexp_drift2 <- correct_batch_centering(
     mexp_drift,
-    reference_qc_type = "SPL",
+    ref_qc_types = "SPL",
     variable = "intensity")
 
 
@@ -644,7 +644,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2044597.1) # data points
@@ -660,7 +660,7 @@ test_that("plot_runscatter show trend works", {
     return_plots = TRUE
   )
 
-  plot_data <- ggplot_build(p[[1]])$data
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(dim(plot_data[[2]]),c(5184, 10))
   expect_equal(dim(plot_data[[3]]),c(5184, 9)) # smoothed data points
   expect_equal(mean(plot_data[[2]]$y),2054300.962) # data points
@@ -784,13 +784,13 @@ expect_error(
     analysis_order_range = c(100,400),
     return_plots = TRUE,
   )
- expect_doppelganger("plot_runscatter analysis_range filter",p)
+ vdiffr::expect_doppelganger("runscatterrange_filter",p)
 })
 
 test_that("plot_runsequence works with basic parameters", {
   p <- plot_runsequence(mexp, show_batches = TRUE)
   expect_s3_class(p, "gg")
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(plot_data[[1]]$xintercept[1],93.5) # check no date as x axis
   expect_equal(dim(plot_data[[2]]),c(499,10))
 
@@ -801,32 +801,32 @@ test_that("plot_runsequence works with basic parameters", {
   expect_true(any(grepl("y", p$mapping))) # Check if y axis is not present
 
   p <- plot_runsequence(data = mexp, show_batches = FALSE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(length(plot_data),1) # additional layer for batches geoms
 
 
   p <- plot_runsequence(data = mexp, show_batches = TRUE,
                         batch_zebra_stripe = FALSE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(length(plot_data),2) # additional layer for batches geoms
   expect_equal(dim(plot_data[[1]]),c(6,7)) # rows for each line
 
   p <- plot_runsequence(data = mexp, show_batches = TRUE, batch_zebra_stripe = TRUE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(length(plot_data),2) # additional layer for batches geoms
   expect_equal(dim(plot_data[[1]]),c(3,11)) # rows for each stripe
 
   p <- plot_runsequence(mexp, show_batches = TRUE, show_timestamp = TRUE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(as.character(plot_data[[1]]$xintercept[1]),
                "2017-10-20 14:15:36") # check x axis uses data
 
   p <- plot_runsequence(mexp,qc_types = c("SPL", "BQC", "RQC"), show_batches = TRUE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(dim(plot_data[[2]]),c(444,10))
 
   p <- plot_runsequence(mexp,qc_types = c("SPL|BQC|RQC"), show_batches = TRUE)
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   # expect_equal(dim(plot_data[[2]]),c(445,10))
 
 })
@@ -838,11 +838,11 @@ test_that("plot_rla_boxplot works with basic parameters", {
                         variable = "intensity",
                         show_batches = TRUE)
   expect_s3_class(p, "gg")
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(plot_data[[1]]$xintercept[1],93.5) # check batches shown
   expect_equal(dim(plot_data[[2]]),c(499,26)) # more columns for box plots
   expect_equal(mean(plot_data[[2]]$middle),-0.193117043184098)
-  expect_doppelganger("default plot_rla_boxplot plot", p)
+  vdiffr::expect_doppelganger("default plot_rla_boxplot plot", p)
 
 
 p <- plot_rla_boxplot(mexp,
@@ -850,7 +850,7 @@ p <- plot_rla_boxplot(mexp,
                       variable = "intensity",
                       show_batches = TRUE)
 
-plot_data <- ggplot_build(p)$data
+plot_data <- ggplot2::ggplot_build(p)$data
 expect_equal(mean(plot_data[[2]]$middle),-0.185713556)
 expect_equal(max(plot_data[[2]]$x),499)
 
@@ -869,7 +869,7 @@ expect_no_error(
                         batch_zebra_stripe = TRUE)
 )
 
-plot_data <- ggplot_build(p)$data
+plot_data <- ggplot2::ggplot_build(p)$data
 expect_equal(dim(plot_data[[1]]),c(3,11))
 expect_equal(max(plot_data[[2]]$x),499)
 
@@ -878,7 +878,7 @@ p <- plot_rla_boxplot(mexp,
                       variable = "intensity",
                       show_batches = TRUE,
                       batch_zebra_stripe = TRUE)
-plot_data <- ggplot_build(p)$data
+plot_data <- ggplot2::ggplot_build(p)$data
 expect_equal(dim(plot_data[[1]]),c(3,11)) # rows for each stripe
 
 p <- plot_rla_boxplot(mexp,
@@ -886,8 +886,8 @@ p <- plot_rla_boxplot(mexp,
                       variable = "intensity",
                       show_batches = TRUE,
                       show_timestamp = TRUE)
-plot_data <- ggplot_build(p)$data
-expect_doppelganger("datetime plot_rla_boxplot plot", p)
+plot_data <- ggplot2::ggplot_build(p)$data
+vdiffr::expect_doppelganger("datetime plot_rla_boxplot plot", p)
 
 p <- plot_rla_boxplot(mexp,
                       rla_type_batch = "across",
@@ -895,7 +895,7 @@ p <- plot_rla_boxplot(mexp,
                       show_batches = TRUE,
                       show_timestamp = FALSE,
                       x_gridlines = TRUE)
-expect_doppelganger("with x gridlines plot_rla_boxplot plot", p)
+vdiffr::expect_doppelganger("with_x_gridlines_rla", p)
 
 
 p <- plot_rla_boxplot(mexp,
@@ -903,7 +903,7 @@ p <- plot_rla_boxplot(mexp,
                       variable = "intensity",
                       show_batches = FALSE)
 
-plot_data <- ggplot_build(p)$data
+plot_data <- ggplot2::ggplot_build(p)$data
 expect_equal(length(plot_data),2) # no batches shown
 
 p <- plot_rla_boxplot(mexp,
@@ -912,7 +912,7 @@ p <- plot_rla_boxplot(mexp,
                       analysis_order_range = c(100,400),
                       show_batches = TRUE)
 
-plot_data <- ggplot_build(p)$data
+plot_data <- ggplot2::ggplot_build(p)$data
 expect_equal(mean(plot_data[[2]]$middle),-0.089183905)
 expect_equal(min(plot_data[[2]]$x),100)
 expect_equal(max(plot_data[[2]]$x),400)
@@ -923,7 +923,7 @@ p <- plot_rla_boxplot(mexp,
                       ignore_outliers = TRUE,
                       show_batches = TRUE)
 
-expect_doppelganger("outlier removed plot_rla_boxplot plot", p)
+vdiffr::expect_doppelganger("outlierremov_rla", p)
 
 p <- plot_rla_boxplot(mexp,
                       rla_type_batch = "across",
@@ -931,6 +931,6 @@ p <- plot_rla_boxplot(mexp,
                       y_lim = c(-2,3),
                       show_batches = TRUE)
 
-expect_doppelganger("y_lim set plot_rla_boxplot plot", p)
+vdiffr::expect_doppelganger("y_lim_rla", p)
 
 })

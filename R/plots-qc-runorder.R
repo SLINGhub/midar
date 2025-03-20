@@ -268,7 +268,7 @@ plot_runsequence <- function(data = NULL,
 #'
 #' @param show_reference_lines Whether to display reference lines (mean \eqn{\pm} n x SD).
 #' @param reference_k_sd Multiplier for standard deviations to define SD reference lines.
-#' @param reference_qc_type QC type for which the reference lines are calculated.
+#' @param ref_qc_types QC type for which the reference lines are calculated.
 #' @param reference_batchwise Whether to calculate reference lines per batch.
 #' @param reference_sd_shade `TRUE` plots a colored band indicating the \eqn{\pm} n x SD
 #' reference range. `FALSE` (default) shows reference lines instead.
@@ -333,7 +333,7 @@ plot_runscatter <- function(data = NULL,
 
                             # Control reference lines (mean and SD lines)
                             show_reference_lines = FALSE,
-                            reference_qc_type = NA,
+                            ref_qc_types = NA,
                             reference_k_sd = 2,
                             reference_batchwise = FALSE,
                             reference_line_color = "#04bf9a",
@@ -391,11 +391,11 @@ plot_runscatter <- function(data = NULL,
 
 
 
-  if(show_reference_lines && is.na(reference_qc_type)) {
-    cli::cli_abort("Please define a QC to show reference lines, via the `reference_qc_type` argument or set `show_reference_lines = FALSE`.")
+  if(show_reference_lines && is.na(ref_qc_types)) {
+    cli::cli_abort("Please define a QC to show reference lines, via the `ref_qc_types` argument or set `show_reference_lines = FALSE`.")
   }
-  if(show_reference_lines && (!any(reference_qc_type %in% unique(data@dataset$qc_type)))) {
-    cli::cli_abort("Selected `reference_qc_type` not present in the dataset.")
+  if(show_reference_lines && (!any(ref_qc_types %in% unique(data@dataset$qc_type)))) {
+    cli::cli_abort("Selected `ref_qc_types` not present in the dataset.")
   }
 
   if (str_detect(variable, "_before|_raw")) {
@@ -553,7 +553,7 @@ plot_runscatter <- function(data = NULL,
         batch_fill_color, y_label = y_label, base_font_size = base_font_size,
       point_border_width = point_border_width, show_grid = show_gridlines,
       log_scale = log_scale, analysis_order_range = analysis_order_range,
-      show_reference_lines = show_reference_lines, reference_qc_type = reference_qc_type, reference_k_sd = reference_k_sd,
+      show_reference_lines = show_reference_lines, ref_qc_types = ref_qc_types, reference_k_sd = reference_k_sd,
       reference_batchwise = reference_batchwise, reference_line_color = reference_line_color, reference_sd_shade = reference_sd_shade, reference_fill_color = reference_fill_color,
       reference_linewidth = reference_linewidth, trend_color = trend_color
     )
@@ -582,7 +582,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                                 show_trend, cap_outliers,
                                 show_batches, batch_zebra_stripe, batch_line_color, batch_fill_color,
                                 output_pdf, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
-                                show_grid, log_scale, analysis_order_range, show_reference_lines,reference_qc_type, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
+                                show_grid, log_scale, analysis_order_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
                                 reference_linewidth, trend_color) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_border_width <- dplyr::if_else(output_pdf, .3, .5)
@@ -655,7 +655,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     if(reference_batchwise) grp = c("feature_id", "batch_id") else grp = c("feature_id")
     d_subset_stats <- d_subset |>
       left_join(d_batches, by = c("batch_id")) |>
-      filter(.data$qc_type == reference_qc_type) |>
+      filter(.data$qc_type == ref_qc_types) |>
       group_by(across(all_of(grp))) |>
       # TODO: could be cleaned up
       summarise(mean = mean(.data$value_mod, na.rm = TRUE),
@@ -671,7 +671,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 
     if(reference_sd_shade){
-      if(is.na(reference_fill_color)) reference_fill_color <- pkg.env$qc_type_annotation$qc_type_col[reference_qc_type]
+      if(is.na(reference_fill_color)) reference_fill_color <- pkg.env$qc_type_annotation$qc_type_col[ref_qc_types]
       p <- p +
         ggplot2::geom_rect(data = d_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$y_min_cap , ymax = .data$y_max_cap, group = .data$batch_id), fill = reference_fill_color, linewidth = reference_linewidth, alpha = .15)
     }

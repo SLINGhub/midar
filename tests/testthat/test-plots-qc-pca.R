@@ -21,7 +21,7 @@ test_that("plot_pca works", {
            filter_data = FALSE)),
   "The PCA was calculated based on \\`feature_intensity\\` values of 19 features")
 
-  expect_doppelganger("default plot_pca plot 1", p)
+  vdiffr::expect_doppelganger("default plot_pca plot 1", p)
 
 
     p <- plot_pca(mexp,
@@ -40,7 +40,7 @@ test_that("plot_pca works", {
                 ellipse_alpha = 0.2,
                 filter_data = FALSE)
 
-  expect_doppelganger("default plot_pca plot 2", p)
+  vdiffr::expect_doppelganger("default plot_pca plot 2", p)
 
   p <- plot_pca(mexp,
                 variable = "intensity",
@@ -49,7 +49,7 @@ test_that("plot_pca works", {
                 show_labels = FALSE,
                 filter_data = FALSE)
 
-  expect_doppelganger("default plot_pca plot 3 no labels", p)
+  vdiffr::expect_doppelganger("default plot_pca plot 3 no labels", p)
 
   p <- plot_pca(mexp,
                 variable = "intensity",
@@ -60,8 +60,8 @@ test_that("plot_pca works", {
                 shared_labeltext_hide = "Longit_",
                 filter_data = FALSE)
 
-  expect_doppelganger("default plot_pca plot 4 label-shared-rm", p)
-  plot_data <- ggplot_build(p)$data
+  vdiffr::expect_doppelganger("default plot_pca plot 4 label-shared-rm", p)
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(max(plot_data[[3]]$x, na.rm = T),6.838079)
 
   p <- plot_pca(mexp,
@@ -71,7 +71,7 @@ test_that("plot_pca works", {
                 log_transform = FALSE,
                 filter_data = FALSE)
 
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(max(plot_data[[3]]$x, na.rm = T),3.8357779)
 
   plot_pca(mexp,
@@ -90,7 +90,7 @@ test_that("plot_pca works", {
            ellipse_levels = c("BQC", "TQC"),
            ellipse_fillcolor = c("cyan", "blue"))
 
-  expect_doppelganger("default plot_pca plot 5 user fill colors", p)
+  vdiffr::expect_doppelganger("default plot_pca plot 5 user fill colors", p)
 
   p <- plot_pca(mexp,
            variable = "intensity",
@@ -103,7 +103,7 @@ test_that("plot_pca works", {
            ellipse_levels = c("BQC", "TQC"),
            ellipse_fillcolor = c("BQC" = "cyan", "TQC" = "blue"))
 
-  expect_doppelganger("default plot_pca plot 5 user mapped fill colors", p)
+  vdiffr::expect_doppelganger("default plot_pca plot 5 user mapped fill colors", p)
 
 })
 
@@ -119,7 +119,7 @@ test_that("plot_pca filter work", {
                   filter_data = FALSE),
     "values of 13 features.")
 
-  plot_data <- ggplot_build(p)$data
+  plot_data <- ggplot2::ggplot_build(p)$data
   expect_equal(max(plot_data[[3]]$x, na.rm = T),3.50274432)
 
   # check missing values

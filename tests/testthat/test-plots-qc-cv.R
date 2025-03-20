@@ -14,7 +14,7 @@ test_that("plot_qcmetrics_comparison plot looks as expected", {
     equality_line = TRUE,
     facet_by_class = TRUE
   )
-  expect_doppelganger("default plot_qcmetrics_comparison plot", p)
+  vdiffr::expect_doppelganger("default plot_qcmetrics_comparison plot", p)
 })
 
 
@@ -26,7 +26,7 @@ test_that("plot_qcmetrics_comparison plot looks as expected", {
     qc_type = "BQC",
     facet_by_class = TRUE,
   )
-  expect_doppelganger("default plot_normalization_qc plot", p)
+  vdiffr::expect_doppelganger("default plot_normalization_qc plot", p)
 })
 
 
@@ -43,7 +43,7 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
   expect_s3_class(p, "gg")
 
   # Extract the plot's data (data frame used for the first layer)
-  plot_data <- ggplot_build(p)$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p)$data[[1]]
     # Test if the number of points in the plot matches the expected value
   expect_equal(nrow(plot_data), 29)
 
@@ -113,7 +113,7 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
     )
   )
   # Extract the plot's data (data frame used for the first layer)
-  plot_data <- ggplot_build(p)$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
   expect_equal(nrow(plot_data), 19)
 
@@ -128,7 +128,7 @@ test_that("plot_qcmetrics_comparison() generates a plot", {
   )
 
   # Extract the plot's data (data frame used for the first layer)
-  plot_data <- ggplot_build(p)$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
   expect_equal(nrow(plot_data), 18)
 
@@ -149,7 +149,7 @@ test_that("plot_normalization_qc() generates a plot", {
   expect_s3_class(p, "gg")
 
   # Extract the plot's data (data frame used for the first layer)
-  plot_data <- ggplot_build(p)$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
   expect_equal(nrow(plot_data), 28)
 

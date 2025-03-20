@@ -23,7 +23,7 @@ test_that("plot_responsecurves generates a plot", {
   expect_s3_class(p[[1]], "gg")
   # Check how many pages
   expect_equal(length(p), 2)
-  expect_doppelganger("default plot_calibration plot 1", p[[1]])
+  vdiffr::expect_doppelganger("default plot_calibration plot 1", p[[1]])
 
   p <- plot_calibrationcurves(
     data = mexp,
@@ -37,7 +37,7 @@ test_that("plot_responsecurves generates a plot", {
   expect_s3_class(p[[1]], "gg")
   # Check how many pages
   expect_equal(length(p), 2)
-  expect_doppelganger("no ci plot_calibration plot ", p[[1]])
+  vdiffr::expect_doppelganger("no ci plot_calibration plot ", p[[1]])
 
   expect_no_error(
     p <- plot_calibrationcurves(
@@ -50,7 +50,7 @@ test_that("plot_responsecurves generates a plot", {
       return_plots = TRUE
     )
   )
-  expect_doppelganger("log-log plot_calibration plot default ", p[[1]])
+  vdiffr::expect_doppelganger("log-log plot_calibration plot default ", p[[1]])
 
   expect_message(
     p <- plot_calibrationcurves(
@@ -63,7 +63,7 @@ test_that("plot_responsecurves generates a plot", {
       cols_page = 2,
       return_plots = TRUE
   ), "Regions of the regression confidence intervals are partially")
-    expect_doppelganger("log-log plot_calibration plot with ci ", p[[1]])
+    vdiffr::expect_doppelganger("log-log plot_calibration plot with ci ", p[[1]])
 
 
     mexp_temp <- mexp
@@ -104,7 +104,7 @@ test_that("plot_responsecurves generates a plot", {
 
 
   # Test if the number of points in the plot matches the expected value
-  plot_data <- ggplot_build(p[[1]])$data[[1]]
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
   expect_equal(nrow(plot_data), 400)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_calibcurve.pdf")
@@ -305,7 +305,7 @@ test_that("curve color definition works", {
       output_pdf = FALSE,
       return_plots = TRUE
     ))
-  p_data <- ggplot_build(p[[1]])$data
+  p_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(unique(p_data[[4]]$fill), c("red", "green", "blue"))
 
 
@@ -429,7 +429,7 @@ test_that("plot_responsecurves generates a plot with calib failes", {
   "Regression failed for 4 features")
   expect_s3_class(p[[1]], "gg")
   expect_equal(length(p), 2)
-  expect_doppelganger("default plot_calibration plot log_axes 1", p[[1]])
+  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 1", p[[1]])
 
 
   p <- plot_calibrationcurves(
@@ -443,7 +443,7 @@ test_that("plot_responsecurves generates a plot with calib failes", {
   )
   expect_s3_class(p[[1]], "gg")
   expect_equal(length(p), 2)
-  expect_doppelganger("default plot_calibration plot log_axes 2", p[[1]])
+  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 2", p[[1]])
 
 })
 
