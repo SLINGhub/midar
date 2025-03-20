@@ -41,26 +41,20 @@ jobs:
         run: |
           Rscript -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
 
-      - name: Install pak
+      - name: Install dependencies
         run: |
-          Rscript -e 'install.packages("pak", repos = "https://cloud.r-project.org")'
+          Rscript -e 'install.packages(c("assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "bibtex", "here"), repos = "https://cloud.r-project.org")'
 
       - name: Install lancer from GitHub
         run: |
           Rscript -e 'devtools::install_github("SLINGhub/lancer")'
 
-      - name: Install other dependencies
-        run: |
-          Rscript -e 'install.packages("sessioninfo", repos = "https://cloud.r-project.org")'
-          Rscript -e 'install.packages("rcmdcheck", repos = "https://cloud.r-project.org")'
-
-      - name: Setup R Dependencies
-        run: |
-          Rscript -e 'pak::pkg_install(c("any::rcmdcheck"), dependencies = TRUE)'
-          Rscript -e 'pak::pkg_install(c("devtools", "assertr", "dtplyr", "forcats", "lubridate", "readr", "openxlsx2", "ggh4x", "ggvenn", "ggbeeswarm", "ggsignif", "ggforce", "ggpmisc", "ggnewscale", "ggrepel", "ComplexHeatmap", "ggExtr", "bibtex", "here"), dependencies = TRUE)'
-
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-          build_args: 'c("--no-manual","--no-tests", "--compact-vignettes=gs+qpdf")'
+          build_args: 'c("--no-tests", "--no-manual", "--compact-vignettes=gs+qpdf")'
