@@ -36,27 +36,27 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: |
-            any::rcmdcheck
-            any::devtools
-            any::remotes
-          needs: check
-
       - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 
+      - name: Install dependencies
+        run: |
+          install.packages('remotes')
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran(c('rcmdcheck', 'devtools'))
+        shell: Rscript {0}
+
       - name: Install lancer
         run: |
-          Rscript -e 'remotes::install_github("SLINGhub/lancer")'
+          remotes::install_github("SLINGhub/lancer")
+        shell: Rscript {0}
 
       - name: Install additional dependencies
         run: |
-          Rscript -e 'install.packages(c(
+          install.packages(c(
             "assertr",
             "dtplyr",
             "forcats",
@@ -74,9 +74,20 @@ jobs:
             "ComplexHeatmap",
             "bibtex",
             "here"
-          ), repos = "https://cloud.r-project.org")'
+          ))
+        shell: Rscript {0}
 
-      - uses: r-lib/actions/check-r-package@v2
+      - name: Check
+        env:
+          _R_CHECK_CRAN_INCOMING_: false
+        run: |
+          options(crayon.enabled = TRUE)
+          rcmdcheck::rcmdcheck(args = c("--no-manual", "--no-tests", "--as-cran"), error_on = "warning", check_dir = "check")
+        shell: Rscript {0}
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@v3
         with:
-          upload-snapshots: true
-          build_args: 'c("--no-tests", "--no-manual", "--compact-vignettes=gs+qpdf")'
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: check
