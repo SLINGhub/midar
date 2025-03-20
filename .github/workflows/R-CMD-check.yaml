@@ -37,17 +37,22 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - name: Install dependencies
+      - name: Install devtools
         run: |
           Rscript -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
+
+      - name: Install lancer from GitHub
+        run: |
           Rscript -e 'devtools::install_github("SLINGhub/lancer")'
+
+      - name: Install other dependencies
+        run: |
           Rscript -e 'install.packages("sessioninfo", repos = "https://cloud.r-project.org")'
           Rscript -e 'install.packages("rcmdcheck", repos = "https://cloud.r-project.org")'
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::rcmdcheck
-          needs: check
+      - name: Setup R Dependencies
+        run: |
+          Rscript -e 'pak::pkg_install(c("any::rcmdcheck"), dependencies = TRUE)'
 
       - uses: r-lib/actions/check-r-package@v2
         with:
