@@ -34,7 +34,7 @@ batches resulting in separate result files.
 Following formats are currently supported:
 
 | Source | MiDAR function | Details | File |
-|--------------|----------------|-----------------------------|--------------|
+|----|----|----|----|
 | Agilent MassHunter | `import_data_massshunter()` | Flat and nested tables from MassHunter Quant. | .csv |
 | MRMkit | `import_data_mrmkit()` | Long format output format | .tsv |
 | Plain wide CSV | `import_data_table()` | Samples/analyses as rows and features as columns. Can contain columns specific sample annotations. | .csv |
@@ -99,11 +99,11 @@ myexp <- midar::import_data_csv(
 
 # Importing and merging multiple files
 
-Multiple data files can be imported and merged. Users can
-either provide a list of file paths or specify a folder path to import
-all data files within that directory. This support for multiple files is
-useful when raw data processing is divided into batches, leading to
-separate result files.
+Multiple data files can be imported and merged. Users can either provide
+a list of file paths or specify a folder path to import all data files
+within that directory. This support for multiple files is useful when
+raw data processing is divided into batches, leading to separate result
+files.
 
 The imported merged data is checked for consistency, ensuring that each
 analysis ID and feature ID pair is unique. This means that the same

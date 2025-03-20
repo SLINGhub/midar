@@ -21,6 +21,8 @@ navbar:
         href: articles/T02_settingup_workflow.html
       - text: Targeted lipidomics with QC
         href: articles/T01_targetlipidomics_workflow.html
+      - text: Drift and Batch Correction
+        href: articles/T_BatchDriftCorrect.html
       - text: '-------'
       - text: Recipes
       - text: Quantitative assay with ext. calibration and QC
@@ -43,7 +45,7 @@ navbar:
         href: articles/05_metadataimport.html
       - text: '-------'
       - text: Batch/Drift Correction
-        href: articles/07_BatchDriftCorrect.html
+        href: articles/07_driftbatchcorr.html
     news:
       text: News
       href: news/index.html

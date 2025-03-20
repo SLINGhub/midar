@@ -48,6 +48,7 @@
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
     <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
+    <li><a class="dropdown-item" href="../articles/T_BatchDriftCorrect.html">Drift and Batch Correction</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
     <li><a class="dropdown-item" href="../articles/R01_quantms.html">Quantitative assay with ext. calibration and QC</a></li>
@@ -65,7 +66,7 @@
     <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
     <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/07_BatchDriftCorrect.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_driftbatchcorr.html">Batch/Drift Correction</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -101,12 +102,41 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>The <code>MidarExperiment</code> object is the main <strong>data
-container</strong> used in the MiDAR workflow. See ‘Data Structure’ for
-more information.</p>
+container</strong> used in the MiDAR workflow, see also <a href="01_datastructure.html">Data and Metadata in MiDAR</a>. It holds
+all the experimental and processed data and metadata, as well as other
+details. <code>MidarExperiment</code> is an S4 object with following
+slots:</p>
+<pre><code>MidarExperiment
+  ├─title:  chr "My LCMS Assay"
+  ├─analysis_type:  chr NA
+  ├─feature_intensity_var:  chr "feature_area"
+  ├─dataset_orig: tibble [400 × 26] (S3: tbl_df/tbl/data.frame)
+  ├─dataset: tibble [400 × 26] (S3: tbl_df/tbl/data.frame)
+  ├─dataset_filtered: tibble [0 × 14] (S3: tbl_df/tbl/data.frame)
+  ├─annot_analyses: tibble [25 × 13] (S3: tbl_df/tbl/data.frame)
+  ├─annot_features: tibble [16 × 16] (S3: tbl_df/tbl/data.frame)
+  ├─annot_istds: tibble [8 × 4] (S3: tbl_df/tbl/data.frame)
+  ├─annot_responsecurves: tibble [0 × 3] (S3: tbl_df/tbl/data.frame)
+  ├─annot_qcconcentrations: tibble [32 × 5] (S3: tbl_df/tbl/data.frame)
+  ├─annot_studysamples: tibble [0 × 0] (S3: tbl_df/tbl/data.frame)
+  ├─annot_batches: tibble [1 × 4] (S3: tbl_df/tbl/data.frame)
+  ├─metrics_qc: tibble [0 × 0] (S3: tbl_df/tbl/data.frame)
+  ├─metrics_calibration: tibble [4 × 15] (S3: tbl_df/tbl/data.frame)
+  ├─parameters_processing: tibble [0 × 1] (S3: tbl_df/tbl/data.frame)
+  ├─status_processing:  chr "Calibration-quantitated data"
+  ├─is_istd_normalized:  logi TRUE
+  ├─is_quantitated:  logi TRUE
+  ├─is_filtered:  logi FALSE
+  ├─has_outliers_tech:  logi FALSE\
+  ├─is_isotope_corr:  logi FALSE
+  ├─analyses_excluded:  logi NA
+  ├─features_excluded:  logi NA
+  ├─var_drift_corrected:  Named logi [1:3] FALSE FALSE FALSE
+  ├─var_batch_corrected:  Named logi [1:3] FALSE FALSE FALSE</code></pre>
 <div class="section level4">
 <h4 id="creating-a-midarexperiment-object">Creating a MidarExperiment object<a class="anchor" aria-label="anchor" href="#creating-a-midarexperiment-object"></a>
 </h4>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SLINGhub/midar" class="external-link">midar</a></span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -116,7 +146,7 @@ more information.</p>
 <p>Most <code>MiDAR</code> functions take an MidarExperiment object as
 input. Data processing functions return a modified
 <code>MidarExperiment</code>, which can be in subsequent step.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
@@ -128,7 +158,7 @@ input. Data processing functions return a modified
 <p>R pipes can also be used, allowing to chain multiple functions
 together. This can more clearly indicate the processing workflow and
 make the code more easier to read.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="va">myexp</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -143,7 +173,7 @@ make the code more easier to read.</p>
 </h4>
 <p>Multiple <code>MidarExperiment</code> objects can be created and
 processed independently within the same script.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m_polars</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Polar metabolites"</span><span class="op">)</span></span>
 <span><span class="va">m_lipids</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Non-polar metabolites"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -152,7 +182,7 @@ processed independently within the same script.</p>
 </h4>
 <p>Functions starting with <code>data_get_</code> allow to retrieve data
 and metadat from <code>MidarExperiment</code> object.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">dataset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_analyticaldata.html">get_analyticaldata</a></span><span class="op">(</span><span class="va">myexp</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
@@ -178,7 +208,7 @@ and metadat from <code>MidarExperiment</code> object.</p>
 <span><span class="co">#&gt; <span style="color: #949494;">#   feature_intensity &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>Alternatively, the <code>$</code> syntax can be used access data and
 metadata tables in <code>MidarExperiment</code> objects.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">analyses</span> <span class="op">&lt;-</span> <span class="va">myexp</span><span class="op">$</span><span class="va">annot_analyses</span></span>
 <span><span class="va">features</span> <span class="op">&lt;-</span> <span class="va">myexp</span><span class="op">$</span><span class="va">annot_features</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">features</span><span class="op">)</span></span>
@@ -205,7 +235,7 @@ metadata tables in <code>MidarExperiment</code> objects.</p>
 <div class="section level4">
 <h4 id="saving-and-reading-midarexperiment-objects">Saving and Reading MidarExperiment objects<a class="anchor" aria-label="anchor" href="#saving-and-reading-midarexperiment-objects"></a>
 </h4>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/data_load_example.html">data_load_example</a></span><span class="op">(</span><span class="va">myexp</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">myexp</span>, file <span class="op">=</span> <span class="st">"myexp-midar.rds"</span>, compress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -216,7 +246,7 @@ metadata tables in <code>MidarExperiment</code> objects.</p>
 </h4>
 <p>A detailed summary of the dataset and processing status can be
 printed any time</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">my_saved_exp</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
