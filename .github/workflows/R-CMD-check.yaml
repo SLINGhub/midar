@@ -39,10 +39,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages("devtools")
-          devtools::install_github("SLINGhub/lancer")
-          install.packages("sessioninfo", repos = "https://cloud.r-project.org")
-          install.packages("rcmdcheck", repos = "https://cloud.r-project.org")
+          Rscript -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
+          Rscript -e 'devtools::install_github("SLINGhub/lancer")'
+          Rscript -e 'install.packages("sessioninfo", repos = "https://cloud.r-project.org")'
+          Rscript -e 'install.packages("rcmdcheck", repos = "https://cloud.r-project.org")'
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
