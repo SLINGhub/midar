@@ -69,13 +69,14 @@ get_metadata_batches <- function(annot_analyses){
 #'
 #' mexp <- import_data_mrmkit(
 #'   data = mexp,
-F#'   path = system.file("extdata", "MRMkit_demo.tsv", package = "midar"),
+#'   path = system.file("extdata", "MRMkit_demo.tsv", package = "midar"),
 #'   import_metadata = TRUE)
 #'
 #' mexp <- import_metadata_msorganizer(
 #'  data = mexp,
-#'  path = system.file("extdata", "Example_Metadata_1.xlsm, package = "midar"),
-#'  excl_unmatched_analyses = FALSE)
+#'  path = system.file("extdata", "Example_Metadata_1.xlsm", package = "midar"),
+#'  excl_unmatched_analyses = FALSE,
+#'  ignore_warnings = TRUE)
 #'
 #' print(mexp)
 #'

@@ -100,20 +100,34 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_data_masshunter.html">import_data_masshunter</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_data_mrmkit.html">import_data_mrmkit</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  data <span class="op">=</span> <span class="va">mexp</span>,</span></span>
-<span class="r-in"><span>  path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Example_MHQuant_Small.csv"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"MRMkit_demo.tsv"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Imported 65 analyses with 16 features</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Imported 499 analyses with 28 features</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">`feature_area` selected as default feature intensity. Modify with `set_intensity_var()`.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 16 features.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 28 features.</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu">import_metadata_msorganizer</span><span class="op">(</span></span></span>
 <span class="r-in"><span> data <span class="op">=</span> <span class="va">mexp</span>,</span></span>
-<span class="r-in"><span> path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Example_Metadata_Small.xlsm"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span> excl_unmatched_analyses <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in openxlsx2::wb_load(path):</span> File does not exist.</span>
+<span class="r-in"><span> path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"Example_Metadata_1.xlsm"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> excl_unmatched_analyses <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
+<span class="r-in"><span> ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Metadata has following warnings and notifications:</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Type Table    Column                Issue                           Count</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> W*   Analyses analysis_id           Analyses not in analysis data      15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> W*   Features feature_id            Feature(s) not in analysis data   321</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> W*   Features feature_id            Feature(s) without metadata         1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> W*   ISTDs    quant_istd_feature_id Internal standard(s) not used       2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">E = Error, W = Warning, W* = Supressed Warning, N = Note</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 499 analyses.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 27 features.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 15 ISTDs.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Response curve metadata associated with 12 annotated analyses.</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
@@ -124,16 +138,16 @@
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Annotated Raw Data</span> ──</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Analyses: 65</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Features: 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Analyses: 499</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Features: 27</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Raw signal used for processing: `feature_area`</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="font-weight: bold;">Metadata</span> ──</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Analyses/samples: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Features/analytes: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Internal standards: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> • Response curves: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Internal standards: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Response curves: <span style="color: #00BB00; font-weight: bold;">✔</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Calibrants/QC concentrations: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Study samples: <span style="color: #BB0000; font-weight: bold;">✖</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> </span>

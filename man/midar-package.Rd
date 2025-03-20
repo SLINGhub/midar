@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-R functions to facilitate managing, processing and evaluating lipidomics data.
+R functions to facilitate managing, processing and evaluating lipidomics data
 }
 \seealso{
 Useful links:
