@@ -455,6 +455,8 @@ using the same plot on several occasions, we create a simple function
 that wraps the plot with many parameters preset.
 
 ```{r trendplot-fun}
+#| fig.alt: >
+#|   RunScatter plots with trends before and after corrections
 
 # Define a wrapper function
 
@@ -519,7 +521,7 @@ example lipid species again.
 
 ```{r batch-effect-corr}
 #| fig.alt: >
-#|   Feature QC filter plot overall
+#|   RunScatter plots with trends after corrections
 myexp <- midar::correct_batch_centering(
   myexp, 
   variable = "conc",
