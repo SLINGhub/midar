@@ -41,6 +41,10 @@ jobs:
         run: |
           Rscript -e 'install.packages("devtools", repos = "https://cloud.r-project.org")'
 
+      - name: Install pak
+        run: |
+          Rscript -e 'install.packages("pak", repos = "https://cloud.r-project.org")'
+
       - name: Install rlang
         run: |
           Rscript -e 'install.packages("rlang", repos = "https://cloud.r-project.org")'
