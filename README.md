@@ -32,8 +32,7 @@ entire processing workflow for further analyses and documentation.
 scalable data processing pipelines.
 
 ## Getting Started
-Please visit the [Getting Started](https://slinghub.github.io/midar/) article for
-an overview of available tutorials and documentation on `MiDAR`.
+Please visit the [Getting Started](https://slinghub.github.io/midar/) page for tutorials and documentation on `MiDAR`.
 
 ## Installation
 ``` r
