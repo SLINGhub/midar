@@ -334,13 +334,13 @@ save_metadata_templates <- function(path = "metadata_template.xlsx") {
 #'
 #' @param path File path where the MiDAR Metadata Organizer file will be saved.
 #' If left empty (default), the file will be saved in the current working directory
-#' under the file "metadata_msorganizer_template.xlsm"
+#' under the file "metadata_msorganiser_template.xlsm"
 #' @export
 #'
 
-save_metadata_msorganizer_template <- function(path = "metadata_msorganizer_template.xlsm") {
+save_metadata_msorganiser_template <- function(path = "metadata_msorganiser_template.xlsm") {
   # Locate the template file inside the package
-  template_path <- system.file("extdata", "metadata_msorganizer_template.xlsm", package = "midar")
+  template_path <- system.file("extdata", "metadata_msorganiser_template.xlsm", package = "midar")
 
   if (fs::file_exists(path)) {
     cli_abort(col_red("A file with this name already exists at the specified location. Please delete it or choose a different filename or location."))

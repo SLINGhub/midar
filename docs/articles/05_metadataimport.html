@@ -48,10 +48,11 @@
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
     <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
-    <li><a class="dropdown-item" href="../articles/T_BatchDriftCorrect.html">Drift and Batch Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">Quantitative assay with ext. calibration and QC</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
   </ul>
 </li>
 <li class="active nav-item dropdown">
@@ -171,12 +172,12 @@ on validatiy and integrity of the metadata.</p>
 <p>The template can be obtained from <a href="https://github.com/SLINGhub/midar" class="external-link uri">https://github.com/SLINGhub/midar</a> or via a midar
 function</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_metadata_msorganizer_template.html">save_metadata_msorganizer_template</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_metadata_msorganiser_template.html">save_metadata_msorganiser_template</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Only the metadata tables required by the intended processing workflow
 need to be completed. With following import function all completed
 tables will be imported.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganizer.html">import_metadata_msorganizer</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
+<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span><span class="va">mexp</span>, </span>
 <span>                                    path <span class="op">=</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span>,</span>
 <span>                                    ignore_warnings<span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>

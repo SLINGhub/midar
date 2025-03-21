@@ -172,7 +172,7 @@ metadata by working through these warnings, or proceed using
 ```{r import-metadat}
 
 file_path <- "datasets/sPerfect_Metadata.xlsm"
-myexp <- import_metadata_msorganizer(myexp, path = file_path, ignore_warnings = TRUE)
+myexp <- import_metadata_msorganiser(myexp, path = file_path, ignore_warnings = TRUE)
 myexp <- set_analysis_order(myexp, order_by = "timestamp")
 myexp <- set_intensity_var(myexp, variable_name = "area")
 

@@ -1,0 +1,110 @@
+---
+title: "Batch-effect correction"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+vignette: >
+  %\VignetteIndexEntry{Batch-effect correction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 100
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>")
+```
+
+MiDAR currently supports median centering-based batch effect correction.
+
+The data must be provided via a MidarExperiment object, whereby raw data that was imported or
+processed data can be corrected, such as `intensity` or `conc` values.
+
+## Import data
+
+In this tutorial, we import pre-calculcated concentration values from a CSV file. This file must
+contain a column with batch information (`batch_id`), see `import_data_csv()` for more information.
+
+```{r setup}
+#| results: false  
+#| message: false
+library(midar)
+
+myexp <- midar::MidarExperiment()
+
+myexp <- import_data_csv(
+  myexp,
+  path = "simdata-u1000-sd100_7batches.csv", 
+  variable_name = "conc", 
+  import_metadata = TRUE)
+```
+
+## Apply batch-centering
+
+Now we center the concentration values of batches based on a reference qc type, the samples
+(`ref_qc_types = "SPL"`) in this case. The `correct_scale` parameter
+
+```{r}
+#| results: false  
+#| code-overflow: 'wrap'
+
+myexp <- correct_batch_centering(
+  data = myexp, 
+  variable = "conc",
+  ref_qc_types = "SPL", 
+  correct_scale = FALSE
+)
+
+```
+
+Next, we inspect the data before and after batch correction. We observe that the batches are now
+aligned. Note: If the samples or other quality control types do not follow the reference samples,
+they may not be appropriately corrected.
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+plot_runscatter(myexp, variable = "conc_before", rows_page = 1, cols_page = 1)
+plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
+```
+
+## Batch-centering with variance scaling
+
+Above, we observe that while the batches are aligned, the spread (variance) of the data points
+varies considerably between the batches. We can correct this by scaling the variance via
+`correct_scale = TRUE`. As shown in the plot below, the variance of the data points now appears
+fairly consistent across the batches.
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+myexp <- midar::correct_batch_centering(
+  myexp, 
+  ref_qc_types = "SPL", 
+  variable = "conc",
+  correct_scale = TRUE
+)
+
+plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
+
+```
+
+## Export batch-corrected data
+
+Next, we can either continue to work with the corrected data using `MiDAR` functions or export the
+data.
+
+```{r}
+save_dataset_csv(
+  myexp, 
+  path = "batch-corrected-conc-data.csv", 
+  variable = "conc", 
+  filter_data = FALSE
+  )
+```

@@ -21,7 +21,7 @@ set.seed(1041)
 options(dplyr.print_max = 10)
 
 if(fs::file_exists("metadata_template.xlsx")) fs::file_delete("metadata_template.xlsx")
-if(fs::file_exists("metadata_msorganizer_template.xlsm")) fs::file_delete("metadata_msorganizer_template.xlsm")
+if(fs::file_exists("metadata_msorganiser_template.xlsm")) fs::file_delete("metadata_msorganiser_template.xlsm")
 ```
 
 ### Metadata
@@ -110,7 +110,7 @@ The template can be obtained from <https://github.com/SLINGhub/midar> or
 via a midar function
 
 ```{r}
-midar::save_metadata_msorganizer_template()
+midar::save_metadata_msorganiser_template()
 ```
 
 Only the metadata tables required by the intended processing workflow
@@ -118,7 +118,7 @@ need to be completed. With following import function all completed
 tables will be imported.
 
 ```{r}
-mexp <- import_metadata_msorganizer(mexp, 
+mexp <- import_metadata_msorganiser(mexp, 
                                     path = "datasets/sPerfect_Metadata.xlsm",
                                     ignore_warnings= TRUE)
 ```

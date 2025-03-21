@@ -3,7 +3,7 @@
 
 # mexp <- midar::MidarExperiment()
 # mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("4_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_DetailedMethods.csv"), import_metadata = FALSE)
-# mexp <- midar::import_metadata_msorganizer(mexp,
+# mexp <- midar::import_metadata_msorganiser(mexp,
 #                                         path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
 #                                         excl_unmatched_analyses = FALSE)
 # readr::write_rds(mexp, testthat::test_path("testdata/MHQuant_demo.rds"))
@@ -324,7 +324,7 @@ test_that("set_analysis_order orders according to set criteria and absence/prese
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
                                         import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
+  mexp <- midar::import_metadata_msorganiser(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1_reorder.xlsm"),
                                           excl_unmatched_analyses = FALSE)
 
@@ -336,7 +336,7 @@ test_that("set_analysis_order orders according to set criteria and absence/prese
 
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq.csv"),
                                         import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
+  mexp <- midar::import_metadata_msorganiser(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1_reorder.xlsm"),
                                           excl_unmatched_analyses = FALSE)
   #Orders by default according to the timestamp, if available

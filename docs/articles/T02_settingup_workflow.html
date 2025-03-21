@@ -48,10 +48,11 @@
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
     <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
     <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
-    <li><a class="dropdown-item" href="../articles/T_BatchDriftCorrect.html">Drift and Batch Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">Quantitative assay with ext. calibration and QC</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -163,14 +164,14 @@ such as which internal standards are used to normalize, their
 concentrations and the sample amounts analysed. These metadata can be
 imported from separate files or R data frames as described in <a href="articles/T01_prepdata.html">Preparing and importing data</a>. To
 keep the code concience in this example, we will import metadata from an
-MSOrganizer template. The validation checks result in some warnings,
+msorganiser template. The validation checks result in some warnings,
 which will by default result in a failed metadata import. However,
 assuming we understand what we are doing, we decided to ignore these
 warnings by setting <code>ignore_warnings = TRUE</code>. They will still
 be shown in the table printed in the console, labelled with an asterix
 (*) in the <code>status</code> column.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganizer.html">import_metadata_msorganizer</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  path <span class="op">=</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span>, </span>
 <span>  ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span></span>

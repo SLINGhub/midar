@@ -21,11 +21,13 @@ navbar:
         href: articles/T02_settingup_workflow.html
       - text: Targeted lipidomics with QC
         href: articles/T01_targetlipidomics_workflow.html
-      - text: Drift and Batch Correction
-        href: articles/T_BatchDriftCorrect.html
+      - text: Drift Correction
+        href: articles/T_DriftCorrect.html
+      - text: Batch Correction
+        href: articles/T_BatchCorrect.html
       - text: '-------'
       - text: Recipes
-      - text: Quantitative assay with ext. calibration and QC
+      - text: External Calibration and QC
         href: articles/R01_quantms.html
     articles:
       text: Manual
@@ -98,10 +100,10 @@ reference:
   - import_metadata_istds
   - import_metadata_responsecurves
   - import_metadata_qcconcentrations
-  - import_metadata_msorganizer
+  - import_metadata_msorganiser
   - import_metadata_from_data
   - save_metadata_templates
-  - save_metadata_msorganizer_template
+  - save_metadata_msorganiser_template
   - add_metadata
   - assert_metadata
 - title: Isotope correction

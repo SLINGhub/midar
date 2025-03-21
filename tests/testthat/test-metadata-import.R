@@ -7,8 +7,8 @@ test_that("Imports/associates data and metadata, orders analyses by dataset (tim
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
                                      import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
-    path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
+  mexp <- midar::import_metadata_msorganiser(mexp,
+    path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
     excl_unmatched_analyses = FALSE
   )
   expect_equal(mexp@dataset[[1, "analysis_id"]], "020_SPL_S001")
@@ -16,15 +16,61 @@ test_that("Imports/associates data and metadata, orders analyses by dataset (tim
   expect_equal(dim(mexp@annot_features),c(16, 16))
   expect_equal(dim(mexp@annot_istds),c(2, 4))
   expect_equal(dim(mexp@annot_responsecurves),c(12, 5))
-  expect_equal(dim(mexp@annot_batches),c(1, 4))
+  expect_equal(dim(mexp@annot_batches),c(3, 4))
   expect_equal(dim(mexp@annot_qcconcentrations),c(6, 5))
   expect_in(c("analysis_order", "batch_id", "is_quantifier", "qc_type", "is_istd", "is_quantifier"), names(mexp@dataset))
 })
 
+test_that("import_metadata_msorganiser handles missing / invalid files", {
+  mexp <- midar::MidarExperiment()
+  mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
+  expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                          path = testthat::test_path("Does not exist.xlsm"),
+                                                          excl_unmatched_analyses = FALSE),
+               "File not found. Please verify path"
+  )
+
+  expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                          path = testthat::test_path("testdata/MIDAR_TestData_MHQuant_S1P_DefaultSampleInfo_RT-Areas-FWHM.csv"),
+                                                          excl_unmatched_analyses = FALSE),
+               "Invalid file type not. A MSOrganiser template", fixed = TRUE
+  )
+
+  expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                          path = testthat::test_path("testdata/MiDAR_Metadata_Template_wrongabout.xlsm"),
+                                                          excl_unmatched_analyses = FALSE),
+               "This appears to be an invalid or unsupported MSOrganiser template file.", fixed = TRUE
+  )
+
+  expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                          path = testthat::test_path("testdata/MiDAR_Metadata_Template_missingabout.xlsm"),
+                                                          excl_unmatched_analyses = FALSE),
+               "This appears to be an invalid or unsupported MSOrganiser template file, without `About`", fixed = TRUE
+  )
+
+   expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                           path = testthat::test_path("testdata/MiDAR_Metadata_Template_lowerversion.xlsm"),
+                                                           excl_unmatched_analyses = FALSE),
+                "Unsupported MSOrganiser template version. Please use an MSOrganiser template v0.2 or higher.", fixed = TRUE
+  )
+   expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                           path = testthat::test_path("testdata/MiDAR_Metadata_Template_higherversion.xlsm"),
+                                                           excl_unmatched_analyses = FALSE),
+                "Unsupported MSOrganiser template version. Please use an MSOrganiser template v0.2 or higher.", fixed = TRUE
+   )
+
+   expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
+                                                           path = testthat::test_path("testdata/MiDAR_Metadata_Template_invalidversion.xlsm"),
+                                                           excl_unmatched_analyses = FALSE),
+                "Invalid version number found in the template. Please", fixed = TRUE
+   )
+})
+
+
 test_that("Imports/associates data and metadata, orders features by default according to order in metadata", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
+  mexp <- midar::import_metadata_msorganiser(mexp,
     path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V1.xlsm"),
     excl_unmatched_analyses = FALSE
   )
@@ -36,7 +82,7 @@ test_that("Imports/associates data and metadata, orders features by default acco
 test_that("Raise data assertion warning and stops with not all analyses defined in analysis metadata ", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
-  expect_error(mexp <- midar::import_metadata_msorganizer(mexp,
+  expect_error(mexp <- midar::import_metadata_msorganiser(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_analysissubset.xlsm"),
                                           excl_unmatched_analyses = FALSE),
                "Not all analyses listed"
@@ -46,7 +92,7 @@ test_that("Raise data assertion warning and stops with not all analyses defined 
 test_that("Shows analyses defined in metadata but missing in data as Note in assertion table, instead of Warning and proceeds", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
+  mexp <- midar::import_metadata_msorganiser(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_analysissubset.xlsm"),
                                           excl_unmatched_analyses = TRUE)
 
@@ -57,7 +103,7 @@ test_that("Shows analyses defined in metadata but missing in data as Note in ass
 test_that("Ignores warnings after metadata import and proceeds", {
   mexp <- midar::MidarExperiment()
   mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("22_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq-noalphafeat.csv"), import_metadata = FALSE)
-  mexp <- midar::import_metadata_msorganizer(mexp,
+  mexp <- midar::import_metadata_msorganiser(mexp,
                                           path = testthat::test_path("MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_analysissubset.xlsm"),
                                           ignore_warnings = TRUE)
 

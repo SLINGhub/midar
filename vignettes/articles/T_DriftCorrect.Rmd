@@ -1,0 +1,189 @@
+---
+title: "Run-order Drift Correction (Smoothing)"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+vignette: >
+  %\VignetteIndexEntry{Run-order Drift Correction (Smoothing)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 100
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+```
+
+MiDAR provides different functions for run-order drift correction, differing by the employed
+smoothing algorithm. These functions can be categorized into functions that are either more suited
+for QC or study sample-based drift correction.
+
+The data must be provided via a MidarExperiment object, whereby raw data that was imported or
+processed data can be corrected, such as `intensity` or `conc` values.
+
+These drift correction functions have various options for customization, please refer the manual
+page on [Drift and Batch Correction](07_driftbatchcorr.html) for more details.
+
+## Import data
+
+In this tutorial, we import pre-calculcated raw oncentration values from a CSV file. This file must
+contain a column with batch information (`batch_id`) if batch-wise correction should be applied, see
+`import_data_csv()` for more information.
+
+```{r setup}
+#| results: false  
+#| message: false
+library(midar)
+
+myexp <- midar::MidarExperiment()
+
+myexp <- import_data_csv(
+  myexp,
+  path = "smooth-testdata.csv", 
+  variable_name = "conc", 
+  import_metadata = TRUE)
+```
+
+## QC-based smoothing
+
+Now we apply a QC-based drift correction using cubic spline. See `correct_drift_cubicspline()` for
+more information.
+
+```{r}
+#| results: false  
+#| code-overflow: 'wrap'
+mexp_drift <- correct_drift_cubicspline(
+  myexp,
+  batch_wise = FALSE,
+  variable = "conc",
+  ref_qc_types = "BQC",
+  recalc_trend_after = TRUE)
+```
+
+Next, we inspect the data before and after the correction. We observe that the green trendline
+follows the QC samples (in red). After the correction, the trend has been fully smoothed out,
+resulting in a straight line.
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+```
+
+## Sample trend-based smoothing
+
+Above, we observe that the QC samples do not fully represent the trends of the study samples. This
+discrepancy can occur when the QC samples, which often based on pooled samples, differ in handling
+or properties from the study samples.
+
+We therefore now try a sample-based drift correction gaussian kernel smoothing. See
+`correct_drift_gaussiankernel)` for more information.
+
+```{r}
+#| results: false  
+#| code-overflow: 'wrap'
+mexp_drift <- correct_drift_gaussiankernel(
+  myexp,
+  variable = "conc",
+  kernel_size = 10,
+  batch_wise = FALSE,
+  ref_qc_types = "SPL",
+  recalc_trend_after = TRUE)
+
+```
+
+Again, we inspect the data before and after the correction. We observe that the green trendline
+follows the samples (in grey). After the correction, the trend has been fully smoothed out,
+resulting in a straight line.
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+```
+
+Now, the trends of the study samples appear to be fairly well corrected. However, in this example,
+the differences compared to the previous QC-based smoothing are not very pronounced.
+
+## Within-batch drift correction
+
+In the examples before we app;ied drift correction across all batches. However, if batch-effects are
+present that break the drifts, it is recommended to apply drift correction within each batch.
+
+We explore a within-batch drift correction using a sample-based gaussian kernel smoothing from above
+in this next example, by setting `batch_wise = TRUE`.
+
+```{r}
+#| results: false  
+#| code-overflow: 'wrap'
+mexp_drift <- correct_drift_gaussiankernel(
+  myexp,
+  variable = "conc",
+  kernel_size = 10,
+  batch_wise = TRUE,
+  ref_qc_types = "SPL",
+  recalc_trend_after = TRUE)
+```
+
+Now, each batch has its own trendline corresponding the trend in each batch of each feature.
+Contrary to the previous correction across batches, we now observe clear differences in the trends
+still present after the correction. This is an effect of the correct applied independly to each
+batch, to different sample sizes and present batch effects. Therefore, it is often necessary to
+apply batch correction after bathc-wise drift correction
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+```
+
+We therefore apply a subsequent batch correction using median-centering, resulting in an alignment
+of the batches.
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+mexp_drift <- midar::correct_batch_centering(
+  mexp_drift, 
+  ref_qc_types = "SPL", 
+  variable = "conc",
+  correct_scale = TRUE
+)
+
+plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)
+```
+
+## Export corrected data
+
+Next, we can either continue to work with the corrected data using `MiDAR` functions or export the
+data.
+
+```{r}
+save_dataset_csv(
+  mexp_drift, 
+  path = "drift-batch-corrected-conc-data.csv", 
+  variable = "conc", 
+  filter_data = FALSE
+  )
+```

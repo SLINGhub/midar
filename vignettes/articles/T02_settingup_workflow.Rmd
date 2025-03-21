@@ -75,14 +75,14 @@ The subsequent processing steps require additional infomation that is not availa
 from the imported analysis data. This includes information such as which internal standards are used to normalize, their concentrations and the sample amounts analysed.
 These metadata can be imported from separate files or R data frames as 
 described in [Preparing and importing data](articles/T01_prepdata.html).
-To keep the code concience in this example, we will import metadata from an MSOrganizer
+To keep the code concience in this example, we will import metadata from an msorganiser
 template. The validation checks result in some warnings, which will by default result in a failed metadata import.
 However, assuming we understand what we are doing, 
 we decided to ignore these warnings by setting `ignore_warnings = TRUE`. They will still be shown
 in the table printed in the console, labelled with an asterix (*) in the `status` column.
 
 ```{r import-metadata}
-myexp <- import_metadata_msorganizer(
+myexp <- import_metadata_msorganiser(
   myexp, 
   path = "datasets/sPerfect_Metadata.xlsm", 
   ignore_warnings = TRUE

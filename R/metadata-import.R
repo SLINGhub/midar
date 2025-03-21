@@ -72,7 +72,7 @@ get_metadata_batches <- function(annot_analyses){
 #'   path = system.file("extdata", "MRMkit_demo.tsv", package = "midar"),
 #'   import_metadata = TRUE)
 #'
-#' mexp <- import_metadata_msorganizer(
+#' mexp <- import_metadata_msorganiser(
 #'  data = mexp,
 #'  path = system.file("extdata", "Example_Metadata_1.xlsm", package = "midar"),
 #'  excl_unmatched_analyses = FALSE,
@@ -81,10 +81,10 @@ get_metadata_batches <- function(annot_analyses){
 #' print(mexp)
 #'
 #' @export
-import_metadata_msorganizer <- function(data = NULL, path,  ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
+import_metadata_msorganiser <- function(data = NULL, path,  ignore_warnings = FALSE, excl_unmatched_analyses = FALSE) {
   check_data(data)
 
-  metadata <- read_metadata_msorganizer(path)
+  metadata <- read_metadata_msorganiser(path)
   metadata  <- assert_metadata(data, metadata = metadata, ignore_warnings = ignore_warnings, excl_unmatched_analyses = excl_unmatched_analyses)
   data  <- add_metadata(data, metadata = metadata, excl_unmatched_analyses = excl_unmatched_analyses)
   data <- link_data_metadata(data)
@@ -604,19 +604,56 @@ add_metadata <- function(data = NULL, metadata, excl_unmatched_analyses = FALSE)
 
 # stopifnot(methods::validObject(data, excl_nonannotated_analyses))
 
-#' @title Reads and parses metadata provided by the MSOrganizer EXCEL  template.
+#' @title Reads and parses metadata provided by the msorganiser EXCEL  template.
 #' @description Requires version 1.9.1 of the template
 #' NOTES
 #' - if no sample_type is defined then SPL will be assigned
 #' - if valid_analysis is left blank for all analyses then samples then it will be replace by TRUE
 #' - if valid_analysis is undefined for one or more, but all all samples, then an error will be returned
-#' @param path File path of the MSOrganizer EXCEL template (*.xlm)
+#' @param path File path of the msorganiser EXCEL template (*.xlm)
 #' @param trim_ws Trim all white spaces and double spaces
 #' @return A list with tibbles containing different metadata
 #' @noRd
-read_metadata_msorganizer <- function(path, trim_ws = TRUE) {
+read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
 
   metadata <- list()
+
+  # check if path exist
+  if (!(fs::path_ext(path) %in% c("xlsm", "xlsx"))){
+    cli::cli_abort(col_red("Invalid file type not. A MSOrganiser template file (*.xlsm or *.xlsx) must be provided."))
+  } else {
+    if (!fs::file_exists(path))
+      cli::cli_abort(col_red("File not found. Please verify path."))
+  }
+
+
+
+
+  w_xlm <- openxlsx2::wb_load(path)
+
+  if (!"About" %in% openxlsx2::wb_get_sheet_names(w_xlm))
+    cli::cli_abort(col_red("This appears to be an invalid or unsupported MSOrganiser template file, without `About` sheet. Please verify format and version."))
+
+  d_about <- openxlsx2::wb_to_df(w_xlm,
+                           sheet = "About",
+                           skip_empty_rows = FALSE,
+                           skip_empty_cols = FALSE,
+                           skip_hidden_rows = FALSE,
+                           skip_hidden_cols = FALSE,
+                           convert = TRUE,
+                           col_names = FALSE)
+
+  if(!(str_detect(d_about[[1,2]], "MSOrganiser") && str_detect(d_about[[3,2]], "Version")))
+      cli::cli_abort(col_red("This appears to be an invalid or unsupported MSOrganiser template file. Please verify format and version."))
+
+  version <- str_replace(d_about[[3,3]], "(\\.[^.]*)\\.", "\\1")
+  version <- suppressWarnings(as.numeric(version))
+  if(is.na(version))
+    cli::cli_abort(col_red("Invalid version number found in the template. Please use an MSOrganiser template v0.2 or higher."))
+
+
+  if(version < 0.2 || version >= 0.3)
+    cli::cli_abort(col_red("Unsupported MSOrganiser template version. Please use an MSOrganiser template v0.2 or higher."))
 
   w_xlm <- openxlsx2::wb_load(path)
 

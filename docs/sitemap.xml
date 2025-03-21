@@ -14,7 +14,8 @@
 <url><loc>https://slinghub.github.io/midar/articles/T01_prepdata.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/articles/T01_targetlipidomics_workflow.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/articles/T02_settingup_workflow.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/articles/T_BatchDriftCorrect.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/articles/T_BatchCorrect.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/articles/T_DriftCorrect.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/articles/index.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/articles/midar.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/authors.html</loc></url>
@@ -68,7 +69,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_features.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_from_data.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_istds.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/import_metadata_msorganizer.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/import_metadata_msorganiser.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_qcconcentrations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_responsecurves.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/index.html</loc></url>
@@ -94,7 +95,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/quantify_by_istd.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_dataset_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_feature_qc_metrics.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/save_metadata_msorganizer_template.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/save_metadata_msorganiser_template.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_metadata_templates.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_report_xlsx.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/set_analysis_order.html</loc></url>

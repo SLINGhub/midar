@@ -41,8 +41,8 @@ mexp <- import_data_masshunter(
   path = "QuantLCMS_Example_MassHunter.csv",
   import_metadata = TRUE)
 
-# Import metadata from an MSOrganizer template fie
-mexp <- import_metadata_msorganizer(
+# Import metadata from an msorganiser template fie
+mexp <- import_metadata_msorganiser(
   mexp,
   path = "QuantLCMS_Example_Metadata.xlsm",
   excl_unmatched_analyses = T, ignore_warnings = T)
