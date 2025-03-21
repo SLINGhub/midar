@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Run-order Drift Correction (Smoothing) • midar</title>
+<title>Drift Correction (Smoothing) • midar</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Run-order Drift Correction (Smoothing)">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Drift Correction (Smoothing)">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,9 +35,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/00_get_started.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/00_get_started.html">Getting started</a></li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials/Recipes</button>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials &amp; Recipes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
 <li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
@@ -85,7 +85,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Run-order Drift Correction (Smoothing)</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Drift Correction (Smoothing)</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/articles/T_DriftCorrect.Rmd" class="external-link"><code>vignettes/articles/T_DriftCorrect.Rmd</code></a></small>
@@ -143,17 +143,14 @@ correction, the trend has been fully smoothed out, resulting in a
 straight line.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-3-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-3-2.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="sample-trend-based-smoothing">Sample trend-based smoothing<a class="anchor" aria-label="anchor" href="#sample-trend-based-smoothing"></a>
@@ -165,7 +162,7 @@ properties from the study samples.</p>
 <p>We therefore now try a sample-based drift correction gaussian kernel
 smoothing. See <code>correct_drift_gaussiankernel)</code> for more
 information.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp_drift</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -180,22 +177,18 @@ information.</p>
 observe that the green trendline follows the samples (in grey). After
 the correction, the trend has been fully smoothed out, resulting in a
 straight line.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-5-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
-<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-5-2.png" alt="RunScatter plots before and after batch correction
-" width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
-<p>Now, the trends of the study samples appear to be fairly well
-corrected. However, in this example, the differences compared to the
-previous QC-based smoothing are not very pronounced.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>    </span></code></pre></div>
+<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-6-1.png" alt="RunScatter plots before and after batch correction
+" width="700"> Now, the trends of the study samples appear to be
+fairly well corrected. However, in this example, the differences
+compared to the previous QC-based smoothing are not very pronounced.</p>
 </div>
 <div class="section level2">
 <h2 id="within-batch-drift-correction">Within-batch drift correction<a class="anchor" aria-label="anchor" href="#within-batch-drift-correction"></a>
@@ -206,7 +199,7 @@ is recommended to apply drift correction within each batch.</p>
 <p>We explore a within-batch drift correction using a sample-based
 gaussian kernel smoothing from above in this next example, by setting
 <code>batch_wise = TRUE</code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp_drift</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -224,22 +217,19 @@ after the correction. This is an effect of the correct applied
 independly to each batch, to different sample sizes and present batch
 effects. Therefore, it is often necessary to apply batch correction
 after bathc-wise drift correction</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
-<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-7-1.png" alt="RunScatter plots before and after batch correction
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-8-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
-<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-7-2.png" alt="RunScatter plots before and after batch correction
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
+<span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-8-2.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 <p>We therefore apply a subsequent batch correction using
 median-centering, resulting in an alignment of the batches.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp_drift</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp_drift</span>, </span>
 <span>  ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
@@ -253,7 +243,7 @@ median-centering, resulting in an alignment of the batches.</p>
 <span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">mexp_drift</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
 <span>                rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">3</span>, show_trend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
-<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-8-1.png" alt="RunScatter plots before and after batch correction
+<p><img src="T_DriftCorrect_files/figure-html/unnamed-chunk-9-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
 <pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
@@ -262,7 +252,7 @@ median-centering, resulting in an alignment of the batches.</p>
 </h2>
 <p>Next, we can either continue to work with the corrected data using
 <code>MiDAR</code> functions or export the data.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp_drift</span>, </span>
 <span>  path <span class="op">=</span> <span class="st">"drift-batch-corrected-conc-data.csv"</span>, </span>

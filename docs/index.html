@@ -38,9 +38,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/00_get_started.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/00_get_started.html">Getting started</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials/Recipes</button>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials &amp; Recipes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
 <li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
     <li><a class="dropdown-item" href="articles/T01_prepdata.html">Preparing and importing data</a></li>
@@ -95,21 +95,22 @@
 <p><code>MiDAR</code> is an R package designed for the reproducible post-processing, quality control, and reporting of quantitative small-molecule mass spectrometry (MS) data. Its modular functionalities and defined data structure, support diverse analytical designs, data formats, and processing tasks, including metabolomics and lipidomics. <code>MiDAR</code> is intended for both analytical and bioinformatics scientists and to facilitate collaboration between them. It enables the creation of customizable, supervisable, and documented data processing workflows through intuitive high-level R functions and data objects.</p>
 <p><code>MiDAR</code>’s core tools, accessible also to those with limited R experience, allow analysts to annotate, inspect, and process data. This includes importing data and metadata from various file formats, managing and organizing data with integrity checks, performing processing tasks such as quantification, drift/batch correction, and applying QC-based feature filtering. Users can assess data quality using QC metrics and diagnostic plots, and share both raw and processed data along with the entire processing workflow for further analyses and documentation.</p>
 <p><code>MiDAR</code> also serves as a validated software framework for building robust and scalable data processing pipelines.</p>
-<div class="section level2">
-<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
-</h2>
-<p>Please visit the <a href="https://slinghub.github.io/midar/">Getting Started</a> page for tutorials and documentation on <code>MiDAR</code>.</p>
 </div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
+<div class="section level1">
+<h1 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h1>
+<p>Please visit the <a href="https://slinghub.github.io/midar/articles/00_get_started.html">Getting Started</a> page for tutorials and documentation on <code>MiDAR</code>.</p>
+</div>
+<div class="section level1">
+<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://pak.r-lib.org/" class="external-link">"pak"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"SLINGhub/midar"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="example-workflow">Example Workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
-</h2>
+<div class="section level1">
+<h1 id="example-workflow">Example Workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
+</h1>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Path of example files included with this package</span></span>
 <span><span class="va">dir_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>,  package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span>
@@ -157,17 +158,12 @@
 <span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
 <span>                   filter_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
-</h2>
-<p>The <a href="https://slinghub.github.io/midar/">MiDAR Documentation</a> is available from <a href="https://slinghub.github.io/midar/">(https://slinghub.github.io/midar)</a></p>
-</div>
-<div class="section level2">
-<h2 id="contributor-code-of-conduct">Contributor Code of Conduct<a class="anchor" aria-label="anchor" href="#contributor-code-of-conduct"></a>
-</h2>
+<div class="section level1">
+<h1 id="contributor-code-of-conduct">Contributor Code of Conduct<a class="anchor" aria-label="anchor" href="#contributor-code-of-conduct"></a>
+</h1>
 <p>Please note that the midar project is released with a <a href="https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html" class="external-link">Contributor Code of Conduct</a>. By contributing to this project, you agree to abide by its terms.</p>
 </div>
-</div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">

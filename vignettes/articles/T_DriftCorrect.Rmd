@@ -1,11 +1,11 @@
 ---
-title: "Run-order Drift Correction (Smoothing)"
+title: "Drift Correction (Smoothing)"
 output: 
   rmarkdown::html_vignette:
     fig_width: 6
     fig_height: 2
 vignette: >
-  %\VignetteIndexEntry{Run-order Drift Correction (Smoothing)}
+  %\VignetteIndexEntry{Drift Correction (Smoothing)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 
@@ -75,6 +75,7 @@ resulting in a straight line.
 #| fig.alt: >
 #|   RunScatter plots before and after batch correction
 #| results: false 
+#| message: false
 plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
                 rows_page = 1, cols_page = 3, show_trend = TRUE)
 plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
@@ -111,12 +112,20 @@ resulting in a straight line.
 #| fig.alt: >
 #|   RunScatter plots before and after batch correction
 #| results: false 
+#| message: false
 plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
                 rows_page = 1, cols_page = 3, show_trend = TRUE)
-plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
-                rows_page = 1, cols_page = 3, show_trend = TRUE)
+
 ```
 
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+#| message: false
+plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),
+                rows_page = 1, cols_page = 3, show_trend = TRUE)    
+```
 Now, the trends of the study samples appear to be fairly well corrected. However, in this example,
 the differences compared to the previous QC-based smoothing are not very pronounced.
 
@@ -150,6 +159,7 @@ apply batch correction after bathc-wise drift correction
 #| fig.alt: >
 #|   RunScatter plots before and after batch correction
 #| results: false 
+#| message: false
 plot_runscatter(mexp_drift, variable = "conc_before", qc_types = c("BQC", "SPL"),
                 rows_page = 1, cols_page = 3, show_trend = TRUE)
 plot_runscatter(mexp_drift, variable = "conc", qc_types = c("BQC", "SPL"),

@@ -31,16 +31,16 @@ entire processing workflow for further analyses and documentation.
 `MiDAR` also serves as a validated software framework for building robust and 
 scalable data processing pipelines.
 
-## Getting Started
-Please visit the [Getting Started](https://slinghub.github.io/midar/) page for tutorials and documentation on `MiDAR`.
+# Getting Started
+Please visit the [Getting Started](https://slinghub.github.io/midar/articles/00_get_started.html) page for tutorials and documentation on `MiDAR`.
 
-## Installation
+#  Installation
 ``` r
 if (!require("pak")) install.packages("pak")
 pak::pkg_install("SLINGhub/midar")
 ```
 
-## Example Workflow
+#  Example Workflow
 
 ``` r
 # Path of example files included with this package
@@ -90,12 +90,7 @@ plot_runscatter(mexp,
                    filter_data = TRUE)
 ```
 
-## Documentation
-The [MiDAR Documentation](https://slinghub.github.io/midar/) is available 
-from [(https://slinghub.github.io/midar)](https://slinghub.github.io/midar/)
-
-
-## Contributor Code of Conduct
+# Contributor Code of Conduct
 
 Please note that the midar project is released with a [Contributor Code
 of

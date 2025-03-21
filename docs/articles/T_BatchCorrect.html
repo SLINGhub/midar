@@ -35,9 +35,9 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/00_get_started.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/00_get_started.html">Getting started</a></li>
 <li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials/Recipes</button>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials &amp; Recipes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
 <li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
@@ -132,22 +132,19 @@ this case. The <code>correct_scale</code> parameter</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Adding batch correction to `conc` data.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to raw concentrations of all 1 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-25.22%</span><span style="color: #555555;"> (range: -25.20% to -25.20%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">40.82% to 15.60%</span><span style="color: #555555;">.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-30.49%</span><span style="color: #555555;"> (range: -30.50% to -30.50%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">44.05% to 13.56%</span><span style="color: #555555;">.</span></span></span></code></pre></div>
 <p>Next, we inspect the data before and after batch correction. We
 observe that the batches are now aligned. Note: If the samples or other
 quality control types do not follow the reference samples, they may not
 be appropriately corrected.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc_before"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T_BatchCorrect_files/figure-html/unnamed-chunk-3-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T_BatchCorrect_files/figure-html/unnamed-chunk-3-2.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="batch-centering-with-variance-scaling">Batch-centering with variance scaling<a class="anchor" aria-label="anchor" href="#batch-centering-with-variance-scaling"></a>
@@ -158,7 +155,7 @@ We can correct this by scaling the variance via
 <code>correct_scale = TRUE</code>. As shown in the plot below, the
 variance of the data points now appears fairly consistent across the
 batches.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  ref_qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
@@ -167,27 +164,25 @@ batches.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">Replacing previous `conc` batch correction.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Batch median-centering of 7 batches was applied to raw concentrations of all 1 features.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-26.60%</span><span style="color: #555555;"> (range: -26.60% to -26.60%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">40.82% to 14.22%</span><span style="color: #555555;">.</span></span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
-<p><img src="T_BatchCorrect_files/figure-html/unnamed-chunk-4-1.png" alt="RunScatter plots before and after batch correction
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-32.20%</span><span style="color: #555555;"> (range: -32.20% to -32.20%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">decreased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">44.05% to 11.85%</span><span style="color: #555555;">.</span></span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span><span class="va">myexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, rows_page <span class="op">=</span> <span class="fl">1</span>, cols_page <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="T_BatchCorrect_files/figure-html/unnamed-chunk-5-1.png" alt="RunScatter plots before and after batch correction
 " width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="export-batch-corrected-data">Export batch-corrected data<a class="anchor" aria-label="anchor" href="#export-batch-corrected-data"></a>
 </h2>
 <p>Next, we can either continue to work with the corrected data using
 <code>MiDAR</code> functions or export the data.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  path <span class="op">=</span> <span class="st">"batch-corrected-conc-data.csv"</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 1400 analyses and 1 features have been exported to 'batch-corrected-conc-data.csv'.</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 700 analyses and 1 features have been exported to 'batch-corrected-conc-data.csv'.</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

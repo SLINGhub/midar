@@ -9,10 +9,10 @@ navbar:
   components:
     home: ~
     intro:
-      text: Get started
+      text: Getting started
       href: articles/00_get_started.html
     tutorials:
-      text: Tutorials/Recipes
+      text: Tutorials & Recipes
       menu:
       - text: Tutorials
       - text: Preparing and importing data

@@ -69,6 +69,7 @@ they may not be appropriately corrected.
 #| fig.alt: >
 #|   RunScatter plots before and after batch correction
 #| results: false 
+#| message: false
 plot_runscatter(myexp, variable = "conc_before", rows_page = 1, cols_page = 1)
 plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
 ```
@@ -84,12 +85,20 @@ fairly consistent across the batches.
 #| fig.alt: >
 #|   RunScatter plots before and after batch correction
 #| results: false 
+#| message: true
 myexp <- midar::correct_batch_centering(
   myexp, 
   ref_qc_types = "SPL", 
   variable = "conc",
   correct_scale = TRUE
 )
+```
+
+```{r}
+#| fig.alt: >
+#|   RunScatter plots before and after batch correction
+#| results: false 
+#| message: false
 
 plot_runscatter(myexp, variable = "conc", rows_page = 1, cols_page = 1)
 

@@ -627,8 +627,6 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
   }
 
 
-
-
   w_xlm <- openxlsx2::wb_load(path)
 
   if (!"About" %in% openxlsx2::wb_get_sheet_names(w_xlm))
