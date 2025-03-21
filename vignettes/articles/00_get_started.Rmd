@@ -21,8 +21,8 @@ set.seed(1041)
 options(dplyr.print_max = 10)
 ```
 # Prerequisites
-`MiDAR` requires [R](https://cran.r-project.org) version 4.2.0 or higher) to run. 
-Usage of an R IDE (integrated development environment) such as [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co), 
+MiDAR requires R version 4.2.0 or higher, available from [CRAN](https://cran.r-project.org).
+Using an R IDE such as [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co), 
 or [Visual Studio Code](https://code.visualstudio.com) is also recommended.
 
 While `MiDAR`'s core functionality requires no R coding skills,
