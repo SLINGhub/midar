@@ -25,7 +25,7 @@ options(dplyr.print_max = 10)
 Usage of an R IDE (integrated development environment) such as [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co), 
 or [Visual Studio Code](https://code.visualstudio.com) is also recommended.
 
-While `MiDAR`'s core functionalityr requires no R coding skills,
+While `MiDAR`'s core functionality requires no R coding skills,
 basic familiarity with R and an IDE is needed. New to R? Try online tutorials such a
 [An opinionated tour of RStudio](https://rladiessydney.org/courses/ryouwithme/01-basicbasics-1/) and 
 the [RStudio User Guide](https://docs.posit.co/ide/user/ide/get-started/). Additionally,
