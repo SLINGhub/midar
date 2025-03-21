@@ -35,6 +35,7 @@ scalable data processing pipelines.
 Please visit the [Getting Started](https://slinghub.github.io/midar/articles/00_get_started.html) page for tutorials and documentation on `MiDAR`.
 
 #  Installation
+To install, or to update, MiDAR, run the following code in the R console:
 ``` r
 if (!require("pak")) install.packages("pak")
 pak::pkg_install("SLINGhub/midar")

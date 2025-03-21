@@ -25,15 +25,14 @@ options(dplyr.print_max = 10)
 Usage of an R IDE (integrated development environment) such as [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co), 
 or [Visual Studio Code](https://code.visualstudio.com) is also recommended.
 
-While `MiDAR`'s core functionality does not require any R coding skills, a basic
-understanding of R and an R IDE is needed. If you are new to R, you can familiarize yourself
-through online tutorials such a
+While `MiDAR`'s core functionalityr requires no R coding skills,
+basic familiarity with R and an IDE is needed. New to R? Try online tutorials such a
 [An opinionated tour of RStudio](https://rladiessydney.org/courses/ryouwithme/01-basicbasics-1/) and 
 the [RStudio User Guide](https://docs.posit.co/ide/user/ide/get-started/). Additionally,
-having a colleague who is familiar with RStudio assist you can be very helpful
+having a colleague who is familiar with RStudio can be helpful
 to get started smoothly and stay motivated.
 
-# Installation of `MiDAR`
+# Installing MiDAR
 To install, or to update, `MiDAR`, run the following code in the R console:
 ```{r, eval=FALSE}
 if (!require("pak")) install.packages("pak")
@@ -56,7 +55,7 @@ tricks. A common error is omitting required arguments. If unclear errors occur,
 consult the Help to ensure correct arguments and data types. Robustness
 will improve in future package versions.
 
-# Using MiDAR via Recipes and Manual
+# MiDAR Recipes
 To build your own data processing workflows, the 'Recipes' provide a good
 starting point. Choose one or more recipes that match your application, copy-paste into your
 R script/notebook, and start from there to adapt to your specific data and process. 
