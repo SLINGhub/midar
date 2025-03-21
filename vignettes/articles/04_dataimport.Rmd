@@ -1,0 +1,112 @@
+---
+title: "Importing analytical data"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: postprocessing and quality control of small molecule mass spectrometry data 
+vignette: >
+  %\VignetteIndexEntry{Importing analytical data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+bibliography: references.bib
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+Analytical data, i.e. preprocessed data from mass spectrometry
+experiments, can be imported from different sources.
+
+Data files present in a folder can also be imported and merged as well.
+This can be useful when the raw data processing is broken down in
+batches resulting in separate result files.
+
+# Data Sources
+
+Following formats are currently supported:
+
+| Source | MiDAR function | Details | File |
+|----|----|----|----|
+| Agilent MassHunter | `import_data_massshunter()` | Flat and nested tables from MassHunter Quant. | .csv |
+| MRMkit | `import_data_mrmkit()` | Long format output format | .tsv |
+| Plain wide CSV | `import_data_table()` | Samples/analyses as rows and features as columns. Can contain columns specific sample annotations. | .csv |
+
+# Metadata within analytical results
+
+When the analytical results contain metadata, such as sample and feature
+annotations, these can be imported as metadata in the `MidarExperiment`
+object as well. The imported metadata is checked for integrity and
+consistency (see TODO) and then added to the annotation tables within
+the `MidarExperiment`. To include available metadata, set the argument
+`import_metadata = TRUE`.
+
+# MRMkit Results
+
+Output files from
+[MRMkit](https://github.com/MRMkit/MRMkit "https://github.com/MRMkit/MRMkit"),
+an open-source peak integration software for MRM data
+(\cite{author2023}) can imported directly. Specific metadata present in
+the data file can be imported as well (\`import_metadata = TRUE\`)
+
+```{r}
+library(midar)
+filepath <- system.file("extdata/MRMkit_demo.tsv", package = "midar")
+myexp <- MidarExperiment()
+
+myexp <- import_data_mrmkit(myexp, filepath, import_metadata = TRUE)
+```
+
+# Agilent MassHunter Quantitative
+
+Peak integration results exported from Agilent Masshunter Quant in the
+CSV format can be imported. Samples must be present in rows, features as
+columns. Import of qualifier results is supported. Sample, method and
+result metadata present in the files can also be imported
+(\`import_metadata = TRUE\`)
+
+```{r}
+filepath <- system.file("extdata/MHQuant_demo.csv", package = "midar")
+myexp <- MidarExperiment()
+
+myexp <- import_data_masshunter(myexp, filepath, import_metadata = TRUE)
+```
+
+# Plain CSV files
+
+Analysis results, whether raw intensities (e.g., peak areas) or
+preprocessed data (e.g., concentrations), can be provided as plain CSV
+tables. In these tables, analyses (samples) should be arranged in rows,
+and features in columns. The specific data type in the table (e.g., area
+or concentration) is defined using the `variable_name` argument.
+
+```{r}
+filepath <- system.file("extdata/plain_wide_dataset.csv", package = "midar")
+myexp <- MidarExperiment()
+
+myexp <- midar::import_data_csv(
+  myexp, path = filepath,
+  variable_name = "area", 
+  import_metadata = TRUE)
+```
+
+# Importing and merging multiple files
+
+Multiple data files can be imported and merged. Users can either provide
+a list of file paths or specify a folder path to import all data files
+within that directory. This support for multiple files is useful when
+raw data processing is divided into batches, leading to separate result
+files.
+
+The imported merged data is checked for consistency, ensuring that each
+analysis ID and feature ID pair is unique. This means that the same
+feature cannot be reported multiple times within the same analysis,
+which can happend for example if the same feature in the same sample was
+integrated in different raw data processing batches.

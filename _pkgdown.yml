@@ -1,0 +1,199 @@
+url: https://slinghub.github.io/midar/
+template:
+  bootstrap: 5
+  bootswatch: sandstone
+navbar:
+  structure:
+    left: [intro, tutorials, articles, reference, news]
+    right: [search, github, lightswitch]
+  components:
+    home: ~
+    intro:
+      text: Getting started
+      href: articles/00_get_started.html
+    tutorials:
+      text: Tutorials & Recipes
+      menu:
+      - text: Tutorials
+      - text: Preparing and importing data
+        href: articles/T01_prepdata.html
+      - text: Setting Up a Basic MiDAR Workflow
+        href: articles/T02_settingup_workflow.html
+      - text: Targeted lipidomics with QC
+        href: articles/T01_targetlipidomics_workflow.html
+      - text: Drift Correction
+        href: articles/T_DriftCorrect.html
+      - text: Batch Correction
+        href: articles/T_BatchCorrect.html
+      - text: '-------'
+      - text: Recipes
+      - text: External Calibration and QC
+        href: articles/R01_quantms.html
+    articles:
+      text: Manual
+      menu:
+      - text: Key Concepts
+      - text: Data Structures
+        href: articles/01_datastructure.html
+      - text: Data Indentifier
+        href: articles/02_keydataids.html
+      - text: '-------'
+      - text: Data and Metadata
+      - text: MidarExperiment Object
+        href: articles/03_midarexperiment.html
+      - text: Data Import
+        href: articles/04_dataimport.html
+      - text: Metadata Import
+        href: articles/05_metadataimport.html
+      - text: '-------'
+      - text: Batch/Drift Correction
+        href: articles/07_driftbatchcorr.html
+    news:
+      text: News
+      href: news/index.html
+    links:
+    - text: "License (BSD-3-Clause)"
+      href: LICENSE
+
+
+reference:
+- title: MidarExperiment
+  description: |
+    Functions to create, access and query MidarExperiment objects, which are the central data object in the MiDAR workflow.
+  contents:
+  - MidarExperiment
+  - MidarExperiment-class
+  - $,MidarExperiment-method
+  - set_analysis_order
+  - get_batch_boundaries
+  - exclude_analyses
+  - exclude_features
+  - get_analyticaldata
+  - set_intensity_var
+  - get_analysis_count
+  - get_analyis_start
+  - get_analyis_end
+  - get_analysis_breaks
+  - get_analysis_duration
+  - get_runtime_median
+  - get_feature_count
+  - get_featurelist
+- title: Analysis data import
+  description: |
+    Functions to import analytical data from different sources into MidarExperiment objects.
+    Additionally, the file parser function used internally by these import functions are available
+    for direct use, i.e. to import different analytical data into data frames.
+  contents:
+  - import_data_mrmkit
+  - import_data_masshunter
+  - import_data_csv
+  - parse_mrmkit_result
+  - parse_masshunter_csv
+  - parse_plain_csv
+- title: Metadata import
+  description: |
+    Functions to import metadata describing the analyses (samples), features (analytes), internal standards
+    and other relevant information from the MiDAR Excel template or CSV files.
+  contents:
+  - import_metadata_analyses
+  - import_metadata_features
+  - import_metadata_istds
+  - import_metadata_responsecurves
+  - import_metadata_qcconcentrations
+  - import_metadata_msorganiser
+  - import_metadata_from_data
+  - save_metadata_templates
+  - save_metadata_msorganiser_template
+  - add_metadata
+  - assert_metadata
+- title: Isotope correction
+  description: |
+    Functions to perform type II isotopic correction
+  contents:
+  - correct_interferences
+  - correct_interference_manual
+- title: External Calibration
+  description: |
+    Function to plot and analyze external calibration curves
+  contents:
+  - quantify_by_calibration
+  - plot_calibrationcurves
+  - calc_calibration_results
+  - get_calibration_metrics
+  - get_qc_bias_variability
+- title: Normalization and Quantification
+  description: |
+    Functions to normalization by internal standards and sample amounts, to calculate analyte concentrations based
+    on internal standards amounts or external calibration curves.
+  contents:
+  - normalize_by_istd
+  - quantify_by_istd
+  - quantify_by_calibration
+- title: Drift/Batch Correction
+  description: |
+    Function for drift and batch correction correction
+  contents:
+  - correct_drift_gaussiankernel
+  - correct_drift_cubicspline
+  - correct_drift_loess
+  - correct_drift_gam
+  - correct_batch_centering
+- title: Quality Control and Filtering
+  description: |
+    Functions to calculate feature QC metrics and apply QC filtering, and vizualize the filtering results.
+  contents:
+  - calc_qc_metrics
+  - filter_features_qc
+  - detect_outlier
+  - plot_qc_summary_byclass
+  - plot_qc_summary_overall
+- title: Quality Control Plots
+  description: |
+    Functions to plots diverse QC visualizatios.
+  contents:
+  - plot_runsequence
+  - plot_runscatter
+  - plot_rla_boxplot
+  - plot_pca
+  - plot_normalization_qc
+  - plot_qcmetrics_comparison
+- title: Response Curves
+  description: |
+    Functions to calculate and visualize response curves
+  contents:
+  - plot_responsecurves
+  - get_response_curve_stats
+- title: Data Reporting and Sharing
+  description: |
+    Functions to export processed and raw datasets and the processing steps in different formats.
+  contents:
+  - save_report_xlsx
+  - save_dataset_csv
+  - save_feature_qc_metrics
+- title: Lipidomics
+  description: |
+    Functions specific to lipidomics data processing and analysis.
+  contents: get_lipid_class_names
+- title: Datasets
+  description: |
+    Example datasets for testing and demonstration.
+  contents:
+  - lipidomics_dataset
+  - quant_lcms_dataset
+  - data_load_example
+- title: Helper functions
+  description: |
+    A collection of functions that may be useful in the context of mass spectrometry is also available.
+  contents:
+  - cv
+  - cv_log
+  - save_dataset_csv
+  - fun_correct_drift
+  - fun_gauss.kernel.smooth
+  - fun_loess
+  - fun_cspline
+  - fun_gam_smooth
+  - get_mad_tails
+  - order_chained_columns_tbl
+
+

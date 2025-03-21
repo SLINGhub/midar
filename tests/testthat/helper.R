@@ -1,0 +1,4 @@
+# global constants for tests
+
+MH_CSV_QUANTIFIER_FEATURES <- 16
+MH_CSV_QUALIFIER_FEATURES <- 9

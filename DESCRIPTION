@@ -1,0 +1,97 @@
+Package: midar
+Title: Small Molecule Mass Spectrometry Data Post-Processing, Quality
+    Control, Exploration and Reporting
+Version: 0.1.6
+Authors@R: 
+    person("Bo", "Burla", , "bo.burla@nus.edu.sg", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-5918-3249"))
+Description: R functions to facilitate managing, processing and evaluating
+    lipidomics data
+License: BSD_3_clause + file LICENSE
+URL: https://github.com/SLINGhub/midar, https://slinghub.github.io/midar/
+BugReports: https://github.com/SLINGhub/midar/issues
+Depends:
+    R (>= 4.2.0)
+Imports: 
+    assertr,
+    methods,
+    broom,
+    cli,
+    dplyr,
+    tibble,
+    dtplyr,
+    forcats,
+    fs,
+    glue,
+    lubridate,
+    purrr,
+    readr,
+    rlang,
+    scales,
+    stringr,
+    tidyr,
+    pillar,
+    openxlsx2,
+    ggh4x,
+    ggplot2 (>= 3.5.0),
+Suggests: 
+    ggvenn,
+    patchwork,
+    ggbeeswarm,
+    ggsignif,
+    ggforce,
+    ggpmisc,
+    ggnewscale,
+    ggrepel,
+    covr,
+    lancer,
+    knitr,
+    ComplexHeatmap,
+    ggExtra,
+    MASS,
+    mgcv,
+    rmarkdown,
+    bibtex,
+    here,
+    testthat (>= 3.0.0),
+    vdiffr
+VignetteBuilder: 
+    knitr
+biocViews:
+Config/testthat/edition: 3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+LazyData: true
+LazyDataCompression: xz
+Collate: 
+    'calc-calibrations.R'
+    'calc-eda.R'
+    'calc-istd-normalization.R'
+    'calc-response.R'
+    'midar-global-definitions.R'
+    'classes.R'
+    'correct-drift-batch.R'
+    'correct-isotope.R'
+    'data-combine-datasets.R'
+    'data-example.R'
+    'data-export.R'
+    'data-import.R'
+    'data-managment.R'
+    'data-outlier.R'
+    'datasets.R'
+    'functions-math.R'
+    'helper.R'
+    'lipidomics.R'
+    'metadata-import.R'
+    'midar-package.R'
+    'plots-calibcurves.R'
+    'plots-eda.R'
+    'plots-qc-cv.R'
+    'plots-qc-filtering.R'
+    'plots-qc-pca.R'
+    'plots-qc-responsecurves.R'
+    'plots-qc-runorder.R'
+    'qc-filtering.R'
+    'tibble-classes.R'
+    'utils.R'

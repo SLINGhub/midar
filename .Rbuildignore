@@ -1,0 +1,17 @@
+^midar\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^CODE_OF_CONDUCT\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+^\.testing$
+^codecov\.yml$
+.travis.yml
+^raw-data$
+^data-raw$
+plot-methods.R
+.covrignore
+^doc$
+^Meta$

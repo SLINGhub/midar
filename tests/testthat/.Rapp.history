@@ -1,0 +1,3 @@
+load("/Users/lsibjb/Code/SLINGtools/tests/testthat/21_MidarExperiment_1.rds")
+load("/Users/lsibjb/Documents/Code/midar/tests/testthat/21_MidarExperiment_1.rds")
+load("/Users/lsibjb/Documents/Code/midar/tests/testthat/8_Testdata_MHQuant_Corrupt_OutlierQuantMsgSumDeleted.rds")

@@ -1,0 +1,500 @@
+﻿analysis_id,qc_type,batch_id,sample_id,sample_amount,sample_amount_unit,istd_volume,valid_analysis
+Longit_BLANK-01 (Eluent A),SBLK,1,,10,uL,4.5,TRUE
+Longit_B-ISTD 01 Extr,PBLK,1,,10,uL,4.5,TRUE
+Longit_Un-ISTD 01 Unextr,UBLK,1,,10,uL,4.5,TRUE
+Longit_LTR 01,LTR,1,,10,uL,4.5,TRUE
+Longit_TQC-10%,RQC,1,,10,uL,4.5,TRUE
+Longit_TQC-20%,RQC,1,,10,uL,4.5,TRUE
+Longit_TQC-40%,RQC,1,,10,uL,4.5,TRUE
+Longit_TQC-60%,RQC,1,,10,uL,4.5,TRUE
+Longit_TQC-80%,RQC,1,,10,uL,4.5,TRUE
+Longit_TQC-100%,RQC,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC01,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC02,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 01,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 02,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_1,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_2,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_3,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_4,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_5,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC03,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_6,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_7,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_8,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_9,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_10,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 03,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_11,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_12,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_13,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_14,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_15,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC04,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_16,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_17,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_18,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_19,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_20,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 04,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_21,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_22,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_23,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_24,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_25,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC05,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_26,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_27,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_28,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_29,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_30,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 05,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_31,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_32,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_33,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_34,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_35,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC06,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_36,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_37,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_38,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_39,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_40,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 06,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_41,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_42,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_43,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_44,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_45,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC07,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_46,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_47,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_48,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_49,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_50,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 07,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_51,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_52,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_53,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_54,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_55,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_TQC08,TQC,1,,10,uL,4.5,TRUE
+Longit_batch1_56,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_57,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_58,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_59,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_60,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 08,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_61,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_62,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_63,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_64,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_65,SPL,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 09,BQC,1,,10,uL,4.5,TRUE
+Longit_batch1_PQC 09b,BQC,1,,10,uL,4.5,TRUE
+Longit_BLANK-02 (Eluent A),SBLK,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC09,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC10,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 10,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 11,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_1,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_2,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_3,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_4,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_5,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC13,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_6,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_7,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_8,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_9,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_10,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 12,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_11,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_12,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_13,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_14,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_15,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC14,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_16,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_17,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_18,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_19,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_20,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 13,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_21,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_22,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_23,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_24,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_25,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC15,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_26,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_27,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_28,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_29,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_30,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 14,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_31,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_32,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_33,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_34,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_35,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_TQC16,TQC,2,,10,uL,4.5,TRUE
+Longit_batch2_36,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_37,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_38,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_39,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_40,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 15,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_41,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_42,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_43,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_44,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_45,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_46,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_47,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_48,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_49,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_50,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 16,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_51,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_52,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_53,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_54,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_55,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_56,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_57,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_58,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_59,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_60,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 17,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_61,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_62,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_63,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_64,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_65,SPL,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 18,BQC,2,,10,uL,4.5,TRUE
+Longit_batch2_PQC 18b,BQC,2,,10,uL,4.5,TRUE
+Longit_BLANK-03 (Eluent A),SBLK,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC19,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC20,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 19,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 20,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_1,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_2,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_3,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_4,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_5,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC21,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_6,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_7,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_8,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_9,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_10,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 21,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_11,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_12,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_13,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_14,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_15,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC22,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_16,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_17,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_18,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_19,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_20,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 22,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_21,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_22,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_23,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_24,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_25,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC23,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_26,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_27,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_28,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_29,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_30,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 23,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_31,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_32,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_33,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_34,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_35,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_TQC24,TQC,3,,10,uL,4.5,TRUE
+Longit_batch3_36,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_37,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_38,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_39,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_40,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 24,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_41,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_42,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_43,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_44,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_45,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_46,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_47,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_48,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_49,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_50,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 25,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_51,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_52,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_53,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_54,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_55,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_56,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_57,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_58,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_59,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_60,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 26,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_61,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_62,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_63,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_64,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_65,SPL,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 27,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_PQC 27b,BQC,3,,10,uL,4.5,TRUE
+Longit_batch3_LTR 01,LTR,3,,10,uL,4.5,TRUE
+Longit_BLANK-04 (Eluent A),SBLK,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC27,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC28,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 28,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 29,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_1,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_2,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_3,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_4,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_5,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC29,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_6,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_7,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_8,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_9,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_10,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 30,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_11,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_12,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_13,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_14,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_15,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC30,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_16,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_17,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_18,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_19,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_20,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 31,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_21,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_22,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_23,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_24,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_25,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC31,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_26,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_27,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_28,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_29,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_30,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 32,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_31,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_32,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_33,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_34,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_35,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_TQC32,TQC,4,,10,uL,4.5,TRUE
+Longit_batch4_36,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_37,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_38,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_39,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_40,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 33,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_41,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_42,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_43,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_44,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_45,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_46,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_47,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_48,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_49,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_50,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 34,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_51,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_52,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_53,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_54,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_55,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_56,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_57,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_58,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_59,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_60,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 35,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_61,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_62,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_63,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_64,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_65,SPL,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 36,BQC,4,,10,uL,4.5,TRUE
+Longit_batch4_PQC 36b,BQC,4,,10,uL,4.5,TRUE
+Longit_BLANK-05 (Eluent A),SBLK,5,,10,uL,4.5,TRUE
+Longit_batch5_TQC36,TQC,5,,10,uL,4.5,TRUE
+Longit_batch5_TQC37,TQC,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 37,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 38,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_1,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_2,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_3,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_4,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_5,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_TQC38,TQC,5,,10,uL,4.5,TRUE
+Longit_batch5_6,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_7,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_8,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_9,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_10,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 39,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_11,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_12,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_13,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_14,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_15,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_TQC39,TQC,5,,10,uL,4.5,TRUE
+Longit_batch5_16,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_17,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_18,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_19,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_20,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 40,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_21,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_22,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_23,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_24,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_25,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_TQC40,TQC,5,,10,uL,4.5,TRUE
+Longit_batch5_26,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_27,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_28,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_29,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_30,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 41,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_31,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_32,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_33,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_34,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_35,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_36,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_37,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_38,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_39,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_40,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 42,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_41,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_42,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_43,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_44,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_45,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_46,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_47,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_48,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_49,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_50,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 43,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_51,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_52,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_53,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_54,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_55,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_56,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_57,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_58,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_59,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_60,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 44,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_61,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_62,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_63,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_64,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_65,SPL,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 45,BQC,5,,10,uL,4.5,TRUE
+Longit_batch5_PQC 45b,BQC,5,,10,uL,4.5,TRUE
+Longit_BLANK-06 (Eluent A),SBLK,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC44,TQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC45,TQC,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 46,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 47,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_1,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_2,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_3,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_4,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_5,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC46,TQC,6,,10,uL,4.5,TRUE
+Longit_batch6_6,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_7,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_8,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_9,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_10,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 48,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_11,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_12,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_13,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_14,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_15,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC47,TQC,6,,10,uL,4.5,TRUE
+Longit_batch6_16,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_17,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_18,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_19,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_20,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 49,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_21,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_22,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_23,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_24,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_25,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC48,TQC,6,,10,uL,4.5,TRUE
+Longit_batch6_26,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_27,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_28,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_29,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_30,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 50,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_31,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_32,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_33,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_34,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_35,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_36,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_37,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_38,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_39,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_40,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 51,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_41,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_42,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_43,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_44,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_45,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_46,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_47,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_48,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_49,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_50,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 52,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_51,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_52,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_53,SPL,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 53,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_PQC 53b,BQC,6,,10,uL,4.5,TRUE
+Longit_batch6_B-ISTD 09,PBLK,6,,10,uL,4.5,TRUE
+Longit_batch6_Un-ISTD 01,UBLK,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-100%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-80%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-60%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-40%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-20%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_TQC-10%,RQC,6,,10,uL,4.5,TRUE
+Longit_batch6_LTR 01,LTR,6,,10,uL,4.5,TRUE
+Longit_BLANK-07 (Eluent A),SBLK,6,,10,uL,4.5,TRUE

@@ -1,0 +1,73 @@
+---
+title: "Getting Started with MiDAR"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{Getting Started with MiDAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+# Prerequisites
+MiDAR requires R version 4.2.0 or higher, available from [CRAN](https://cran.r-project.org).
+Using an R IDE such as [RStudio](https://posit.co/download/rstudio-desktop/), [Positron](https://positron.posit.co), 
+or [Visual Studio Code](https://code.visualstudio.com) is also recommended.
+
+While `MiDAR`'s core functionality requires no R coding skills,
+basic familiarity with R and an IDE is needed. New to R? Try online tutorials such a
+[An opinionated tour of RStudio](https://rladiessydney.org/courses/ryouwithme/01-basicbasics-1/) and 
+the [RStudio User Guide](https://docs.posit.co/ide/user/ide/get-started/). Additionally,
+having a colleague who is familiar with RStudio can be helpful
+to get started smoothly and stay motivated.
+
+# Installing MiDAR
+To install, or to update, `MiDAR`, run the following code in the R console:
+```{r, eval=FALSE}
+if (!require("pak")) install.packages("pak")
+pak::pkg_install("SLINGhub/midar")
+```
+
+# Learning MiDAR
+If you are new to MiDAR, please explore the tutorials available via the
+top menu bar. These resources will help you become familiar with the
+package's concepts and functionalities. In particular, the tutorials on 
+[Preparing and importing data](T01_prepdata.html) and [A basic MiDAR workflow](T02_settingup_workflow.html) offer essential information 
+to get you started smoothly.
+
+Some MiDAR functions, particularly those for plotting, have many arguments
+to allow detailed customizations. To get started,  use the default
+settings (i.e., without defining them), and then
+adjust them to suit your needs. Use `?functionname` or search the [References(reference/index.html)
+page for detailed descriptions, or check the 'Manual' section for tips and
+tricks. A common error is omitting required arguments. If unclear errors occur,
+consult the Help to ensure correct arguments and data types. Robustness
+will improve in future package versions.
+
+# MiDAR Recipes
+To build your own data processing workflows, the 'Recipes' provide a good
+starting point. Choose one or more recipes that match your application, copy-paste into your
+R script/notebook, and start from there to adapt to your specific data and process. 
+The recipes also introduce you to some function names and argument
+options that may typically be used in the recipes' context. 
+
+For more detailed information, refer to the 'Manual' section for
+details on data structures and the use of MiDAR functions, and the
+'Reference' section for comprehensive documentation on all functions,
+their arguments, data classes, and test datasets.
+
+# Support
+We are happy to help. Feel free to contact the authors directly or via the Github repository for any questions, suggestions, or issues. If you are interested in contributing to the package, feel free to contact us.
+
+

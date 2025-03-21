@@ -1,0 +1,106 @@
+---
+title: "Drift and Batch Correction"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: postprocessing and quality control of small molecule mass spectrometry data 
+vignette: >
+  %\VignetteIndexEntry{Drift and Batch Correction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
+bibliography: references.bib
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+`MiDAR` provides functions for run-order drift and batch correction. The
+correction is based on user-selected reference sample types (`qc_types`), based on which
+all other samples are adjusted. The
+corrections can be applied to `intensity`, `norm_intensity`, or `conc`
+data.
+
+# Drift correction (smoothing)
+
+Following drift correction method are available in `MiDAR`, two of which
+are typically used for QC samples and one (gaussian kernel-based) for
+study samples.
+
+Corrections can be applied on a batch-by-batch basis
+(`batch_wise = TRUE`, default) or across all batches
+(`batch_wise = FALSE`). The correction can either replace existing drift
+or batch corrections (`⁠replace_previous = ⁠TRUE⁠`, default) or applied on
+top of existing corrections (`⁠replace_previous = FALSE').
+
+Drift correction can be applied to all features
+(`conditional_correction = FALSE`) or conditionally, based on whether
+the sample CV difference before and after correction is below a defined
+threshold (`cv_diff_threshold)`. The conditional correction is applied
+separately for each batch if `batch_wise = TRUE`.
+
+It is recommended to visually inspect the correction using the
+`plot_runscatter()` function. Set the argument `recalc_trend_after = TRUE`
+so that the trends after correction are also available for plotting. For
+further details, refer to the description of `plot_runscatter()`. This,
+however, doubles the processing time.
+
+**Note**: The function outputs a message indicating the median CV change
+and the mean absolute CV before and after correction for all samples.
+However, these metrics are experimental and should not be used as
+definitive criteria for correction (see function documentation).
+
++--------+---------------------+-----------------------------------+
+| Method | MiDAR function      | Details                           |
++========+=====================+===================================+
+| Cubic  | `correct_dr         | Cubic spline with smoothing       |
+| Spline |  ift_cubicspline()` | parameter being either determined |
+|        |                     | using cross-validation or set as  |
+|        |                     | fixed across all features.\       |
+|        |                     | Typically used with QC samples as |
+|        |                     | references                        |
++--------+---------------------+-----------------------------------+
+| Loess  | `correct            | Loess smoothing with span set as  |
+|        |  _drift_loess()`.   | fixed value for all features.\    |
+|        |                     | Typically used with QC samples as |
+|        |                     | reference                         |
++--------+---------------------+-----------------------------------+
+| Ga     | `correct_drift      | Gaussian kernel smoothing with    |
+| ussian |  _gaussiankernel()` | fixed kernel size for all         |
+| Kernel |                     | features. Option to smooth the    |
+|        |                     | scale (variability) as well.      |
+|        |                     |                                   |
+|        |                     | Typically used with study samples |
+|        |                     | as reference. Only suitable for   |
+|        |                     | large sample numbers that are     |
+|        |                     | well-randomized/stratified.       |
++--------+---------------------+-----------------------------------+
+
+The cubic spline smoothing approach, particularly when used with the
+regularization parameter `lambda`, is similar but not identical to
+previously described QC-based drift correction methods, such as **QC-RSC
+(Quality Control Regularized Spline Correction)**, described in
+@dunn2011ProceduresLargescaleMetabolic and
+@kirwan2013CharacterisingCorrectingBatch.
+
+See the tutorial [Drift and Batch Correction](articles/07_driftbatchcorr.html) for more information
+on how to use these functions and plot the results.
+
+# Batch-effect correction (centering)
+
+`MiDAR` currently supports median centering-based batch correction
+`correct_batch_centering()\`, whereby the scale of the batches can
+optioanally also be normalized. The selected QC types (`ref_qc_types`)
+are used to calculate the medians, which are then used to align all
+other samples.
+
+See the tutorial [Drift and Batch Correction](articles/07_driftbatchcorr.html) for more information.
+
+# References

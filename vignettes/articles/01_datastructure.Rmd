@@ -1,0 +1,55 @@
+---
+title: "Data and Metadata in MiDAR"
+output: 
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 2
+description: |
+  MiDAR: Postprocessing and Quality Control of Small-Molecule Mass Spectrometry Data 
+vignette: >
+  %\VignetteIndexEntry{Data and Metadata in MiDAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r, include = FALSE, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, results = FALSE, warning = FALSE,
+                      message = FALSE, comment = "#>", out.width = "100%")
+set.seed(1041)
+options(dplyr.print_max = 10)
+```
+
+# MidarExperiment
+
+The **`MidarExperiment`** object is the **primary data container** in the MiDAR workflow. 
+It holds all the experimental and processed data and metadata, as well as details 
+of the applied processing steps and the current status of the data. Most `MiDAR` functions take the `MidarExperiment` object as data input. Functions that 
+process the data return an updated `MidarExperiment` object, which can then be 
+used in subsequent steps.
+
+Data within the `MidarExperiment` is organized into
+[**data**]{style="color: blue;"} and [**metadata**]{style="color: blue;"}
+categories, each divided into tables (data.frames).
+
+# Data
+
+
+| Category | Table name (Slot) | Description |
+|---------------------------|---------------------------|---------------------------|
+| Raw Data | `dataset_orig` | Original imported analysis data. |
+| Processed Data | `dataset` | Annotated raw and processed data with available metadata. |
+| Feature metrics | `feature_metrics` | Information and various quality control metrics for features. |
+
+# Metadata
+
+| Data Type | Table name (Slot) | Description |
+|---------------------------|---------------------------|---------------------------|
+| Analyses Annotation | `annot_analyses` | Details sample categories, amounts, dilutions, processing batches, and other relevant information. |
+| Features Annotation | `annot_features` | Describes internal standards for normalization, response factors, feature classification, and specifies quantifiers and internal standards. |
+| Internal Standard | `annot_istds` | Concentrations of internal standards added to samples. |
+| Batches | `annot_batches` | Specifies the boundaries (start and end) for each defined batch. |
+| Response Curves | `annot_responsecurves` | Defines response curves, detailing sample amounts across different steps. |
+| Calibration Curves | `annot_standards` | Defines concentrations of unlabelled and labelled standards in calibration curves and other quality control materials. |
