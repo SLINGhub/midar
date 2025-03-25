@@ -258,7 +258,7 @@ plot_runsequence <- function(data = NULL,
 #' @param exclude_feature_filter A regex pattern or a vector of feature names to exclude features by feature_id.
 #' If `NA` or an empty string (`""`) is provided, the filter is ignored. When a vector of length > 1 is supplied,
 #' is supplied, only features with exactly these names are excluded (applied individually as OR conditions).
-#' @param analysis_order_range Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. `NA` plots all samples.
+#' @param analysis_range Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. `NA` plots all samples.
 #'
 #' @param output_pdf Logical, whether to save the plot as a PDF file.
 #' @param path File name for the PDF output.
@@ -320,7 +320,7 @@ plot_runscatter <- function(data = NULL,
                             include_feature_filter = NA,
                             exclude_feature_filter = NA,
 
-                            analysis_order_range = NA,
+                            analysis_range = NA,
 
                             # Output settings
                             output_pdf = FALSE,
@@ -560,7 +560,7 @@ plot_runscatter <- function(data = NULL,
       batch_line_color = batch_line_color, batch_fill_color =
         batch_fill_color, y_label = y_label, base_font_size = base_font_size,
       point_border_width = point_border_width, show_grid = show_gridlines,
-      log_scale = log_scale, analysis_order_range = analysis_order_range,
+      log_scale = log_scale, analysis_range = analysis_range,
       show_reference_lines = show_reference_lines, ref_qc_types = ref_qc_types, reference_k_sd = reference_k_sd,
       reference_batchwise = reference_batchwise, reference_line_color = reference_line_color, reference_sd_shade = reference_sd_shade, reference_fill_color = reference_fill_color,
       reference_linewidth = reference_linewidth, trend_color = trend_color
@@ -590,7 +590,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                                 show_trend, cap_outliers,
                                 show_batches, batch_zebra_stripe, batch_line_color, batch_fill_color,
                                 output_pdf, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
-                                show_grid, log_scale, analysis_order_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
+                                show_grid, log_scale, analysis_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
                                 reference_linewidth, trend_color) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_border_width <- dplyr::if_else(output_pdf, .3, .5)
@@ -817,8 +817,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 
 
-  if(!all(is.na(analysis_order_range))) {
-    p <- p + ggplot2::coord_cartesian(xlim = analysis_order_range)
+  if(!all(is.na(analysis_range))) {
+    p <- p + ggplot2::coord_cartesian(xlim = analysis_range)
   }
 
   return(p)
@@ -848,7 +848,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #' @param exclude_feature_filter A regex pattern or a vector of feature names to exclude features by feature_id.
 #' If `NA` or an empty string (`""`) is provided, the filter is ignored. When a vector of length > 1 is supplied,
 #' is supplied, only features with exactly these names are excluded (applied individually as OR conditions).
-#' @param analysis_order_range Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. `NA` plots all samples.
+#' @param analysis_range Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. `NA` plots all samples.
 #' @param show_timestamp Logical, whether to use the acquisition timestamp as
 #' the x-axis instead of the run sequence number
 #'
@@ -886,7 +886,7 @@ plot_rla_boxplot <- function(
                                 include_feature_filter = NA,
                                 exclude_feature_filter = NA,
 
-                                analysis_order_range = NA,
+                                analysis_range = NA,
                                 show_timestamp = FALSE,
 
                                 min_feature_intensity = 0,
@@ -940,8 +940,8 @@ plot_rla_boxplot <- function(
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
 
 
-  if (!all(is.na(analysis_order_range))) {
-    d_filt <- d_filt |> dplyr::filter(.data$analysis_order >= analysis_order_range[1] & .data$analysis_order <= analysis_order_range[2]) |> droplevels()
+  if (!all(is.na(analysis_range))) {
+    d_filt <- d_filt |> dplyr::filter(.data$analysis_order >= analysis_range[1] & .data$analysis_order <= analysis_range[2]) |> droplevels()
   }
 
 
@@ -1045,8 +1045,8 @@ plot_rla_boxplot <- function(
     ylim = tails
   }
 
-  if(!all(is.na(analysis_order_range))) {
-    xlim = analysis_order_range
+  if(!all(is.na(analysis_range))) {
+    xlim = analysis_range
   }
 
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)

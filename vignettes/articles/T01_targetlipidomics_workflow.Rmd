@@ -135,7 +135,7 @@ plot_runscatter(
   data = myexp,
   variable = "intensity",
   qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
-  analysis_order_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
+  analysis_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
   include_feature_filter = "ISTD", 
   exclude_feature_filter = "Hex|282",
   cap_outliers = TRUE,

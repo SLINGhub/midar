@@ -26,7 +26,7 @@ check_dataset_present <- function(data){nrow(data@dataset) > 0}
 #'   to exclude by `feature_id`. If `NA` or an empty string (`""`) is provided,
 #'   the filter is ignored. If a vector of length > 1 is supplied, only features
 #'   matching these names are excluded (applied as OR conditions).
-#' @param analysis_order_range Numeric vector of length 2, specifying the start
+#' @param analysis_range Numeric vector of length 2, specifying the start
 #'   and end indices of the analysis order to be plotted. `NA` includes all
 #'   samples.
 #'
