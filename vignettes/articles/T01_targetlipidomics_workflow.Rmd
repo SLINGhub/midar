@@ -211,7 +211,7 @@ midar::plot_rla_boxplot(
   variable = "intensity",
   qc_types = c("BQC", "SPL", "RQC", "TQC", "PBLK"), 
   filter_data = FALSE, 
-  #plot_range_indices = get_batch_boundaries(myexp, batch_ids = c(6,6)), 
+  #analysis_range = get_batch_boundaries(myexp, batch_indices = c(5,6)), 
   #y_lim = c(-3,3),
   show_timestamp = FALSE,
   ignore_outliers = FALSE, x_gridlines = FALSE,

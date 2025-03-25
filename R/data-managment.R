@@ -382,37 +382,53 @@ check_var_in_dataset <- function(table, variable) {
 #' @description
 #' Sets the analysis order (sequence) based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata.
 #' @param data MidarExperiment object
-#' @param batch_ids A vector with one or two elements: the first and/or last batch ID. If NULL or invalid, the function will abort.
-#' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).
+#' @param batch_indices A numeric vector with one or two elements, representing the first and/or last batch index (i.e., sequential batch number).
+#' If NULL or invalid, the function will abort.#' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).
 #' @export
-get_batch_boundaries <- function(data = NULL, batch_ids = NULL) {
+get_batch_boundaries <- function(data = NULL, batch_indices = NULL) {
   check_data(data)
   if (nrow(data@annot_batches) == 0) {
     cli::cli_abort("No batches defined in the dataset.")
   }
 
-  if (is.null(batch_ids) || length(batch_ids) == 0) {
+  if (is.null(batch_indices) || length(batch_indices) == 0) {
     cli::cli_abort("No batch IDs provided.")
   }
-  # Ensure batch_ids has at least one value
-  if (length(batch_ids) == 1) {
-    first_batch_id <- last_batch_id <- batch_ids[1]
-  } else if (length(batch_ids) == 2) {
-    first_batch_id <- batch_ids[1]
-    last_batch_id <- batch_ids[2]
+
+  if (length(batch_indices) > 2) {
+    cli::cli_abort("Invalid batch indices. Please provide a numeric vector with one or two elements (start, end).")
+    }
+
+  if (!is.numeric(batch_indices)) {
+    cli::cli_abort("Batch indices must be numbers. Provide a numeric vector with one or two elements.")
+  }
+
+  # Ensure batch_indices has at least one value
+  if (length(batch_indices) == 1) {
+    first_batch_id <- last_batch_id <- batch_indices[1]
+  } else if (length(batch_indices) == 2) {
+    first_batch_id <- batch_indices[1]
+    last_batch_id <- batch_indices[2]
   } else {
     cli::cli_abort("Please provide a vector with one or two batch IDs.")
   }
 
-  # Check if the specified batch IDs exist in the dataset
-  existing_batches <- data@annot_batches$batch_id
-  if (!all(c(first_batch_id, last_batch_id) %in% existing_batches)) {
-    cli::cli_abort("One or more of the specified batch IDs do not exist in the dataset.")
+  batch_indices_data <- unique(data@annot_batches$batch_no)
+
+  if (first_batch_id < 1 || last_batch_id < 1) {
+    cli::cli_abort("Batch indices must be 1 or higher.")
   }
+
+  if (first_batch_id > max(batch_indices_data) || last_batch_id > max(batch_indices_data)) {
+    cli::cli_abort("Batch indices exceed the total number of batches. Please provide numbers between 1 and {max(batch_indices_data)}.")
+    }
+
+
+
 
   # Filter the dataset for the given range of batch IDs
   d <- data@annot_batches |>
-    filter(.data$batch_id >= first_batch_id & .data$batch_id <= last_batch_id)
+    filter(.data$batch_no >= first_batch_id & .data$batch_no <= last_batch_id)
 
   if (nrow(d) == 0) {
     cli::cli_abort("No batches found for the provided range of batch IDs.")

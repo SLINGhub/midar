@@ -4,15 +4,13 @@
 \alias{get_batch_boundaries}
 \title{Get the start and end analysis numbers of specified batches}
 \usage{
-get_batch_boundaries(data = NULL, batch_ids = NULL)
+get_batch_boundaries(data = NULL, batch_indices = NULL)
 }
 \arguments{
 \item{data}{MidarExperiment object}
 
-\item{batch_ids}{A vector with one or two elements: the first and/or last batch ID. If NULL or invalid, the function will abort.}
-}
-\value{
-A vector with two elements: the lower and upper analysis number for the specified batch(es).
+\item{batch_indices}{A numeric vector with one or two elements, representing the first and/or last batch index (i.e., sequential batch number).
+If NULL or invalid, the function will abort.#' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).}
 }
 \description{
 Sets the analysis order (sequence) based on either (i) analysis timestamp, if available, (ii) the order in which analysis appeared in the imported raw data file, or (iii) the order in which analyses were defined in the Analysis metadata.

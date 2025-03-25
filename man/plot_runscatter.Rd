@@ -15,7 +15,7 @@ plot_runscatter(
   include_istd = TRUE,
   include_feature_filter = NA,
   exclude_feature_filter = NA,
-  analysis_order_range = NA,
+  analysis_range = NA,
   output_pdf = FALSE,
   path = NA,
   return_plots = FALSE,
@@ -76,7 +76,7 @@ is supplied, only features with exactly these names are selected (applied indivi
 If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
 is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
 
-\item{analysis_order_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
+\item{analysis_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
 
 \item{output_pdf}{Logical, whether to save the plot as a PDF file.}
 

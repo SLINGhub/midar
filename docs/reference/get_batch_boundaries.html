@@ -64,7 +64,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_batch_boundaries</span><span class="op">(</span>data <span class="op">=</span> <span class="cn">NULL</span>, batch_ids <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_batch_boundaries</span><span class="op">(</span>data <span class="op">=</span> <span class="cn">NULL</span>, batch_indices <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,14 +75,11 @@
 <dd><p>MidarExperiment object</p></dd>
 
 
-<dt id="arg-batch-ids">batch_ids<a class="anchor" aria-label="anchor" href="#arg-batch-ids"></a></dt>
-<dd><p>A vector with one or two elements: the first and/or last batch ID. If NULL or invalid, the function will abort.</p></dd>
+<dt id="arg-batch-indices">batch_indices<a class="anchor" aria-label="anchor" href="#arg-batch-indices"></a></dt>
+<dd><p>A numeric vector with one or two elements, representing the first and/or last batch index (i.e., sequential batch number).
+If NULL or invalid, the function will abort.#' @return A vector with two elements: the lower and upper analysis number for the specified batch(es).</p></dd>
 
 </dl></div>
-    <div class="section level2">
-    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A vector with two elements: the lower and upper analysis number for the specified batch(es).</p>
-    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

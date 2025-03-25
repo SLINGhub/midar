@@ -316,7 +316,13 @@ test_that("get_batch_boundaries returns correct values", {
   expect_equal(get_batch_boundaries(mexp, 3), c(176,258))
   expect_equal(get_batch_boundaries(mexp, c(1,3)), c(1,258))
   expect_error(get_batch_boundaries(mexp, c(1,2,3)),
-               "Please provide a vector with one or two batch IDs")
+               "nvalid batch indices. Please provide a numeric vector", fixed = TRUE)
+  expect_error(get_batch_boundaries(mexp, c(1, "A")),
+               "Batch indices must be numbers")
+  expect_error(get_batch_boundaries(mexp, c(0, 2)),
+               "Batch indices must be 1 or higher")
+  expect_error(get_batch_boundaries(mexp, c(1, 7)),
+               "Batch indices exceed the total number of batches. Please provide numbers between 1 and 6.")
 })
 
 
