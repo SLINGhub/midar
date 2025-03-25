@@ -100,7 +100,7 @@ test_that("plot_runscatter generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "672K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "651K")
   fs::file_delete(temp_pdf_path)
 
 })
@@ -202,6 +202,34 @@ test_that("plot_runscatter filter work", {
   expect_false(any(grepl("==",
                         captured_output)))
 
+})
+
+# check diverse feature filters
+test_that("plot_runscatter with unknown qc_types", {
+
+  mexp_newqc <- import_data_csv(data = MidarExperiment(),
+                          path = test_path("testdata/plain_wide_dataset2_22rows_unknownQC.csv"),
+                          variable_name = "conc",
+                          analysis_id_col = "analysis_id",
+                          import_metadata = TRUE)
+
+
+ expect_message(
+   p <- plot_runscatter(
+    data = mexp_newqc,
+    variable = "conc",
+    include_qualifier = FALSE,
+    rows_page = 3,
+    cols_page = 4,
+    point_size = 10,
+    return_plots = TRUE
+  ),
+  "QC types 'XYX, MyQC, BLK' are predefined in Midar and will be displayed in black with auto-assigned shapes", fixed = TRUE)
+
+
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
+  expect_equal(length(unique(plot_data$shape)), 6)
+  vdiffr::expect_doppelganger("runscatter_unknownqc", p)
 })
 
 

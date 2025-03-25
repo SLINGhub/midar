@@ -198,6 +198,14 @@ plot_runsequence <- function(data = NULL,
 #' feature variables, such as retention time (RT) and full width at
 #' half maximum (FWHM), can be plotted against analysis order or timestamps.
 #'
+#' By default, all QC types present in the dataset will be plotted. QC types that
+#' predefined colors or shapes are assigned black shapes.
+#' User-defined QC types that have no predefined colors or shapes in midar.
+#' will be assigned black shapes.
+#
+#' have no predefined color and shape, will be assigned shapes in black. To show specific
+#' QC types use the `qc_types` argument.
+#'
 #' To plot the feature values before the last applied drift/batch correction,
 #' add `*_before` to the variable name, e.g., `intensity_before` or `conc_before`.
 #' To plot the uncorrected feature values (before any drift/batch correction),
@@ -604,7 +612,37 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   d_subset$qc_type <- d_subset$qc_type |>
     factor() |>
     forcats::fct_expand(pkg.env$qc_type_annotation$qc_type_levels) |>
-    forcats::fct_relevel(pkg.env$qc_type_annotation$qc_type_levels)
+    forcats::fct_relevel(rev(pkg.env$qc_type_annotation$qc_type_levels)) |>
+    forcats::fct_rev()
+
+  d_subset <- d_subset |> arrange(desc(.data$qc_type))
+
+
+  defined_qctypes <- levels(d_subset$qc_type)
+
+  # Handle QC types that are not defined in midar
+
+  # Assign "grey50" to any undefined qc types
+  qc_types_color <- setNames(rep("grey0", length(defined_qctypes)), defined_qctypes)
+  qc_types_color[names(pkg.env$qc_type_annotation$qc_type_col)] <- pkg.env$qc_type_annotation$qc_type_col  # Override known groups with defined colors
+  qc_types_fill <- setNames(rep("grey40", length(defined_qctypes)), defined_qctypes)
+  qc_types_fill[names(pkg.env$qc_type_annotation$qc_type_fillcol)] <- pkg.env$qc_type_annotation$qc_type_fillcol  # Override known groups with defined colors
+
+
+  undefined_qctypes <- setdiff(defined_qctypes, names(pkg.env$qc_type_annotation$qc_type_shape))
+
+  if (length(undefined_qctypes) > 0) {
+    cli_alert_warning(col_yellow(
+      "The QC types '{glue::glue_collapse(undefined_qctypes, sep = ', ')}' are predefined in Midar and will be displayed in black with auto-assigned shapes."
+    ))
+  }
+
+
+  extra_shapes <- c(8, 3, 4, 9, 21, 22, 23, 24,25, 7, 10, 12, 13, 14, 11 )  # Extra distinct shapes
+  new_shapes <- setNames(extra_shapes[seq_along(undefined_qctypes)], undefined_qctypes)
+
+  qc_types_shape <- c(pkg.env$qc_type_annotation$qc_type_shape, new_shapes)
+
 
   d_subset <- d_subset |>
     dplyr::arrange(rev(.data$qc_type))
@@ -734,9 +772,9 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   p <- p +
     ggh4x::facet_wrap2(ggplot2::vars(.data$feature_id), scales = "free_y", ncol = cols_page, nrow = rows_page, trim_blank = FALSE) +
-    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
-    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
-    ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
+    ggplot2::scale_color_manual(values = qc_types_color, drop = TRUE, na.value = "yellow") +
+    ggplot2::scale_fill_manual(values = qc_types_fill, drop = TRUE, na.value = "yellow") +
+    ggplot2::scale_shape_manual(values = qc_types_shape, drop = TRUE, na.value = 4)
 
 
 

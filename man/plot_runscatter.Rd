@@ -156,6 +156,13 @@ trends, detect outliers, and assess analytical performance. Available
 feature variables, such as retention time (RT) and full width at
 half maximum (FWHM), can be plotted against analysis order or timestamps.
 
+By default, all QC types present in the dataset will be plotted. QC types that
+predefined colors or shapes are assigned black shapes.
+User-defined QC types that have no predefined colors or shapes in midar.
+will be assigned black shapes.
+have no predefined color and shape, will be assigned shapes in black. To show specific
+QC types use the \code{qc_types} argument.
+
 To plot the feature values before the last applied drift/batch correction,
 add \verb{*_before} to the variable name, e.g., \code{intensity_before} or \code{conc_before}.
 To plot the uncorrected feature values (before any drift/batch correction),

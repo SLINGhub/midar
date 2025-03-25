@@ -147,6 +147,7 @@ pkg.env$qc_type_annotation <- list(
     "LQC" = 25,
     "MQC" = 23,
     "HQC" = 24,
+    "QC" = 23,
     "EQA" = 22,
     "CAL" = 21,
     "RQC" = 6,
