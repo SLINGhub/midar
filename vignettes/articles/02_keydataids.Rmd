@@ -74,7 +74,7 @@ quality control in analytical workflows.
 | NIST | Reference Material | NIST Standard Reference Material |
 | SST | QA | System Suitability Test Sample |
 | PBLK | Process Blank | No matrix, processed with ISTD as all other samples |
-| UBLK | Blank | Unextrated Blank. No matrix, with ISTD without ungoing sample processing |
+| UBLK | Blank | Unextrated Blank. No matrix, with ISTD without undergoing sample processing |
 | SBLK | Blank | Solvent Blank/double Blank, no matrix, no ISTD, just solvents |
 | IBLK | Blank | Instrument Blank with/without injection |
 | MBLK | Blank | Matrix Blank. Matrix processed as samples without ISTDs |
