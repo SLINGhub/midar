@@ -155,7 +155,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
     "SampleMetadata" = if(nrow(data@annot_analyses) == 0) data@annot_analyses |> tibble::add_row() else data@annot_analyses,
     "FeatureMetadata" = if(nrow(data@annot_features) == 0) data@annot_features |> tibble::add_row() else data@annot_features,
     "InternalStandards" = if(nrow(data@annot_istds) == 0) data@annot_istds |> tibble::add_row() else data@annot_istds,
-    "BatchInfo" = if(nrow(data@annot_batches  ) == 0) tibble("No batches defined" = NA) |> tibble::add_row() else data@annot_istds
+    "BatchInfo" = if(nrow(data@annot_batches) == 0) tibble("No batches defined" = NA) |> tibble::add_row() else data@annot_batches
   )
 
   names(table_list)[4:5] <- c(name_filt_spl, name_filt_all)
