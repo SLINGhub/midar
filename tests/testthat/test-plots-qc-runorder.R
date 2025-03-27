@@ -131,7 +131,7 @@ test_that("plot_runscatter filter work", {
     include_qualifier = FALSE,
     include_feature_filter = "PC|PE",
     exclude_feature_filter = "ISTD|SIM",
-    analysis_range = c(100,400),
+    plot_range = c(100,400),
     rows_page = 3,
     cols_page = 4,
     return_plots = TRUE
@@ -149,7 +149,7 @@ test_that("plot_runscatter filter work", {
     qc_types = c("BQC|SPL"),
     include_qualifier = FALSE,
     include_feature_filter = c("PC 40:6", "PC 40:8"),
-    analysis_range = c(100,400),
+    plot_range = c(100,400),
     rows_page = 3,
     cols_page = 4,
     return_plots = TRUE
@@ -168,7 +168,7 @@ test_that("plot_runscatter filter work", {
       include_qualifier = FALSE,
       include_feature_filter = "40",
       exclude_feature_filter = "PC",
-      analysis_range = c(100,400),
+      plot_range = c(100,400),
       rows_page = 3,
       cols_page = 4,
       return_plots = TRUE
@@ -231,6 +231,9 @@ test_that("plot_runscatter with unknown qc_types", {
   expect_equal(length(unique(plot_data$shape)), 6)
   vdiffr::expect_doppelganger("runscatter_unknownqc", p)
 })
+
+
+
 
 
 test_that("plot_runscatter show batches works", {
@@ -809,7 +812,7 @@ expect_error(
     variable = "intensity",
     rows_page = 3,
     cols_page = 4,
-    analysis_range = c(100,400),
+    plot_range = c(100,400),
     return_plots = TRUE,
   )
  vdiffr::expect_doppelganger("runscatterrange_filter",p)
@@ -937,7 +940,7 @@ expect_equal(length(plot_data),2) # no batches shown
 p <- plot_rla_boxplot(mexp,
                       rla_type_batch = "across",
                       variable = "intensity",
-                      analysis_range = c(100,400),
+                      plot_range = c(100,400),
                       show_batches = TRUE)
 
 plot_data <- ggplot2::ggplot_build(p)$data

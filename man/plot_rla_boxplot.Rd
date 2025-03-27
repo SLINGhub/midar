@@ -15,7 +15,7 @@ plot_rla_boxplot(
   include_istd = TRUE,
   include_feature_filter = NA,
   exclude_feature_filter = NA,
-  analysis_range = NA,
+  plot_range = NA,
   show_timestamp = FALSE,
   min_feature_intensity = 0,
   y_lim = NA,
@@ -54,7 +54,7 @@ is supplied, only features with exactly these names are selected (applied indivi
 If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
 is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
 
-\item{analysis_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
+\item{plot_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
 
 \item{show_timestamp}{Logical, whether to use the acquisition timestamp as
 the x-axis instead of the run sequence number}
