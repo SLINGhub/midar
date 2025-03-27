@@ -55,7 +55,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
   if(nrow(data@dataset) > 0 ){
     d_intensity_wide <- data@dataset |>
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
+      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_intensity"))) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_intensity")
   } else {
@@ -64,7 +64,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
   if(data@is_istd_normalized){
     d_norm_intensity_wide <- data@dataset |>
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
+      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "PBLK", "SBLK", "UBLK", "MBLK")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_norm_intensity"))) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
   } else {
@@ -73,7 +73,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
   if(data@is_quantitated){
       d_conc_wide <- data@dataset |>
-        dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR")) |>
+        #dplyr::filter(!.data$qc_type %in% c("PBLK", "SBLK", "UBLK", "NIST", "LTR")) |>
         dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
         dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "acquisition_time_stamp", "feature_id", "feature_conc"))) |>
         tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_conc")
@@ -93,13 +93,13 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
 
     d_conc_wide_QC_all <- data@dataset_filtered |>
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
+      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "feature_id", "feature_norm_intensity"))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
 
-    d_conc_wide_QC_all <- d_conc_wide_QC_all |>
-      dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
+    # d_conc_wide_QC_all <- d_conc_wide_QC_all |>
+    #   dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
 
 
   } else {

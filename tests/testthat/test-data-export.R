@@ -82,7 +82,7 @@ test_that("save_report_xlsx inluded feature-filtered data", {
   tbl <- openxlsx2::wb_to_df(temp_file, sheet = "QCfilt_NormInt_StudySamples")
   expect_equal(dim(tbl), c(374, 19))
   tbl <- openxlsx2::wb_to_df(temp_file, sheet = "QCfilt_NormInt_AllSamples")
-  expect_equal(dim(tbl), c(476, 20))
+  expect_equal(dim(tbl), c(499, 20))
   on.exit(unlink(temp_file)) # Clean up
 })
 
