@@ -94,9 +94,9 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
     d_conc_wide_QC_all <- data@dataset_filtered |>
       #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
-      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "feature_id", "feature_norm_intensity"))) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "feature_id", filtered_variable))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
-      tidyr::pivot_wider(names_from = "feature_id", values_from = "feature_norm_intensity")
+      tidyr::pivot_wider(names_from = "feature_id", values_from = any_of(filtered_variable))
 
     # d_conc_wide_QC_all <- d_conc_wide_QC_all |>
     #   dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
