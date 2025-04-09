@@ -35,6 +35,7 @@ Imports:
     ggh4x,
     ggplot2 (>= 3.5.0),
 Suggests: 
+    enviPat,
     ggvenn,
     patchwork,
     ggbeeswarm,

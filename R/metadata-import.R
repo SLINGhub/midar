@@ -24,7 +24,7 @@ import_metadata_from_data<- function(data = NULL, qc_type_column_name = "qc_type
   # get feature metadata
 
   annot_features <- data@dataset_orig |>
-    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "precursor_mz", "product_mz", "istd_feature_id", "is_quantifier"))) |>
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "feature_sum_formula", "feature_molweight", "precursor_mz", "product_mz", "istd_feature_id", "is_quantifier"))) |>
     dplyr::distinct()
   annot_features <- clean_feature_metadata(annot_features)
 
@@ -374,7 +374,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     metadata$annot_features <- metadata$annot_features |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("feature_id")), obligatory=FALSE, description = "E;Missing value(s);Features") |>
-      assertr::verify(has_any_name("feature_class","istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
+      assertr::verify(has_any_name("feature_class","feature_sum", "istd_feature_id","quant_istd_feature_id","response_factor","is_quantifier","valid_feature","interference_feature_id"), obligatory=FALSE, description = "E;No metadata field(s) provided;Features; ") |>
       assertr::assert(assertr::is_uniq, "feature_id", obligatory=FALSE, description = "E;IDs duplicated;Features;feature_id") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "istd_feature_id", description = "E;ISTD(s) not defined as feature;Features;feature_id") |>
       assertr::assert(assertr::in_set(NA, "linear", "quadratic"), "curve_fit_model", description = "E; Must be NA, 'linear' or 'quadratic';Features;curve_fit_model") |>
@@ -942,6 +942,8 @@ clean_feature_metadata <- function(d_features) {
   }
 
   d_features <- d_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "feature_chem_formula", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "feature_molweight", init_value = NA_real_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "is_quantifier", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "istd_feature_id", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
@@ -960,6 +962,7 @@ clean_feature_metadata <- function(d_features) {
       feature_id = stringr::str_squish(.data$feature_id),
       feature_label = stringr::str_squish(.data$feature_label),
       feature_class = stringr::str_squish(.data$feature_class),
+      feature_chem_formula = stringr::str_squish(.data$feature_chem_formula),
       analyte_id = stringr::str_squish(.data$analyte_id),
       istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
@@ -985,6 +988,8 @@ clean_feature_metadata <- function(d_features) {
       "feature_id",
       "feature_class",
       "feature_label",
+      "feature_chem_formula",
+      "feature_molweight",
       "analyte_id",
       "istd_feature_id",
       "quant_istd_feature_id",

@@ -48,6 +48,7 @@ pkg.env$table_templates <- list(
     "feature_id" = character(),
     "feature_class" = character(),
     "analyte_id" = character(),
+    "chem_formula" = character(),
     "is_istd" = logical(),
     "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
