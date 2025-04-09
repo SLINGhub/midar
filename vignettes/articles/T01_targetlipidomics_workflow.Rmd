@@ -135,7 +135,7 @@ plot_runscatter(
   data = myexp,
   variable = "intensity",
   qc_types = c("BQC", "TQC", "SPL", "PBLK", "SBLK"),
-  analysis_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
+  #analysis_range = NA, #get_batch_boundaries(myexp, c(1,6)), 
   include_feature_filter = "ISTD", 
   exclude_feature_filter = "Hex|282",
   cap_outliers = TRUE,
@@ -441,6 +441,7 @@ myexp <- midar::correct_drift_gaussiankernel(
   replace_previous = TRUE,
   recalc_trend_after = TRUE,
   kernel_size = 10,
+  #conditional_correction = 
   outlier_filter = FALSE,
   outlier_ksd = 5,
   location_smooth = TRUE,
@@ -642,7 +643,7 @@ and `LOD`).
 ```{r qc-summary-1}
 #| fig.alt: >
 #|   Feature QC filter plot by class
-midar::plot_qc_summary_byclass(myexp)
+midar::plot_qc_summary_byclass(myexp) 
 ```
 
 The following plot provides a further summary of the feature filtering
