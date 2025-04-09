@@ -126,6 +126,13 @@ test_that("Reads metadata from XLSX sheet", {
   expect_equal(tbl[[1,"sample_amount"]], 10)
 })
 
+test_that("Reads metadata from XLSX sheet", {
+  path <- testthat::test_path("testdata/sperfect_metadata_tables.xlsx")
+  tbl <- get_metadata_table(path = path, sheet = "Features")
+  expect_equal(tbl[[1,"feature_id"]], "CE 14:0")
+  expect_equal(tbl[[224,"interference_contribution"]], 0.00774513)
+})
+
 test_that("Reads metadata from given data frame", {
   path <- testthat::test_path("testdata/sperfect_metadata_tables.csv")
   df <- readr::read_csv(file = path, show_col_types = FALSE)
@@ -224,6 +231,7 @@ test_that("Add indidual metadata types to data, first analyses then features", {
   expect_equal(mexp@dataset[[10, "feature_intensity" ]], 43545)
   expect_in(c("sample_id", "feature_class", "is_istd", "is_quantifier"), names(mexp@dataset))
   mexp <- midar:::import_metadata_features(mexp, path = path, sheet = "Features",ignore_warnings = TRUE)
+  expect_equal(mexp@annot_features[[245, "interference_contribution" ]], 43545)
   expect_equal(mexp@dataset[[5, "feature_intensity" ]], 43545)
   expect_equal(mexp@dataset[[5, "feature_class" ]], "SPBP")
   expect_equal(mexp@dataset[[5, "is_istd" ]], TRUE)

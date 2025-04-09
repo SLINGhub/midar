@@ -1,4 +1,4 @@
-﻿feature_id,istd_feature_id,feature_class,feature_label,response_factor,quantifier,valid_integration,interference_feature_id,interference_proportion,remarks
+feature_id,istd_feature_id,feature_class,feature_label,response_factor,quantifier,valid_integration,interference_feature_id,interference_contribution,remarks
 CE 14:0,CE 18:1 d7 (ISTD),CE,,1,TRUE,TRUE,,,
 CE 15:0,CE 18:1 d7 (ISTD),CE,,1,TRUE,TRUE,,,
 CE 16:0,CE 18:1 d7 (ISTD),CE,,1,TRUE,TRUE,,,
