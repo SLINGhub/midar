@@ -28,5 +28,5 @@ An updated \code{MidarExperiment} object
 }
 \description{
 Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the \code{data} argument, or from data from a file (CSV or Excel) via the \code{path} argument.
-The analysis metadata must contain following columns: \code{istd_feature_id} and \code{istd_conc_nmolar}.
+The analysis metadata must contain following columns: \code{istd_feature_id} and one of \code{istd_conc_nmolar} or \code{istd_conc_ngml}.
 }

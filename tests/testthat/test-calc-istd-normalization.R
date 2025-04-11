@@ -79,6 +79,63 @@ test_that("Add metadata table by table, the normalize and quantify based on ISTD
 })
 
 
+test_that("quantify_by_istd with mass concentration", {
+  mexp <- midar::MidarExperiment()
+  mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
+                                        import_metadata = FALSE)
+  mexp <- midar::import_metadata_msorganiser(mexp,
+                                             path = testthat::test_path("testdata/Metadata_Template_210_MHQuant_S1P_with-ngml.xlsm"),
+                                             excl_unmatched_analyses = FALSE)
+
+  mexp <- midar::normalize_by_istd(mexp)
+
+  expect_error(
+    mexp <- midar::quantify_by_istd(mexp),
+    "ISTD concentrations are defined in both nmolar and ng/mL", fixed = TRUE)
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp@annot_features$chem_formula <- NA_character_
+  mexp_temp@annot_features$molecular_weight <- NA_real_
+
+  expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp),
+    "Chemical formula or molecular weight is missing for all ISTDs", fixed = TRUE)
+
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp <- midar::quantify_by_istd(mexp_temp)
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
+                         0.663945936 )
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp@annot_features$chem_formula <- NA_character_
+  mexp_temp@annot_features[c(5,13),]$molecular_weight <- 383.47
+  mexp_temp <- midar::quantify_by_istd(mexp_temp)
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
+                         0.663945978 )
+
+  mexp_temp@annot_features[c(5),]$molecular_weight <-  NA_real_
+  expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp),
+    "One or more ISTDs are missing both chemical formula and molecular weight.", fixed = TRUE)
+
+  expect_no_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp, ignore_missing_annotation = TRUE))
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass")
+
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
+                         0.663945978 )
+
+})
 
 test_that("istd-based quantification is correct and overwites previous if present", {
   mexp <- readRDS(file = testthat::test_path("testdata/MHQuant_demo.rds"))
@@ -93,7 +150,10 @@ test_that("istd-based quantification is correct and overwites previous if presen
   # istd normalized by itself and quantified should be istd conc corrected for the dilution factor
   testthat::expect_equal(mexp@dataset$feature_conc[5], 0.2)
 
-  testthat::expect_equal(mexp@dataset$feature_conc[100], 0.663945978 )
+  testthat::expect_equal(mexp@dataset$feature_conc[mexp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                     mexp@dataset$feature_id == "S1P d18:1 [M>60]"],
+                         0.663945978 )
+
 
   # Repeated normalization should give a notification
   testthat::expect_message(mexp <- quantify_by_istd(mexp,ignore_missing_annotation = TRUE),

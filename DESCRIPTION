@@ -81,6 +81,7 @@ Collate:
     'data-managment.R'
     'data-outlier.R'
     'datasets.R'
+    'functions-chem.R'
     'functions-math.R'
     'helper.R'
     'lipidomics.R'

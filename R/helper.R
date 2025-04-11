@@ -143,6 +143,8 @@ get_conc_unit <- function(sample_amount_unit, analyte_amount_unit) {
     conc_unit <- glue::glue("{analyte_amount_unit}/sample amount unit (multiple units)")
   } else if (analyte_amount_unit == "pmol"  && (units == "ul" | units == "\U003BCl")) {
     conc_unit <- "\U003BCmol/L"
+  } else if (analyte_amount_unit == "ng"  && (units == "ul" | units == "\U003BCl")) {
+    conc_unit <- "\U003BCg/L"
   } else if (!str_detect(analyte_units, "\\/") && !str_detect(analyte_units, "\\-1")) {
     conc_unit <- glue::glue("{analyte_amount_unit}/{sample_amount_unit}")
   } else {

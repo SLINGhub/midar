@@ -24,7 +24,7 @@ import_metadata_from_data<- function(data = NULL, qc_type_column_name = "qc_type
   # get feature metadata
 
   annot_features <- data@dataset_orig |>
-    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "feature_sum_formula", "feature_molweight", "precursor_mz", "product_mz", "istd_feature_id", "is_quantifier"))) |>
+    dplyr::select("feature_id", dplyr::any_of(c("feature_class",  "feature_sum_formula", "molecular_weight", "precursor_mz", "product_mz", "istd_feature_id", "is_quantifier"))) |>
     dplyr::distinct()
   annot_features <- clean_feature_metadata(annot_features)
 
@@ -155,7 +155,7 @@ import_metadata_features <- function(data = NULL, table = NULL, path = NULL,  sh
 
 #' @title Import Internal Standards (ISTD) metadata
 #' @description Imports ISTD metadata (annotation) from a preloaded data frame or tibble via the `data` argument, or from data from a file (CSV or Excel) via the `path` argument.
-#' The analysis metadata must contain following columns: `istd_feature_id` and `istd_conc_nmolar`.
+#' The analysis metadata must contain following columns: `istd_feature_id` and one of `istd_conc_nmolar` or `istd_conc_ngml`.
 #' @param data A `MidarExperiment` object
 #' @param table A data frame or tibble with analysis (sample) metadata. If `path` is also provided, an error will be raised.
 #' @param path A character string specifying the path to a CSV (.csv) or Excel (.xlsx) file. If `table` is also provided, an error will be raised.
@@ -405,7 +405,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     ## Check for data defects ----
     metadata$annot_istds  <- metadata$annot_istds |>
       assertr::verify(assertr::has_all_names("quant_istd_feature_id"), obligatory=FALSE, description = "D;Column missing;ISTDs;quant_istd_feature_id", defect_fun = assertr::defect_append) |>
-      assertr::verify(assertr::has_all_names("istd_conc_nmolar"), obligatory=FALSE, description = "D;Column missing;ISTDs;istd_conc_nmolar", defect_fun = assertr::defect_append) |>
+      # TODO ngml / assertr::verify(assertr::has_all_names("istd_conc_nmolar"), obligatory=FALSE, description = "D;Column missing;ISTDs;istd_conc_nmolar", defect_fun = assertr::defect_append) |>
       assertr::verify(assertr::has_all_names("quant_istd_feature_id", "istd_conc_nmolar"), obligatory=TRUE, description = "DX;Column missing;ISTDs;quant_istd_feature_id", defect_fun = assertr::defect_append)
 
     ## Check data integrity =====
@@ -729,7 +729,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
 
   d_istds <- openxlsx2::wb_to_df(file = w_xlm,
                                          sheet = "Internal Standards",
-                                         cols = c(1,2),
+                                         cols = c(1,2,4),
                                          skip_empty_rows = FALSE,
                                          skip_empty_cols = FALSE,
                                          skip_hidden_rows = FALSE,
@@ -745,9 +745,11 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
   # Ensure compatibility with older template versions (< 1.9.2) ---
 
   d_istds <- d_istds |>
-    dplyr::select(
+    dplyr::select(any_of(c(
       istd_feature_id = "istd_feature_id",
-      istd_conc_nmolar = "istd_conc_[nm]"
+      istd_conc_nmolar = "istd_conc_[nm]",
+      istd_conc_ngml = "istd_conc_[ng/ml]")
+      )
     ) |>
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 
@@ -942,8 +944,8 @@ clean_feature_metadata <- function(d_features) {
   }
 
   d_features <- d_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
-  d_features <- d_features |> add_missing_column(col_name = "feature_chem_formula", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
-  d_features <- d_features |> add_missing_column(col_name = "feature_molweight", init_value = NA_real_, make_lowercase = FALSE, all_na_replace = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "chem_formula", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
+  d_features <- d_features |> add_missing_column(col_name = "molecular_weight", init_value = NA_real_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "is_quantifier", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "valid_feature", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
   d_features <- d_features |> add_missing_column(col_name = "istd_feature_id", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
@@ -962,7 +964,7 @@ clean_feature_metadata <- function(d_features) {
       feature_id = stringr::str_squish(.data$feature_id),
       feature_label = stringr::str_squish(.data$feature_label),
       feature_class = stringr::str_squish(.data$feature_class),
-      feature_chem_formula = stringr::str_squish(.data$feature_chem_formula),
+      chem_formula = stringr::str_squish(.data$chem_formula),
       analyte_id = stringr::str_squish(.data$analyte_id),
       istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       quant_istd_feature_id = stringr::str_squish(.data$istd_feature_id),
@@ -988,8 +990,8 @@ clean_feature_metadata <- function(d_features) {
       "feature_id",
       "feature_class",
       "feature_label",
-      "feature_chem_formula",
-      "feature_molweight",
+      "chem_formula",
+      "molecular_weight",
       "analyte_id",
       "istd_feature_id",
       "quant_istd_feature_id",
@@ -1024,8 +1026,8 @@ clean_feature_metadata <- function(d_features) {
 
 clean_istd_metadata <- function(d_istds) {
 
-  if(!all(c("istd_feature_id", "istd_conc_nmolar") %in% names(d_istds))){
-    cli::cli_abort(cli::col_red("ISTD metadata must have following columns: `istd_feature_id` and `istd_conc_nmolar`. Please verify the input data. "))
+  if(!all(c("istd_feature_id") %in% names(d_istds)) | !any(c("istd_conc_nmolar", "istd_conc_ngml") %in% names(d_istds))){
+    cli::cli_abort(cli::col_red("ISTD metadata must have following columns: `istd_feature_id`, and `istd_conc_nmolar` or `istd_conc_ngml`. Please verify the input data. "))
   }
 
   d_istds <- d_istds |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
@@ -1034,13 +1036,15 @@ clean_istd_metadata <- function(d_istds) {
     dplyr::mutate(
       istd_feature_id = stringr::str_squish(.data$istd_feature_id),
       istd_conc_nmolar = as.numeric(.data$istd_conc_nmolar),
+      istd_conc_ngml = as.numeric(.data$istd_conc_ngml),
       remarks = as.character(.data$remarks)
     ) |>
     mutate(across(where(is.character), str_trim)) |>
-    dplyr::select(
-      "quant_istd_feature_id" = "istd_feature_id",
+    dplyr::select( any_of(
+      c("quant_istd_feature_id" = "istd_feature_id",
       "istd_conc_nmolar",
-      "remarks"
+      "istd_conc_ngml",
+      "remarks"))
     )
 
   # Add template table structure
