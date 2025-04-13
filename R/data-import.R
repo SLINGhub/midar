@@ -173,14 +173,14 @@ import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = 
 
 import_data_main <- function(data = NULL, path, import_function, file_ext, silent, ...) {
   check_data(data)
-  if (!fs::is_dir(path)) {
+  if (all(!fs::is_dir(path))) {
     file_paths <- fs::path_tidy(path)
   } else {
     file_paths <- fs::dir_ls(path, glob = file_ext)
   }
 
-  if (!all(fs::file_exists(file_paths))) cli::cli_abort("One or more given files do not exist. Please verify file paths.")
-  if (any(duplicated(file_paths))) cli::cli_abort("One or more given files are replicated. Please verify file paths.")
+  if (!all(fs::file_exists(file_paths))) cli::cli_abort(col_red("One or more given files do not exist. Please verify file paths."))
+  if (any(duplicated(file_paths))) cli::cli_abort(col_red("One or more given files are duplicated. Please verify file paths."))
 
   names(file_paths) <- file_paths
   args <- list(...)
@@ -308,9 +308,11 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   datWide <- datWide |> dplyr::add_row(.after = 1)
 
+  if (!any(c("Data File", "Name", "Area", "RT", "Calc. Conc.", "Final Conc", "Height", "Resp") %in% unlist(datWide[3,]))) cli::cli_abort("Data file is in an unsupported or corrupted format. Please try re-export your data in MH with compounds as columns.")
 
+  if ("Compound Method" == datWide[[1,1]]) cli::cli_abort(col_red("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns."))
 
-  if (!any(c("Data File") %in% unlist(datWide[3,]))) cli::cli_abort("`Data File` column is missing, or the data file is in an unsupported or corrupt format. Please try re-export from Masshunter ensuring `Data File` is exported and that samples in rows and features in columns.")
+  if (!any(c("Data File") %in% unlist(datWide[3,]))) cli::cli_abort(col_red("'Data File' column is required and used as a unique identifier, but is missing or the file is in an unsupported/corrupt format. Please re-export from MassHunter with 'Data File' included, samples in rows, and features in columns."))
 
   if(datWide[1, 1] != "Sample") datWide[1, 1] <- "Sample"
 
@@ -398,8 +400,6 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 
   # TODO: check if all these are caught
   if ("message_quantitation" %in% names(datWide)) cli::cli_abort("Field 'Quantitation Message' currently not supported: Please re-export your data in MH without this field.")
-  if ("compound_name" %in% names(datWide)) cli::cli_abort("Compound table format is currently not supported. Please re-export your data in MH with compounds as columns.")
-  if (!"raw_data_filename" %in% names(datWide)) cli::cli_abort("The `Data File` column is missing, or the file format is unsupported format. Please re-export with `Data File` field from Masshunter and ensure analytes are in columns, analyses in rows.")
   if (nrow(warnings_datWide) > 0) cli::cli_abort("Unknown format, or data file is corrupt. Please try re-export from MH.")
   # Remove ".Sample" from remaining sample description headers and remove known unused columns
   datWide <-
@@ -574,11 +574,11 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   ext_file <- tolower(fs::path_ext(path))
 
   sep <- case_when(
-    ext_file == "csv" ~ "csv",
+    ext_file == "csv" ~ ",",
     ext_file == "tsv" ~ "\t",
     TRUE ~ NA_character_
   )
-  if (is.na(sep)) cli::cli_abort("Data file type/extension not supported.")
+  if (is.na(sep)) cli::cli_abort(col_red("Data file type/extension not supported."))
 
   d_mrmkit_raw <- readr::read_delim(path,
                                     delim = sep, col_types = readr::cols(.default = "c"),
@@ -665,7 +665,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' @export
  parse_plain_csv <- function(path, variable_name, analysis_id_col = NA, import_metadata = TRUE, first_feature_column = NA, na_strings = "NA") {
 
-  if(fs::path_ext(path) != "csv") cli::cli_abort("Only csv files are currently supported.")
+  if(fs::path_ext(path) != "csv") cli::cli_abort(col_red("Only csv files are currently supported."))
 
   variable_name <- str_remove(variable_name, "feature_")
   rlang::arg_match(variable_name, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
@@ -867,40 +867,40 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 
 
 
-
-
-#' @title internal method to read excel sheets
-#' @param path excel file name
-#' @return tibble table
-#' @noRd
-.read_generic_excel <- function(path, sheetname) {
-  data <- openxlsx2::read_xlsx(file = path,
-                              sheet = sheetname,
-                              col_names = TRUE,
-                              skip_empty_rows = TRUE,
-                              skip_empty_cols = TRUE,
-                              detect_dates = TRUE,
-                              na_strings = c("n/a", "N/A", "NA"),
-                              rows = 1)|>
-    mutate(across(where(is.character), str_trim))
-
-  nms <- names(data)
-
-  n_col <- length(nms) - 1
-  c_numeric <- rep("numeric", n_col)
-  ct <- c("character", c_numeric)
-  data <- openxlsx2::read_xlsx(file = path,
-                              sheet = sheetname,
-                              col_names = TRUE,
-                              detect_dates = TRUE,
-                              skip_empty_rows = TRUE,
-                              skip_empty_cols = TRUE,
-                              na_strings = c("n/a", "N/A", "NA")
-                              #types = ct
-                              ) |>
-    mutate(across(where(is.character), str_trim))
-  data
-}
+#'
+#'
+#' #' @title internal method to read excel sheets
+#' #' @param path excel file name
+#' #' @return tibble table
+#' #' @noRd
+#' .read_generic_excel <- function(path, sheetname) {
+#'   data <- openxlsx2::read_xlsx(file = path,
+#'                               sheet = sheetname,
+#'                               col_names = TRUE,
+#'                               skip_empty_rows = TRUE,
+#'                               skip_empty_cols = TRUE,
+#'                               detect_dates = TRUE,
+#'                               na_strings = c("n/a", "N/A", "NA"),
+#'                               rows = 1)|>
+#'     mutate(across(where(is.character), str_trim))
+#'
+#'   nms <- names(data)
+#'
+#'   n_col <- length(nms) - 1
+#'   c_numeric <- rep("numeric", n_col)
+#'   ct <- c("character", c_numeric)
+#'   data <- openxlsx2::read_xlsx(file = path,
+#'                               sheet = sheetname,
+#'                               col_names = TRUE,
+#'                               detect_dates = TRUE,
+#'                               skip_empty_rows = TRUE,
+#'                               skip_empty_cols = TRUE,
+#'                               na_strings = c("n/a", "N/A", "NA")
+#'                               #types = ct
+#'                               ) |>
+#'     mutate(across(where(is.character), str_trim))
+#'   data
+#' }
 
 
 
