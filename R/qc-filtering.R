@@ -219,7 +219,7 @@ calc_qc_metrics <- function(
      d_stats_var <- suppressMessages(dtplyr::lazy_dt(d_stats_var))
 
      # Summarize intensity statistics by group, feature (see before0)
-     d_stats_var_final <- d_stats_var |> select(grp) |> distinct()
+     d_stats_var_final <- d_stats_var |> select(all_of(grp)) |> distinct()
 
      if ("feature_rt" %in% names(data@dataset)) {
        d_stats_var_rt <- d_stats_var |>
