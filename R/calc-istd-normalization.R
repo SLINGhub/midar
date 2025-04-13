@@ -143,21 +143,18 @@ quantify_by_istd <- function(data = NULL, concentration_unit = "molar", ignore_m
   if(concentration_unit == "mass") {
 
     # Error if no MW or chem formula is defined
-    if(all(is.na(d_features$chem_formula)) && all(is.na(d_features$molecular_weight))) {
+    if(all(is.na(d_features[!d_features$is_istd,]$chem_formula)) && all(is.na(d_features[!d_features$is_istd,]$molecular_weight))) {
        cli::cli_abort(col_red("Chemical formula or molecular weight is not defined for the features. Please ensure that one of these is provided in the feature metadata."))
     }
 
     # Error if no MW or chem formula is defined for at least one feature
-    if(any(!is.na(d_features$chem_formula)) && any(!is.na(d_features$molecular_weight))) {
-      cli::cli_alert_info(col_yellow("Chemical formula and molecular weight are both defined for at least one feature. Molecular weight values will be used for the calculation."))
-    }
 
-    if(all(is.na(d_features$chem_formula))){
-      if(any(is.na(d_features$molecular_weight))){
+    if(all(is.na(d_features[!d_features$is_istd,]$chem_formula))){
+      if(any(is.na(d_features[!d_features$is_istd,]$molecular_weight))){
           cli::cli_abort(col_red("One or more molecular weights are missing. Please ensure that all features have a defined molecular weight in the feature metadata."))
       }
     } else {
-      if(any(is.na(d_features$chem_formula))){
+      if(any(is.na(d_features[!d_features$is_istd,]$chem_formula))){
           cli::cli_abort(col_red("One or more chemical formulas are missing. Please ensure that all features have a defined chemical formula in the feature metadata."))
       }
 
