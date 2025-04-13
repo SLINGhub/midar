@@ -133,7 +133,7 @@ test_that("quantify_by_istd with mass concentration", {
 
   testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
                                                           mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
-                         0.663945978 )
+                         251.94920 )
 
 })
 

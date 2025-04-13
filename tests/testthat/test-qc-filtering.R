@@ -38,10 +38,10 @@ test_that("calc_qc_metrics works for all qc groups", {
     expect_equal(max(mexp_res@metrics_qc$conc_cv_TQC, na.rm = T),32.9608359974)
     expect_equal(max(mexp_res@metrics_qc$norm_intensity_cv_BQC, na.rm = T), 31.93429867)
     expect_equal(max(mexp_res@metrics_qc$conc_cv_BQC, na.rm = T),31.93429867)
-    expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc_conc, na.rm = T), 0.5136919558)
-    expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc_normint, na.rm = T),0.5136919558)
-    expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_tqc_conc, na.rm = T),0.5077020488)
-    expect_equal(median(mexp_res@metrics_qc$conc_dratio_mad_bqc_conc, na.rm = T),0.6261527021)
+    expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc, na.rm = T), 0.5136919558)
+    expect_equal(median(mexp_res@metrics_qc$normint_dratio_sd_bqc, na.rm = T),0.5136919558)
+    expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_tqc, na.rm = T),0.5077020488)
+    expect_equal(median(mexp_res@metrics_qc$conc_dratio_mad_bqc, na.rm = T),0.6261527021)
     expect_equal(min(mexp_res@metrics_qc$r2_rqc_A),0.91931047)
     expect_equal(min(mexp_res@metrics_qc$r2_rqc_B),0.85693787)
     expect_equal(min(mexp_res@metrics_qc$slopenorm_rqc_A),0.69281368)
@@ -76,10 +76,10 @@ test_that("calc_qc_metrics batch-wise works for all qc groups", {
   expect_equal(max(mexp_res@metrics_qc$conc_cv_TQC),22.8694786877)
   expect_equal(max(mexp_res@metrics_qc$norm_intensity_cv_BQC), 16.64318769)
   expect_equal(max(mexp_res@metrics_qc$conc_cv_BQC),16.64318769)
-  expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc_conc, na.rm = T), 0.3984480619)
-  expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc_normint, na.rm = T),0.3984480619)
-  expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_tqc_conc, na.rm = T),0.4245940972)
-  expect_equal(median(mexp_res@metrics_qc$conc_dratio_mad_bqc_conc, na.rm = T),0.4060582407)
+  expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_bqc, na.rm = T), 0.3984480619)
+  expect_equal(median(mexp_res@metrics_qc$normint_dratio_sd_bqc, na.rm = T),0.3984480619)
+  expect_equal(median(mexp_res@metrics_qc$conc_dratio_sd_tqc, na.rm = T),0.4245940972)
+  expect_equal(median(mexp_res@metrics_qc$conc_dratio_mad_bqc, na.rm = T),0.4060582407)
   expect_equal(min(mexp_res@metrics_qc$r2_rqc_A),0.91931047)
   expect_equal(min(mexp_res@metrics_qc$r2_rqc_B),0.85693787)
   expect_equal(min(mexp_res@metrics_qc$slopenorm_rqc_A),0.69281368)
@@ -143,7 +143,7 @@ test_that("calc_qc_metrics batch-wise works for some incl FALSE ", {
                               include_conc_stats = FALSE,
                               include_response_stats = TRUE,
                               include_calibration_results = FALSE)
-  expect_equal(dim(mexp_res@metrics_qc), c(29,61))
+  expect_equal(dim(mexp_res@metrics_qc), c(29,65))
 
   expect_true("norm_intensity_cv_SPL" %in% colnames(mexp_res@metrics_qc))
   expect_false("conc_cv_SPL" %in% colnames(mexp_res@metrics_qc))
@@ -158,7 +158,7 @@ test_that("calc_qc_metrics batch-wise works for some other incl FALSE ", {
                               include_conc_stats = TRUE,
                               include_response_stats = TRUE,
                               include_calibration_results = FALSE)
-  expect_equal(dim(mexp_res@metrics_qc), c(29,74))
+  expect_equal(dim(mexp_res@metrics_qc), c(29,70))
 
   expect_false("norm_intensity_cv_SPL" %in% colnames(mexp_res@metrics_qc))
   expect_true("conc_cv_SPL" %in% colnames(mexp_res@metrics_qc))
@@ -169,8 +169,8 @@ test_that("calc_qc_metrics batch-wise works for some other incl FALSE ", {
 
 test_that("calc_qc_metrics batch-wise works at different processing status ", {
   mexp_temp <- mexp
-  mexp_temp@is_istd_normalized <- FALSE
-  mexp_temp@is_quantitated <- FALSE
+  mexp_temp@dataset$feature_conc <- NULL
+  mexp_temp@dataset$feature_norm_intensity <- NULL
   # delete all rows of tibble below
 
   #mexp_temp@annot_responsecurves <- mexp_temp@annot_responsecurves[0,]
@@ -195,8 +195,8 @@ test_that("calc_qc_metrics no method data works", {
 
 test_that("calc_qc_metrics batch-wise raise error correctly when data missing ", {
   mexp_temp <- mexp
-  mexp_temp@is_istd_normalized <- FALSE
-  mexp_temp@is_quantitated <- FALSE
+  mexp_temp@dataset$feature_norm_intensity <- NULL
+  mexp_temp@dataset$feature_conc <- NULL
   # delete all rows of tibble below
 
   #mexp_temp@annot_responsecurves <- mexp_temp@annot_responsecurves[0,]
@@ -1059,4 +1059,13 @@ test_that("filter_features_qc handles user_defined_keepers",{
 
 })
 
+test_that("calc_qc_metrics works with only conc present", {
+  mexp_temp <- mexp
+  mexp_temp@dataset$feature_rt <- NULL
+  mexp_temp@dataset$feature_conc <- mexp_temp@dataset$feature_intensity
+  mexp_temp@dataset$feature_intensity <- NULL
+  mexp_temp@dataset$feature_norm_intensity <- NULL
+  mexp_res <- calc_qc_metrics(mexp_temp,
+                              use_batch_medians = FALSE)
+})
 

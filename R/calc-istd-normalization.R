@@ -165,7 +165,7 @@ quantify_by_istd <- function(data = NULL, concentration_unit = "molar", ignore_m
 
 
     d_features <- d_features |>
-        mutate(molecular_weight = calc_averagemolmass(.data$chem_formula))
+        mutate(molecular_weight = calc_average_molweight(.data$chem_formula))
     }
   }
 
@@ -183,21 +183,21 @@ quantify_by_istd <- function(data = NULL, concentration_unit = "molar", ignore_m
 
 
   d_istd <- data@annot_istds
-
+  has_ngml_column <- "istd_conc_ngml" %in% names(d_istd)
 
 
   # Check if ISTD concentrations are given as nmolar or ng/mL
-  if (any(!is.na(d_istd$istd_conc_nmolar))) {
+  if (any(!is.na(d_istd$istd_conc_nmolar))  && has_ngml_column && any(!is.na(d_istd$istd_conc_ngml))) {
     cli::cli_abort(col_red("ISTD concentrations are defined in both nmolar and ng/mL. Please specify ISTD concentrations as either nmol/L or ng/mL in ISTD metadata."))
   }
 
-  if (any(!is.na(d_istd$istd_conc_ngml))) {
+  if (has_ngml_column && any(!is.na(d_istd$istd_conc_ngml))) {
     d_istd_mw <- data@annot_features |> filter(.data$is_istd) |> select("feature_id", "chem_formula", "molecular_weight") |> semi_join(data@dataset, by = c("feature_id"))
     if(all(is.na(d_istd_mw$chem_formula)) && all(is.na(d_istd_mw$molecular_weight))) {
       cli::cli_abort(col_red("Chemical formula or molecular weight is missing for all ISTDs. Please provide one in feature metadata or use molar concentrations."))
     }
     if(any(!is.na(d_istd_mw$chem_formula))) {
-      d_istd_mw <- d_istd_mw |> mutate(molecular_weight = calc_averagemolmass(.data$chem_formula))
+      d_istd_mw <- d_istd_mw |> mutate(molecular_weight = calc_average_molweight(.data$chem_formula))
     } else if(!ignore_missing_annotation && any(is.na(d_istd_mw$molecular_weight))) {
       cli::cli_abort(col_red("One or more ISTDs are missing both chemical formula and molecular weight. Ensure that at least one is defined in the feature metadata."))
     }
@@ -238,7 +238,7 @@ quantify_by_istd <- function(data = NULL, concentration_unit = "molar", ignore_m
   d_temp <- d_temp |> mutate(feature_conc = .data$feature_pmol_total / .data$sample_amount)
 
   if(concentration_unit == "mass") {
-    d_temp <- d_temp |> mutate(feature_conc = .data$feature_conc * .data$molecular_weight / 1000)
+    d_temp <- d_temp |> mutate(feature_conc = .data$feature_conc * .data$molecular_weight)
   }
 
 

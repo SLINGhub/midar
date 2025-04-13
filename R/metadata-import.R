@@ -1034,12 +1034,11 @@ clean_istd_metadata <- function(d_istds) {
   d_istds <- d_istds |>
     mutate(across(where(is.character), str_trim)) |>
     dplyr::mutate(
-      istd_feature_id = stringr::str_squish(.data$istd_feature_id),
-      istd_conc_nmolar = as.numeric(.data$istd_conc_nmolar),
-      istd_conc_ngml = as.numeric(.data$istd_conc_ngml),
+      istd_feature_id = as.character(.data$istd_feature_id),,
       remarks = as.character(.data$remarks)
     ) |>
-    mutate(across(where(is.character), str_trim)) |>
+    mutate(across(starts_with("feature_conc_"), ~ as.numeric(.))) |>
+    mutate(across(where(is.character), str_squish)) |>
     dplyr::select( any_of(
       c("quant_istd_feature_id" = "istd_feature_id",
       "istd_conc_nmolar",
