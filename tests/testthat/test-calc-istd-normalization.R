@@ -102,6 +102,28 @@ test_that("quantify_by_istd with mass concentration", {
     mexp_temp <- midar::quantify_by_istd(mexp_temp),
     "Chemical formula or molecular weight is missing for all ISTDs", fixed = TRUE)
 
+  expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass"),
+    "Chemical formula or molecular weight is not defined for the features", fixed = TRUE)
+
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp@annot_features$chem_formula[1] <- NA_character_
+  mexp_temp@annot_features$molecular_weight <- NA_real_
+
+  expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass"),
+    "One or more chemical formulas are missing", fixed = TRUE)
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp@annot_features$chem_formula <- NA_character_
+  mexp_temp@annot_features$molecular_weight[1] <- 343
+
+  expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass"),
+    "One or more molecular weights are missing", fixed = TRUE)
 
   mexp_temp <- mexp
   mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
@@ -109,6 +131,18 @@ test_that("quantify_by_istd with mass concentration", {
   testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
                                                           mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
                          0.663945936 )
+
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 13C2D2 (ISTD) [M>60]"],
+                         0.199999987 )
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp <- midar::quantify_by_istd(mexp_temp,ignore_istds = TRUE )
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 13C2D2 (ISTD) [M>60]"],
+                         NA_real_ )
+
 
   mexp_temp <- mexp
   mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
@@ -134,6 +168,34 @@ test_that("quantify_by_istd with mass concentration", {
   testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
                                                           mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
                          251.94920 )
+
+
+  mexp <- midar::MidarExperiment()
+  mexp <- midar::import_data_masshunter(mexp, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
+                                        import_metadata = FALSE)
+  mexp <- midar::import_metadata_msorganiser(mexp,
+                                             path = testthat::test_path("testdata/Metadata_Template_210_MHQuant_S1P_with-ngml-MW.xlsm"),
+                                             excl_unmatched_analyses = FALSE)
+  mexp <- midar::normalize_by_istd(mexp)
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass")
+
+  testthat::expect_equal(mexp_temp@dataset$feature_conc[mexp_temp@dataset$analysis_id =="012_TQCd-40_TQC-40percent" &
+                                                          mexp_temp@dataset$feature_id == "S1P d18:1 [M>60]"],
+                         251.949240 )
+
+  mexp <- midar::normalize_by_istd(mexp)
+
+  mexp_temp <- mexp
+  mexp_temp@annot_istds$istd_conc_nmolar <- NA_real_
+  mexp_temp@annot_istds$istd_conc_ngml <- NA_real_
+  testthat::expect_error(
+    mexp_temp <- midar::quantify_by_istd(mexp_temp, concentration_unit = "mass"),
+    "No ISTD concentrations defined. Please define ISTD concentrations in either nmol/L or ng/mL.",
+    fixed = TRUE
+  )
 
 })
 
@@ -205,7 +267,7 @@ test_that("istd-based quantification handles missing info correctly", {
 
 })
 
-test_that("quantify_by_istd/normalize_by_istd fail if no istd defined", {
+test_that("quantify_by_istd/normalize_by_istd fail if 1 istd not defined", {
   mexp <- mexp_orig
   mexp@annot_istds <- mexp@annot_istds[-1,]
   mexp_res <- normalize_by_istd(mexp)
@@ -215,7 +277,14 @@ test_that("quantify_by_istd/normalize_by_istd fail if no istd defined", {
     )
 })
 
-test_that("quantify_by_istd/normalize_by_istd fail if no istd defined", {
+test_that("quantify_by_istd/normalize_by_istd fail if no istd defined/normalized", {
+
+  mexp <- mexp_orig
+  mexp@annot_istds <- mexp@annot_istds[0,]
+  expect_error(
+    mexp_res <- quantify_by_istd(mexp),
+    "ISTD concentrations are missing...please import ISTD metadata first."
+  )
 
   expect_error(
     mexp_res <- quantify_by_istd(mexp_orig),
