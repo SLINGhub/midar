@@ -654,13 +654,13 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
       dplyr::summarise(
         y_max =
           if (!all(is.na(.data$value_mod))) {
-            max(.data$value_mod, na.rm = TRUE) * 1.05
+            max(.data$value_mod, na.rm = TRUE) * 1
           } else {
             NA_real_
           },
         y_min =
           if (!all(is.na(.data$value_mod))) {
-            min(.data$value_mod, na.rm = TRUE) * 0.95
+            min(.data$value_mod, na.rm = TRUE) * 1
           } else {
             NA_real_
           }
