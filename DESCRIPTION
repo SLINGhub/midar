@@ -5,8 +5,7 @@ Version: 0.2.0
 Authors@R: 
     person("Bo", "Burla", , "bo.burla@nus.edu.sg", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5918-3249"))
-Description: R functions to facilitate managing, processing and evaluating
-    lipidomics data
+Description: The 'midar' package offers R functions for processing, quality control, and visualization of lipidomics mass spectrometry data.
 License: BSD_3_clause + file LICENSE
 URL: https://github.com/SLINGhub/midar, https://slinghub.github.io/midar/
 BugReports: https://github.com/SLINGhub/midar/issues
@@ -35,6 +34,7 @@ Imports:
     ggh4x,
     ggplot2 (>= 3.5.0),
 Suggests: 
+    enviPat,
     ggvenn,
     patchwork,
     ggbeeswarm,
@@ -80,6 +80,7 @@ Collate:
     'data-managment.R'
     'data-outlier.R'
     'datasets.R'
+    'functions-chem.R'
     'functions-math.R'
     'helper.R'
     'lipidomics.R'

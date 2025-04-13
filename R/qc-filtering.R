@@ -219,20 +219,31 @@ calc_qc_metrics <- function(
      d_stats_var <- suppressMessages(dtplyr::lazy_dt(d_stats_var))
 
      # Summarize intensity statistics by group, feature (see before0)
-     d_stats_var_int <- d_stats_var |>
-       summarise(
-         .by = all_of(grp),
+     d_stats_var_final <- d_stats_var |> select(all_of(grp)) |> distinct()
 
-         rt_min_SPL = safe_min(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
-         rt_max_SPL = safe_max(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
-         rt_min_BQC = safe_min(.data$feature_rt[.data$qc_type == "BQC"], na.rm = TRUE),
-         rt_min_TQC = safe_min(.data$feature_rt[.data$qc_type == "TQC"], na.rm = TRUE),
-         rt_median_PBLK = median(.data$feature_rt[.data$qc_type == "PBLK"], na.rm = TRUE),
-         rt_median_SPL = median(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
-         rt_median_BQC = median(.data$feature_rt[.data$qc_type == "BQC"], na.rm = TRUE),
-         rt_median_TQC = median(.data$feature_rt[.data$qc_type == "TQC"], na.rm = TRUE),
-         rt_median_NIST = median(.data$feature_rt[.data$qc_type == "NIST"], na.rm = TRUE),
-         rt_median_LTR = median(.data$feature_rt[.data$qc_type == "LTR"], na.rm = TRUE),
+     if ("feature_rt" %in% names(data@dataset)) {
+       d_stats_var_rt <- d_stats_var |>
+         summarise(
+           .by = all_of(grp),
+
+           rt_min_SPL = safe_min(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
+           rt_max_SPL = safe_max(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
+           rt_min_BQC = safe_min(.data$feature_rt[.data$qc_type == "BQC"], na.rm = TRUE),
+           rt_min_TQC = safe_min(.data$feature_rt[.data$qc_type == "TQC"], na.rm = TRUE),
+           rt_median_PBLK = median(.data$feature_rt[.data$qc_type == "PBLK"], na.rm = TRUE),
+           rt_median_SPL = median(.data$feature_rt[.data$qc_type == "SPL"], na.rm = TRUE),
+           rt_median_BQC = median(.data$feature_rt[.data$qc_type == "BQC"], na.rm = TRUE),
+           rt_median_TQC = median(.data$feature_rt[.data$qc_type == "TQC"], na.rm = TRUE),
+           rt_median_NIST = median(.data$feature_rt[.data$qc_type == "NIST"], na.rm = TRUE),
+           rt_median_LTR = median(.data$feature_rt[.data$qc_type == "LTR"], na.rm = TRUE)
+          )
+       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_rt, by = grp)
+     }
+
+     if ("feature_intensity" %in% names(data@dataset)) {
+       d_stats_var_int <- d_stats_var |>
+         summarise(
+           .by = all_of(grp),
 
          intensity_min_SPL = safe_min(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
          intensity_max_SPL = safe_max(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
@@ -266,16 +277,15 @@ calc_qc_metrics <- function(
          sb_ratio_ublk = .data$intensity_median_SPL / .data$intensity_median_UBLK,
          sb_ratio_sblk = .data$intensity_median_SPL / .data$intensity_median_SBLK
        )
+       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_int, by = grp)
+  }
 
     # table to collect all data
-    d_stats_var_final <- d_stats_var_int
-    if (is.na(include_norm_intensity_stats) || include_norm_intensity_stats) {
-
-      if (!data@is_istd_normalized) {
-        if (isTRUE(include_norm_intensity_stats)) {
-           cli::cli_abort(col_red("Normalized intensity data is missing. Please normalize the data first using `normalize_by_*()` functions."))
-        }
-      } else {
+    if (!"feature_norm_intensity" %in% names(data@dataset)) {
+      if (isTRUE(include_norm_intensity_stats)) {
+        cli::cli_abort(col_red("Normalized intensity data is missing. Please normalize the data first using `normalize_by_*()` functions."))
+      }
+    } else if(is.na(include_norm_intensity_stats) || include_norm_intensity_stats){
 
       d_stats_var_norm_int <-  d_stats_var |>
         summarise(
@@ -284,20 +294,23 @@ calc_qc_metrics <- function(
           norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
           norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
           norm_intensity_cv_LTR = cv(.data$feature_norm_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
-          norm_intensity_cv_NIST = cv(.data$feature_norm_intensity[.data$qc_type == "NIST"], na.rm = TRUE)
+          norm_intensity_cv_NIST = cv(.data$feature_norm_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+          normint_dratio_sd_bqc = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          normint_dratio_sd_tqc = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          normint_dratio_mad_bqc = mad(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
+          normint_dratio_mad_tqc = mad(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE)
          )
       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_norm_int, by = grp)
 
     }
-  }
 
 
-    if (is.na(include_conc_stats) || include_conc_stats) {
-      if (!data@is_quantitated) {
-        if (isTRUE(include_conc_stats)) {
-          cli::cli_abort(col_red("Concentration data is missing. Please quantify the data first using `quantify_by_*()` functions."))
+    if (!"feature_conc" %in% names(data@dataset)) {
+
+      if (isTRUE(include_conc_stats)) {
+        cli::cli_abort(col_red("Concentration data is missing. Please quantify the data first using `quantify_by_*()` functions."))
       }
-    } else {
+    } else if(is.na(include_conc_stats) || include_conc_stats) {
       d_stats_var_conc <-  d_stats_var |>
         summarise(
           .by = all_of(grp),
@@ -312,18 +325,14 @@ calc_qc_metrics <- function(
            conc_cv_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
            conc_cv_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
            conc_cv_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
-           conc_dratio_sd_bqc_conc = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_sd_tqc_conc = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_sd_bqc_normint = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_sd_tqc_normint = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_mad_bqc_conc = mad(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mad(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_mad_tqc_conc = mad(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mad(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_mad_bqc_normint = mad(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_dratio_mad_tqc_normint = mad(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE)
-        )
+           conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+           conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+           conc_dratio_mad_bqc = mad(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / mad(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
+           conc_dratio_mad_tqc = mad(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / mad(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE)
+         )
       d_stats_var_final <- d_stats_var_final |> left_join(d_stats_var_conc, by = grp)
     }
-  }
+
 
 
      # If batch medians are requested, calculate the median of all columns (except ID columns) for each feature
@@ -355,18 +364,23 @@ calc_qc_metrics <- function(
 
 
      # If response curve statistics are to be included and RQC data is available,
-     if (is.na(include_response_stats) || include_response_stats) {
-       d_rqc_stats <- get_response_curve_stats(
-         data,
-         with_staturation_stats = FALSE,
-         limit_to_rqc = TRUE,
-         silent_invalid_data = if(isTRUE(include_response_stats)) FALSE else TRUE)
-       if(!is.null(d_rqc_stats)){
-         data@metrics_qc <- data@metrics_qc |>
-           dplyr::left_join(d_rqc_stats, by = "feature_id")
-
+     if (!"feature_intensity" %in% names(data@dataset) ) {
+       if(isTRUE(include_response_stats)) {
+         cli::cli_abort(col_red("Response curve data is missing. Please calculate response curves first using `calculate_response_curve()` function."))
        }
-     }
+      } else if(is.na(include_response_stats) || include_response_stats){
+         d_rqc_stats <- get_response_curve_stats(
+           data,
+           with_staturation_stats = FALSE,
+           limit_to_rqc = TRUE,
+           silent_invalid_data = if(isTRUE(include_response_stats)) FALSE else TRUE)
+         if(!is.null(d_rqc_stats)){
+           data@metrics_qc <- data@metrics_qc |>
+             dplyr::left_join(d_rqc_stats, by = "feature_id")
+
+         }
+       }
+
 
      # If calibration results should be included and metrics_calibration is not
      # empty, join calibration data
@@ -642,14 +656,14 @@ filter_features_qc <- function(data = NULL,
 
       pass_dratio = comp_lgl_vec(
         list(
-          compare_values(metrics_qc_local, "conc_dratio_sd_bqc_conc", max.dratio.sd.conc.bqc, "<"),
-          compare_values(metrics_qc_local, "conc_dratio_sd_tqc_conc", max.dratio.sd.conc.tqc, "<"),
+          compare_values(metrics_qc_local, "conc_dratio_sd_bqc", max.dratio.sd.conc.bqc, "<"),
+          compare_values(metrics_qc_local, "conc_dratio_sd_tqc", max.dratio.sd.conc.tqc, "<"),
           compare_values(metrics_qc_local, "conc_dratio_mad_bqc", max.dratio.mad.conc.bqc, "<"),
           compare_values(metrics_qc_local, "conc_dratio_mad_tqc", max.dratio.mad.conc.tqc, "<"),
-          compare_values(metrics_qc_local, "conc_dratio_sd_bqc_normint", max.dratio.sd.normint.bqc, "<"),
-          compare_values(metrics_qc_local, "conc_dratio_sd_tqc_normint", max.dratio.sd.normint.tqc, "<"),
-          compare_values(metrics_qc_local, "conc_dratio_mad_bqc_normint", max.dratio.mad.normint.bqc, "<"),
-          compare_values(metrics_qc_local, "conc_dratio_mad_tqc_normint", max.dratio.mad.normint.tqc, "<")
+          compare_values(metrics_qc_local, "normint_dratio_sd_bqc", max.dratio.sd.normint.bqc, "<"),
+          compare_values(metrics_qc_local, "normint_dratio_sd_tqc", max.dratio.sd.normint.tqc, "<"),
+          compare_values(metrics_qc_local, "normint_dratio_mad_bqc", max.dratio.mad.normint.bqc, "<"),
+          compare_values(metrics_qc_local, "normint_dratio_mad_tqc", max.dratio.mad.normint.tqc, "<")
         ),
         .operator = "AND"
       ),

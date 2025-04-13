@@ -282,6 +282,8 @@ test_that("plot_runscatter outlier cap works", {
     cap_sample_k_mad = 2,
     cap_qc_k_mad = 2
   )
+  vdiffr::expect_doppelganger("runscatter_capoutlier", p)
+
   expect_equal(max(p[[1]]$data$value_mod),6469419.7)
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[3]] # not fully understand this test
   expect_equal(nrow(plot_data), 5988)

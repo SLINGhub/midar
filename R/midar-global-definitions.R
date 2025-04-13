@@ -48,6 +48,8 @@ pkg.env$table_templates <- list(
     "feature_id" = character(),
     "feature_class" = character(),
     "analyte_id" = character(),
+    "chem_formula" = character(),
+    "molecular_weight" = numeric(),
     "is_istd" = logical(),
     "istd_feature_id" = character(),
     "quant_istd_feature_id" = character(),
@@ -57,7 +59,7 @@ pkg.env$table_templates <- list(
     "interference_feature_id" = character(),
     "interference_contribution" = numeric(),
     "curve_fit_model" = character(),
-    "fit_weighting" = character(),
+    "curve_fit_weighting" = character(),
     "remarks" = character()
   ),
   annot_istds_template = dplyr::tibble(

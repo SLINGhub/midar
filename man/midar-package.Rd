@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-R functions to facilitate managing, processing and evaluating lipidomics data
+The 'midar' package offers R functions for processing, quality control, and visualization of lipidomics mass spectrometry data.
 }
 \seealso{
 Useful links:

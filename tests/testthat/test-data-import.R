@@ -135,14 +135,24 @@ test_that("Returns a defined error when reading nested MH Quant .csv containg a 
 test_that("Returns a defined error when reading MH Quant .csv with analytes/features as rows (Compound Table) is imported", {
   expect_error(
     parse_masshunter_csv(test_path("13_Testdata_MHQuant_CompoundTable_DefaultSampleInfo_RT-Areas-FWHM.csv")),
-    regexp = "`Data File` column is missing, or the data file is in an unsupported or corrupt format", fixed = TRUE
+    regexp = "Compound table format is currently not supported", fixed = TRUE
   )
 })
+
+test_that("Returns a defined error when reading MH Quant .csv with analytes/features as rows (Compound Table) is imported", {
+  expect_error(
+    parse_masshunter_csv(test_path("24_Testdata_MHQuant_DefaultSampleInfo_noRawdatafilename.csv")),
+    regexp = "'Data File' column is required and used as a unique identifier, but is missing or the file", fixed = TRUE
+  )
+})
+
+
 
 test_that("Returns a defined error when reading a corrupted MH Quant .csv", {
   expect_error(
     parse_masshunter_csv(test_path("14_Testdata_MHQuant_Corrupt_RowAreaDeleted.csv")),
-    regexp = "`Data File` column is missing, or the data file is in an unsupported or corrupt format"
+    regexp = "Data file is in an unsupported or corrupted format. Please try re-export your data in MH with compounds as columns",
+    fixed = TRUE
   )
 })
 
@@ -245,7 +255,7 @@ test_that("Imports another MH Quant .csv files into one MidarExperiment", {
 })
 
 # Splitted above file into 2 files and import as folder
-test_that("Imports multiple MH Quant .csv files into one MidarExperiment", {
+test_that("Imports multiple MH Quant .csv files into one MidarExperiment 1", {
   mexp <- MidarExperiment()
   mexp <- import_data_masshunter(
     mexp,
@@ -266,7 +276,7 @@ test_that("Imports multiple MH Quant .csv files into one MidarExperiment", {
 })
 
 # Splitted above file into 2 files with 1 overlapping (duplicated) feature and import as folder
-test_that("Imports multiple MH Quant .csv files into one MidarExperiment", {
+test_that("Error duplicated reporting when import multiple MH Quant .csv files into one MidarExperiment", {
   mexp <- MidarExperiment()
 
   expect_error(
@@ -278,6 +288,32 @@ test_that("Imports multiple MH Quant .csv files into one MidarExperiment", {
     ),
     regexp = "duplicated reportings \\(analysis and feature pairs\\) with identical")
 })
+
+# Splitted above file into 2 files with 1 overlapping (duplicated) feature and import as folder
+test_that("Error file not exist", {
+  mexp <- MidarExperiment()
+
+  expect_error(
+    mexp <- import_data_masshunter(
+      mexp,
+      test_path(c("testdata/MQquant_multiple_duplicates/MHQuant_demo_Part1.csv",
+                  "testdata/MQquant_multiple_duplicates/MHQuant_demo_Part3.csv")),
+      import_metadata = TRUE,
+      expand_qualifier_names = TRUE
+    ),
+    regexp = "One or more given files do not exist", fixed = TRUE)
+
+  expect_error(
+    mexp <- import_data_masshunter(
+      mexp,
+      test_path(c("testdata/MQquant_multiple_duplicates/MHQuant_demo_Part1.csv",
+                  "testdata/MQquant_multiple_duplicates/MHQuant_demo_Part1.csv")),
+      import_metadata = TRUE,
+      expand_qualifier_names = TRUE
+    ),
+    regexp = "One or more given files are duplicated", fixed = TRUE)
+})
+
 
 # Splitted above file into 2 files with 1 overlapping (duplicated) feature with different values and import as folder
 test_that("Imports multiple MH Quant .csv files into one MidarExperiment", {
@@ -374,6 +410,19 @@ test_that("Imports MRMkit result file (long format) into a MidarExperiment", {
 
 })
 
+test_that("Handles import_data_mrmkit errors", {
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_mrmkit(
+      mexp,
+      test_path("testdata/MRMkit_demo.txt"),
+      import_metadata = TRUE,
+    ),
+    "Data file type/extension not supported", fixed = TRUE
+    )
+
+})
+
 #' file_path = system.file("extdata", "MHQuant_demo.csv", package = "midar")
 #'
 #' mexp <- import_data_masshunter(
@@ -413,6 +462,17 @@ test_that("Parses plain csv file with metadata with correct column names and aut
   d <- parse_plain_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = TRUE)
   expect_identical(names(d), c("analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_equal(mean(d$feature_conc[d$batch_id == 1 & d$feature_id == "Analyte-1"]), 1004.61572)
+
+  d <- parse_plain_csv(test_path("testdata/plain_wide_nometadata.csv"), variable_name = "conc", import_metadata = TRUE)
+  expect_identical(names(d), c("analysis_id","feature_id","feature_conc", "integration_qualifier"))
+})
+
+
+
+
+test_that("Returns error when parse_plain_csv imports other than csv", {
+  expect_error(parse_plain_csv(test_path("testdata/MRMkit_demo.tsv"), variable_name = "conc", import_metadata = FALSE),
+                 regexp = "Only csv files are currently supported", fixed = TRUE)
 })
 
 test_that("Returns error when plain csv file with columns containing text is read, when import_metadata = FALSE", {
@@ -424,6 +484,14 @@ test_that("Returns error when plain csv file with analysis_id_col set that does 
   expect_error(parse_plain_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE),
                regexp = "No column with the name `sample_id` found in the data file.", fixed = TRUE)
 })
+
+test_that("Returns error when plain csv file with analysis_id_col  = NA and no analysis_id col present", {
+  expect_error(parse_plain_csv(test_path("testdata/plain_wide_noanalysisid.csv"), variable_name = "conc", import_metadata = TRUE),
+               regexp = "Column `analysis_id` not found in imported data.", fixed = TRUE)
+})
+
+
+
 
 test_that("Parses plain csv file with metadata and defined analysis_id_col, with correct data types", {
   d <- parse_plain_csv(test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE)

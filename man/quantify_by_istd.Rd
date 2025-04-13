@@ -2,29 +2,50 @@
 % Please edit documentation in R/calc-istd-normalization.R
 \name{quantify_by_istd}
 \alias{quantify_by_istd}
-\title{Calculate Analyte Concentrations Based on Internal Standards}
+\title{Calculate Analyte Concentrations Using Internal Standards}
 \usage{
-quantify_by_istd(data = NULL, ignore_missing_annotation = FALSE)
+quantify_by_istd(
+  data = NULL,
+  concentration_unit = "molar",
+  ignore_missing_annotation = FALSE,
+  ignore_istds = FALSE
+)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object}
 
+\item{concentration_unit}{Character string indicating the type of concentration to calculate and export.
+Must be either \code{"molar"} for molar concentrations (e.g., µmol/L) or \code{"mass"} for mass concentrations (e.g., µg/L).}
+
 \item{ignore_missing_annotation}{If \code{FALSE}, an error will be raised if any of the following information is missing: ISTD concentration, ISTD mix volume, and sample amounts for any feature.
 If \code{TRUE}, missing annotations will be ignored, and resulting feature concentration will be \code{NA}}
+
+\item{ignore_istds}{If \code{TRUE}, ISTD features will be ignored in the concentration calculation and the resulting concentration will be \code{NA}. Default is \code{FALSE}.}
 }
 \value{
 A \code{MidarExperiment} object with the calculated analyte concentrations added to the
 \code{dataset} table in the \code{feature_conc} column.
 }
 \description{
-Analyte concentrations are calculated based on ISTD-normalized intensities
-and the corresponding spiked-in ISTD amount, normalized by the sample amount
-(single-point calibration approach). The concentration unit is determined
-from the \code{sample_amount_unit} field in the analysis metadata of the \code{MidarExperiment} object.
+This function calculates analyte concentrations based on internal standard (ISTD) normalized intensities
+and the corresponding spiked-in ISTD amount, normalized by the sample amount.
 }
 \details{
-The calculated concentrations are added to the \code{dataset} table as a new column
-named \code{feature_conc}.
+By default, concentrations are returned in molar units (e.g., µmol/L). To return concentrations in mass units
+(e.g., µg/L), set \code{concentration_unit = "mass"}. This requires either the chemical formula or molecular weight
+for each feature to be specified in the feature metadata.
+
+Internal standard concentrations can also be provided in \code{ng/mL}. In such cases, the function will convert these
+concentrations to molar units for internal calculations. Here too, either the chemical formula or the molecular
+weight must be defined for each ISTD in the feature metadata.
+
+The unit of the calculated concentrations is determined by the \code{concentration_unit} argument and the \code{sample_amount_unit}
+field in the analysis metadata of the \code{MidarExperiment} object. The function will automatically adjust the sample amount
+to the appropriate unit based on the provided \code{concentration_unit}. For example, if \code{concentration_unit = "molar"}
+and \code{sample_amount_unit = "uL"}, the calculated concentrations will be in µmol/L. If \code{concentration_unit = "mass"}, the
+concentrations will be in \code{µg/L}.
+
+The calculated concentrations are added to the \code{dataset} table as a new column named \code{feature_conc}..
 }
 \seealso{
 \code{\link[=quantify_by_calibration]{quantify_by_calibration()}} for calculating concentrations based on external calibration curves.
