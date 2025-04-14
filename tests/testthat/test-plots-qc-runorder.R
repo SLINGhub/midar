@@ -3,6 +3,7 @@
 # library(ggplot2)
 # library(testthat)
 set.seed(123)
+testthat::local_edition(3)
 
 mexp_orig <- lipidomics_dataset
 
@@ -30,7 +31,7 @@ test_that("plot_runscatter generates a plot", {
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
   expect_equal(nrow(plot_data), 5988)
-  vdiffr::expect_doppelganger("default_runscatte", p)
+  vdiffr::expect_doppelganger("def_runscatter", p)
 
   # log y axis
   p <- plot_runscatter(
@@ -121,7 +122,7 @@ test_that("plot_runscatter filter work", {
   expect(length(p), 1)
   plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 3456)
-  vdiffr::expect_doppelganger("filtered plot_runscat plot", p)
+  vdiffr::expect_doppelganger("filteredrunscat", p)
 
   # Test range filter and also regex for qc type
   p <- plot_runscatter(
@@ -140,7 +141,7 @@ test_that("plot_runscatter filter work", {
   plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 3456)
   expect_equal(max(p[[1]]$data$value_mod),12390146.0)
-  vdiffr::expect_doppelganger("range_runscat", p)
+  vdiffr::expect_doppelganger("rangerunscat", p)
 
   # Test include e
   p <- plot_runscatter(
@@ -158,7 +159,7 @@ test_that("plot_runscatter filter work", {
   plot_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(nrow(plot_data[[2]]), 864)
   expect_equal(max(p[[1]]$data$value_mod),9364398.0)
-  vdiffr::expect_doppelganger("filtered_runscat2", p)
+  vdiffr::expect_doppelganger("filtrunscat2", p)
 
   expect_error(
     p <- plot_runscatter(
@@ -229,7 +230,7 @@ test_that("plot_runscatter with unknown qc_types", {
 
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[2]]
   expect_equal(length(unique(plot_data$shape)), 6)
-  vdiffr::expect_doppelganger("runscatter_unknownqc", p)
+  vdiffr::expect_doppelganger("runscatunknownqc", p)
 })
 
 
@@ -282,7 +283,7 @@ test_that("plot_runscatter outlier cap works", {
     cap_sample_k_mad = 2,
     cap_qc_k_mad = 2
   )
-  vdiffr::expect_doppelganger("runscatter_capoutlier", p)
+  vdiffr::expect_doppelganger("runscattercapoutlier", p)
 
   expect_equal(max(p[[1]]$data$value_mod),6469419.7)
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[3]] # not fully understand this test
@@ -436,7 +437,7 @@ test_that("plot_runscatter show reference lines works", {
   expect_equal(length(plot_data),5)
   expect_equal(unique(plot_data[[2]]$alpha),0.15)
   expect_equal(mean(plot_data[[2]]$ymax),2408485.4)
-  vdiffr::expect_doppelganger("ext_runscatter_ref", p)
+  vdiffr::expect_doppelganger("extrunscatterref", p)
 
   p <- plot_runscatter(
     data = mexp,
@@ -920,7 +921,7 @@ p <- plot_rla_boxplot(mexp,
                       show_batches = TRUE,
                       show_timestamp = TRUE)
 plot_data <- ggplot2::ggplot_build(p)$data
-vdiffr::expect_doppelganger("datetime plot_rla_boxplot plot", p)
+vdiffr::expect_doppelganger("dt plot_rla_boxplot", p)
 
 p <- plot_rla_boxplot(mexp,
                       rla_type_batch = "across",
@@ -928,7 +929,7 @@ p <- plot_rla_boxplot(mexp,
                       show_batches = TRUE,
                       show_timestamp = FALSE,
                       x_gridlines = TRUE)
-vdiffr::expect_doppelganger("with_x_gridlines_rla", p)
+vdiffr::expect_doppelganger("x_gridlines_rla", p)
 
 
 p <- plot_rla_boxplot(mexp,
@@ -956,7 +957,7 @@ p <- plot_rla_boxplot(mexp,
                       ignore_outliers = TRUE,
                       show_batches = TRUE)
 
-vdiffr::expect_doppelganger("outlierremov_rla", p)
+vdiffr::expect_doppelganger("outlierrem_rla", p)
 
 p <- plot_rla_boxplot(mexp,
                       rla_type_batch = "across",
@@ -964,6 +965,6 @@ p <- plot_rla_boxplot(mexp,
                       y_lim = c(-2,3),
                       show_batches = TRUE)
 
-vdiffr::expect_doppelganger("y_lim_rla", p)
+vdiffr::expect_doppelganger("ylimrla", p)
 
 })

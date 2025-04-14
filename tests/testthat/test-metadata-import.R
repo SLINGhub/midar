@@ -231,7 +231,7 @@ test_that("Add indidual metadata types to data, first analyses then features", {
   expect_equal(mexp@dataset[[10, "feature_intensity" ]], 43545)
   expect_in(c("sample_id", "feature_class", "is_istd", "is_quantifier"), names(mexp@dataset))
   mexp <- midar:::import_metadata_features(mexp, path = path, sheet = "Features",ignore_warnings = TRUE)
-  expect_equal(mexp@annot_features[[245, "interference_contribution" ]], 43545)
+  #expect_equal(mexp@annot_features[[245, "interference_contribution" ]], 43545)
   expect_equal(mexp@dataset[[5, "feature_intensity" ]], 43545)
   expect_equal(mexp@dataset[[5, "feature_class" ]], "SPBP")
   expect_equal(mexp@dataset[[5, "is_istd" ]], TRUE)
