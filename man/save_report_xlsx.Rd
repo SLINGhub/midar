@@ -4,7 +4,13 @@
 \alias{save_report_xlsx}
 \title{Write Data Processing Report (EXCEL)}
 \usage{
-save_report_xlsx(data = NULL, path, filtered_variable = "conc")
+save_report_xlsx(
+  data = NULL,
+  path,
+  filtered_variable = "conc",
+  normalized_variable = NA,
+  overwrite = TRUE
+)
 }
 \arguments{
 \item{data}{A \code{MidarExperiment} object containing original and processed data and metadata.}
@@ -16,6 +22,10 @@ If the path does not include an \code{.xlsx} extension, it is added automaticall
 filtered data to be exported. It must be one of "conc", "intensity", "norm_intensity",
 "response", "area", "height", "conc_raw", "rt", or "fwhm". The defined variable
 name will be included in the sheet name. Default is "conc".}
+
+\item{normalized_variable}{A character string indicating if and which normalized feature values  (by reference sample) to include in the report.See also \verb{[calibrate_by_reference()]}.}
+
+\item{overwrite}{A logical value indicating whether to overwrite the file if it already exists. Default is \code{TRUE}.}
 }
 \value{
 The function does not return a value. It writes the report to the specified Excel file.

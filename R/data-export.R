@@ -25,7 +25,8 @@
 #' filtered data to be exported. It must be one of "conc", "intensity", "norm_intensity",
 #' "response", "area", "height", "conc_raw", "rt", or "fwhm". The defined variable
 #' name will be included in the sheet name. Default is "conc".
-#'
+#' @param normalized_variable A character string indicating if and which normalized feature values  (by reference sample) to include in the report.See also `[calibrate_by_reference()]`.
+#' @param overwrite A logical value indicating whether to overwrite the file if it already exists. Default is `TRUE`.
 #' @details
 #' #' If certain data sets are not available, the function includes empty tables for the corresponding dataset.
 #'
@@ -42,16 +43,39 @@
 #'
 #' @export
 
-save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
+save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", normalized_variable = NA, overwrite = TRUE) {
   check_data(data)
 
   filtered_variable <- str_remove(filtered_variable, "feature_")
   filtered_variable_strip <- filtered_variable
-  rlang::arg_match(filtered_variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(filtered_variable, c("area", "height", "intensity", "intensity_normalized", "norm_intensity", "norm_intensity_normalized", "response", "conc", "conc_normalized", "conc_raw", "rt", "fwhm"))
   filtered_variable <- stringr::str_c("feature_", filtered_variable)
   if(data@is_filtered) check_var_in_dataset(data@dataset, filtered_variable) #TODO dataset_filt?
 
+  normalized_variable <- str_remove(normalized_variable, "feature_")
+  normalized_variable <- stringr::str_c("feature_", normalized_variable)
+
+
+
   if (!stringr::str_detect(path, ".xlsx")) path <- paste0(path, ".xlsx")
+
+  if(is.na(normalized_variable)){
+    if("feature_conc_normalized" %in% names(data@dataset))
+      normalized_variable <- "feature_conc_normalized"
+    if("feature_norm_intensity_normalized" %in% names(data@dataset))
+      normalized_variable <- c(normalized_variable, "feature_norm_intensity_normalized")
+    if("feature_intensity_normalized" %in% names(data@dataset))
+      normalized_variable <- c(normalized_variable, "feature_intensity_normalized")
+
+    normalized_variable <- normalized_variable[!is.na(normalized_variable)]
+
+    if(length(normalized_variable) > 1)
+      cli_abort(col_red("More than one normalized feature variable found in dataset. Please specify which one to include in the report via `normalized_variable`."))
+
+  } else {
+    if(!paste0(normalized_variable, "_normalized") %in% names(data@dataset))
+      cli_abort(col_red("Normalized feature variable '{normalized_variable}' not found in dataset. Please check the name or modify `normalized_variable`."))
+  }
 
   if(nrow(data@dataset) > 0 ){
     d_intensity_wide <- data@dataset |>
@@ -83,29 +107,33 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
 
   if (data@is_filtered) {
     d_conc_wide_QC_SPL <- data@dataset_filtered |>
-      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::filter(.data$qc_type %in% c("SPL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "feature_id", filtered_variable))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
-      #dplyr::filter(.data$is_quantifier) |>
-      #dplyr::filter(!.data$is_istd) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = any_of(filtered_variable))
 
 
     d_conc_wide_QC_all <- data@dataset_filtered |>
-      #dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL")) |>
       dplyr::select(dplyr::any_of(c("analysis_id", "qc_type", "feature_id", filtered_variable))) |>
       dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
       tidyr::pivot_wider(names_from = "feature_id", values_from = any_of(filtered_variable))
-
-    # d_conc_wide_QC_all <- d_conc_wide_QC_all |>
-    #   dplyr::filter(.data$qc_type %in% c("SPL", "TQC", "BQC", "NIST", "LTR", "STD", "CTRL"))
-
 
   } else {
     filtered_variable_strip <- ""
     d_conc_wide_QC_SPL <- tibble("No qc-filtered data available." = NA) |> tibble::add_row()
     d_conc_wide_QC_all <- tibble("No qc-filtered data available." = NA) |> tibble::add_row()
+    #d_wide_QC_SPL_normalized <- tibble("No qc-filtered normalized data available." = NA) |> tibble::add_row()
+    #d_wide_QC_all_normalized <- tibble("No qc-filtered normalized data available." = NA) |> tibble::add_row()
+  }
+
+  if(length(normalized_variable) > 0){
+    d_wide_all_normalized <- data@dataset |>
+      dplyr::filter(.data$qc_type %in% c("SPL")) |>
+      dplyr::select(dplyr::any_of(c("analysis_id", "feature_id", normalized_variable))) |>
+      dplyr::filter(!str_detect(.data$feature_id, "\\(IS")) |>
+      tidyr::pivot_wider(names_from = "feature_id", values_from = any_of(normalized_variable))
+  } else{
+    d_wide_all_normalized <- tibble("No reference sample normalized data available." = NA) |> tibble::add_row()
   }
 
   if(data@is_quantitated && data@status_processing == "Calibration-quantitated data")
@@ -141,7 +169,11 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
   }
   name_filt_spl <- paste0("QCfilt",name_filt,"_StudySamples")
   name_filt_all <- paste0("QCfilt",name_filt,"_AllSamples")
-
+  #name_filt_spl_normalized <- paste0("QCfilt",name_filt,"_RefNorm_StudySpl")
+  #name_filt_all_normalized <- paste0("QCfilt",name_filt,"_RefNorm_AllSpl")
+  name_all_normalized <- stringr::str_replace(str_remove(normalized_variable, "feature_"), "_", " ")
+  name_all_normalized <- paste0(stringr::str_to_title(name_all_normalized), "_NormalizedByRef_Full")
+  name_all_normalized <- stringr::str_remove(name_all_normalized, " Normalized")
 
   table_list <- list(
     "Info" = d_info,
@@ -149,9 +181,12 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
     "Calibration_metrics" = metrics_calibration,
     name_filt_spl = d_conc_wide_QC_SPL,
     name_filt_all = d_conc_wide_QC_all,
+    #name_filt_spl_normalized = d_wide_QC_SPL_normalized,
+    #name_filt_all_normalized = d_wide_QC_all_normalized,
     "Raw_Intensity_FullDataset" = d_intensity_wide,
     "Norm_Intensity_FullDataset" = d_norm_intensity_wide,
     "Conc_FullDataset" = d_conc_wide,
+     name_all_normalized = d_wide_all_normalized,
     "SampleMetadata" = if(nrow(data@annot_analyses) == 0) data@annot_analyses |> tibble::add_row() else data@annot_analyses,
     "FeatureMetadata" = if(nrow(data@annot_features) == 0) data@annot_features |> tibble::add_row() else data@annot_features,
     "InternalStandards" = if(nrow(data@annot_istds) == 0) data@annot_istds |> tibble::add_row() else data@annot_istds,
@@ -159,20 +194,31 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc") {
   )
 
   names(table_list)[4:5] <- c(name_filt_spl, name_filt_all)
+  names(table_list)[9] <- c(name_all_normalized)
 
   message("\rSaving report to disk - please wait...")
-  openxlsx2::write_xlsx(x = table_list,
-                        file = path,
+  wb <- openxlsx2::write_xlsx(x = table_list,
+                        #file = path,
                         na.strings = "",
                         as_table = TRUE,
                         overwrite = TRUE,
                         col_names = TRUE,
                         grid_lines = FALSE,
                         col_widths = "auto",
-                        first_col = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        first_row = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        with_filter = c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
-                        tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+                        first_col = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        first_row = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        with_filter = c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
+                        tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad","#f7b37c", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+  )
+
+  if(length(normalized_variable) == 0){
+    wb <- openxlsx2::wb_remove_worksheet(wb, name_all_normalized)
+  }
+
+  openxlsx2::wb_save(
+    wb = wb,
+    file = path,
+    overwrite = overwrite
   )
 
   txtitle <- if(data@title != "") glue::glue(" of experiment '{data@title}' ") else " "
@@ -223,7 +269,9 @@ save_dataset_csv <- function(data = NULL,
   check_data(data)
   variable <- str_remove(variable, "feature_")
   variable_strip <- variable
-  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
+                               "response", "conc", "intensity_raw", "norm_intensity_raw", "conc_raw", "rt", "fwhm",
+                               "intensity_normalized", "norm_intensity_normalized", "conc_normalized"))
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
