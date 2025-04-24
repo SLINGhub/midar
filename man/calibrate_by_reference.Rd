@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc-ref-normalization.R
 \name{calibrate_by_reference}
 \alias{calibrate_by_reference}
-\title{Calibrate Feature Abundances Using Reference Samples}
+\title{Calibrate Features Values Using a Reference Sample}
 \usage{
 calibrate_by_reference(
   data,
@@ -36,7 +36,7 @@ Must be one of: "original" (keep original values), "na" (set to NA), or "error".
 A \code{MidarExperiment} object with calibrated data
 }
 \description{
-Calibrates features abundances using reference samples, either by re-calibrating
+Calibrates features abundances using a reference sample, either by re-calibrating
 absolute concentrations using known concentrations in the reference samples or
 by calculating relative ratios to reference samples.
 
@@ -98,42 +98,44 @@ Unfiltered normalized feature values will be included by default in the report i
 }
 }
 \examples{
+## ---- pkgdown = FALSE ------------------------------------------------
 \dontrun{
-# Relative calibration
-mexp <- calibrate_by_reference(
-  data = mexp,
-  variable = "conc",
-  reference_sample_id = "NIST-SRM1950",
-  absolute_calibration = TRUE
-  summarize_fun = "mean",
-  undefined_conc_action = "original"
-)
+  # Relative calibration
+  mexp <- calibrate_by_reference(
+    data = mexp,
+    variable = "conc",
+    reference_sample_id = "NIST-SRM1950",
+    absolute_calibration = TRUE,
+    summarize_fun = "mean",
+    undefined_conc_action = "original"
+  )
 
-# Export relative calibration results
-save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc")
+  # Export relative calibration results
+  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc")
 
-# Export non-calibrated results
-save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_beforecal")
+  # Export non-calibrated results
+  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_beforecal")
 
-# Export relative calibration results in the MiDAR XLSX report
-save_report_xlsx(mexp, "report.xlsx", variable = "conc")
+  # Export relative calibration results in the MiDAR XLSX report
+  save_report_xlsx(mexp, "report.xlsx", variable = "conc")
 
-# Absolute calibration
-mexp <- calibrate_by_reference(
-  data = mexp,
-  variable = "conc",
-  reference_sample_id = "NIST-SRM1950",
-  absolute_calibration = FALSE
-)
+  # Absolute calibration example
+  mexp <- calibrate_by_reference(
+    data = mexp,
+    variable = "conc",
+    reference_sample_id = "NIST-SRM1950",
+    absolute_calibration = FALSE
+  )
 
-# Export relative calibration results
-save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_normalized")
+  # Export relative calibration results
+  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_normalized")
 
-# Export relative calibration results in the MiDAR XLSX report
-save_report_xlsx(mexp, "report.xlsx", variable = "conc_normalized")
+  # Export relative calibration results in the MiDAR XLSX report
+  save_report_xlsx(mexp, "report.xlsx", variable = "conc_normalized")
 }
 
 }
 \seealso{
 \code{\link[=normalize_by_istd]{normalize_by_istd()}}, \code{\link[=quantify_by_istd]{quantify_by_istd()}}, \code{\link[=quantify_by_calibration]{quantify_by_calibration()}}
 }
+\keyword{internal}

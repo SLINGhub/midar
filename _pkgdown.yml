@@ -121,14 +121,17 @@ reference:
   - calc_calibration_results
   - get_calibration_metrics
   - get_qc_bias_variability
-- title: Normalization and Quantification
+- title: Normalization, Quantification
   description: |
-    Functions to normalization by internal standards and sample amounts, to calculate analyte concentrations based
-    on internal standards amounts or external calibration curves.
+    Functions for normalization by internal standards and sample amounts, to calculate analyte concentrations based
+    on internal standards amounts or external calibration curves. Function to for absolute or relative
+    calibration using a reference sample.
   contents:
   - normalize_by_istd
   - quantify_by_istd
   - quantify_by_calibration
+  example:
+    run: false
 - title: Drift/Batch Correction
   description: |
     Function for drift and batch correction correction
