@@ -33,7 +33,12 @@
 #' Concentration corresponds to the final concentration values after applying isotope correction, and drift and batch correction, if applicable.
 #' If any corrections, such as drift or batch correction, were applied to raw or normalized intensities, the exported values will reflect these corrections.
 #'
+#' @seealso
+#' [normalize_by_istd()], [quantify_by_istd()], [quantify_by_calibration()], [calibrate_by_reference()]
+#'
 #' @return The function does not return a value. It writes the report to the specified Excel file.
+#'
+#'
 #'
 #' @examples
 #' \dontrun{
@@ -235,7 +240,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", norm
 #' @param path File name with path of exported CSV file
 #' @param variable Variable to be exported, must be present in the data and any of "area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm".
 #' @param filter_data A logical value indicating whether to use all data
-#' (default) or only QC-filtered data (filtered via [filter_features_qc()]).
+#' (default) or only QC-filtered data (filtered via [filter_features_qc()]). Default is `FALSE`.
 #' @param qc_types QC types to be plotted. Can be a vector of QC types or a regular expression pattern. `NA` (default) displays all available QC/Sample types.
 #' @param include_qualifier A logical value indicating whether to include
 #' qualifier features. Default is `NA`, which will be automatically set to `FALSE`
@@ -254,11 +259,15 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", norm
 #' features with exactly these names are excluded (applied individually as
 #' OR conditions).
 #' @param add_qctype Add the QC type as column
+#'
+#' @seealso
+#' [normalize_by_istd()], [quantify_by_istd()], [quantify_by_calibration()], [calibrate_by_reference()]
+#'
 #' @export
 save_dataset_csv <- function(data = NULL,
                              path,
                              variable,
-                             filter_data,
+                             filter_data = FALSE,
                              qc_types = NA,
                              include_qualifier = NA,
                              include_istd = NA,
@@ -271,7 +280,7 @@ save_dataset_csv <- function(data = NULL,
   variable_strip <- variable
   rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
                                "response", "conc", "intensity_raw", "norm_intensity_raw", "conc_raw", "rt", "fwhm",
-                               "intensity_normalized", "norm_intensity_normalized", "conc_normalized"))
+                               "intensity_normalized", "norm_intensity_normalized", "conc_normalized", "conc_beforecal"))
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
