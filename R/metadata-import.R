@@ -339,12 +339,12 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses;analysis_id|qc_type") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_id")), description = "W;Incomplete value(s);Analyses;sample_id") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_id")), description = "N;Not defined for all analyses;Analyses;sample_id") |>
       assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_amount", "sample_amount_unit")), description = "W;Incomplete value(s);Analyses;sample_amount|sample_amount_unit") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("istd_volume")), description = "W;Incomplete value(s);Analyses;istd_volume") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("batch_id")), description = "W;Incomplete value(s);Analyses;batch_id") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("replicate_no")), description = "W;Incomplete value(s);Analyses;replicate_no") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("valid_analysis")), description = "E;Incomplete value(s);Analyses;valid_analysis")
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("istd_volume")), description = "W;Not defined for all analyses;Analyses;istd_volume") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("batch_id")), description = "W;Not defined for all analyses;Analyses;batch_id") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("replicate_no")), description = "W;Not defined for all analyses;Analyses;replicate_no") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("valid_analysis")), description = "E;Not defined for all analyses;Analyses;valid_analysis")
     #assertr::verify(all(assertr::is_uniq(analysis_id)), obligatory=FALSE, description = "E;Duplicated analysis IDs;Analyses;analysis_id")
 
     if(!is.null(data)){
@@ -381,7 +381,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::assert(assertr::in_set(NA, "1/x", "1/x^2"), "curve_fit_weighting", description = "E; Must be NA, '1/x' or '1/x^2';Features;curve_fit_weighting") |>
       assertr::assert(assertr::in_set(unique(metadata$annot_features$feature_id)), "interference_feature_id", description = "E;Interfering feature(s) not defined as feature;Features;interference_feature_id") |>
       assertr::verify(any(!xor(is.na(metadata$annot_features$interference_contribution), is.na(metadata$annot_features$interference_feature_id))), "interference_feature_id", obligatory=FALSE, description = "E;Incomplete interference info;Features;interference_contribution") |>
-      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("analyte_id")), description = "E;Incomplete value(s);Features;analyte_id")
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("analyte_id")), description = "N;Not defined for all features;Features;analyte_id")
       #assertr::assert(\(x){any(xor(is.na(x), is.na(metadata$annot_features$interference_feature_id)))}, "interference_feature_id", obligatory=FALSE, description = "E;Missing interference proportion(s);Features;interference_contribution") |>
 
 
