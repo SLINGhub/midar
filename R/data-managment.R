@@ -356,6 +356,8 @@ update_after_normalization <- function(data, is_normalized, with_message = TRUE)
     }
   }
   data@is_istd_normalized <- is_normalized
+  data@is_filtered <- FALSE
+  data@dataset_filtered <- data@dataset_filtered[FALSE,]
   data
 }
 
@@ -365,6 +367,8 @@ update_after_quantitation <- function(data, is_quantitated, with_message = TRUE)
     if(with_message) cli_alert_info(cli::col_yellow("Concentrations are no longer valid. Please reprocess the data."))
   }
   data@is_quantitated <- is_quantitated
+  data@is_filtered <- FALSE
+  data@dataset_filtered <- data@dataset_filtered[FALSE,]
   data
 }
 
