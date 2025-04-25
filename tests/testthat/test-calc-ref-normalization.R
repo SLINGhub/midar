@@ -28,6 +28,18 @@ test_that("calibrate_by_reference catches input errors and issues", {
       data = mexp,
       variable = "feature_intensity",
       reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      undefined_conc_action = "original",
+      summarize_fun = "mean"
+    ),
+    "When using `undefined_conc_action = 'original'`, the variable must be 'conc'",
+    fixed = TRUE)
+
+  expect_error(
+    calibrate_by_reference(
+      data = mexp,
+      variable = "feature_intensity",
+      reference_sample_id = "NIST_SRM1950",
       absolute_calibration = TRUE
     ),
     "When using `absolute_calibration = TRUE`, then `undefined_conc_action`",
@@ -128,7 +140,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
   expect_message(
     calibrate_by_reference(
       data = mexp,
-      variable = "feature_intensity",
+      variable = "feature_conc",
       reference_sample_id = "NIST_SRM1950",
       absolute_calibration = TRUE,
       undefined_conc_action = "original"

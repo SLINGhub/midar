@@ -1,55 +1,52 @@
-#' @keywords internal
-#' @title Calibrate Features Values Using a Reference Sample
+#' @title Calibrate Features Values Using Reference Sample
 #'
 #' @description
-#' Calibrates features abundances using a reference sample, either by re-calibrating
-#' absolute concentrations using known concentrations in the reference samples or
-#' by calculating relative ratios to reference samples.
+#' Calibrates feature abundances using a specified reference sample. Two approaches are supported:
 #'
-#' Two calibration approaches are supported:
+#' 1. Absolute calibration (when `absolute_calibration = TRUE`)
 #'
-#' 1. Absolute calibration (`absolute_calibration = TRUE`):
-#'    Recalibrates features to concentrations using known reference sample values.
+#'    Recalibrates feature abundances based on known concentrations of the corresponding features
+#'    defined for a reference sample.
 #'
-#'    Requirements:
-#'    - `analyte_id` and `sample_id` must be defined in analysis metadata
-#'    - Known analyte concentrations must be defined for the reference sample in QC concentration metadata
+#'    The input variable can either `conc`, `norm_intensity`, or `intensity, whereas the result will
+#'    always be stored under the variable`conc` (concentration), in the unit defined
+#'    for the feature concentrations in the reference sample.
 #'
-#'    The function:
-#'    - Overwrites original values (`intensity`, `norm_intensity`, or `conc`) with recalibrated values
-#'    - Stores original values in `feature_[VARIABLE]_beforecal`, where `[VARIABLE]` is `conc`, `norm_intensity`, or `intensity`
-#'    - Can process `conc`, `norm_intensity`, or `intensity` data
-#'    - Always outputs concentration (`conc`) in concentration unit defined for the analytes in the reference sample in the QC concentration metadata.
 #'
-#'    When multiple analyses of the same reference sample are present, their concentrations are summarized using
-#'    `summarize_fun` ("mean" or "median", default: "mean").
+#'    Metadata requirements:
+#'    - `sample_id` and `analyte_id` must be defined for the reference sample and features in the analysis and feature metadata, respectively.
+#'    - Known analyte concentrations must be defined in the `QC concentration` metadata for the for the reference sample
+#'    - An error will be raised  if no concentrations are defined for any features
 #'
-#'    Options for undefined analyte concentrations for the reference sample (`undefined_conc_handling`):
-#'    - "original": Keep original values (meaning the non-calibrated values will be returned)
-#'    - "na": Set undefined features to NA
-#'    - "error": Raise error for undefined features
-#'   An error will be raised  if no concentrations are defined for any features.
+#'    Missing analyte concentrations for the reference sample can be handed via `undefined_conc_handling` with following options:
+#'    - `original`: Keep original feature values, i.e. the non-calibrated values will be returned. *Note*: this is only available when `variable = conc`. Use with caution to avoid mixing units.
+#'    - `na`: Set affected features values to `NA`
+#'    - `error` (default): The function stops with error in case of any undefined reference sample feature concentration.
+#'    - In case all feature concentrations are undefined, the function will stop with an error.
 #'
-#'   To export:
-#'    - Use `save_dataset_csv()` with `variable = "[VARIABLE]`
-#'    - For MiDAR XLSX report, use `save_report_xlsx()` also with  `variable = "[VARIABLE]` to
-#'    include the re-calibrated values of the filtered dataset in the report.
-#'    - Set `[VARIABLE]` = `conc`, `norm_intensity`, or `intensity` to export re-calibrated values, or
-#'     `conc_beforecal`, `norm_intensity_beforecal`, or `intensity_beforecal` to export the original values.
+#'   The re-calibrated feature concentrations are stored as `conc`, overwriting existing `conc` values.
+#'   The original `conc` values are stored as `conc_beforecal`.
 #'
-#' 2. Relative calibration (`absolute_calibration = FALSE`):
-#'    Expresses sample features values as ratios relative to corresponding features in the reference sample.
+#'   To export the calibrated concentrations use `save_dataset_csv()` with `variable = "conc",
+#'   or to export non-calibrated values with `variable = "conc_beforecal"`.
+#'   When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as `conc`.
 #'
-#'    - Applies uniformly to all features
-#'    - Works with `conc`, `norm_intensity`, or `intensity` data
-#'    - Stores results in `feature_[VARIABLE]_normalized`, where `[VARIABLE]` is `conc`, `norm_intensity`, or `intensity`
+#' 2. Normalization (relative calibration, `absolute_calibration = FALSE`)
 #'
-#'    To export:
-#'    - Use `save_dataset_csv()` with `variable = "feature_[VARIABLE]_normalized"`
-#'    - For MiDAR XLSX report, use `save_report_xlsx()` with same variable setting as for `save_dataset_csv()` to
-#'    include the normalized values of the filtered dataset in the report.
-#'    Unfiltered normalized feature values will be included by default in the report if present
+#'    Normalizes features abundances with corresponding feature abundances in a reference sample,
+#'    resulting in ratios. Any available feature abundance variable
+#'    (i.e., `conc`, `norm_intensity`, or `intensity`) can be used as input. The normalization is calculate for all present features.
+#'    The resulting output will be stored as `[VARIABLE]_normalized`, whereby `[VARIABLE]` is the input variable, e.g., `conc_normalized`.
+
 #'
+#'    To export the normalized abundances , use `save_dataset_csv()` with `variable = "[VARIABLE]_normalized"`
+#'    For MiDAR XLSX report, use `save_report_xlsx()` with same variable setting as for `save_dataset_csv()` to
+#'    When saving the MiDAR XLSX report via `save_report_xlsx()`, availble unfiltered normalized feature abundances
+#'    will be included by default. To include filtered normalized feature abundances, set `filtered_variable = "[VARIABLE]_normalized"`.
+#'
+#' Note: When multiple measurements (analyses) of the same reference sample are present,
+#'    their concentrations are summarized by `mean` (default) or `median`. This can be set
+#'    via the `summarize_fun` argument.
 #'
 #' @param data A `MidarExperiment` object containing the metabolomics data to be normalized
 #' @param variable Character string indicating which data type to calibrate Must be
@@ -66,41 +63,58 @@
 #'
 #' @return A `MidarExperiment` object with calibrated data
 #' @examples
-#' ## ---- pkgdown = FALSE ------------------------------------------------
-#' \dontrun{
-#'   # Relative calibration
+#'
+#' dat_file = system.file("extdata", "S1P_MHQuant.csv", package = "midar")
+#' meta_file = system.file("extdata", "S1P_metadata_tables.xlsx", package = "midar")
+
+#' # Load data and metadata
+#' mexp <- MidarExperiment()
+#' mexp <- import_data_masshunter(mexp, dat_file, import_metadata = FALSE)
+#' mexp <- import_metadata_analyses(mexp, path = meta_file, sheet = "Analyses")
+#' mexp <- import_metadata_features(mexp, path = meta_file, sheet = "Features")
+#' mexp <- import_metadata_istds(mexp, path = meta_file, sheet = "ISTDs")
+#'
+#' # Load known feature concentrations in the reference sample
+#' mexp <- import_metadata_qcconcentrations(mexp, path = meta_file, sheet = "QCconcentrations")
+#' mexp <- normalize_by_istd(mexp)
+#' mexp <- quantify_by_istd(mexp)
+#'
+#' # Absolute calibration
+#' # --------------------
+#'
 #'   mexp <- calibrate_by_reference(
 #'     data = mexp,
 #'     variable = "conc",
-#'     reference_sample_id = "NIST-SRM1950",
+#'     reference_sample_id = "SRM1950",
 #'     absolute_calibration = TRUE,
 #'     summarize_fun = "mean",
 #'     undefined_conc_action = "original"
 #'   )
 #'
-#'   # Export relative calibration results
-#'   save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc")
+#'   # Export absolute calibration concentrations
+#'   save_dataset_csv(mexp, "calibrated.csv", variable = "conc", filter_data = FALSE)
 #'
-#'   # Export non-calibrated results
-#'   save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_beforecal")
+#'   # Export non-calibrated concentrations
+#'   save_dataset_csv(mexp, "noncalibrated.csv", variable = "conc_beforecal", filter_data = FALSE)
 #'
-#'   # Export relative calibration results in the MiDAR XLSX report
-#'   save_report_xlsx(mexp, "report.xlsx", variable = "conc")
+#'   # Create XLSX report with calibrated concentrations as filtered dataset
+#'   save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc")
 #'
-#'   # Absolute calibration example
+#' # Relative calibration
+#' # --------------------
+#'
 #'   mexp <- calibrate_by_reference(
 #'     data = mexp,
 #'     variable = "conc",
-#'     reference_sample_id = "NIST-SRM1950",
+#'     reference_sample_id = "SRM1950",
 #'     absolute_calibration = FALSE
 #'   )
 #'
-#'   # Export relative calibration results
-#'   save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_normalized")
+#'   # Export SRM1950-normalized concentrations
+#'   save_dataset_csv(mexp, "normalized.csv", variable = "conc_normalized", filter_data = FALSE)
 #'
-#'   # Export relative calibration results in the MiDAR XLSX report
-#'   save_report_xlsx(mexp, "report.xlsx", variable = "conc_normalized")
-#' }
+#'   # Create XLSX report with SRM1950-normalized concentrations as filtered dataset
+#'   save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc_normalized")
 #'
 #' @seealso
 #' [normalize_by_istd()], [quantify_by_istd()], [quantify_by_calibration()]
@@ -129,7 +143,8 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
   variable_beforecal_sym <- rlang::sym(stringr::str_c("feature_", variable_strip, "_beforecal"))
   check_var_in_dataset(data@dataset, variable)
 
-
+ if(variable != "feature_conc" && !is.null(undefined_conc_action) && undefined_conc_action == "original")
+    cli::cli_abort(col_red("When using `undefined_conc_action = 'original'`, the variable must be 'conc'. See the function's documentation for more details."))
 
   d_temp <- data@dataset |>
     select(any_of(c("analysis_id", "sample_id", "feature_id", "analyte_id", variable)))
@@ -163,9 +178,9 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
       if(undefined_conc_action == "error")
         cli::cli_abort(col_red("One or more feature concentration are not defined in the reference sample {reference_sample_id}. Please verify QC concentration metadata or modify `undefined_conc_action` argument" ))
       else if(undefined_conc_action == "na") {
-        cli::cli_alert_warning(col_yellow("One or more feature concentration are not defined in the reference sample {reference_sample_id}. `NA` will be returned for these features. Modify `undefined_conc_action` argument to change behaviour." ))
+        cli::cli_alert_warning(col_yellow("One or more feature concentration are not defined in the reference sample {reference_sample_id}. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument." ))
       } else if(undefined_conc_action == "original") {
-        cli::cli_alert_warning(col_yellow("One or more feature concentration are not defined in the reference sample {reference_sample_id}. Original values will be returned for these. Modify `undefined_conc_action` argument to change behaviour." ))
+        cli::cli_alert_warning(col_yellow("One or more feature concentration are not defined in the reference sample {reference_sample_id}. Original values will be returned for these. To change this, modify `undefined_conc_action` argument." ))
       } else
         cli::cli_abort(col_red("Invalid value for `undefined_conc_action`. Must be one of: 'original', 'na', or 'error'"))
     }
@@ -190,9 +205,13 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
                                  if(undefined_conc_action == "original") !!variable_sym else NA_real_)) |>
       dplyr::select(-"ref_conc")
 
+    if(variable == "feature_conc") {
+      data@dataset <- data@dataset |>
+        mutate(feature_conc_beforecal = .data$feature_conc)
+    }
+
     data@dataset <- data@dataset |>
       dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "var_calibrated"), by = c("analysis_id", "feature_id")) |>
-      mutate(feature_conc_beforecal = .data$feature_conc) |>
       dplyr::mutate(feature_conc = .data$var_calibrated) |>
       dplyr::select(-"var_calibrated")
 
@@ -205,10 +224,8 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
     else
       cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated using the defined reference sample concentrations."))
 
-
     cli::cli_alert_info(col_green("Concentrations are given in {ref_feature_conc_unit}."))
 
-    data <- update_after_normalization(data, is_normalized = TRUE)
     data <- update_after_quantitation(data, is_quantitated = TRUE)
 
 

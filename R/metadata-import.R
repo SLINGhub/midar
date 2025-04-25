@@ -942,7 +942,6 @@ clean_feature_metadata <- function(d_features) {
   if(!all(c("feature_id") %in% names(d_features))){
     cli::cli_abort(cli::col_red("Feature metadata must have column: `feature_id`. Please verify the input data. "))
   }
-
   d_features <- d_features |> add_missing_column(col_name = "feature_class", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "chem_formula", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = FALSE)
   d_features <- d_features |> add_missing_column(col_name = "molecular_weight", init_value = NA_real_, make_lowercase = FALSE, all_na_replace = FALSE)

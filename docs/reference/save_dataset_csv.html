@@ -28,6 +28,7 @@ Allows selection of features and optional QC filtering."><meta property="og:imag
     <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
     <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
     <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a Reference Sample</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
     <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
@@ -74,7 +75,7 @@ Allows selection of features and optional QC filtering.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">path</span>,</span>
 <span>  <span class="va">variable</span>,</span>
-<span>  <span class="va">filter_data</span>,</span>
+<span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  include_istd <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -102,7 +103,7 @@ Allows selection of features and optional QC filtering.</p>
 
 <dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>
 <dd><p>A logical value indicating whether to use all data
-(default) or only QC-filtered data (filtered via <code><a href="filter_features_qc.html">filter_features_qc()</a></code>).</p></dd>
+(default) or only QC-filtered data (filtered via <code><a href="filter_features_qc.html">filter_features_qc()</a></code>). Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-qc-types">qc_types<a class="anchor" aria-label="anchor" href="#arg-qc-types"></a></dt>
@@ -141,6 +142,10 @@ OR conditions).</p></dd>
 <dd><p>Add the QC type as column</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="normalize_by_istd.html">normalize_by_istd()</a></code>, <code><a href="quantify_by_istd.html">quantify_by_istd()</a></code>, <code><a href="quantify_by_calibration.html">quantify_by_calibration()</a></code>, <code><a href="calibrate_by_reference.html">calibrate_by_reference()</a></code></p></div>
+    </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

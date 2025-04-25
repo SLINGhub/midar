@@ -25,6 +25,8 @@ navbar:
         href: articles/T_DriftCorrect.html
       - text: Batch Correction
         href: articles/T_BatchCorrect.html
+      - text: Calibration by a Reference Sample
+        href: articles/T_CalibRef.html
       - text: '-------'
       - text: Recipes
       - text: External Calibration and QC
@@ -130,6 +132,7 @@ reference:
   - normalize_by_istd
   - quantify_by_istd
   - quantify_by_calibration
+  - calibrate_by_reference
   example:
     run: false
 - title: Drift/Batch Correction

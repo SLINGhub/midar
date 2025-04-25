@@ -63,3 +63,6 @@ save_report_xlsx(data = midarexp, path = "output_path/report.xlsx")
 }
 
 }
+\seealso{
+\code{\link[=normalize_by_istd]{normalize_by_istd()}}, \code{\link[=quantify_by_istd]{quantify_by_istd()}}, \code{\link[=quantify_by_calibration]{quantify_by_calibration()}}, \code{\link[=calibrate_by_reference]{calibrate_by_reference()}}
+}

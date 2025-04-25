@@ -8,7 +8,7 @@ save_dataset_csv(
   data = NULL,
   path,
   variable,
-  filter_data,
+  filter_data = FALSE,
   qc_types = NA,
   include_qualifier = NA,
   include_istd = NA,
@@ -25,7 +25,7 @@ save_dataset_csv(
 \item{variable}{Variable to be exported, must be present in the data and any of "area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm".}
 
 \item{filter_data}{A logical value indicating whether to use all data
-(default) or only QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
+(default) or only QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}). Default is \code{FALSE}.}
 
 \item{qc_types}{QC types to be plotted. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
 
@@ -55,4 +55,7 @@ OR conditions).}
 This function exports specific unprocessed or pr ocessed feature variable
 (e.g. intensities or concentrations) from a \code{MidarExperiment} object to a CSV file.
 Allows selection of features and optional QC filtering.
+}
+\seealso{
+\code{\link[=normalize_by_istd]{normalize_by_istd()}}, \code{\link[=quantify_by_istd]{quantify_by_istd()}}, \code{\link[=quantify_by_calibration]{quantify_by_calibration()}}, \code{\link[=calibrate_by_reference]{calibrate_by_reference()}}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc-ref-normalization.R
 \name{calibrate_by_reference}
 \alias{calibrate_by_reference}
-\title{Calibrate Features Values Using a Reference Sample}
+\title{Calibrate Features Values Using Reference Sample}
 \usage{
 calibrate_by_reference(
   data,
@@ -36,106 +36,108 @@ Must be one of: "original" (keep original values), "na" (set to NA), or "error".
 A \code{MidarExperiment} object with calibrated data
 }
 \description{
-Calibrates features abundances using a reference sample, either by re-calibrating
-absolute concentrations using known concentrations in the reference samples or
-by calculating relative ratios to reference samples.
-
-Two calibration approaches are supported:
+Calibrates feature abundances using a specified reference sample. Two approaches are supported:
 \enumerate{
-\item Absolute calibration (\code{absolute_calibration = TRUE}):
-Recalibrates features to concentrations using known reference sample values.
+\item Absolute calibration (when \code{absolute_calibration = TRUE})
 
-Requirements:
+Recalibrates feature abundances based on known concentrations of the corresponding features
+defined for a reference sample.
+
+The input variable can either \code{conc}, \code{norm_intensity}, or \verb{intensity, whereas the result will always be stored under the variable}conc` (concentration), in the unit defined
+for the feature concentrations in the reference sample.
+
+Metadata requirements:
 \itemize{
-\item \code{analyte_id} and \code{sample_id} must be defined in analysis metadata
-\item Known analyte concentrations must be defined for the reference sample in QC concentration metadata
+\item \code{sample_id} and \code{analyte_id} must be defined for the reference sample and features in the analysis and feature metadata, respectively.
+\item Known analyte concentrations must be defined in the \verb{QC concentration} metadata for the for the reference sample
+\item An error will be raised  if no concentrations are defined for any features
 }
 
-The function:
+Missing analyte concentrations for the reference sample can be handed via \code{undefined_conc_handling} with following options:
 \itemize{
-\item Overwrites original values (\code{intensity}, \code{norm_intensity}, or \code{conc}) with recalibrated values
-\item Stores original values in \verb{feature_[VARIABLE]_beforecal}, where \verb{[VARIABLE]} is \code{conc}, \code{norm_intensity}, or \code{intensity}
-\item Can process \code{conc}, \code{norm_intensity}, or \code{intensity} data
-\item Always outputs concentration (\code{conc}) in concentration unit defined for the analytes in the reference sample in the QC concentration metadata.
-}
-
-When multiple analyses of the same reference sample are present, their concentrations are summarized using
-\code{summarize_fun} ("mean" or "median", default: "mean").
-
-Options for undefined analyte concentrations for the reference sample (\code{undefined_conc_handling}):
-\itemize{
-\item "original": Keep original values (meaning the non-calibrated values will be returned)
-\item "na": Set undefined features to NA
-\item "error": Raise error for undefined features
-An error will be raised  if no concentrations are defined for any features.
+\item \code{original}: Keep original feature values, i.e. the non-calibrated values will be returned. \emph{Note}: this is only available when \code{variable = conc}. Use with caution to avoid mixing units.
+\item \code{na}: Set affected features values to \code{NA}
+\item \code{error} (default): The function stops with error in case of any undefined reference sample feature concentration.
+\item In case all feature concentrations are undefined, the function will stop with an error.
 }
 }
 
-To export:
-\itemize{
-\item Use \code{save_dataset_csv()} with \verb{variable = "[VARIABLE]}
-\item For MiDAR XLSX report, use \code{save_report_xlsx()} also with  \verb{variable = "[VARIABLE]} to
-include the re-calibrated values of the filtered dataset in the report.
-\item Set \verb{[VARIABLE]} = \code{conc}, \code{norm_intensity}, or \code{intensity} to export re-calibrated values, or
-\code{conc_beforecal}, \code{norm_intensity_beforecal}, or \code{intensity_beforecal} to export the original values.
-}
+The re-calibrated feature concentrations are stored as \code{conc}, overwriting existing \code{conc} values.
+The original \code{conc} values are stored as \code{conc_beforecal}.
+
+To export the calibrated concentrations use \code{save_dataset_csv()} with \verb{variable = "conc", or to export non-calibrated values with }variable = "conc_beforecal"\verb{. When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as }conc`.
 \enumerate{
-\item Relative calibration (\code{absolute_calibration = FALSE}):
-Expresses sample features values as ratios relative to corresponding features in the reference sample.
-\itemize{
-\item Applies uniformly to all features
-\item Works with \code{conc}, \code{norm_intensity}, or \code{intensity} data
-\item Stores results in \verb{feature_[VARIABLE]_normalized}, where \verb{[VARIABLE]} is \code{conc}, \code{norm_intensity}, or \code{intensity}
+\item Normalization (relative calibration, \code{absolute_calibration = FALSE})
+
+Normalizes features abundances with corresponding feature abundances in a reference sample,
+resulting in ratios. Any available feature abundance variable
+(i.e., \code{conc}, \code{norm_intensity}, or \code{intensity}) can be used as input. The normalization is calculate for all present features.
+The resulting output will be stored as \verb{[VARIABLE]_normalized}, whereby \verb{[VARIABLE]} is the input variable, e.g., \code{conc_normalized}.
+
+To export the normalized abundances , use \code{save_dataset_csv()} with \code{variable = "[VARIABLE]_normalized"}
+For MiDAR XLSX report, use \code{save_report_xlsx()} with same variable setting as for \code{save_dataset_csv()} to
+When saving the MiDAR XLSX report via \code{save_report_xlsx()}, availble unfiltered normalized feature abundances
+will be included by default. To include filtered normalized feature abundances, set \code{filtered_variable = "[VARIABLE]_normalized"}.
 }
 
-To export:
-\itemize{
-\item Use \code{save_dataset_csv()} with \code{variable = "feature_[VARIABLE]_normalized"}
-\item For MiDAR XLSX report, use \code{save_report_xlsx()} with same variable setting as for \code{save_dataset_csv()} to
-include the normalized values of the filtered dataset in the report.
-Unfiltered normalized feature values will be included by default in the report if present
-}
-}
+Note: When multiple measurements (analyses) of the same reference sample are present,
+their concentrations are summarized by \code{mean} (default) or \code{median}. This can be set
+via the \code{summarize_fun} argument.
 }
 \examples{
-## ---- pkgdown = FALSE ------------------------------------------------
-\dontrun{
-  # Relative calibration
+
+dat_file = system.file("extdata", "S1P_MHQuant.csv", package = "midar")
+meta_file = system.file("extdata", "S1P_metadata_tables.xlsx", package = "midar")
+# Load data and metadata
+mexp <- MidarExperiment()
+mexp <- import_data_masshunter(mexp, dat_file, import_metadata = FALSE)
+mexp <- import_metadata_analyses(mexp, path = meta_file, sheet = "Analyses")
+mexp <- import_metadata_features(mexp, path = meta_file, sheet = "Features")
+mexp <- import_metadata_istds(mexp, path = meta_file, sheet = "ISTDs")
+
+# Load known feature concentrations in the reference sample
+mexp <- import_metadata_qcconcentrations(mexp, path = meta_file, sheet = "QCconcentrations")
+mexp <- normalize_by_istd(mexp)
+mexp <- quantify_by_istd(mexp)
+
+# Absolute calibration
+# --------------------
+
   mexp <- calibrate_by_reference(
     data = mexp,
     variable = "conc",
-    reference_sample_id = "NIST-SRM1950",
+    reference_sample_id = "SRM1950",
     absolute_calibration = TRUE,
     summarize_fun = "mean",
     undefined_conc_action = "original"
   )
 
-  # Export relative calibration results
-  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc")
+  # Export absolute calibration concentrations
+  save_dataset_csv(mexp, "calibrated.csv", variable = "conc", filter_data = FALSE)
 
-  # Export non-calibrated results
-  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_beforecal")
+  # Export non-calibrated concentrations
+  save_dataset_csv(mexp, "noncalibrated.csv", variable = "conc_beforecal", filter_data = FALSE)
 
-  # Export relative calibration results in the MiDAR XLSX report
-  save_report_xlsx(mexp, "report.xlsx", variable = "conc")
+  # Create XLSX report with calibrated concentrations as filtered dataset
+  save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc")
 
-  # Absolute calibration example
+# Relative calibration
+# --------------------
+
   mexp <- calibrate_by_reference(
     data = mexp,
     variable = "conc",
-    reference_sample_id = "NIST-SRM1950",
+    reference_sample_id = "SRM1950",
     absolute_calibration = FALSE
   )
 
-  # Export relative calibration results
-  save_dataset_csv(mexp, "mexp_calibrated.csv", variable = "conc_normalized")
+  # Export SRM1950-normalized concentrations
+  save_dataset_csv(mexp, "normalized.csv", variable = "conc_normalized", filter_data = FALSE)
 
-  # Export relative calibration results in the MiDAR XLSX report
-  save_report_xlsx(mexp, "report.xlsx", variable = "conc_normalized")
-}
+  # Create XLSX report with SRM1950-normalized concentrations as filtered dataset
+  save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc_normalized")
 
 }
 \seealso{
 \code{\link[=normalize_by_istd]{normalize_by_istd()}}, \code{\link[=quantify_by_istd]{quantify_by_istd()}}, \code{\link[=quantify_by_calibration]{quantify_by_calibration()}}
 }
-\keyword{internal}
