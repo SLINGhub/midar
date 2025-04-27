@@ -40,7 +40,7 @@ navbar:
       - text: Data Indentifier
         href: articles/02_keydataids.html
       - text: Feature Variables
-        href: articles/02b_keyfeaturevar.Rmd
+        href: articles/02b_keyfeaturevar.html
       - text: '-------'
       - text: Data and Metadata
       - text: MidarExperiment Object
