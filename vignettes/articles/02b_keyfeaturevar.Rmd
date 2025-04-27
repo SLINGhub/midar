@@ -25,8 +25,13 @@ options(dplyr.print_max = 10)
 
 Feature variables represent variables that store values that are associated with
 a feature in a specific sample. The describe e.g., the absolute or relative
-abundance, the chromatographic retention time, the peak shape, or especiall when
-also processed data are imported, also properties like measurment accuracy.
+abundance, the chromatographic retention time, the peak shape, or especially
+when also processed data are imported, also properties like measurement
+accuracy.
+
+The feature variables can be accessed in MiDAR functions by either their
+internal name, which always starts with `feature_` (e.g., `feature_intensity`)
+or by their short names, such as `conc`, `intensity`, `norm_intesity`, and `rt`.
 
 ## Key Feature Variables
 
@@ -42,30 +47,30 @@ Many data processing and plotting functions in MiDAR use of these variables as
 input variable. All of these variable are stored in the `dataset` table present
 in the `MidarExperiment` object.
 
-+-------------------+----------------------+---------------------------------+
-| Feature Variable  | Internal Name        | Description                     |
-| Name              |                      |                                 |
-+===================+======================+=================================+
-| **intensity**     | feature_intensity    | Raw signal intensity. A copy of |
-|                   |                      | either `area`, `height`,        |
-|                   |                      | `response`, or `intensity` from |
-|                   |                      | the imported raw data. See      |
-|                   |                      | below.                          |
-+-------------------+----------------------+---------------------------------+
-| **nom_intensity** | fe                   | Internal Standard-normalized    |
-|                   | ature_norm_intensity | raw signal intensity            |
-+-------------------+----------------------+---------------------------------+
-| **pmol_total**    | feature_pmol_total   | Total feature (analyte) amount  |
-|                   |                      | in the measured sample          |
-|                   |                      | (pmoles/sample)                 |
-+-------------------+----------------------+---------------------------------+
-| **conc**          | feature_conc         | Feature (analyte) concentration |
-+-------------------+----------------------+---------------------------------+
-| **                | fea                  | Normalized feature (analyte)    |
-| conc_normalized** | ture_conc_normalized | concentration normalized by     |
-|                   |                      | e.g. reference sample or other  |
-|                   |                      | normalization methods           |
-+-------------------+----------------------+---------------------------------+
++--------------------+----------------------+---------------------------------+
+| Variable Short     | Internal Name        | Description                     |
+| Name               |                      |                                 |
++====================+======================+=================================+
+| intensity          | feature_intensity    | Raw signal intensity. A copy of |
+|                    |                      | either `area`, `height`,        |
+|                    |                      | `response`, or `intensity` from |
+|                    |                      | the imported raw data. See      |
+|                    |                      | below.                          |
++--------------------+----------------------+---------------------------------+
+| nom_intensity      | fe                   | Internal Standard-normalized    |
+|                    | ature_norm_intensity | raw signal intensity            |
++--------------------+----------------------+---------------------------------+
+| pmol_total         | feature_pmol_total   | Total feature (analyte) amount  |
+|                    |                      | in the measured sample          |
+|                    |                      | (pmoles/sample)                 |
++--------------------+----------------------+---------------------------------+
+| conc               | feature_conc         | Feature (analyte) concentration |
++--------------------+----------------------+---------------------------------+
+| conc_normalized    | fea                  | Normalized feature (analyte)    |
+|                    | ture_conc_normalized | concentration normalized by     |
+|                    |                      | e.g. reference sample or other  |
+|                    |                      | normalization methods           |
++--------------------+----------------------+---------------------------------+
 
 ## Backup Feature Variables
 
@@ -73,47 +78,47 @@ Feature variables will be overwritten in some processing by re-calculated
 values, i.e., feature area after interference correction, concentrations after
 drift/batch correction or reference sample-based re-calibration. In these cases,
 the original feature values are stored in a new 'backup' feature variable to
-keep a record and allow exploring the variable at a later stage.
-
-Furthermore, specific variables are created by some processing functions, e.g.
-during drift correction indicating the curve (model fit) data points.
+keep a record and allow exploring the variable at a later stage. Furthermore,
+specific variables are created by some processing functions, e.g. during drift
+correction the values of the curve (model fit) data points.
 
 Also these variables are stored in the `dataset` table. The feature variable
 name is based on the initial name with following postfixes:
 
-+----------------+----------------+------------------------------------------+
-| Postfix Text   | Examples       | Description                              |
-+================+================+==========================================+
-| \_orig         | feature_       | Currently, only used for the backup      |
-|                | intensity_orig | before any interference correction was   |
-|                |                | applied. Corresponds always to the raw   |
-|                |                | intensity values that were imported into |
-|                |                | the `MidarExperiment` object.            |
-+----------------+----------------+------------------------------------------+
-| \_raw          | fe             | Corresponds to the raw (= uncorrected)   |
-|                | ature_conc_raw | calculated features values, i.e., before |
-|                |                | a new correction step was applied, such  |
-|                | feature        | as drift/batch correction.               |
-|                | _intensity_raw |                                          |
-+----------------+----------------+------------------------------------------+
-| \_before       | featu          | Corresponds to the last calculated value |
-|                | re_conc_before | before a new correction step was         |
-|                |                | applied, i.e., drift/batch correction.   |
-|                | feature_in     | For example, adjusted concentration      |
-|                | tensity_before | after a drift correction, before batch   |
-|                |                | correction was applied.                  |
-+----------------+----------------+------------------------------------------+
-| \_beforecal    | feature_       | The non-calibrated raw or adjusted       |
-|                | conc_beforecal | concentration before                     |
-|                |                | \`calibrate_by_reference()\` was         |
-|                |                | applied. Only applies to the             |
-|                |                | concentration variable                   |
-+----------------+----------------+------------------------------------------+
-| \_fit          | c              | Model fit data points calculated by      |
-|                | onc_before_fit | drift and batch correction functions.    |
-|                |                | Use by `runscatter()` to plot the        |
-|                |                | trends.                                  |
-+----------------+----------------+------------------------------------------+
++-----------------+-----------------+-----------------------------------------+
+| Postfix of      | Examples        | Description                             |
+| Variable Name   |                 |                                         |
++=================+=================+=========================================+
+| \_orig          | feature         | Currently, only used for the backup     |
+|                 | _intensity_orig | before any interference correction was  |
+|                 |                 | applied. Corresponds always to the raw  |
+|                 |                 | intensity values that were imported     |
+|                 |                 | into the `MidarExperiment` object.      |
++-----------------+-----------------+-----------------------------------------+
+| \_raw           | f               | Corresponds to the raw (= uncorrected)  |
+|                 | eature_conc_raw | calculated features values, i.e.,       |
+|                 |                 | before a new correction step was        |
+|                 | featur          | applied, such as drift/batch            |
+|                 | e_intensity_raw | correction.                             |
++-----------------+-----------------+-----------------------------------------+
+| \_before        | feat            | Corresponds to the last calculated      |
+|                 | ure_conc_before | value before a new correction step was  |
+|                 |                 | applied, i.e., drift/batch correction.  |
+|                 | feature_i       | For example, adjusted concentration     |
+|                 | ntensity_before | after a drift correction, before batch  |
+|                 |                 | correction was applied.                 |
++-----------------+-----------------+-----------------------------------------+
+| \_beforecal     | feature         | The non-calibrated raw or adjusted      |
+|                 | _conc_beforecal | concentration before                    |
+|                 |                 | \`calibrate_by_reference()\` was        |
+|                 |                 | applied. Only applies to the            |
+|                 |                 | concentration variable                  |
++-----------------+-----------------+-----------------------------------------+
+| \_fit           | conc_before_fit | Model fit data points calculated by     |
+|                 |                 | drift and batch correction functions.   |
+|                 |                 | Use by `runscatter()` to plot the       |
+|                 |                 | trends.                                 |
++-----------------+-----------------+-----------------------------------------+
 
 ## Raw Feature Variables
 
@@ -130,7 +135,7 @@ processing functions, but plotting functions support some of these. The support
 will be extended in upcoming versions.
 
 +-------------------+-----------------------+--------------------------------+
-| Feature Variable  | Internal Name         | Description                    |
+| Variable Short    | Internal Name         | Description                    |
 | Name              |                       |                                |
 +===================+=======================+================================+
 | area              | feature_area          | Peak area                      |
