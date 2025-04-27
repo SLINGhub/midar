@@ -2,7 +2,7 @@ mexp_raw <- midar::MidarExperiment()
 mexp_raw <- midar::import_data_masshunter(mexp_raw, path = testthat::test_path("23_Testdata_MHQuant_DefaultSampleInfo_RT-Areas-FWHM_notInSeq_notimestamp.csv"),
                                       import_metadata = FALSE)
 mexp <- midar::import_metadata_msorganiser(mexp_raw,
-                                           path = testthat::test_path("testdata/MiDAR_Metadata_Template_191_20240226_MHQuant_S1P_V2.xlsm"),
+                                           path = testthat::test_path("testdata/MiDAR_Metadata_HQuant_S1P_forCalib.xlsm"),
                                            excl_unmatched_analyses = FALSE
 )
 
@@ -157,7 +157,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
       absolute_calibration = TRUE,
       undefined_conc_action = "na"
     ),
-    "3 feature concentrations calculated using the defined reference sample concentrations",
+    "3 feature concentrations were calculated using the defined reference sample concentrations",
     fixed = TRUE)
 
 
@@ -170,7 +170,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
       absolute_calibration = TRUE,
       undefined_conc_action = "na"
     ),
-    "3 feature concentrations re-calibrated using the reference sample",
+    "3 feature concentrations were re-calibrated using the reference sample",
     fixed = TRUE)
 
   expect_message(
@@ -192,7 +192,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
       absolute_calibration = FALSE,
       undefined_conc_action = "na"
     ),
-    "All features normalized with reference sample NIST_SRM1950 ",
+    "All features were normalized with reference sample NIST_SRM1950 ",
     fixed = TRUE)
 
   expect_message(
@@ -203,7 +203,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
       absolute_calibration = FALSE,
       undefined_conc_action = "na"
     ),
-    "All features normalized with reference sample NIST_SRM1950 features",
+    "All features were normalized with reference sample NIST_SRM1950 features",
     fixed = TRUE)
 
   expect_message(
@@ -228,6 +228,33 @@ test_that("calibrate_by_reference catches input errors and issues", {
     "Invalid value for `undefined_conc_action`.",
     fixed = TRUE)
 
+  mexp_temp <- mexp
+  mexp_temp@dataset <- mexp_temp@dataset |>
+    mutate(batch_id = if_else(str_detect(analysis_id, "SPL\\_S08"), "new", batch_id))
+
+  expect_error(
+    calibrate_by_reference(
+      data = mexp_temp,
+      batch_wise = TRUE,
+      variable = "feature_intensity",
+      reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      undefined_conc_action = "na"
+    ),
+    "The specified reference sample `NIST_SRM1950` is missing from one or more batches",
+    fixed = TRUE)
+
+  expect_no_error(
+    calibrate_by_reference(
+      data = mexp_temp,
+      batch_wise = FALSE,
+      variable = "feature_intensity",
+      reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      undefined_conc_action = "na"
+    )
+  )
+
 })
 
 test_that("calibrate_by_reference works", {
@@ -236,6 +263,7 @@ test_that("calibrate_by_reference works", {
     variable = "conc",
     reference_sample_id = "NIST_SRM1950",
     absolute_calibration = TRUE,
+    batch_wise = FALSE,
     undefined_conc_action = "na"
   )
   n <- sum(!(mexp_res@dataset$feature_conc == mexp_res@dataset$feature_conc_beforecal), na.rm = TRUE)
@@ -265,6 +293,7 @@ test_that("calibrate_by_reference works", {
     variable = "conc",
     reference_sample_id = "NIST_SRM1950",
     absolute_calibration = TRUE,
+    batch_wise = FALSE,
     undefined_conc_action = "original"
   )
   n <- sum(!(mexp_res@dataset$feature_conc == mexp_res@dataset$feature_conc_beforecal), na.rm = TRUE)
@@ -281,8 +310,16 @@ test_that("calibrate_by_reference works", {
     0.078142741)
 
   expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc,
+    0.113832312)
+
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_beforecal,
+    0.117334491)
+
+  expect_equal(
     mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d16:1 [M>60]",]$feature_conc,
-    0.034113950)
+    0.03411395)
 
   expect_equal(
     mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d16:1 [M>60]",]$feature_conc_beforecal,
@@ -305,18 +342,62 @@ test_that("calibrate_by_reference works", {
     0.078142741)
 
   expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc,
+    0.117334491)
+
+  expect_equal(
     mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_normalized,
     0.75810351)
 
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_normalized,
+    1.13832312)
   })
 
+
+test_that("calibrate_by_reference batch-wise works", {
+  expect_message(
+    mexp_res <- calibrate_by_reference(
+      data = mexp,
+      variable = "conc",
+      reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      batch_wise = TRUE,
+      undefined_conc_action = "original"
+    ),
+    "3 feature concentrations were batch-wise re-calibrated ", fixed = TRUE)
+
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc,
+    0.075035653)
+
+
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc,
+    0.115019824)
+
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_beforecal,
+    0.078142741)
+
+  expect_equal(
+    mexp_res@dataset[mexp_res@dataset$analysis_id  == "120_SPL_S086" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_beforecal,
+    0.117334491)
+
+  })
+
+
 test_that("calibrate_by_reference results are exportable", {
-  mexp_res <- calibrate_by_reference(
-    data = mexp,
-    variable = "conc",
-    reference_sample_id = "NIST_SRM1950",
-    absolute_calibration = FALSE
-  )
+  expect_message(
+    mexp_res <- calibrate_by_reference(
+      data = mexp,
+      variable = "conc",
+      reference_sample_id = "NIST_SRM1950",
+      batch_wise = FALSE,
+      absolute_calibration = FALSE
+    ),
+    "All features were normalized with reference sample", fixed = TRUE)
+
 
   temp_file <- tempfile(fileext = ".csv")
   expect_message(

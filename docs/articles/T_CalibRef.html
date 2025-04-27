@@ -170,11 +170,12 @@ reference sample are present in the dataset, either the
 <span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
 <span>    absolute_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    batch_wise <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations re-calibrated using the reference sample SRM1950.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were re-calibrated using the reference sample SRM1950.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span></code></pre></div>
 <p>The re-calibrated concentrations are stored in the <code>conc</code>
 variable, overwriting any previously calculated concentrations. The
@@ -184,11 +185,11 @@ original concentrations, however, are still available via
 also appear in MiDAR XLSX report also as concentrations.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export absolute calibration concentrations</span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 14 features have been exported to 'calibrated.csv'.</span></span></span>
 <span>  </span>
 <span><span class="co"># Export non-calibrated concentrations</span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'noncalibrated.csv'.</span></span></span>
 <span></span>
 <span><span class="co"># Create XLSX report with calibrated concentrations as filtered dataset</span></span>
@@ -213,7 +214,7 @@ calculated (defined via the <code>summarize_fun</code>)</p>
 <span>    absolute_calibration <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">All features normalized with reference sample SRM1950 features.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">All features were normalized with reference sample SRM1950 features.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Unit is: sample [conc] / SRM1950 [conc]</span></span></span></code></pre></div>
 <p>The results of the normalization is stored, unlike for the absolute
 calibration, as <strong>ratios</strong>, in a new variable,
@@ -229,13 +230,41 @@ concentrations as the filtered dataset, set `filtered_variable =
 “[VARIABLE]_normalized” as argument.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export NIST1950-normalized concentrations</span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"norm.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"norm.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_normalized values for 65 analyses and 16 features have been exported to 'norm.csv'.</span></span></span>
 <span></span>
 <span><span class="co"># Create XLSX report with normalized concentrations as filtered dataset</span></span>
 <span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"report_norm.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report has been saved to 'report_norm.xlsx'.</span></span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="batch-wise-calibration">Batch-wise calibration<a class="anchor" aria-label="anchor" href="#batch-wise-calibration"></a>
+</h2>
+<p>Calibration can also be applied batch-wise, in which case each batch
+is calibrated separately with the data from the reference sample in the
+same batch. This is done by setting <code>batch_wise = TRUE</code> and
+can be used in both absolute and relative calibration.</p>
+<p>This approach can be used to correct batches or assays/plates using a
+reference material shared across the batches.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
+<span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
+<span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
+<span>    absolute_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    batch_wise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span>
+<span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
+<span><span class="co">#&gt; Adding missing grouping variables: `batch_id`</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were batch-wise re-calibrated using the reference</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">sample SRM1950.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"bath-wise calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'bath-wise calibrated.csv'.</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

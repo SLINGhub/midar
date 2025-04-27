@@ -97,6 +97,7 @@ mexp <- calibrate_by_reference(
     variable = "conc",
     reference_sample_id = "SRM1950",
     absolute_calibration = TRUE,
+    batch_wise = FALSE,
     summarize_fun = "mean",
     undefined_conc_action = "na"
   )
@@ -113,10 +114,10 @@ also as concentrations.
 #| results: false 
 #| message: true
 # Export absolute calibration concentrations
-save_dataset_csv(mexp, "calibrated.csv", variable = "conc", filter_data = FALSE)
+save_dataset_csv(mexp, "calibrated.csv", variable = "conc")
   
 # Export non-calibrated concentrations
-save_dataset_csv(mexp, "noncalibrated.csv", variable = "conc_beforecal", filter_data = FALSE)
+save_dataset_csv(mexp, "noncalibrated.csv", variable = "conc_beforecal")
 
 # Create XLSX report with calibrated concentrations as filtered dataset
 save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc")
@@ -155,8 +156,37 @@ is included by default. If include the normalized concentrations as the filtered
 #| results: false 
 #| message: true
 # Export NIST1950-normalized concentrations
-save_dataset_csv(mexp, "norm.csv", variable = "conc_normalized", filter_data = FALSE)
+save_dataset_csv(mexp, "norm.csv", variable = "conc_normalized")
 
 # Create XLSX report with normalized concentrations as filtered dataset
 save_report_xlsx(mexp, "report_norm.xlsx", filtered_variable = "conc_normalized")
 ```
+
+## Batch-wise calibration
+
+Calibration can also be applied batch-wise, in which case each batch is calibrated 
+separately with the data from the reference sample in the same batch. This is done 
+by setting `batch_wise = TRUE` and can be used in both absolute and relative calibration.
+
+This approach can be used to correct batches or assays/plates using a reference material 
+shared across the batches.
+
+
+```{r}
+#| results: false 
+#| message: true
+ 
+mexp <- calibrate_by_reference(
+    data = mexp,
+    variable = "conc",
+    reference_sample_id = "SRM1950",
+    absolute_calibration = TRUE,
+    batch_wise = TRUE,
+    summarize_fun = "mean",
+    undefined_conc_action = "na"
+  )
+
+save_dataset_csv(mexp, "bath-wise calibrated.csv", variable = "conc_beforecal")
+```
+
+

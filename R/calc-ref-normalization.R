@@ -1,11 +1,18 @@
 #' @title Calibrate Features Values Using Reference Sample
 #'
 #' @description
-#' Calibrates feature abundances using a specified reference sample. Two approaches are supported:
+#' This function calibrates feature abundances based on a specified reference sample.
+#' Calibration can be applied to the entire dataset using one or more reference samples,
+#' or batch-wise using reference sample analyses present within each batch.
+#' For both approaches, multiple measurements of the same reference sample are
+#' summarized using either `mean` (default) or `median` (set by the `summarize_fun` argument).
+#'
+#' Calibration can be performed in two ways, either absolute, resulting in
+#' concentrations, or relative, resulting in ratios:
 #'
 #' 1. Absolute calibration (when `absolute_calibration = TRUE`)
 #'
-#'    Recalibrates feature abundances based on known concentrations of the corresponding features
+#'    Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
 #'    defined for a reference sample.
 #'
 #'    The input variable can either `conc`, `norm_intensity`, or `intensity, whereas the result will
@@ -44,9 +51,6 @@
 #'    When saving the MiDAR XLSX report via `save_report_xlsx()`, availble unfiltered normalized feature abundances
 #'    will be included by default. To include filtered normalized feature abundances, set `filtered_variable = "[VARIABLE]_normalized"`.
 #'
-#' Note: When multiple measurements (analyses) of the same reference sample are present,
-#'    their concentrations are summarized by `mean` (default) or `median`. This can be set
-#'    via the `summarize_fun` argument.
 #'
 #' @param data A `MidarExperiment` object containing the metabolomics data to be normalized
 #' @param variable Character string indicating which data type to calibrate Must be
@@ -55,6 +59,7 @@
 #'   reference(s) or standards
 #' @param absolute_calibration Logical indicating whether to perform absolute calibration using
 #'   known concentrations of the reference sample (TRUE) or relative calibration (FALSE).
+#' @param batch_wise Logical indicating whether to perform calibration for each batch seperately (TRUE) or for all samples together (FALSE).
 #' @param summarize_fun Either "mean" or "median". If `absolute_calibration = TRUE`,
 #' this function is used to summarize the reference sample concentrations across analyses of specified `reference_sample_id`. Default is "mean".
 #' @param undefined_conc_action Character string specifying how to handle features
@@ -87,6 +92,7 @@
 #'     variable = "conc",
 #'     reference_sample_id = "SRM1950",
 #'     absolute_calibration = TRUE,
+#'     batch_wise = FALSE,
 #'     summarize_fun = "mean",
 #'     undefined_conc_action = "original"
 #'   )
@@ -107,6 +113,7 @@
 #'     data = mexp,
 #'     variable = "conc",
 #'     reference_sample_id = "SRM1950",
+#'     batch_wise = FALSE,
 #'     absolute_calibration = FALSE
 #'   )
 #'
@@ -121,7 +128,7 @@
 #'
 #' @export
 
-calibrate_by_reference <- function(data, variable, reference_sample_id, absolute_calibration, summarize_fun = "mean", undefined_conc_action = NULL) {
+calibrate_by_reference <- function(data, variable, reference_sample_id, absolute_calibration, batch_wise = FALSE, summarize_fun = "mean", undefined_conc_action = NULL) {
 
   check_data(data)
 
@@ -146,12 +153,28 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
  if(variable != "feature_conc" && !is.null(undefined_conc_action) && undefined_conc_action == "original")
     cli::cli_abort(col_red("When using `undefined_conc_action = 'original'`, the variable must be 'conc'. See the function's documentation for more details."))
 
+
+ if (batch_wise) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
+ txt_batchwise <- ifelse(batch_wise, "batch-wise ", "")
+
+
   d_temp <- data@dataset |>
-    select(any_of(c("analysis_id", "sample_id", "feature_id", "analyte_id", variable)))
+    select(any_of(c("analysis_id", "sample_id", "batch_id", "feature_id", "analyte_id", variable)))
+
+  if (batch_wise){
+    refs_present <- d_temp |>
+      dplyr::group_by(.data$batch_id) |>
+      summarise(has_ref = any(.data$sample_id %in% reference_sample_id)) |>
+      pull() |>
+      all()
+
+    if(!refs_present)
+      cli::cli_abort(col_red("The specified reference sample `{reference_sample_id}` is missing from one or more batches. Please check the batch structure in analysis metadata."))
+  }
 
   d_temp <- d_temp |>
     dplyr::mutate(ref_sample = reference_sample_id) |>
-    dplyr::group_by(.data$feature_id) |>
+    dplyr::group_by(!!!syms(adj_groups)) |>
     dplyr::mutate(
       var_calibrated = !!variable_sym / match.fun(summarize_fun)(pull(filter(pick(everything()), .data$sample_id == .data$ref_sample), !!variable_sym), na.rm = TRUE)) |>
     ungroup()
@@ -198,7 +221,7 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
                          filter (.data$sample_id == reference_sample_id) |>
                          dplyr::select( "analyte_id", ref_conc= "concentration", ref_conc_unit = "concentration_unit"),
                        by = c("analyte_id")) |>
-      dplyr::group_by(.data$feature_id) |>
+      dplyr::group_by(!!!syms(adj_groups)) |>
       mutate(
         var_calibrated = if_else(!is.na(.data$ref_conc),
                                  .data$var_calibrated * .data$ref_conc,
@@ -220,9 +243,9 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
       nrow()
 
     if(variable_strip == "conc")
-      cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations re-calibrated using the reference sample {reference_sample_id}."))
+      cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations were {txt_batchwise}re-calibrated using the reference sample {reference_sample_id}."))
     else
-      cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations calculated using the defined reference sample concentrations."))
+      cli_alert_success(cli::col_green("{n_features_with_conc} feature concentrations were {txt_batchwise}calculated using the defined reference sample concentrations."))
 
     cli::cli_alert_info(col_green("Concentrations are given in {ref_feature_conc_unit}."))
 
@@ -242,7 +265,7 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
       mutate(!!variable_norm_sym := .data$var_calibrated) |>
       dplyr::select(-"var_calibrated")
 
-    cli_alert_success(cli::col_green("All features normalized with reference sample {reference_sample_id} features."))
+    cli_alert_success(cli::col_green("All features were {txt_batchwise}normalized with reference sample {reference_sample_id} features."))
     cli::cli_alert_info(col_green("Unit is: sample [{variable_strip}] / {reference_sample_id} [{variable_strip}]"))
 
     data@status_processing <- paste0("Reference sample normalized", " ", data@status_processing )

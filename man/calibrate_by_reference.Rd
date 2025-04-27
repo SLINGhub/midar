@@ -9,6 +9,7 @@ calibrate_by_reference(
   variable,
   reference_sample_id,
   absolute_calibration,
+  batch_wise = FALSE,
   summarize_fun = "mean",
   undefined_conc_action = NULL
 )
@@ -25,6 +26,8 @@ reference(s) or standards}
 \item{absolute_calibration}{Logical indicating whether to perform absolute calibration using
 known concentrations of the reference sample (TRUE) or relative calibration (FALSE).}
 
+\item{batch_wise}{Logical indicating whether to perform calibration for each batch seperately (TRUE) or for all samples together (FALSE).}
+
 \item{summarize_fun}{Either "mean" or "median". If \code{absolute_calibration = TRUE},
 this function is used to summarize the reference sample concentrations across analyses of specified \code{reference_sample_id}. Default is "mean".}
 
@@ -36,11 +39,18 @@ Must be one of: "original" (keep original values), "na" (set to NA), or "error".
 A \code{MidarExperiment} object with calibrated data
 }
 \description{
-Calibrates feature abundances using a specified reference sample. Two approaches are supported:
+This function calibrates feature abundances based on a specified reference sample.
+Calibration can be applied to the entire dataset using one or more reference samples,
+or batch-wise using reference sample analyses present within each batch.
+For both approaches, multiple measurements of the same reference sample are
+summarized using either \code{mean} (default) or \code{median} (set by the \code{summarize_fun} argument).
+
+Calibration can be performed in two ways, either absolute, resulting in
+concentrations, or relative, resulting in ratios:
 \enumerate{
 \item Absolute calibration (when \code{absolute_calibration = TRUE})
 
-Recalibrates feature abundances based on known concentrations of the corresponding features
+Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
 defined for a reference sample.
 
 The input variable can either \code{conc}, \code{norm_intensity}, or \verb{intensity, whereas the result will always be stored under the variable}conc` (concentration), in the unit defined
@@ -79,10 +89,6 @@ For MiDAR XLSX report, use \code{save_report_xlsx()} with same variable setting 
 When saving the MiDAR XLSX report via \code{save_report_xlsx()}, availble unfiltered normalized feature abundances
 will be included by default. To include filtered normalized feature abundances, set \code{filtered_variable = "[VARIABLE]_normalized"}.
 }
-
-Note: When multiple measurements (analyses) of the same reference sample are present,
-their concentrations are summarized by \code{mean} (default) or \code{median}. This can be set
-via the \code{summarize_fun} argument.
 }
 \examples{
 
@@ -108,6 +114,7 @@ mexp <- quantify_by_istd(mexp)
     variable = "conc",
     reference_sample_id = "SRM1950",
     absolute_calibration = TRUE,
+    batch_wise = FALSE,
     summarize_fun = "mean",
     undefined_conc_action = "original"
   )
@@ -128,6 +135,7 @@ mexp <- quantify_by_istd(mexp)
     data = mexp,
     variable = "conc",
     reference_sample_id = "SRM1950",
+    batch_wise = FALSE,
     absolute_calibration = FALSE
   )
 
