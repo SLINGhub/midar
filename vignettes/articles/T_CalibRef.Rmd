@@ -19,16 +19,17 @@ knitr::opts_chunk$set(
   comment = "#>")
 ```
 
-Feature abundances in samples can also be calibrated to corresponding abundances in specified
-reference sample. `MiDAR` supports absolute (re-)calibration and normalization (relative
-calibration).
+Feature abundances in samples can also be calibrated to corresponding
+abundances in a specified reference sample. MiDAR supports absolute
+(re-)calibration and normalization (relative calibration).
 
-Absolute calibration of feature abundances is based on known metabolite concentrations in a
-reference sample (e.g. NIST SRM1950 plasma). Normalization is based on calculateing the abundance
-rations of feature in samples and in a reference sample.
+Absolute calibration of feature abundances is based on known metabolite
+concentrations in a reference sample (e.g., NIST SRM1950 plasma).
+Normalization (relative calibration) is based on calculating the abundance ratios of features in
+samples and a reference sample.
 
-Below, we will demonstrate both absolute and relative calibration using NIST SRM 1950 plasma samples
-that were measured as part of the same analyses.
+Below, we will demonstrate both absolute and relative calibration using NIST
+SRM1950 plasma samples that were measured as part of the same analysis..
 
 ## Import data and metata,
 
@@ -49,10 +50,13 @@ mexp <- import_metadata_features(mexp, path = meta_file, sheet = "Features")
 mexp <- import_metadata_istds(mexp, path = meta_file, sheet = "ISTDs")
 ```
 
-## Load know analyte concentrations of the reference sample (NIST SRM1950)
+## Load known analyte concentrations of the reference sample
 
-Note that these S1P concentrations are based on an a different analysis and only meant as example
-data. Actual absolute S1P concentrations of the NIST SRM1950 may considerably vary.
+A table containing the known analyte concentrations for the NIST SRM1950 reference 
+sample is now been added to the `MidarExperiment object`. 
+Please note that the S1P concentrations provided in this table are intended for 
+illustrative purposes only. The actual absolute S1P concentrations in NIST SRM1950 
+may differ significantly.
 
 ```{r}
 #| results: false  
@@ -65,9 +69,9 @@ mexp <- import_metadata_qcconcentrations(mexp, path = meta_file, sheet = "QCconc
 
 ## Process the data
 
-The analysis was performed using HILIC chromatography, thus we need to correct for the isotope
-interferences from S1P 18:2;O2 M+2 and S1P 18:1;O2 M+2. Initial quantification is done using
-spiked-in ISTD concentration.
+The analysis was performed using HILIC chromatography; thus, we need to
+correct for the isotope interferences from S1P 18:2;O2 M+2 and S1P 18:1;O2 M+2.
+Subsequently, initial quantification is done using the spiked-in ISTD concentration.
 
 ```{r}
 #| results: false 
@@ -83,10 +87,11 @@ mexp <- quantify_by_istd(mexp)
 
 ## Absolute calibration
 
-We perform the absolute re-calibration using the function `calibrate_by_reference()`. The reference
-sample is set via `reference_sample_id`. In case multiple analysis of the same reference sample are
-present in the dataset, either the `mean` or `median` is calculated (defined via the
-`summarize_fun`)
+We perform the absolute re-calibration using the function
+`calibrate_by_reference()`. The reference sample is set via
+`reference_sample_id`. In cases where multiple analyses of the same reference
+sample are present in the dataset, either the mean or median is calculated
+(defined via the `summarize_fun`).
 
 ```{r}
 #| results: false 
@@ -103,12 +108,12 @@ mexp <- calibrate_by_reference(
   )
 ```
 
-The re-calibrated concentrations are stored in the `conc` variable, overwriting any previously
-calculated concentrations. The original concentrations, however, are still available via
-`conc_beforecal` variable.
+The re-calibrated concentrations are stored in the variable `conc` , overwriting
+any previously calculated concentrations. The original concentrations, however,
+are still available via the variable `conc_beforecal`. 
 
-The re-calibrated concentrations can be exported as usual and they also appear in MiDAR XLSX report
-also as concentrations.
+The re-calibrated concentrations can be exported as usual, and they also
+appear in the MiDAR XLSX report as concentrations.
 
 ```{r}
 #| results: false 
@@ -125,10 +130,11 @@ save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc")
 
 ## Normalization (relative calibration)
 
-We can perform a simple normalization with a reference sample also using the
-`calibrate_by_reference()` function, with setting `absolute_calibration = FALSE`. Also in this
-approach, in case of multiple analysis of the same reference sample present in the dataset, either
-the `mean` or `median` is calculated (defined via the `summarize_fun`)
+We can perform a simple normalization with a reference sample using the
+`calibrate_by_reference()` function, setting `absolute_calibration = FALSE`.
+In this approach, in cases where multiple analyses of the same reference
+sample are present in the dataset, either the mean or median is calculated
+(defined via the `summarize_fun`).
 
 ```{r}
 #| results: false 
@@ -143,14 +149,16 @@ mexp <- calibrate_by_reference(
   )
 ```
 
-The results of the normalization is stored, unlike for the absolute calibration, as **ratios**, in a
-new variable, `[VARIABLE]_normalized`, whereby `[VARIABLE]` is the input variable, e.g.,
-`conc_normalized` or `intensity_normalized`.
+The results of the normalization are stored, unlike for the absolute
+calibration, as **ratios**, in a new variable, `[VARIABLE]_normalized`, where
+[VARIABLE] is the input variable, e.g., `conc_normalized` or
+`intensity_normalized`.
 
-The normalized concentrations can be exported as `[VARIABLE]_normalized` using `save_dataset_csv()`.
-In the MiDAR XLSX report generated by `save_report_xlsx()` the unfiltered dataset with normalized concentrations 
-is included by default. If include the normalized concentrations as the filtered dataset, set
-`filtered_variable = "[VARIABLE]_normalized" as argument.
+The normalized concentrations can be exported as [VARIABLE]_normalized using
+`save_dataset_csv()`. In the MiDAR XLSX report generated by `save_report_xlsx()`,
+the unfiltered dataset with normalized concentrations is included by default.
+To include the normalized concentrations as the filtered dataset, set
+`filtered_variable = “[VARIABLE]_normalized` as an argument.
 
 ```{r}
 #| results: false 
@@ -164,12 +172,13 @@ save_report_xlsx(mexp, "report_norm.xlsx", filtered_variable = "conc_normalized"
 
 ## Batch-wise calibration
 
-Calibration can also be applied batch-wise, in which case each batch is calibrated 
-separately with the data from the reference sample in the same batch. This is done 
-by setting `batch_wise = TRUE` and can be used in both absolute and relative calibration.
+Calibration can also be applied batch-wise, in which case each batch is
+calibrated separately with the data from the reference sample in the same
+batch. This is done by setting `batch_wise = TRUE` and can be used in both
+absolute and relative calibration.
 
-This approach can be used to correct batches or assays/plates using a reference material 
-shared across the batches.
+This approach can be used to correct batches or assays/plates using a reference
+material shared across the batches.
 
 
 ```{r}

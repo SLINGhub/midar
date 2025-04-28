@@ -97,15 +97,16 @@
     
     
 <p>Feature abundances in samples can also be calibrated to corresponding
-abundances in specified reference sample. <code>MiDAR</code> supports
-absolute (re-)calibration and normalization (relative calibration).</p>
+abundances in a specified reference sample. MiDAR supports absolute
+(re-)calibration and normalization (relative calibration).</p>
 <p>Absolute calibration of feature abundances is based on known
-metabolite concentrations in a reference sample (e.g. NIST SRM1950
-plasma). Normalization is based on calculateing the abundance rations of
-feature in samples and in a reference sample.</p>
+metabolite concentrations in a reference sample (e.g., NIST SRM1950
+plasma). Normalization (relative calibration) is based on calculating
+the abundance ratios of features in samples and in a reference
+sample.</p>
 <p>Below, we will demonstrate both absolute and relative calibration
-using NIST SRM 1950 plasma samples that were measured as part of the
-same analyses.</p>
+using NIST SRM1950 plasma samples that were measured as part of the same
+analysis..</p>
 <div class="section level2">
 <h2 id="import-data-and-metata">Import data and metata,<a class="anchor" aria-label="anchor" href="#import-data-and-metata"></a>
 </h2>
@@ -124,12 +125,14 @@ same analyses.</p>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_istds.html">import_metadata_istds</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"ISTDs"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="load-know-analyte-concentrations-of-the-reference-sample-nist-srm1950">Load know analyte concentrations of the reference sample (NIST
-SRM1950)<a class="anchor" aria-label="anchor" href="#load-know-analyte-concentrations-of-the-reference-sample-nist-srm1950"></a>
+<h2 id="load-known-analyte-concentrations-of-the-reference-sample">Load known analyte concentrations of the reference sample<a class="anchor" aria-label="anchor" href="#load-known-analyte-concentrations-of-the-reference-sample"></a>
 </h2>
-<p>Note that these S1P concentrations are based on an a different
-analysis and only meant as example data. Actual absolute S1P
-concentrations of the NIST SRM1950 may considerably vary.</p>
+<p>A table containing the known analyte concentrations for the NIST
+SRM1950 reference sample is now been added to the
+<code>MidarExperiment object</code>. Please note that the S1P
+concentrations provided in this table are intended for illustrative
+purposes only. The actual absolute S1P concentrations in NIST SRM1950
+may differ significantly.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_qcconcentrations.html">import_metadata_qcconcentrations</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"QCconcentrations"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span></span>
@@ -140,10 +143,10 @@ concentrations of the NIST SRM1950 may considerably vary.</p>
 <div class="section level2">
 <h2 id="process-the-data">Process the data<a class="anchor" aria-label="anchor" href="#process-the-data"></a>
 </h2>
-<p>The analysis was performed using HILIC chromatography, thus we need
+<p>The analysis was performed using HILIC chromatography; thus, we need
 to correct for the isotope interferences from S1P 18:2;O2 M+2 and S1P
-18:1;O2 M+2. Initial quantification is done using spiked-in ISTD
-concentration.</p>
+18:1;O2 M+2. Subsequently, initial quantification is done using the
+spiked-in ISTD concentration.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Isotope correction</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_interferences.html">correct_interferences</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
@@ -161,10 +164,9 @@ concentration.</p>
 </h2>
 <p>We perform the absolute re-calibration using the function
 <code><a href="../reference/calibrate_by_reference.html">calibrate_by_reference()</a></code>. The reference sample is set via
-<code>reference_sample_id</code>. In case multiple analysis of the same
-reference sample are present in the dataset, either the
-<code>mean</code> or <code>median</code> is calculated (defined via the
-<code>summarize_fun</code>)</p>
+<code>reference_sample_id</code>. In cases where multiple analyses of
+the same reference sample are present in the dataset, either the mean or
+median is calculated (defined via the <code>summarize_fun</code>).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
@@ -178,12 +180,12 @@ reference sample are present in the dataset, either the
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were re-calibrated using the reference sample SRM1950.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span></code></pre></div>
-<p>The re-calibrated concentrations are stored in the <code>conc</code>
-variable, overwriting any previously calculated concentrations. The
-original concentrations, however, are still available via
-<code>conc_beforecal</code> variable.</p>
-<p>The re-calibrated concentrations can be exported as usual and they
-also appear in MiDAR XLSX report also as concentrations.</p>
+<p>The re-calibrated concentrations are stored in the variable
+<code>conc</code> , overwriting any previously calculated
+concentrations. The original concentrations, however, are still
+available via the variable <code>conc_beforecal</code>.</p>
+<p>The re-calibrated concentrations can be exported as usual, and they
+also appear in the MiDAR XLSX report as concentrations.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export absolute calibration concentrations</span></span>
 <span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span>
@@ -201,12 +203,12 @@ also appear in MiDAR XLSX report also as concentrations.</p>
 <div class="section level2">
 <h2 id="normalization-relative-calibration">Normalization (relative calibration)<a class="anchor" aria-label="anchor" href="#normalization-relative-calibration"></a>
 </h2>
-<p>We can perform a simple normalization with a reference sample also
-using the <code><a href="../reference/calibrate_by_reference.html">calibrate_by_reference()</a></code> function, with setting
-<code>absolute_calibration = FALSE</code>. Also in this approach, in
-case of multiple analysis of the same reference sample present in the
-dataset, either the <code>mean</code> or <code>median</code> is
-calculated (defined via the <code>summarize_fun</code>)</p>
+<p>We can perform a simple normalization with a reference sample using
+the <code><a href="../reference/calibrate_by_reference.html">calibrate_by_reference()</a></code> function, setting
+<code>absolute_calibration = FALSE</code>. In this approach, in cases
+where multiple analyses of the same reference sample are present in the
+dataset, either the mean or median is calculated (defined via the
+<code>summarize_fun</code>).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
@@ -217,18 +219,18 @@ calculated (defined via the <code>summarize_fun</code>)</p>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">All features were normalized with reference sample SRM1950 features.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Unit is: sample [conc] / SRM1950 [conc]</span></span></span></code></pre></div>
-<p>The results of the normalization is stored, unlike for the absolute
+<p>The results of the normalization are stored, unlike for the absolute
 calibration, as <strong>ratios</strong>, in a new variable,
-<code>[VARIABLE]_normalized</code>, whereby <code>[VARIABLE]</code> is
-the input variable, e.g., <code>conc_normalized</code> or
+<code>[VARIABLE]_normalized</code>, where [VARIABLE] is the input
+variable, e.g., <code>conc_normalized</code> or
 <code>intensity_normalized</code>.</p>
 <p>The normalized concentrations can be exported as
-<code>[VARIABLE]_normalized</code> using
-<code><a href="../reference/save_dataset_csv.html">save_dataset_csv()</a></code>. In the MiDAR XLSX report generated by
-<code><a href="../reference/save_report_xlsx.html">save_report_xlsx()</a></code> the unfiltered dataset with normalized
-concentrations is included by default. If include the normalized
-concentrations as the filtered dataset, set `filtered_variable =
-“[VARIABLE]_normalized” as argument.</p>
+[VARIABLE]_normalized using <code><a href="../reference/save_dataset_csv.html">save_dataset_csv()</a></code>. In the
+MiDAR XLSX report generated by <code><a href="../reference/save_report_xlsx.html">save_report_xlsx()</a></code>, the
+unfiltered dataset with normalized concentrations is included by
+default. To include the normalized concentrations as the filtered
+dataset, set <code>filtered_variable = “[VARIABLE]_normalized</code> as
+an argument.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export NIST1950-normalized concentrations</span></span>
 <span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"norm.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
@@ -264,8 +266,8 @@ reference material shared across the batches.</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">sample SRM1950.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"bath-wise calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'bath-wise calibrated.csv'.</span></span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"bathwise_calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'bathwise_calibrated.csv'.</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

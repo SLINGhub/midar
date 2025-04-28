@@ -169,6 +169,61 @@ import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = 
   data
 }
 
+#' Import Analysis Results from Long Format CSV Files
+#' @details
+#' This function imports analysis result data from .csv files in long format,
+#' where each row represents a unique observation of a feature-value pair for a sample,
+#' along with additional feature variables and other information.
+#'
+#' The dataset must contain an analysis identifier, either explicitly in an "analysis_id"
+#' column or inferred from another column containing unique values. The `intensity_var`
+#' parameter identifies the specific feature variable should be used as `feature_intensity` if one of  is present in the data.
+#'
+#' Following feature variables will be imported if available: "area", "height", "intensity", "norm_intensity", "response", "conc", "rt", or "fwhm".
+#' Following metadata columns can also be imported: "analysis_order", "qc_type", "batch_id", "is_quantifier", and "is_istd",if available.
+#'
+#' The function processes all .csv files in the specified directory path, combining them into a single dataset.
+#' This is useful for datasets split across multiple files during preprocessing. Each feature and raw data file pair
+#' should appear only once to avoid duplication errors.
+#'
+#' The `na_strings` parameter allows specification of strings to be interpreted as NA,
+#' ensuring the dataset is clean for analysis.
+#'
+#' @param data MidarExperiment object
+#' @param path One or more file names with paths, or a directory path, in which case all *.csv files in this folder will be read.
+#' @param variable_name Character string indicating the type of variable representing feature values. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response".
+#' @param analysis_id_col Column name to be used as `analysis_id`. If `NA` (default), it uses 'analysis_id' if present, or another unique column.
+#' @param import_metadata Logical indicating whether to import additional metadata columns (e.g., batch ID, sample type) into the `MidarExperiment` object. Supported metadata column names: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order".
+#' @param na_strings A character vector of strings to be interpreted as NA values. Blank fields are also considered to be missing values.
+#' @return MidarExperiment object
+#' @examples
+#' file_path <- system.file("extdata", "long_format_dataset.csv", package = "midar")
+#'
+#' mexp <- MidarExperiment()
+#'
+#' mexp <- import_data_longformat(
+#'   data = mexp,
+#'   path = file_path,
+#'   variable_name = "conc",
+#'   import_metadata = TRUE)
+#'
+#' print(mexp)
+#'
+#' @export
+
+import_data_longformat <- function(data = NULL, path, intensity_var, analysis_id_col = NA, import_metadata = TRUE, na_strings = "NA") {
+  check_data(data)
+  data <- import_data_main(data = data, path = path, import_function = "parse_long_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata)
+  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
+
+  if (import_metadata)
+    data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
+  else {
+    data <- link_data_metadata(data)
+  }
+
+  data
+}
 
 
 import_data_main <- function(data = NULL, path, import_function, file_ext, silent, ...) {
