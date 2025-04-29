@@ -939,6 +939,12 @@ clean_analysis_metadata <- function(d_analyses) {
 
 clean_feature_metadata <- function(d_features) {
 
+  names(d_features) <- tolower(names(d_features))
+
+  if("quantifier" %in% names(d_features))
+    d_features <- d_features |> rename("is_quantifier" = "quantifier")
+
+
   if(!all(c("feature_id") %in% names(d_features))){
     cli::cli_abort(cli::col_red("Feature metadata must have column: `feature_id`. Please verify the input data. "))
   }
