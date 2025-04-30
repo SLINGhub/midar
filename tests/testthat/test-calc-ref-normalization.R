@@ -32,7 +32,7 @@ test_that("calibrate_by_reference catches input errors and issues", {
       undefined_conc_action = "original",
       summarize_fun = "mean"
     ),
-    "When using `undefined_conc_action = 'original'`, the variable must be 'conc'",
+    "When using `undefined_conc_action = 'original'`, the variable 'conc' must",
     fixed = TRUE)
 
   expect_error(
@@ -325,6 +325,8 @@ test_that("calibrate_by_reference works", {
     mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d16:1 [M>60]",]$feature_conc_beforecal,
     0.034113950)
 
+  expect_false("feature_conc_normalized" %in% names(mexp_res@dataset))
+
   mexp_res <- calibrate_by_reference(
     data = mexp,
     variable = "conc",
@@ -363,9 +365,13 @@ test_that("calibrate_by_reference batch-wise works", {
       reference_sample_id = "NIST_SRM1950",
       absolute_calibration = TRUE,
       batch_wise = TRUE,
-      undefined_conc_action = "original"
+      undefined_conc_action = "original",
+      store_normalized = FALSE
     ),
     "3 feature concentrations were batch-wise re-calibrated ", fixed = TRUE)
+
+
+  expect_false("feature_conc_normalized" %in% names(mexp_res@dataset))
 
   expect_equal(
     mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc,
@@ -478,7 +484,6 @@ test_that("calibrate_by_reference results are exportable", {
   expect_no_error(
     save_report_xlsx(data = mexp_res, path = temp_file, normalized_variable = "intensity")
   )
-
 })
 
 
@@ -501,4 +506,45 @@ test_that("calibrate_by_reference with filtered data", {
     ),
     "Previously filtered dataset is no longer valid and has been cleared",
     fixed = TRUE)
+})
+
+
+test_that("calibrate_by_reference outputs bias", {
+
+    mexp_res <- calibrate_by_reference(
+      data = mexp,
+      variable = "conc",
+      reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      undefined_conc_action = "na",
+      store_conc_ratio = TRUE
+    )
+
+    expect_equal(
+      mexp_res@dataset[mexp_res@dataset$analysis_id  == "020_SPL_S001" & mexp_res@dataset$feature_id == "S1P d18:2 [M>60]",]$feature_conc_ratio,
+      0.78142741)
+
+    mexp_res <- calibrate_by_reference(
+      data = mexp,
+      variable = "conc",
+      reference_sample_id = "NIST_SRM1950",
+      absolute_calibration = TRUE,
+      undefined_conc_action = "na",
+      store_conc_ratio = FALSE
+    )
+
+    expect_false("feature_conc_ratio" %in% names(mexp_res@dataset))
+
+    expect_error(
+      mexp_res <- calibrate_by_reference(
+        data = mexp,
+        variable = "intensity",
+        reference_sample_id = "NIST_SRM1950",
+        absolute_calibration = TRUE,
+        undefined_conc_action = "na",
+        store_conc_ratio = TRUE
+      ),
+      "When using `store_conc_ratio = TRUE`, the variable 'conc' must be used as input", fixed = TRUE
+    )
+
 })

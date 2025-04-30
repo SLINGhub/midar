@@ -8,7 +8,8 @@ Calibration can be performed in two ways, either absolute, resulting in
 concentrations, or relative, resulting in ratios:
 Absolute calibration (when absolute_calibration = TRUE)
 Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
-defined for a reference sample.
+defined for a reference sample. The calibrated concentration for a given analyte is calculated as:
+$$c_\textrm{cal}^\textrm{Analyte} = \frac{c_\textrm{sample}^\textrm{Analyte}}{c_\textrm{ref}^\textrm{Analyte}} \times c_\textrm{known}^\textrm{Analyte}$$
 The input variable can either conc, norm_intensity, or intensity, whereas the result will always be stored under the variableconc` (concentration), in the unit defined
 for the feature concentrations in the reference sample.
 Metadata requirements:
@@ -24,9 +25,15 @@ error (default): The function stops with error in case of any undefined referenc
 In case all feature concentrations are undefined, the function will stop with an error.
 
 
-
 The re-calibrated feature concentrations are stored as conc, overwriting existing conc values.
 The original conc values are stored as conc_beforecal.
+The ratio between the measured and expected (known) concentrations in the
+reference sample is available via the feature variable feature_conc_ratio
+and is calculated as follows:
+$$c_\textrm{ratio}^\textrm{Analyte} = \frac{c_\textrm{measured}^\textrm{Analyte}}{c_\textrm{expected}^\textrm{Analyte}}$$
+where \(c_\textrm{measured}\) is the measured (non-calibrated) concentration, and
+\(c_\textrm{expected}\) is the known or reference concentration for the same analyte.
+A bias value of 1 indicates perfect agreement; values above or below 1 indicate over- or underestimation.
 To export the calibrated concentrations use save_dataset_csv() with variable = "conc", or to export non-calibrated values with variable = "conc_beforecal". When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as conc`.
 Normalization (relative calibration, absolute_calibration = FALSE)
 Normalizes features abundances with corresponding feature abundances in a reference sample,
@@ -47,7 +54,8 @@ Calibration can be performed in two ways, either absolute, resulting in
 concentrations, or relative, resulting in ratios:
 Absolute calibration (when absolute_calibration = TRUE)
 Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
-defined for a reference sample.
+defined for a reference sample. The calibrated concentration for a given analyte is calculated as:
+$$c_\textrm{cal}^\textrm{Analyte} = \frac{c_\textrm{sample}^\textrm{Analyte}}{c_\textrm{ref}^\textrm{Analyte}} \times c_\textrm{known}^\textrm{Analyte}$$
 The input variable can either conc, norm_intensity, or intensity, whereas the result will always be stored under the variableconc` (concentration), in the unit defined
 for the feature concentrations in the reference sample.
 Metadata requirements:
@@ -63,9 +71,15 @@ error (default): The function stops with error in case of any undefined referenc
 In case all feature concentrations are undefined, the function will stop with an error.
 
 
-
 The re-calibrated feature concentrations are stored as conc, overwriting existing conc values.
 The original conc values are stored as conc_beforecal.
+The ratio between the measured and expected (known) concentrations in the
+reference sample is available via the feature variable feature_conc_ratio
+and is calculated as follows:
+$$c_\textrm{ratio}^\textrm{Analyte} = \frac{c_\textrm{measured}^\textrm{Analyte}}{c_\textrm{expected}^\textrm{Analyte}}$$
+where \(c_\textrm{measured}\) is the measured (non-calibrated) concentration, and
+\(c_\textrm{expected}\) is the known or reference concentration for the same analyte.
+A bias value of 1 indicates perfect agreement; values above or below 1 indicate over- or underestimation.
 To export the calibrated concentrations use save_dataset_csv() with variable = "conc", or to export non-calibrated values with variable = "conc_beforecal". When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as conc`.
 Normalization (relative calibration, absolute_calibration = FALSE)
 Normalizes features abundances with corresponding feature abundances in a reference sample,
@@ -147,7 +161,8 @@ summarized using either <code>mean</code> (default) or <code>median</code> (set 
 <p>Calibration can be performed in two ways, either absolute, resulting in
 concentrations, or relative, resulting in ratios:</p><ol><li><p>Absolute calibration (when <code>absolute_calibration = TRUE</code>)</p>
 <p>Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
-defined for a reference sample.</p>
+defined for a reference sample. The calibrated concentration for a given analyte is calculated as:</p>
+<p>$$c_\textrm{cal}^\textrm{Analyte} = \frac{c_\textrm{sample}^\textrm{Analyte}}{c_\textrm{ref}^\textrm{Analyte}} \times c_\textrm{known}^\textrm{Analyte}$$</p>
 <p>The input variable can either <code>conc</code>, <code>norm_intensity</code>, or <code>intensity, whereas the result will always be stored under the variable</code>conc` (concentration), in the unit defined
 for the feature concentrations in the reference sample.</p>
 <p>Metadata requirements:</p><ul><li><p><code>sample_id</code> and <code>analyte_id</code> must be defined for the reference sample and features in the analysis and feature metadata, respectively.</p></li>
@@ -157,10 +172,17 @@ for the feature concentrations in the reference sample.</p>
 <li><p><code>na</code>: Set affected features values to <code>NA</code></p></li>
 <li><p><code>error</code> (default): The function stops with error in case of any undefined reference sample feature concentration.</p></li>
 <li><p>In case all feature concentrations are undefined, the function will stop with an error.</p></li>
-</ul></li>
-</ol><p>The re-calibrated feature concentrations are stored as <code>conc</code>, overwriting existing <code>conc</code> values.
+</ul><p>The re-calibrated feature concentrations are stored as <code>conc</code>, overwriting existing <code>conc</code> values.
 The original <code>conc</code> values are stored as <code>conc_beforecal</code>.</p>
-<p>To export the calibrated concentrations use <code><a href="save_dataset_csv.html">save_dataset_csv()</a></code> with <code>variable = "conc", or to export non-calibrated values with </code>variable = "conc_beforecal"<code>. When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as </code>conc`.</p><ol><li><p>Normalization (relative calibration, <code>absolute_calibration = FALSE</code>)</p>
+<p>The ratio between the measured and expected (known) concentrations in the
+reference sample is available via the feature variable <code>feature_conc_ratio</code>
+and is calculated as follows:</p>
+<p>$$c_\textrm{ratio}^\textrm{Analyte} = \frac{c_\textrm{measured}^\textrm{Analyte}}{c_\textrm{expected}^\textrm{Analyte}}$$</p>
+<p>where \(c_\textrm{measured}\) is the measured (non-calibrated) concentration, and
+\(c_\textrm{expected}\) is the known or reference concentration for the same analyte.
+A bias value of 1 indicates perfect agreement; values above or below 1 indicate over- or underestimation.</p>
+<p>To export the calibrated concentrations use <code><a href="save_dataset_csv.html">save_dataset_csv()</a></code> with <code>variable = "conc", or to export non-calibrated values with </code>variable = "conc_beforecal"<code>. When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as </code>conc`.</p></li>
+<li><p>Normalization (relative calibration, <code>absolute_calibration = FALSE</code>)</p>
 <p>Normalizes features abundances with corresponding feature abundances in a reference sample,
 resulting in ratios. Any available feature abundance variable
 (i.e., <code>conc</code>, <code>norm_intensity</code>, or <code>intensity</code>) can be used as input. The normalization is calculate for all present features.
@@ -180,7 +202,9 @@ will be included by default. To include filtered normalized feature abundances, 
 <span>  <span class="va">absolute_calibration</span>,</span>
 <span>  batch_wise <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span>
-<span>  undefined_conc_action <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  store_conc_ratio <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  undefined_conc_action <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  store_normalized <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -216,10 +240,23 @@ known concentrations of the reference sample (TRUE) or relative calibration (FAL
 this function is used to summarize the reference sample concentrations across analyses of specified <code>reference_sample_id</code>. Default is "mean".</p></dd>
 
 
+<dt id="arg-store-conc-ratio">store_conc_ratio<a class="anchor" aria-label="anchor" href="#arg-store-conc-ratio"></a></dt>
+<dd><p>Logical. Whether to store the ratio of measured
+(non-calibrated) compared to the expected (known) concentrations. Only applied if <code>absolute_calibration = TRUE</code>.
+This ratio is stored under the feature variable <code>feature_conc_ratio</code>. By default it is <code>TRUE</code> when <code>variable = 'conc', otherwise </code>FALSE`.</p></dd>
+
+
 <dt id="arg-undefined-conc-action">undefined_conc_action<a class="anchor" aria-label="anchor" href="#arg-undefined-conc-action"></a></dt>
 <dd><p>Character string specifying how to handle features
 without defined concentrations in reference samples when <code>absolute_calibration = TRUE</code>.
-Must be one of: "original" (keep original values), "na" (set to NA), or "error". Default is "keep".</p></dd>
+Must be one of: "original" (keep original values), "na" (set to NA), or "error". Default is "keep".</p>
+<p>Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-store-normalized">store_normalized<a class="anchor" aria-label="anchor" href="#arg-store-normalized"></a></dt>
+<dd><p>Logical indicating whether to keep the normalized values in the dataset
+when <code>absolute_calibration = TRUE</code>. Default is FALSE. These values are then stored
+as <code>[VARIABLE]_normalized</code>, where <code>[VARIABLE]</code> is the input variable, e.g., <code>conc</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -282,7 +319,7 @@ Must be one of: "original" (keep original values), "na" (set to NA), or "error".
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="co"># Export absolute calibration concentrations</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 14 features have been exported to 'calibrated.csv'.</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 7 features have been exported to 'calibrated.csv'.</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="co"># Export non-calibrated concentrations</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>

@@ -105,7 +105,7 @@ plasma). Normalization (relative calibration) is based on calculating
 the abundance ratios of features in samples and a reference sample.</p>
 <p>Below, we will demonstrate both absolute and relative calibration
 using NIST SRM1950 plasma samples that were measured as part of the same
-analysis..</p>
+analysis.</p>
 <div class="section level2">
 <h2 id="import-data-and-metata">Import data and metata,<a class="anchor" aria-label="anchor" href="#import-data-and-metata"></a>
 </h2>
@@ -166,8 +166,12 @@ spiked-in ISTD concentration.</p>
 <code>reference_sample_id</code>. In cases where multiple analyses of
 the same reference sample are present in the dataset, either the mean or
 median is calculated (defined via the <code>summarize_fun</code>).</p>
+<p>The calibrated concentration is calculated as:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mtext mathvariant="normal">cal</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>C</mi><mtext mathvariant="normal">sample</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>C</mi><mtext mathvariant="normal">ref</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac><mo>×</mo><msubsup><mi>C</mi><mtext mathvariant="normal">known</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mrow><annotation encoding="application/x-tex">
+C_\text{cal}^\text{Analyte} = \frac{C_\text{sample}^\text{Analyte}}{C_\text{ref}^\text{Analyte}} \times C_\text{known}^\text{Analyte}
+</annotation></semantics></math></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
@@ -188,14 +192,14 @@ also appear in the MiDAR XLSX report as concentrations.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export absolute calibration concentrations</span></span>
 <span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 14 features have been exported to 'calibrated.csv'.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 7 features have been exported to 'calibrated.csv'.</span></span></span>
 <span>  </span>
 <span><span class="co"># Export non-calibrated concentrations</span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp_res</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'noncalibrated.csv'.</span></span></span>
 <span></span>
 <span><span class="co"># Create XLSX report with calibrated concentrations as filtered dataset</span></span>
-<span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"report.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp_res</span>, <span class="st">"report.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report has been saved to 'report.xlsx'.</span></span></span></code></pre></div>
 </div>
@@ -209,7 +213,7 @@ where multiple analyses of the same reference sample are present in the
 dataset, either the mean or median is calculated (defined via the
 <code>summarize_fun</code>).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
@@ -232,11 +236,11 @@ dataset, set <code>filtered_variable = “[VARIABLE]_normalized</code> as
 an argument.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Export NIST1950-normalized concentrations</span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"norm.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp_res</span>, <span class="st">"norm.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_normalized values for 65 analyses and 16 features have been exported to 'norm.csv'.</span></span></span>
 <span></span>
 <span><span class="co"># Create XLSX report with normalized concentrations as filtered dataset</span></span>
-<span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"report_norm.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp_res</span>, <span class="st">"report_norm.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report has been saved to 'report_norm.xlsx'.</span></span></span></code></pre></div>
 </div>
@@ -250,7 +254,7 @@ can be used in both absolute and relative calibration.</p>
 <p>This approach can be used to correct batches or assays/plates using a
 reference material shared across the batches.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
 <span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
@@ -260,13 +264,1629 @@ reference material shared across the batches.</p>
 <span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
-<span><span class="co">#&gt; Adding missing grouping variables: `batch_id`</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were batch-wise re-calibrated using the reference</span></span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">sample SRM1950.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were batch-wise re-calibrated using the reference sample SRM1950.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"bathwise_calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp_res</span>, <span class="st">"bathwise_calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'bathwise_calibrated.csv'.</span></span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="concentration-ratio-and-bias">Concentration ratio and bias<a class="anchor" aria-label="anchor" href="#concentration-ratio-and-bias"></a>
+</h2>
+<p>To examine the ratio between measured and expected (known)
+concentrations in the reference samples, a table with concentration
+ratios can be generated using the code below.</p>
+<p>The ratio is calculated as follows:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mtext mathvariant="normal">ratio</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>c</mi><mtext mathvariant="normal">measured</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>c</mi><mtext mathvariant="normal">expected</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac></mrow><annotation encoding="application/x-tex">
+c_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{expected}^\text{Analyte}}
+</annotation></semantics></math></p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
+<span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
+<span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
+<span>    absolute_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span>
+<span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were re-calibrated using the reference sample SRM1950.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span></span>
+<span></span>
+<span><span class="va">tbl_ref_bias</span> <span class="op">&lt;-</span> <span class="va">mexp_res</span><span class="op">$</span><span class="va">dataset</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sample_id</span> <span class="op">==</span> <span class="st">"SRM1950"</span>, <span class="va">is_quantifier</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">feature_id</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">summarise</span><span class="op">(</span>bias_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">feature_conc_ratio</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="va">tbl_ref_bias</span><span class="op">)</span></span></code></pre></div>
+<div id="oodfieexom" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#oodfieexom table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#oodfieexom thead, #oodfieexom tbody, #oodfieexom tfoot, #oodfieexom tr, #oodfieexom td, #oodfieexom th {
+  border-style: none;
+}
+
+#oodfieexom p {
+  margin: 0;
+  padding: 0;
+}
+
+#oodfieexom .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#oodfieexom .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#oodfieexom .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#oodfieexom .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#oodfieexom .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#oodfieexom .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oodfieexom .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#oodfieexom .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#oodfieexom .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#oodfieexom .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#oodfieexom .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#oodfieexom .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#oodfieexom .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#oodfieexom .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#oodfieexom .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#oodfieexom .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#oodfieexom .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#oodfieexom .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#oodfieexom .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oodfieexom .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#oodfieexom .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#oodfieexom .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#oodfieexom .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oodfieexom .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#oodfieexom .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#oodfieexom .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oodfieexom .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oodfieexom .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#oodfieexom .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oodfieexom .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#oodfieexom .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#oodfieexom .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#oodfieexom .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oodfieexom .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#oodfieexom .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#oodfieexom .gt_left {
+  text-align: left;
+}
+
+#oodfieexom .gt_center {
+  text-align: center;
+}
+
+#oodfieexom .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#oodfieexom .gt_font_normal {
+  font-weight: normal;
+}
+
+#oodfieexom .gt_font_bold {
+  font-weight: bold;
+}
+
+#oodfieexom .gt_font_italic {
+  font-style: italic;
+}
+
+#oodfieexom .gt_super {
+  font-size: 65%;
+}
+
+#oodfieexom .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#oodfieexom .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#oodfieexom .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#oodfieexom .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#oodfieexom .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#oodfieexom .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#oodfieexom .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#oodfieexom .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#oodfieexom div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="feature_id">feature_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="bias_mean">bias_mean</th>
+    </tr></thead>
+<tbody class="gt_table_body">
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d16:1 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.4323975</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d17:1 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.3452700</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:0 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.2917255</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:1 13C2D2 (ISTD) [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">NA</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:1 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.3453086</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:2 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.3554366</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d19:1 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">0.3081062</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d20:1 [M&gt;60]</td>
+<td headers="bias_mean" class="gt_row gt_right">NA</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A ratio value of 1 indicates perfect agreement between the measured
+and expected concentrations.<br>
+Values greater than 1 suggest overestimation, while values less than 1
+indicate underestimation.<br>
+The ratio values can also be visualized or further analyzed to identify
+outliers or investigate potential issues in the analytical process or
+calibration.</p>
+<p>We can also calculate ratio and bias of QC samples directly without
+haveing to apply <code><a href="../reference/calibrate_by_reference.html">calibrate_by_reference()</a></code>. For
+illustration, we calculated the ratio and bias of the QC samples using
+the re-calibrated data from above, expecting the all corrected feature
+concentrations in the reference sample to have no bias (0%) and a ratio
+of 1.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp_res</span>, qc_types <span class="op">=</span> <span class="st">"NIST"</span><span class="op">)</span></span>
+<span><span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_number.html" class="external-link">fmt_number</a></span><span class="op">(</span>decimals <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<div id="bwkkeulbfd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#bwkkeulbfd table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#bwkkeulbfd thead, #bwkkeulbfd tbody, #bwkkeulbfd tfoot, #bwkkeulbfd tr, #bwkkeulbfd td, #bwkkeulbfd th {
+  border-style: none;
+}
+
+#bwkkeulbfd p {
+  margin: 0;
+  padding: 0;
+}
+
+#bwkkeulbfd .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#bwkkeulbfd .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#bwkkeulbfd .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#bwkkeulbfd .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#bwkkeulbfd .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#bwkkeulbfd .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#bwkkeulbfd .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#bwkkeulbfd .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#bwkkeulbfd .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#bwkkeulbfd .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#bwkkeulbfd .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#bwkkeulbfd .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#bwkkeulbfd .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#bwkkeulbfd .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#bwkkeulbfd .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwkkeulbfd .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#bwkkeulbfd .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#bwkkeulbfd .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#bwkkeulbfd .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwkkeulbfd .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#bwkkeulbfd .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwkkeulbfd .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#bwkkeulbfd .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwkkeulbfd .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bwkkeulbfd .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwkkeulbfd .gt_left {
+  text-align: left;
+}
+
+#bwkkeulbfd .gt_center {
+  text-align: center;
+}
+
+#bwkkeulbfd .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#bwkkeulbfd .gt_font_normal {
+  font-weight: normal;
+}
+
+#bwkkeulbfd .gt_font_bold {
+  font-weight: bold;
+}
+
+#bwkkeulbfd .gt_font_italic {
+  font-style: italic;
+}
+
+#bwkkeulbfd .gt_super {
+  font-size: 65%;
+}
+
+#bwkkeulbfd .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#bwkkeulbfd .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#bwkkeulbfd .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#bwkkeulbfd .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#bwkkeulbfd .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#bwkkeulbfd .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#bwkkeulbfd .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#bwkkeulbfd .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#bwkkeulbfd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="feature_id">feature_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="sample_id">sample_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="qc_type">qc_type</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n">n</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_target">conc_target</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_mean">conc_mean</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_sd">conc_sd</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="cv_intra">cv_intra</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="bias">bias</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_ratio">conc_ratio</th>
+    </tr></thead>
+<tbody class="gt_table_body">
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d16:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.107</td>
+<td headers="conc_mean" class="gt_row gt_right">0.107</td>
+<td headers="conc_sd" class="gt_row gt_right">0.016</td>
+<td headers="cv_intra" class="gt_row gt_right">14.771</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d17:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.028</td>
+<td headers="conc_mean" class="gt_row gt_right">0.028</td>
+<td headers="conc_sd" class="gt_row gt_right">0.001</td>
+<td headers="cv_intra" class="gt_row gt_right">3.550</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:0 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.149</td>
+<td headers="conc_mean" class="gt_row gt_right">0.149</td>
+<td headers="conc_sd" class="gt_row gt_right">0.001</td>
+<td headers="cv_intra" class="gt_row gt_right">0.995</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.985</td>
+<td headers="conc_mean" class="gt_row gt_right">0.985</td>
+<td headers="conc_sd" class="gt_row gt_right">0.000</td>
+<td headers="cv_intra" class="gt_row gt_right">0.040</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:2 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.290</td>
+<td headers="conc_mean" class="gt_row gt_right">0.290</td>
+<td headers="conc_sd" class="gt_row gt_right">0.004</td>
+<td headers="cv_intra" class="gt_row gt_right">1.460</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d19:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.025</td>
+<td headers="conc_mean" class="gt_row gt_right">0.025</td>
+<td headers="conc_sd" class="gt_row gt_right">0.002</td>
+<td headers="cv_intra" class="gt_row gt_right">9.713</td>
+<td headers="bias" class="gt_row gt_right">0.000</td>
+<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The bias and concentration rations before the re-calibration can be
+viewed by using the <code>MidarExperient</code> object that had no
+calibration applied</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp</span>, qc_types <span class="op">=</span> <span class="st">"NIST"</span><span class="op">)</span></span>
+<span><span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_number.html" class="external-link">fmt_number</a></span><span class="op">(</span>decimals <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<div id="pbcyvkgufi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#pbcyvkgufi table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#pbcyvkgufi thead, #pbcyvkgufi tbody, #pbcyvkgufi tfoot, #pbcyvkgufi tr, #pbcyvkgufi td, #pbcyvkgufi th {
+  border-style: none;
+}
+
+#pbcyvkgufi p {
+  margin: 0;
+  padding: 0;
+}
+
+#pbcyvkgufi .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#pbcyvkgufi .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#pbcyvkgufi .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#pbcyvkgufi .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#pbcyvkgufi .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#pbcyvkgufi .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#pbcyvkgufi .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#pbcyvkgufi .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#pbcyvkgufi .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#pbcyvkgufi .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#pbcyvkgufi .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#pbcyvkgufi .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#pbcyvkgufi .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#pbcyvkgufi .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#pbcyvkgufi .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pbcyvkgufi .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#pbcyvkgufi .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#pbcyvkgufi .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#pbcyvkgufi .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pbcyvkgufi .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#pbcyvkgufi .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pbcyvkgufi .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#pbcyvkgufi .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pbcyvkgufi .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#pbcyvkgufi .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#pbcyvkgufi .gt_left {
+  text-align: left;
+}
+
+#pbcyvkgufi .gt_center {
+  text-align: center;
+}
+
+#pbcyvkgufi .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#pbcyvkgufi .gt_font_normal {
+  font-weight: normal;
+}
+
+#pbcyvkgufi .gt_font_bold {
+  font-weight: bold;
+}
+
+#pbcyvkgufi .gt_font_italic {
+  font-style: italic;
+}
+
+#pbcyvkgufi .gt_super {
+  font-size: 65%;
+}
+
+#pbcyvkgufi .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#pbcyvkgufi .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#pbcyvkgufi .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#pbcyvkgufi .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#pbcyvkgufi .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#pbcyvkgufi .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#pbcyvkgufi .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#pbcyvkgufi .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#pbcyvkgufi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="feature_id">feature_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="sample_id">sample_id</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="qc_type">qc_type</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n">n</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_target">conc_target</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_mean">conc_mean</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_sd">conc_sd</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="cv_intra">cv_intra</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="bias">bias</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_ratio">conc_ratio</th>
+    </tr></thead>
+<tbody class="gt_table_body">
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d16:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.107</td>
+<td headers="conc_mean" class="gt_row gt_right">0.046</td>
+<td headers="conc_sd" class="gt_row gt_right">0.007</td>
+<td headers="cv_intra" class="gt_row gt_right">14.771</td>
+<td headers="bias" class="gt_row gt_right">−56.760</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.432</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d17:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.028</td>
+<td headers="conc_mean" class="gt_row gt_right">0.010</td>
+<td headers="conc_sd" class="gt_row gt_right">0.000</td>
+<td headers="cv_intra" class="gt_row gt_right">3.550</td>
+<td headers="bias" class="gt_row gt_right">−65.473</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.345</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:0 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.149</td>
+<td headers="conc_mean" class="gt_row gt_right">0.043</td>
+<td headers="conc_sd" class="gt_row gt_right">0.000</td>
+<td headers="cv_intra" class="gt_row gt_right">0.995</td>
+<td headers="bias" class="gt_row gt_right">−70.827</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.292</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.985</td>
+<td headers="conc_mean" class="gt_row gt_right">0.340</td>
+<td headers="conc_sd" class="gt_row gt_right">0.000</td>
+<td headers="cv_intra" class="gt_row gt_right">0.040</td>
+<td headers="bias" class="gt_row gt_right">−65.469</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.345</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d18:2 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.290</td>
+<td headers="conc_mean" class="gt_row gt_right">0.103</td>
+<td headers="conc_sd" class="gt_row gt_right">0.002</td>
+<td headers="cv_intra" class="gt_row gt_right">1.460</td>
+<td headers="bias" class="gt_row gt_right">−64.456</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.355</td>
+</tr>
+<tr>
+<td headers="feature_id" class="gt_row gt_left">S1P d19:1 [M&gt;60]</td>
+<td headers="sample_id" class="gt_row gt_left">SRM1950</td>
+<td headers="qc_type" class="gt_row gt_left">NIST</td>
+<td headers="n" class="gt_row gt_right">2.000</td>
+<td headers="conc_target" class="gt_row gt_right">0.025</td>
+<td headers="conc_mean" class="gt_row gt_right">0.008</td>
+<td headers="conc_sd" class="gt_row gt_right">0.001</td>
+<td headers="cv_intra" class="gt_row gt_right">9.713</td>
+<td headers="bias" class="gt_row gt_right">−69.189</td>
+<td headers="conc_ratio" class="gt_row gt_right">0.308</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -182,15 +182,17 @@ mexp_quant_norm <- quantify_by_calibration(mexp_quant_norm,
  test_that("get_qc_bias_variability returns correct data", {
    result <- get_qc_bias_variability(mexp_quant_norm, qc_types = c("CAL", "LQC", "HQC"))
    expect_s3_class(result, "data.frame")
-   expect_equal(names(result), c("feature_id", "sample_id", "qc_type", "conc_target", "conc_mean", "conc_sd", "bias","bias_sd","bias_perc","bias_perc_sd","cv_intra"))
+   expect_equal(names(result), c("feature_id", "sample_id", "qc_type", "n", "conc_target", "conc_mean","conc_sd","cv_intra","bias","conc_ratio"))
    expect_equal(nrow(result), 32)
 
    result <- get_qc_bias_variability(mexp_quant_norm, qc_types = NA,
                                           with_conc = FALSE,
+                                          with_conc_target = FALSE,
                                           with_bias = FALSE,
-                                          with_bias_perc = FALSE,
-                                          with_cv_intra = FALSE)
-   expect_equal(names(result), c("feature_id","sample_id","qc_type"))
+                                          with_bias_abs = FALSE,
+                                          with_cv_intra = FALSE,
+                                          with_conc_ratio = FALSE)
+   expect_equal(names(result), c("feature_id","sample_id","qc_type", "n"))
    expect_equal(unique(result$qc_type), c("CAL","HQC","LQC"))
 
    result <- get_qc_bias_variability(mexp_quant_norm, include_qualifier = TRUE)
@@ -201,7 +203,7 @@ mexp_quant_norm <- quantify_by_calibration(mexp_quant_norm,
    expect_equal(nrow(result), 8)
 
    result <- get_qc_bias_variability(mexp_quant_norm, wide_format = "samples")
-   expect_equal(names(result)[1:3], c("feature_id","CAL-A_bias","CAL-A_bias_perc"))
+   expect_equal(names(result)[1:3], c("feature_id","CAL-A_bias","CAL-A_conc_mean"))
    expect_equal(nrow(result), 4)
    })
 

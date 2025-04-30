@@ -11,7 +11,9 @@ calibrate_by_reference(
   absolute_calibration,
   batch_wise = FALSE,
   summarize_fun = "mean",
-  undefined_conc_action = NULL
+  store_conc_ratio = NULL,
+  undefined_conc_action = NULL,
+  store_normalized = FALSE
 )
 }
 \arguments{
@@ -31,9 +33,19 @@ known concentrations of the reference sample (TRUE) or relative calibration (FAL
 \item{summarize_fun}{Either "mean" or "median". If \code{absolute_calibration = TRUE},
 this function is used to summarize the reference sample concentrations across analyses of specified \code{reference_sample_id}. Default is "mean".}
 
+\item{store_conc_ratio}{Logical. Whether to store the ratio of measured
+(non-calibrated) compared to the expected (known) concentrations. Only applied if \code{absolute_calibration = TRUE}.
+This ratio is stored under the feature variable \code{feature_conc_ratio}. By default it is \code{TRUE} when \verb{variable = 'conc', otherwise }FALSE`.}
+
 \item{undefined_conc_action}{Character string specifying how to handle features
 without defined concentrations in reference samples when \code{absolute_calibration = TRUE}.
-Must be one of: "original" (keep original values), "na" (set to NA), or "error". Default is "keep".}
+Must be one of: "original" (keep original values), "na" (set to NA), or "error". Default is "keep".
+
+Default is \code{TRUE}.}
+
+\item{store_normalized}{Logical indicating whether to keep the normalized values in the dataset
+when \code{absolute_calibration = TRUE}. Default is FALSE. These values are then stored
+as \verb{[VARIABLE]_normalized}, where \verb{[VARIABLE]} is the input variable, e.g., \code{conc}.}
 }
 \value{
 A \code{MidarExperiment} object with calibrated data
@@ -51,7 +63,9 @@ concentrations, or relative, resulting in ratios:
 \item Absolute calibration (when \code{absolute_calibration = TRUE})
 
 Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
-defined for a reference sample.
+defined for a reference sample. The calibrated concentration for a given analyte is calculated as:
+
+\deqn{c_\textrm{cal}^\textrm{Analyte} = \frac{c_\textrm{sample}^\textrm{Analyte}}{c_\textrm{ref}^\textrm{Analyte}} \times c_\textrm{known}^\textrm{Analyte}}
 
 The input variable can either \code{conc}, \code{norm_intensity}, or \verb{intensity, whereas the result will always be stored under the variable}conc` (concentration), in the unit defined
 for the feature concentrations in the reference sample.
@@ -70,13 +84,21 @@ Missing analyte concentrations for the reference sample can be handed via \code{
 \item \code{error} (default): The function stops with error in case of any undefined reference sample feature concentration.
 \item In case all feature concentrations are undefined, the function will stop with an error.
 }
-}
 
 The re-calibrated feature concentrations are stored as \code{conc}, overwriting existing \code{conc} values.
 The original \code{conc} values are stored as \code{conc_beforecal}.
 
+The ratio between the measured and expected (known) concentrations in the
+reference sample is available via the feature variable \code{feature_conc_ratio}
+and is calculated as follows:
+
+\deqn{c_\textrm{ratio}^\textrm{Analyte} = \frac{c_\textrm{measured}^\textrm{Analyte}}{c_\textrm{expected}^\textrm{Analyte}}}
+
+where \eqn{c_\textrm{measured}} is the measured (non-calibrated) concentration, and
+\eqn{c_\textrm{expected}} is the known or reference concentration for the same analyte.
+A bias value of 1 indicates perfect agreement; values above or below 1 indicate over- or underestimation.
+
 To export the calibrated concentrations use \code{save_dataset_csv()} with \verb{variable = "conc", or to export non-calibrated values with }variable = "conc_beforecal"\verb{. When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as }conc`.
-\enumerate{
 \item Normalization (relative calibration, \code{absolute_calibration = FALSE})
 
 Normalizes features abundances with corresponding feature abundances in a reference sample,
