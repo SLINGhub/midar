@@ -13,12 +13,13 @@
 #' 1. Absolute calibration (when `absolute_calibration = TRUE`)
 #'
 #'    Calibrates (or re-calibrates) feature abundances based on known concentrations of the corresponding features
-#'    defined for a reference sample.
+#'    defined for a reference sample. The calibrated concentration for a given analyte is calculated as:
+#'
+#'    \deqn{c_\textrm{cal}^\textrm{Analyte} = \frac{c_\textrm{sample}^\textrm{Analyte}}{c_\textrm{ref}^\textrm{Analyte}} \times c_\textrm{known}^\textrm{Analyte}}
 #'
 #'    The input variable can either `conc`, `norm_intensity`, or `intensity, whereas the result will
 #'    always be stored under the variable`conc` (concentration), in the unit defined
 #'    for the feature concentrations in the reference sample.
-#'
 #'
 #'    Metadata requirements:
 #'    - `sample_id` and `analyte_id` must be defined for the reference sample and features in the analysis and feature metadata, respectively.
@@ -31,12 +32,22 @@
 #'    - `error` (default): The function stops with error in case of any undefined reference sample feature concentration.
 #'    - In case all feature concentrations are undefined, the function will stop with an error.
 #'
-#'   The re-calibrated feature concentrations are stored as `conc`, overwriting existing `conc` values.
-#'   The original `conc` values are stored as `conc_beforecal`.
+#'    The re-calibrated feature concentrations are stored as `conc`, overwriting existing `conc` values.
+#'    The original `conc` values are stored as `conc_beforecal`.
 #'
-#'   To export the calibrated concentrations use `save_dataset_csv()` with `variable = "conc",
-#'   or to export non-calibrated values with `variable = "conc_beforecal"`.
-#'   When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as `conc`.
+#'    The ratio between the measured and expected (known) concentrations in the
+#'    reference sample is available via the feature variable `feature_conc_ratio`
+#'    and is calculated as follows:
+#'
+#'    \deqn{c_\textrm{ratio}^\textrm{Analyte} = \frac{c_\textrm{measured}^\textrm{Analyte}}{c_\textrm{expected}^\textrm{Analyte}}}
+#'
+#'    where \eqn{c_\textrm{measured}} is the measured (non-calibrated) concentration, and
+#'    \eqn{c_\textrm{expected}} is the known or reference concentration for the same analyte.
+#'     A bias value of 1 indicates perfect agreement; values above or below 1 indicate over- or underestimation.
+#'
+#'    To export the calibrated concentrations use `save_dataset_csv()` with `variable = "conc",
+#'    or to export non-calibrated values with `variable = "conc_beforecal"`.
+#'    When saving the MiDAR XLSX report, the calibrated concentrations will also be stored as `conc`.
 #'
 #' 2. Normalization (relative calibration, `absolute_calibration = FALSE`)
 #'
@@ -60,12 +71,20 @@
 #' @param absolute_calibration Logical indicating whether to perform absolute calibration using
 #'   known concentrations of the reference sample (TRUE) or relative calibration (FALSE).
 #' @param batch_wise Logical indicating whether to perform calibration for each batch seperately (TRUE) or for all samples together (FALSE).
+#' @param store_conc_ratio Logical. Whether to store the ratio of measured
+#' (non-calibrated) compared to the expected (known) concentrations. Only applied if `absolute_calibration = TRUE`.
+#' This ratio is stored under the feature variable `feature_conc_ratio`. By default it is `TRUE` when `variable = 'conc', otherwise `FALSE`.
 #' @param summarize_fun Either "mean" or "median". If `absolute_calibration = TRUE`,
 #' this function is used to summarize the reference sample concentrations across analyses of specified `reference_sample_id`. Default is "mean".
 #' @param undefined_conc_action Character string specifying how to handle features
 #'   without defined concentrations in reference samples when `absolute_calibration = TRUE`.
 #'   Must be one of: "original" (keep original values), "na" (set to NA), or "error". Default is "keep".
+
 #'
+#' Default is `TRUE`.
+#' @param store_normalized Logical indicating whether to keep the normalized values in the dataset
+#' when `absolute_calibration = TRUE`. Default is FALSE. These values are then stored
+#' as `[VARIABLE]_normalized`, where `[VARIABLE]` is the input variable, e.g., `conc`.
 #' @return A `MidarExperiment` object with calibrated data
 #' @examples
 #'
@@ -128,7 +147,15 @@
 #'
 #' @export
 
-calibrate_by_reference <- function(data, variable, reference_sample_id, absolute_calibration, batch_wise = FALSE, summarize_fun = "mean", undefined_conc_action = NULL) {
+calibrate_by_reference <- function(data,
+                                   variable,
+                                   reference_sample_id,
+                                   absolute_calibration,
+                                   batch_wise = FALSE,
+                                   summarize_fun = "mean",
+                                   store_conc_ratio = NULL,
+                                   undefined_conc_action = NULL,
+                                   store_normalized = FALSE) {
 
   check_data(data)
 
@@ -146,13 +173,20 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
   rlang::arg_match(variable_strip, c("intensity", "norm_intensity", "conc"))
   variable <- stringr::str_c("feature_", variable_strip)
   variable_sym <- rlang::sym(variable)
-  variable_norm_sym <- rlang::sym(stringr::str_c("feature_", variable_strip, "_normalized"))
+  variable_norm <- stringr::str_c("feature_", variable_strip, "_normalized")
+  variable_norm_sym <- rlang::sym(variable_norm)
   variable_beforecal_sym <- rlang::sym(stringr::str_c("feature_", variable_strip, "_beforecal"))
   check_var_in_dataset(data@dataset, variable)
 
- if(variable != "feature_conc" && !is.null(undefined_conc_action) && undefined_conc_action == "original")
-    cli::cli_abort(col_red("When using `undefined_conc_action = 'original'`, the variable must be 'conc'. See the function's documentation for more details."))
+  if (is.null(store_conc_ratio))
+    store_conc_ratio = (variable == "feature_conc")
 
+
+ if(variable != "feature_conc" && !is.null(undefined_conc_action) && undefined_conc_action == "original")
+    cli::cli_abort(col_red("When using `undefined_conc_action = 'original'`, the variable 'conc' must be used as input. See the function's documentation for more details."))
+
+ if(store_conc_ratio && variable != "feature_conc")
+   cli::cli_abort(col_red("When using `store_conc_ratio = TRUE`, the variable 'conc' must be used as input. See the function's documentation for more details."))
 
  if (batch_wise) adj_groups <- c("feature_id", "batch_id") else adj_groups <- c("feature_id")
  txt_batchwise <- ifelse(batch_wise, "batch-wise ", "")
@@ -176,7 +210,7 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
     dplyr::mutate(ref_sample = reference_sample_id) |>
     dplyr::group_by(!!!syms(adj_groups)) |>
     dplyr::mutate(
-      var_calibrated = !!variable_sym / match.fun(summarize_fun)(pull(filter(pick(everything()), .data$sample_id == .data$ref_sample), !!variable_sym), na.rm = TRUE)) |>
+      var_normalized = !!variable_sym / match.fun(summarize_fun)(pull(filter(pick(everything()), .data$sample_id == .data$ref_sample), !!variable_sym), na.rm = TRUE)) |>
     ungroup()
 
 
@@ -224,20 +258,32 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
       dplyr::group_by(!!!syms(adj_groups)) |>
       mutate(
         var_calibrated = if_else(!is.na(.data$ref_conc),
-                                 .data$var_calibrated * .data$ref_conc,
-                                 if(undefined_conc_action == "original") !!variable_sym else NA_real_)) |>
-      dplyr::select(-"ref_conc")
+                                 .data$var_normalized * .data$ref_conc,
+                                 if(undefined_conc_action == "original") !!variable_sym else NA_real_))
+
+    if(store_conc_ratio)
+      d_temp <- d_temp |> mutate(feature_conc_ratio = !!variable_sym / .data$ref_conc)
+
+    d_temp <- d_temp |>
+      dplyr::select(-"ref_conc") |>
+      ungroup()
 
     if(variable == "feature_conc") {
       data@dataset <- data@dataset |>
         mutate(feature_conc_beforecal = .data$feature_conc)
     }
 
-    data@dataset <- data@dataset |>
-      dplyr::left_join(d_temp |> dplyr::select("analysis_id", "feature_id", "var_calibrated"), by = c("analysis_id", "feature_id")) |>
-      dplyr::mutate(feature_conc = .data$var_calibrated) |>
-      dplyr::select(-"var_calibrated")
+    data@dataset <- data@dataset  |>
+      dplyr::select(-any_of(c("var_calibrated", "var_normalized", "feature_conc_ratio", variable_norm))) |>
+      dplyr::left_join(d_temp |> dplyr::select(any_of(c("analysis_id", "feature_id", "var_normalized", "var_calibrated", "feature_conc_ratio"))), by = c("analysis_id", "feature_id")) |>
+      dplyr::mutate(feature_conc = .data$var_calibrated)
 
+    if(store_normalized) {
+      data@dataset <- data@dataset |>
+        rename(!!variable_norm_sym := "var_normalized")
+    } else {
+      data@dataset <- data@dataset |> dplyr::select(-"var_normalized")
+    }
     n_features_with_conc <- data@annot_qcconcentrations |>
       filter(.data$sample_id == reference_sample_id) |>
       nrow()
@@ -259,11 +305,11 @@ calibrate_by_reference <- function(data, variable, reference_sample_id, absolute
 
 
   } else {
-    # If absolute_calibration is FALSE, create a new variable variable_noncalib to backup values before calibration and then join data@dataset with d_temp and rename var_calibrated to variable.
+    # If absolute_calibration is FALSE, create a new variable variable_noncalib to backup values before calibration and then join data@dataset with d_temp and rename var_normalized to variable.
     data@dataset <- data@dataset |>
-      dplyr::left_join(d_temp |> dplyr::select("feature_id", "analysis_id",  "var_calibrated"), by = c("analysis_id", "feature_id")) |>
-      mutate(!!variable_norm_sym := .data$var_calibrated) |>
-      dplyr::select(-"var_calibrated")
+      dplyr::left_join(d_temp |> dplyr::select("feature_id", "analysis_id",  "var_normalized"), by = c("analysis_id", "feature_id")) |>
+      mutate(!!variable_norm_sym := .data$var_normalized) |>
+      dplyr::select(-"var_normalized")
 
     cli_alert_success(cli::col_green("All features were {txt_batchwise}normalized with reference sample {reference_sample_id} features."))
     cli::cli_alert_info(col_green("Unit is: sample [{variable_strip}] / {reference_sample_id} [{variable_strip}]"))

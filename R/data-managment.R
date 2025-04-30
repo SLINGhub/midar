@@ -363,7 +363,7 @@ update_after_normalization <- function(data, is_normalized, with_message = TRUE)
 
 update_after_quantitation <- function(data, is_quantitated, with_message = TRUE){
   if(data@is_quantitated & !is_quantitated) {
-    data@dataset <- data@dataset |> select(-any_of(c("feature_pmol_total", "feature_conc", "feature_raw_conc")))
+    data@dataset <- data@dataset |> select(-any_of(c("feature_pmol_total", "feature_conc", "feature_raw_conc", "feature_conc_ratio")))
     if(with_message) cli_alert_info(cli::col_yellow("Concentrations are no longer valid. Please reprocess the data."))
   }
   data@is_quantitated <- is_quantitated
