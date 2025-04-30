@@ -422,19 +422,24 @@ calc_calibration_results <- function(data = NULL,
 #'
 #' This function retrieves calibration curve regression results from a `MidarExperiment` object.
 #' It returns a summary of quality control (QC) metrics for specified QC samples.
-#' including bias, percentage bias, and intra-assay coefficient of variation (CV).
+#' including bias, absolute bias, and intra-assay coefficient of variation (CV).
 #' The standard deviation of bias and percentage bias are also included unless the
 #' it is `NA` for all analytes, i.e. when no replicates were measured.
 #'
+#' The standard deviation of concentration is also included unless the number of replicates was 1.
+#'
 #' @param data A `MidarExperiment` object containing the dataset and necessary annotations for calibration analysis.
 #' @param qc_types A character vector specifying the QC types to include in the results, in addition to `CAL`. If not specified, all applicable QC types are included by default.
+#' @param sample_ids A character vector specifying the sample IDs to include in the results. If not specified, all analyses regardless of their sample IDs are included by default.
 #' @param wide_format Format of the output table. Must be one of `"none"`, `"features"`, or `"samples"`.
 #' If `"none"`, the output is in long format. If `"features"`, the output is in wide format with features as columns.
 #' If `"samples"`, the output is in wide format with samples as columns.
 #' @param include_qualifier Logical. If `TRUE`, includes qualifier features in the results. Defaults to `FALSE`.
 #' @param with_conc Logical. If `TRUE`, includes target and measured mean concentrations in the results. Defaults to `TRUE`.
-#' @param with_bias Logical. If `TRUE`, includes bias in concentration units in the results. Defaults to `TRUE`.
-#' @param with_bias_perc Logical. If `TRUE`, includes percentage bias in the results. Defaults to `TRUE`.
+#' @param with_conc_target Logical. If `TRUE`, includes target (know) concentration of the QC sample in the results. Defaults to `TRUE`.
+#' @param with_bias Logical. If `TRUE`, includes percentage bias in the results. Defaults to `TRUE`.
+#' @param with_bias_abs Logical. If `TRUE`, includes absolute bias in concentration units in the results. Defaults to `FALSE`.
+#' @param with_conc_ratio Logical. If `TRUE`, includes the ratio of measured to target concentration in the results. Defaults to `TRUE`.
 #' @param with_cv_intra Logical. If `TRUE`, includes intra-assay coefficient of variation (CV) for the in the results. Defaults to `TRUE`.
 #'
 #' @return A data frame containing the calibration results, including metrics such as bias, percentage bias, and intra-assay CV based on specified parameters.
@@ -445,13 +450,16 @@ calc_calibration_results <- function(data = NULL,
 #' @export
 get_qc_bias_variability <- function(data,
                           qc_types = NA,
+                          sample_ids = NA,
                           wide_format = "none",
                           include_qualifier = FALSE,
                           with_conc = TRUE,
+                          with_conc_target = TRUE,
                           with_bias = TRUE,
-                          with_bias_perc= TRUE,
-                          with_cv_intra = TRUE)
-{
+                          with_bias_abs = FALSE,
+                          with_conc_ratio = TRUE,
+                          with_cv_intra = TRUE
+                          ) {
   check_data(data)
 
 
@@ -474,6 +482,24 @@ get_qc_bias_variability <- function(data,
     }
   }
 
+  d_qc_summary <- d_qc_summary|> filter(.data$qc_type %in% qc_types)
+
+  if(!all(is.na(sample_ids))){
+    if(length(setdiff(sample_ids,
+                      unique(d_qc_summary$qc_type))) > 0){
+      cli::cli_abort(cli::col_red(paste("One or more selected `sample_id` are not present in the data or have no defined analyte concentrations. Please verify the analyses, feature and QC-concentration metadata, or select other `qc_types`.")))
+    }
+  }
+
+
+  # Check if qc type and sample id are not paired resulting in no selected analyses
+  if(!all(is.na(sample_ids))){
+    d_qc_summary <- d_qc_summary |> filter(.data$sample_id %in% sample_ids)
+    if(nrow(d_qc_summary) == 0){
+      cli::cli_abort(cli::col_red(paste("No analyses with the selected `sample_id` and `qc_types` were found. Please verify the argument values, and corresponding feature metadata.")))
+    }
+  }
+
   if(!include_qualifier)
     d_qc_summary <- d_qc_summary |> filter(.data$is_quantifier)
 
@@ -481,35 +507,37 @@ get_qc_bias_variability <- function(data,
      relocate("target_concentration", .after = "analyte_id") |>
     mutate(
       bias_abs_val = .data$feature_conc - .data$target_concentration,
-      bias_perc_val = (.data$feature_conc - .data$target_concentration) / .data$target_concentration * 100
+      bias_val = (.data$feature_conc - .data$target_concentration) / .data$target_concentration * 100,
+      conc_ratio = .data$feature_conc / .data$target_concentration,
     ) |>
     summarise(
       n = dplyr::n(),
       conc_target = mean(.data$target_concentration, na.rm = FALSE),
       conc_mean = mean(.data$feature_conc, na.rm = TRUE),
       conc_sd = sd(.data$feature_conc, na.rm = TRUE),
-      bias = mean(.data$bias_abs_val, na.rm = TRUE),
-      bias_sd = sd(.data$bias_abs_val, na.rm = TRUE),
-      bias_perc = mean(.data$bias_perc_val, na.rm = TRUE),
-      bias_perc_sd = sd(.data$bias_perc_val, na.rm = TRUE),
       cv_intra = .data$conc_sd / .data$conc_mean * 100,
+      bias = mean(.data$bias_val, na.rm = TRUE),
+      bias_abs = mean(.data$bias_abs_val, na.rm = TRUE),
+      conc_ratio = mean(.data$conc_ratio, na.rm = TRUE),
+      conc_ratio_sd = sd(.data$conc_ratio, na.rm = TRUE),
       .by = c("sample_id", "qc_type", "feature_id"))
   d_qc_summary <- d_qc_summary |>
   select(
       "feature_id",
-      "sample_id",
       "qc_type",
-      if (with_conc) "conc_target",
+      "sample_id",
+      "n",
+      if (with_conc_target) "conc_target",
       if (with_conc) "conc_mean",
       if (with_conc && !all(is.na(d_qc_summary$conc_sd))) "conc_sd",
+      if (with_cv_intra) "cv_intra",
       if (with_bias) "bias",
-      if (with_bias && !all(is.na(d_qc_summary$bias_sd))) "bias_sd",
-      if (with_bias_perc) "bias_perc",
-      if (with_bias_perc && !all(is.na(d_qc_summary$bias_perc_sd))) "bias_perc_sd",
-      if (with_cv_intra) "cv_intra")
+      if (with_bias_abs) "bias_abs",
+      if (with_conc_ratio) "conc_ratio",
+      if (with_conc_ratio  && !all(is.na(d_qc_summary$conc_ratio_sd))) "conc_ratio_sd")
 
   if(wide_format != "none"){
-    optinal_columns <- c("conc_target", "conc_mean", "conc_sd" ,"bias", "bias_sd", "bias_perc", "bias_perc_sd", "cv_intra")
+    optinal_columns <- c("n", "conc_target", "conc_mean", "conc_sd","cv_intra","bias", "bias_abs", "conc_ratio", "conc_ratio_sd")
     available_columns <- intersect(optinal_columns, names(d_qc_summary))
 
     if(wide_format == "features"){
