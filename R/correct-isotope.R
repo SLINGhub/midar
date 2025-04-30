@@ -131,7 +131,10 @@ correct_interference_manual <- function(data = NULL, variable, feature, interfer
 #' \url{https://doi.org/10.1021/acs.analchem.0c04565}
 
 
-correct_interferences <- function(data = NULL, variable = "feature_intensity", sequential_correction = TRUE, neg_to_na = FALSE) {
+correct_interferences <- function(data = NULL,
+                                  variable = "feature_intensity",
+                                  sequential_correction = TRUE,
+                                  neg_to_na = FALSE) {
 
   check_data(data)
 
