@@ -16,18 +16,35 @@ editor_options:
 ---
 
 ```{r, include = FALSE, echo = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, results = "hold", message = "FALSE", comment = "#>", out.width = "100%")
+knitr::opts_chunk$set(collapse = TRUE, message = "FALSE", comment = "#>", out.width = "100%")
 set.seed(1041)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>")
 options(dplyr.print_max = 10)
 ```
 
-This recipe demonstrates a simple workflow for a quantitative assay with external calibration and quality control samples, 
-as used in e.g. in clinical chemistry or environmental analysis.
+This vignette demonstrates a simple workflow for a quantitative targeted
+assay with external calibration and quality control samples, as used in
+e.g. in clinical chemistry or environmental analysis.
 
-The datasets used in this example can be obtained from [https://github.com/SLINGhub/midar/tree/main/data-raw](https://github.com/SLINGhub/midar/tree/main/data-raw). 
+For this type of analysis the known/target concentrations for the
+calibrator and QC samples must be defined in the `QCconcentrations`
+metadata. This also required that `sample_id` and `analyte_id` is
+defined for the corresponding analyses in the analysis, and for the
+features in the feature metadata tables, respectively.
 
+![](images/qcconc.jpg){width="588"}
+
+
+So, we first import the data and metadata from a MassHunter CSV file and an MsOrganiser template file. 
+The datasets used in this example can be obtained from
+<https://github.com/SLINGhub/midar/tree/main/data-raw>.
 
 ```{r, fig.height=3, fig.width=7}
+#| results: true 
+#| message: false
 #| fig.alt: >
 #|   Calibration plots
 library(midar)
@@ -46,7 +63,17 @@ mexp <- import_metadata_msorganiser(
   mexp,
   path = "QuantLCMS_Example_Metadata.xlsm",
   excl_unmatched_analyses = T, ignore_warnings = T)
+```
 
+Next, the raw peak areas are normalized with the corresponding internal standard and
+then we calculate and plot the regression fits for the external calibration curves.
+
+
+```{r, fig.height=3, fig.width=7}
+#| results: true 
+#| message: false
+#| fig.alt: >
+#|   Calibration plots
 # Normalize data by internal standards (defined in feature metadata)
 mexp <- normalize_by_istd(mexp)
 
@@ -58,18 +85,34 @@ mexp <- calc_calibration_results(
   fit_model = "quadratic", 
   fit_weighting = "1/x")
 
-# Get a table with calibration results
-get_calibration_metrics(mexp)
-
 # Plot calibration curves
   p <- plot_calibrationcurves(
     data = mexp,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     rows_page = 2,
-    cols_page = 4
+    cols_page = 4, show_progress = FALSE
   )
-  
+```
+
+We also can output a summary of the calibration curve results:
+
+```{r, fig.height=3, fig.width=7}
+tbl_cal <- get_calibration_metrics(mexp)
+tbl_cal
+```
+
+
+After we have inspected the curves and are happy with the quality of the analysis, 
+we can calculate the concentrations for all features in samples using the external calibration curves.
+
+A summary of the QC results (bias and variability) is calculated and shown below. 
+The final concentration data is saved to a CSV file. 
+
+```{r, fig.height=3, fig.width=7}
+#| fig.alt: >
+#|   Calibration plots
+#|   
 # Calculate concentrations for all samples using external calibration
 mexp <- quantify_by_calibration(
   mexp,
@@ -81,12 +124,14 @@ mexp <- quantify_by_calibration(
 
 # get a table with QC results (bias and variability)
 tbl <- get_qc_bias_variability(mexp, qc_types = c("HQC", "LQC"))
-print(tbl)
 
 # Save a table with final concentration data
  save_dataset_csv( mexp, 
                    path = "corticosteroid_conc.csv", 
                    variable = "conc", 
                    filter_data = FALSE)
+ 
+ print(tbl)
 ```
+
 

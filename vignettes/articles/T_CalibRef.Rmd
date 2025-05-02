@@ -257,7 +257,7 @@ the `MidarExperient` object that had no calibration applied
 #| results: true 
 #| message: true
 
-tbl <- get_qc_bias_variability(mexp, qc_types = "NIST")
+tbl <- get_qc_bias_variability(mexp, qc_types = "NIST", with_conc_ratio = TRUE)
 gt::gt(tbl) |> gt::fmt_number(decimals = 3)
 
 ```

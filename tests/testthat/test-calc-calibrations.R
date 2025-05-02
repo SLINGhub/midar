@@ -182,7 +182,7 @@ mexp_quant_norm <- quantify_by_calibration(mexp_quant_norm,
  test_that("get_qc_bias_variability returns correct data", {
    result <- get_qc_bias_variability(mexp_quant_norm, qc_types = c("CAL", "LQC", "HQC"))
    expect_s3_class(result, "data.frame")
-   expect_equal(names(result), c("feature_id", "sample_id", "qc_type", "n", "conc_target", "conc_mean","conc_sd","cv_intra","bias","conc_ratio"))
+   expect_equal(names(result), c("feature_id", "sample_id", "qc_type", "n", "conc_target", "conc_mean","conc_sd","cv_intra","bias"))
    expect_equal(nrow(result), 32)
 
    result <- get_qc_bias_variability(mexp_quant_norm, qc_types = NA,

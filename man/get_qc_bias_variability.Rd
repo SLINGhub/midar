@@ -14,7 +14,7 @@ get_qc_bias_variability(
   with_conc_target = TRUE,
   with_bias = TRUE,
   with_bias_abs = FALSE,
-  with_conc_ratio = TRUE,
+  with_conc_ratio = FALSE,
   with_cv_intra = TRUE
 )
 }
