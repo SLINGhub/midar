@@ -46,9 +46,9 @@
     <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
     <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
     <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a Reference Sample</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -167,8 +167,8 @@ spiked-in ISTD concentration.</p>
 the same reference sample are present in the dataset, either the mean or
 median is calculated (defined via the <code>summarize_fun</code>).</p>
 <p>The calibrated concentration is calculated as:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>C</mi><mtext mathvariant="normal">cal</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>C</mi><mtext mathvariant="normal">sample</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>C</mi><mtext mathvariant="normal">ref</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac><mo>×</mo><msubsup><mi>C</mi><mtext mathvariant="normal">known</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mrow><annotation encoding="application/x-tex">
-C_\text{cal}^\text{Analyte} = \frac{C_\text{sample}^\text{Analyte}}{C_\text{ref}^\text{Analyte}} \times C_\text{known}^\text{Analyte}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mtext mathvariant="normal">calibrated</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>c</mi><mtext mathvariant="normal">sample</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>c</mi><mtext mathvariant="normal">ref</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac><mo>×</mo><msubsup><mi>c</mi><mtext mathvariant="normal">known</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mrow><annotation encoding="application/x-tex">
+c_\text{calibrated}^\text{Analyte} = \frac{c_\text{sample}^\text{Analyte}}{c_\text{ref}^\text{Analyte}} \times c_\text{known}^\text{Analyte}
 </annotation></semantics></math></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
@@ -277,8 +277,8 @@ reference material shared across the batches.</p>
 concentrations in the reference samples, a table with concentration
 ratios can be generated using the code below.</p>
 <p>The ratio is calculated as follows:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>c</mi><mtext mathvariant="normal">ratio</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>c</mi><mtext mathvariant="normal">measured</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>c</mi><mtext mathvariant="normal">expected</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac></mrow><annotation encoding="application/x-tex">
-c_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{expected}^\text{Analyte}}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>R</mi><mtext mathvariant="normal">ratio</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><mo>=</mo><mfrac><msubsup><mi>c</mi><mtext mathvariant="normal">measured</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup><msubsup><mi>c</mi><mtext mathvariant="normal">expected</mtext><mtext mathvariant="normal">Analyte</mtext></msubsup></mfrac></mrow><annotation encoding="application/x-tex">
+R_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{expected}^\text{Analyte}}
 </annotation></semantics></math></p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mexp_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calibrate_by_reference.html">calibrate_by_reference</a></span><span class="op">(</span></span>
@@ -1347,7 +1347,7 @@ of 1.</p>
 viewed by using the <code>MidarExperient</code> object that had no
 calibration applied</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp</span>, qc_types <span class="op">=</span> <span class="st">"NIST"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp</span>, qc_types <span class="op">=</span> <span class="st">"NIST"</span>, with_conc_ratio <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_number.html" class="external-link">fmt_number</a></span><span class="op">(</span>decimals <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <div id="pbcyvkgufi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#pbcyvkgufi table {

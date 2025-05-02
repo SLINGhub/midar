@@ -27,10 +27,11 @@ navbar:
         href: articles/T_BatchCorrect.html
       - text: Calibration by a Reference Sample
         href: articles/T_CalibRef.html
-      - text: '-------'
-      - text: Recipes
       - text: External Calibration and QC
         href: articles/R01_quantms.html
+      - text: '-------'
+      - text: Recipes
+
     articles:
       text: Manual
       menu:

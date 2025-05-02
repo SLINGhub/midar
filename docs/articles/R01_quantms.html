@@ -51,9 +51,9 @@
     <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
     <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
     <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a Reference Sample</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -101,10 +101,19 @@
 
     
     
-<p>This recipe demonstrates a simple workflow for a quantitative assay
-with external calibration and quality control samples, as used in
-e.g. in clinical chemistry or environmental analysis.</p>
-<p>The datasets used in this example can be obtained from <a href="https://github.com/SLINGhub/midar/tree/main/data-raw" class="external-link">https://github.com/SLINGhub/midar/tree/main/data-raw</a>.</p>
+<p>This vignette demonstrates a simple workflow for a quantitative
+targeted assay with external calibration and quality control samples, as
+used in e.g. in clinical chemistry or environmental analysis.</p>
+<p>For this type of analysis the known/target concentrations for the
+calibrator and QC samples must be defined in the
+<code>QCconcentrations</code> metadata. This also required that
+<code>sample_id</code> and <code>analyte_id</code> is defined for the
+corresponding analyses in the analysis, and for the features in the
+feature metadata tables, respectively.</p>
+<p><img src="images%2Fqcconc.jpg" width="588"></p>
+<p>So, we first import the data and metadata from a MassHunter CSV file
+and an MsOrganiser template file. The datasets used in this example can
+be obtained from <a href="https://github.com/SLINGhub/midar/tree/main/data-raw" class="external-link uri">https://github.com/SLINGhub/midar/tree/main/data-raw</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/SLINGhub/midar" class="external-link">midar</a></span><span class="op">)</span></span>
 <span></span>
@@ -116,14 +125,24 @@ e.g. in clinical chemistry or environmental analysis.</p>
 <span>  data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"QuantLCMS_Example_MassHunter.csv"</span>,</span>
 <span>  import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.37PB/s</span>                                                                              </span></span>
 <span></span>
 <span><span class="co"># Import metadata from an msorganiser template fie</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"QuantLCMS_Example_Metadata.xlsm"</span>,</span>
 <span>  excl_unmatched_analyses <span class="op">=</span> <span class="cn">T</span>, ignore_warnings <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Normalize data by internal standards (defined in feature metadata)</span></span>
+<span><span class="co">#&gt; <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span></span>
+<span><span class="co">#&gt;   Type Table    Column    Issue                        Count</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> N    Analyses sample_id Not defined for all analyses     8</span></span>
+<span><span class="co">#&gt; <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span></span>
+<span><span class="co"><span style="font-style: italic;">#&gt; E = Error, W = Warning, W* = Supressed Warning, N = Note</span></span></span>
+<span><span class="co"><span style="font-style: italic;">#&gt; --------------------------------------------------------------------------------------------</span></span></span></code></pre></div>
+<p>Next, the raw peak areas are normalized with the corresponding
+internal standard and then we calculate and plot the regression fits for
+the external calibration curves.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Normalize data by internal standards (defined in feature metadata)</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate calibration results. The regression model and weighting </span></span>
@@ -134,44 +153,19 @@ e.g. in clinical chemistry or environmental analysis.</p>
 <span>  fit_model <span class="op">=</span> <span class="st">"quadratic"</span>, </span>
 <span>  fit_weighting <span class="op">=</span> <span class="st">"1/x"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get a table with calibration results</span></span>
-<span><span class="fu"><a href="../reference/get_calibration_metrics.html">get_calibration_metrics</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># Plot calibration curves</span></span>
 <span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_calibrationcurves.html">plot_calibrationcurves</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>    fit_model <span class="op">=</span> <span class="st">"quadratic"</span>,</span>
 <span>    fit_weighting <span class="op">=</span> <span class="st">"1/x"</span>,</span>
 <span>    rows_page <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>    cols_page <span class="op">=</span> <span class="fl">4</span></span>
+<span>    cols_page <span class="op">=</span> <span class="fl">4</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="R01_quantms_files/figure-html/unnamed-chunk-2-1.png" alt="Calibration plots" width="100%"></p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>  </span>
-<span><span class="co"># Calculate concentrations for all samples using external calibration</span></span>
-<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quantify_by_calibration.html">quantify_by_calibration</a></span><span class="op">(</span></span>
-<span>  <span class="va">mexp</span>,</span>
-<span>  overwrite_fit_param <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ignore_failed_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  fit_model <span class="op">=</span> <span class="st">"quadratic"</span>,</span>
-<span>  fit_weighting <span class="op">=</span> <span class="st">"1/x"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># get a table with QC results (bias and variability)</span></span>
-<span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HQC"</span>, <span class="st">"LQC"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Save a table with final concentration data</span></span>
-<span> <span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span> <span class="va">mexp</span>, </span>
-<span>                   path <span class="op">=</span> <span class="st">"corticosteroid_conc.csv"</span>, </span>
-<span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
-<span>                   filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.01PB/s</span>                                                                              <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span></span>
-<span><span class="co">#&gt;   Type Table    Column    Issue                        Count</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> N    Analyses sample_id Not defined for all analyses     8</span></span>
-<span><span class="co">#&gt; <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span></span>
-<span><span class="co"><span style="font-style: italic;">#&gt; E = Error, W = Warning, W* = Supressed Warning, N = Note</span></span></span>
-<span><span class="co"><span style="font-style: italic;">#&gt; --------------------------------------------------------------------------------------------</span></span></span>
+<p><img src="R01_quantms_files/figure-html/unnamed-chunk-3-1.png" alt="Calibration plots" width="100%"></p>
+<p>We also can output a summary of the calibration curve results:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tbl_cal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_calibration_metrics.html">get_calibration_metrics</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span>
+<span><span class="va">tbl_cal</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 14</span></span></span>
 <span><span class="co">#&gt;   feature_id   is_quantifier fit_model fit_weighting reg_failed    r2 lowest_cal</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -184,8 +178,32 @@ e.g. in clinical chemistry or environmental analysis.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> Cortisone    TRUE          quadratic 1/x           FALSE      0.997      1.39 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> Cortisone [… FALSE         quadratic 1/x           FALSE      0.984      1.39 </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 7 more variables: highest_cal &lt;dbl&gt;, coef_a &lt;dbl&gt;, coef_b &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   coef_c &lt;dbl&gt;, lod &lt;dbl&gt;, loq &lt;dbl&gt;, sigma &lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt;   |                                      |                              |   0%  |                                      |==============================| 100%</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   coef_c &lt;dbl&gt;, lod &lt;dbl&gt;, loq &lt;dbl&gt;, sigma &lt;dbl&gt;</span></span></span></code></pre></div>
+<p>After we have inspected the curves and are happy with the quality of
+the analysis, we can calculate the concentrations for all features in
+samples using the external calibration curves.</p>
+<p>A summary of the QC results (bias and variability) is calculated and
+shown below. The final concentration data is saved to a CSV file.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Calculate concentrations for all samples using external calibration</span></span>
+<span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quantify_by_calibration.html">quantify_by_calibration</a></span><span class="op">(</span></span>
+<span>  <span class="va">mexp</span>,</span>
+<span>  overwrite_fit_param <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  ignore_failed_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fit_model <span class="op">=</span> <span class="st">"quadratic"</span>,</span>
+<span>  fit_weighting <span class="op">=</span> <span class="st">"1/x"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># get a table with QC results (bias and variability)</span></span>
+<span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_qc_bias_variability.html">get_qc_bias_variability</a></span><span class="op">(</span><span class="va">mexp</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HQC"</span>, <span class="st">"LQC"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Save a table with final concentration data</span></span>
+<span> <span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span> <span class="va">mexp</span>, </span>
+<span>                   path <span class="op">=</span> <span class="st">"corticosteroid_conc.csv"</span>, </span>
+<span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
+<span>                   filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span> </span>
+<span> <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 10</span></span></span>
 <span><span class="co">#&gt;   feature_id     sample_id qc_type     n conc_target conc_mean conc_sd cv_intra</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
