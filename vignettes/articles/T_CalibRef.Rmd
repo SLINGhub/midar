@@ -94,7 +94,7 @@ sample are present in the dataset, either the mean or median is calculated (defi
 The calibrated concentration is calculated as:
 
 $$
-C_\text{cal}^\text{Analyte} = \frac{C_\text{sample}^\text{Analyte}}{C_\text{ref}^\text{Analyte}} \times C_\text{known}^\text{Analyte}
+c_\text{calibrated}^\text{Analyte} = \frac{c_\text{sample}^\text{Analyte}}{c_\text{ref}^\text{Analyte}} \times c_\text{known}^\text{Analyte}
 $$
 
 ```{r}
@@ -204,7 +204,7 @@ To examine the ratio between measured and expected (known) concentrations in the
 The ratio is calculated as follows:
 
 $$
-c_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{expected}^\text{Analyte}}
+R_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{expected}^\text{Analyte}}
 $$
 
 
