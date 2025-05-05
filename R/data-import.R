@@ -169,6 +169,84 @@ import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = 
   data
 }
 
+
+#' Import Analysis Results from Plain Long-Format CSV Files
+#'
+#' @details
+#' This function imports analysis result data from long-format `.csv` files,
+#' where each row represents a unique analysis-feature pair, and columns contain
+#' analysis- or feature-specific variables.
+#'
+#' The dataset must include two identifier columns: `"analysis_id"` and `"feature_id"`,
+#' where each pair of values must be unique across the table. Additionally, the table
+#' must contain at least one feature variable column, such as `"area"`, `"height"`,
+#' `"intensity"`, `"norm_intensity"`, `"response"`, `"conc"`, `"rt"`, or `"fwhm"`.
+#' Some downstream functions may require specific columns among these to be present.
+
+#'
+#'
+#'
+#' column or inferred from the first column if it contains unique values. The
+#' `variable_name` argument specifies the data type in the table: "area",
+#' "height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
+#' "rt", or "fwhm".
+#'
+#' Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
+#' "is_quantifier", "is_istd", can be imported if present.
+#'
+#' WHen there are other columns that not represent features, use the `first_feature_column` parameter
+#' to define where feature columns start.
+#'
+#' When a directory path is specified, the function processes all .csv files in
+#' that directory, merging them into a single dataset. This is useful for
+#' datasets divided into multiple files during preprocessing. Ensure each
+#' feature and raw data file pair appears only once to avoid duplication
+#' errors.
+#'
+#'
+#' The `na_strings` parameter allows specifying strings to be interpreted as NA,
+#' ensuring the dataset is clean for analysis.
+#'
+#' @param data MidarExperiment object
+#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
+#' @param variable_name Variable type representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
+#' @param analysis_id_col Column to be used as analysis_id. `NA` (default) used 'analysis_id' if present, or the first column if it contains unique values.
+#' @param import_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
+#' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order"
+#' @param first_feature_column Column number of the first column representing the feature values
+#' @param na_strings A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.
+# #' @param silent Su ppress notifications
+#' @return MidarExperiment object
+#' @examples
+#' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
+#'
+#' mexp <- MidarExperiment()
+#'
+#' mexp <- import_data_csv(
+#'   data = mexp,
+#'   path = file_path,
+#'  variable_name = "conc",
+#'  import_metadata = TRUE)
+#'
+#' print(mexp)
+#'
+#' @export
+
+import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata  = TRUE, first_feature_column = NA, na_strings = "NA") {
+  check_data(data)
+  data <- import_data_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata, first_feature_column)
+  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
+
+  if (import_metadata)
+    data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
+  else{
+    #set_analysis_order_analysismetadata(data, order_by = "default")
+    data <- link_data_metadata(data)
+  }
+
+  data
+}
+
 #' Import Analysis Results from Long Format CSV Files
 #' @details
 #' This function imports analysis result data from .csv files in long format,
@@ -626,6 +704,49 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 # TODO: remove support for norm intensity
 parse_mrmkit_result <- function(path, silent = FALSE) {
 
+  col_map <- c(
+       "raw_data_filename"= "raw_data_filename",
+      "acquisition_time_stamp" = "time_stamp",
+      "sample_type" = "sample_type",
+      "batch_id" = "batch",
+      "featurename" = "feature_name",
+      "istd_feature_id" = "internal_standard",
+      "feature_rt" = "rt_apex",
+      "feature_area" = "area",
+      #"feature_norm_intensity" = "area_normalized",
+      "feature_height" = "height",
+      "feature_fwhm" = "FWHM",
+      "feature_int_start" = "rt_int_start",
+      "feature_int_end" = "rt_int_end",
+      "method_polarity" = "polarity",
+      "method_precursor_mz" = "precursor_mz",
+      "method_product_mz" = "product_mz",
+      "method_collision_energy" = "collision_energy"
+    )
+
+  parse_plain_long_csv(path = path,
+                       column_mapping = col_map,
+                       silent = silent)
+}
+
+
+#' Parses a plain long CSV file
+#'
+#' Parses a CSV table with analysis/samples and feature pairs in rows,
+#' columns representing the feature variables.
+#'
+#' @param path File name (*.tsv or *.csv)
+#' @param silent No comments printed
+#' @return A tibble in the long format
+#' @examples
+#'
+#' file_path = system.file("extdata", "plain_long.tsv", package = "midar")
+#'
+#' tbl <- parse_plain_long_csv(path = file_path)
+#'
+#' head(tbl)
+#' @export
+parse_plain_long_csv <- function(path, column_mapping = NULL, silent = FALSE) {
   ext_file <- tolower(fs::path_ext(path))
 
   sep <- case_when(
@@ -635,48 +756,55 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   )
   if (is.na(sep)) cli::cli_abort(col_red("Data file type/extension not supported."))
 
-  d_mrmkit_raw <- readr::read_delim(path,
+  d_raw <- readr::read_delim(path,
                                     delim = sep, col_types = readr::cols(.default = "c"),
                                     col_names = TRUE, trim_ws = TRUE)
 
 
-  d_mrmkit_data <- d_mrmkit_raw |>
-  dplyr::select(
-    "raw_data_filename",
-    "acquisition_time_stamp" = "time_stamp",
-    "sample_type" = "sample_type",
-    "batch_id" = "batch",
-    "featurename" = "feature_name",
-    "istd_feature_id" = "internal_standard",
-    "feature_rt" = "rt_apex",
-    "feature_area" = "area",
-    #"feature_norm_intensity" = "area_normalized",
-    "feature_height" = "height",
-    "feature_fwhm" = "FWHM",
-    "feature_int_start" = "rt_int_start",
-    "feature_int_end" = "rt_int_end",
-    "method_polarity" = "polarity",
-    "method_precursor_mz" = "precursor_mz",
-    "method_product_mz" = "product_mz",
-    "method_collision_energy" = "collision_energy",
-  )
+  # d_mrmkit_data <- d_raw |>
+  # dplyr::select(
+  #   "analysis_id",
+  #   "acquisition_time_stamp" = "time_stamp",
+  #   "sample_type" = "sample_type",
+  #   "batch_id" = "batch",
+  #   "featurename" = "feature_name",
+  #   "istd_feature_id" = "internal_standard",
+  #   "feature_rt" = "rt",
+  #   "feature_area" = "area",
+  #   "feature_height" = "height",
+  #   #"feature_norm_intensity" = "norm_area",
+  #   "feature_height" = "height",
+  #   "feature_fwhm" = "FWHM",
+  #   "feature_int_start" = "int_start",
+  #   "feature_int_end" = "int_end",
+  #   "method_polarity" = "polarity",
+  #   "method_precursor_mz" = "precursor_mz",
+  #   "method_product_mz" = "product_mz",
+  #   "method_collision_energy" = "collision_energy",
+  # )
+
+  column_mapping_filt <- column_mapping[column_mapping %in% names(d_raw)]
+
+  d_raw <- d_raw %>%
+    rename(!!!column_mapping_filt)
+
 
   # extract and pivot to improve speed
-  d_sample <- d_mrmkit_data |>
+  d_sample <- d_raw |>
     dplyr::select("raw_data_filename", "acquisition_time_stamp", "batch_id") |>
     dplyr::distinct() |>
     dplyr::mutate(analysis_id = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
     dplyr::mutate(acquisition_time_stamp = lubridate::parse_date_time(.data$acquisition_time_stamp, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)) |>
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 
-  d_feature <- d_mrmkit_data |>
+  d_feature <- d_raw |>
     dplyr::select(c("featurename", "istd_feature_id")) |>
     distinct() |>
     mutate(feature_id = stringr::str_squish(.data$featurename),
            istd_feature_id = stringr::str_squish(.data$istd_feature_id))
 
   # finalize data
-  d_mrmkit_data <- d_mrmkit_data |>
+  d_raw_final <- d_raw |>
     dplyr::mutate(dplyr::across(starts_with("feature_"), as.numeric)) |>
     dplyr::mutate(dplyr::across(ends_with("_mz"), as.numeric)) |>
     dplyr::mutate(dplyr::across(ends_with("_energy"), as.numeric)) |>
@@ -692,13 +820,15 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
   #   d_mrmkit_data <- d_mrmkit_data |> select(-feature_norm_intensity)
   # }
 
-  d_mrmkit_data
+  d_raw_final
 
 }
 
 
 
-#' Reads a long CSV file with Feature Intensities
+#' Parses a plain wide CSV file
+#'
+#' Parses a CSV table with analysis/samples in rows, features values in columns.
 #'
 #' @param path path name and path of a plain long-format CSV file
 #' @param variable_name Name of the variable representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
@@ -718,7 +848,7 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #'
 #' head(tbl)
 #' @export
- parse_plain_csv <- function(path, variable_name, analysis_id_col = NA, import_metadata = TRUE, first_feature_column = NA, na_strings = "NA") {
+ parse_plain_wide_csv <- function(path, variable_name, analysis_id_col = NA, import_metadata = TRUE, first_feature_column = NA, na_strings = "NA") {
 
   if(fs::path_ext(path) != "csv") cli::cli_abort(col_red("Only csv files are currently supported."))
 
