@@ -293,7 +293,8 @@ plot_runsequence <- function(data = NULL,
 #' @param point_border_width Width of the data point borders.
 #' @param y_label_text Override the default y-axis label text.
 #' @param show_gridlines Whether to show major x and y gridlines.
-#' @param y_min Minimum y-axis value. Default is `0`. If `NA`, the minimum value is set automatically per facet based on the data
+#' @param y_min Lower y-axis value. Default is `0`. If `NA`, the minimum value is set automatically per facet based on the data
+#' @param y_max Upper y-axis value. Default is `NA`. If `NA`, the maximum value is set automatically per facet based on the data.
 #' @param log_scale Logical, whether to use a log10 scale for the y-axis.
 #'
 #' @param rows_page Number of rows per page.
@@ -356,6 +357,7 @@ plot_runscatter <- function(data = NULL,
 
                             # Plot customization
                             y_min = 0,
+                            y_max = NA,
                             log_scale = FALSE,
                             show_gridlines = FALSE,
                             point_size = 1.5,
@@ -563,7 +565,7 @@ plot_runscatter <- function(data = NULL,
       batch_line_color = batch_line_color, batch_fill_color =
         batch_fill_color, y_label = y_label, base_font_size = base_font_size,
       point_border_width = point_border_width, show_grid = show_gridlines,
-      y_min = y_min,
+      y_min = y_min, y_max = y_max,
       log_scale = log_scale, plot_range = plot_range,
       show_reference_lines = show_reference_lines, ref_qc_types = ref_qc_types, reference_k_sd = reference_k_sd,
       reference_batchwise = reference_batchwise, reference_line_color = reference_line_color, reference_sd_shade = reference_sd_shade, reference_fill_color = reference_fill_color,
@@ -594,7 +596,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                                 show_trend, cap_outliers,
                                 show_batches, batch_zebra_stripe, batch_line_color, batch_fill_color,
                                 output_pdf, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
-                                show_grid, y_min, log_scale, plot_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
+                                show_grid, y_min, y_max, log_scale, plot_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
                                 reference_linewidth, trend_color) {
   point_size <- ifelse(missing(point_size), 2, point_size)
   point_border_width <- dplyr::if_else(output_pdf, .3, .5)
@@ -791,7 +793,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     p <- p + scale_y_log10(expand = ggplot2::expansion(mult = c(0.02, 0.03)))
 
   } else{
-    p <- p + scale_y_continuous(limits = c(y_min, NA), expand = ggplot2::expansion(mult = c(0.02, 0.03))) +
+    p <- p + scale_y_continuous(limits = c(y_min, y_max), expand = ggplot2::expansion(mult = c(0.02, 0.03))) +
       ggplot2::expand_limits(y = 0)
 
   }
