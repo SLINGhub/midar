@@ -875,12 +875,13 @@ clean_analysis_metadata <- function(d_analyses) {
 
   names(d_analyses) <- tolower(names(d_analyses))
 
-  if(!all(c("analysis_id", "qc_type") %in% names(d_analyses))){
-    cli::cli_abort(cli::col_red("Analysis (Sample) metadata must have following columns: `analysis_id` and `qc_type`. Please verify the input data. "))
+  if(!all(c("analysis_id") %in% names(d_analyses))){
+    cli::cli_abort(cli::col_red("Analysis (Sample) metadata must have the `analysis_id` columnn. Please verify the input data. "))
   }
 
   # Fill missing columns
   d_analyses <- d_analyses |> add_missing_column(col_name = "analysis_order", init_value = NA_real_, make_lowercase = FALSE)
+  d_analyses <- d_analyses |> add_missing_column(col_name = "qc_type", init_value = NA_character_, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "batch_id", init_value = 1, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount", init_value = NA_real_, make_lowercase = FALSE)
   d_analyses <- d_analyses |> add_missing_column(col_name = "sample_amount_unit", init_value = NA_character_, make_lowercase = FALSE, all_na_replace = TRUE)
