@@ -37,6 +37,8 @@ plot_runscatter(
   reference_linewidth = 0.75,
   show_trend = FALSE,
   trend_color = "#22e06b",
+  y_min = 0,
+  y_max = NA,
   log_scale = FALSE,
   show_gridlines = FALSE,
   point_size = 1.5,
@@ -121,6 +123,10 @@ If \code{NA} (default), the color assigned to the qc_type is used.}
 \item{show_trend}{If \code{TRUE} trend curves before or after drift/batch correction are shown.}
 
 \item{trend_color}{Color of the trend curve.}
+
+\item{y_min}{Lower y-axis value. Default is \code{0}. If \code{NA}, the minimum value is set automatically per facet based on the data}
+
+\item{y_max}{Upper y-axis value. Default is \code{NA}. If \code{NA}, the maximum value is set automatically per facet based on the data.}
 
 \item{log_scale}{Logical, whether to use a log10 scale for the y-axis.}
 

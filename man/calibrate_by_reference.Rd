@@ -44,7 +44,8 @@ Calibration can be applied to the entire dataset using one or more reference sam
 or batch-wise using reference sample analyses present within each batch.
 For both approaches, multiple measurements of the same reference sample are
 summarized using either \code{mean} (default) or \code{median} (set by the \code{summarize_fun} argument).
-
+}
+\details{
 Calibration can be performed in two ways, either absolute, resulting in
 concentrations, or relative, resulting in ratios:
 \enumerate{

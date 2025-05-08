@@ -94,20 +94,21 @@
 <span class="r-in"><span><span class="va">tbl</span> <span class="op">&lt;-</span> <span class="fu">parse_mrmkit_result</span><span class="op">(</span>path <span class="op">=</span> <span class="va">file_path</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 18</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   analysis_id      raw_data_filename acquisition_time_stamp sample_type batch_id</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> Longit_BLANK-01… Longit_BLANK-01 … 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK        1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> Longit_B-ISTD 0… Longit_B-ISTD 01… 2017-10-20 <span style="color: #949494;">14:27:06</span>    PBLK        1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> Longit_Un-ISTD … Longit_Un-ISTD 0… 2017-10-20 <span style="color: #949494;">14:38:26</span>    UBLK        1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> Longit_LTR 01    Longit_LTR 01.mz… 2017-10-20 <span style="color: #949494;">14:49:48</span>    LTR         1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> Longit_TQC-10%   Longit_TQC-10%.m… 2017-10-20 <span style="color: #949494;">15:12:31</span>    TQC         1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> Longit_TQC-20%   Longit_TQC-20%.m… 2017-10-20 <span style="color: #949494;">15:23:51</span>    TQC         1       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 13 more variables: feature_id &lt;chr&gt;, istd_feature_id &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   integration_qualifier &lt;lgl&gt;, feature_rt &lt;dbl&gt;, feature_area &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 19</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   analysis_id          raw_data_filename acquisition_time_stamp qc_type batch_id</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> Longit_BLANK-01 (El… Longit_BLANK-01 … 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> Longit_B-ISTD 01 Ex… Longit_B-ISTD 01… 2017-10-20 <span style="color: #949494;">14:27:06</span>    PBLK    1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> Longit_Un-ISTD 01 U… Longit_Un-ISTD 0… 2017-10-20 <span style="color: #949494;">14:38:26</span>    UBLK    1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> Longit_LTR 01        Longit_LTR 01.mz… 2017-10-20 <span style="color: #949494;">14:49:48</span>    LTR     1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> Longit_TQC-10%       Longit_TQC-10%.m… 2017-10-20 <span style="color: #949494;">15:12:31</span>    TQC     1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> Longit_TQC-20%       Longit_TQC-20%.m… 2017-10-20 <span style="color: #949494;">15:23:51</span>    TQC     1       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 14 more variables: feature_id &lt;chr&gt;, istd_feature_id &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   integration_qualifier &lt;lgl&gt;, method_precursor_mz &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   method_product_mz &lt;dbl&gt;, method_collision_energy &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   method_polarity &lt;chr&gt;, feature_rt &lt;dbl&gt;, feature_area &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   feature_height &lt;dbl&gt;, feature_fwhm &lt;dbl&gt;, feature_int_start &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   feature_int_end &lt;dbl&gt;, method_polarity &lt;chr&gt;, method_precursor_mz &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   method_product_mz &lt;dbl&gt;, method_collision_energy &lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   feature_int_end &lt;dbl&gt;, feature_width &lt;dbl&gt;</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
