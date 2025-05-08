@@ -163,7 +163,9 @@ test_that("Prepare analysis metadata from given data file", {
   metadata <- clean_analysis_metadata(tbl)
   expect_in(c("batch_id", "replicate_no", "valid_analysis"), names(metadata))
   expect_equal(metadata[[1,"valid_analysis"]], TRUE)
-  expect_error(clean_analysis_metadata(tbl |> select(-"qc_type")), regexp = "must have following columns")
+  expect_error(clean_analysis_metadata(tbl |> select(-"analysis_id")),
+               regexp = "Analysis (Sample) metadata must have the `analysis_id` columnn",
+  fixed = TRUE)
 })
 
 test_that("Prepare feature metadata from given table imported from an XLSX sheet", {
