@@ -625,6 +625,7 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 
   if (nrow(data@annot_features) > 0) {
     data@dataset <- data@dataset |>
+      select(-any_of("feature_class")) |>
       inner_join(data@annot_features, by = "feature_id") |>
       filter(.data$valid_feature)
   }

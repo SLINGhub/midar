@@ -67,8 +67,11 @@
 <url><loc>https://slinghub.github.io/midar/reference/get_response_curve_stats.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_runtime_median.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_csv.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/import_data_csv_long.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/import_data_csv_wide.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_masshunter.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_data_mrmkit.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/import_data_skyline.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_analyses.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_features.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/import_metadata_from_data.html</loc></url>
@@ -83,7 +86,9 @@
 <url><loc>https://slinghub.github.io/midar/reference/order_chained_columns_tbl.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_masshunter_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_mrmkit_result.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/parse_plain_csv.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/parse_plain_long_csv.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/parse_plain_wide_csv.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/parse_skyline_result.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_calibrationcurves.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_normalization_qc.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_pca.html</loc></url>

@@ -91,10 +91,15 @@ reference:
   contents:
   - import_data_mrmkit
   - import_data_masshunter
-  - import_data_csv
+  - import_data_skyline
+  - import_data_csv_wide
+  - import_data_csv_long
   - parse_mrmkit_result
   - parse_masshunter_csv
-  - parse_plain_csv
+  - parse_skyline_result
+  - parse_plain_wide_csv
+  - parse_plain_long_csv
+  - import_data_csv
 - title: Metadata import
   description: |
     Functions to import metadata describing the analyses (samples), features (analytes), internal standards

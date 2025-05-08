@@ -227,7 +227,7 @@ mexp_quant_norm <- quantify_by_calibration(mexp_quant_norm,
 
   result <- get_calibration_metrics(mexp_quant_norm,
                                     with_lod = FALSE,
-                                    with_loq = FALSE,
+                                     with_loq = FALSE,
                                     with_bias = FALSE,
                                     with_coefficients = FALSE,
                                     with_sigma = FALSE)

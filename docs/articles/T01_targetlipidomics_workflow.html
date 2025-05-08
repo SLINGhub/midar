@@ -153,7 +153,7 @@ filter functionality.</p>
 </blockquote>
 </details><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">@</span><span class="va">dataset</span><span class="op">)</span> <span class="co"># Better use `get_rawdata(mexp, "original")`</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 250,997 × 19</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 250,997 × 20</span></span></span>
 <span><span class="co">#&gt;    analysis_order analysis_id  acquisition_time_stamp qc_type batch_id sample_id</span></span>
 <span><span class="co">#&gt;             <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>              1 Longit_BLAN… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
@@ -167,11 +167,11 @@ filter functionality.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>              1 Longit_BLAN… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>              1 Longit_BLAN… 2017-10-20 <span style="color: #949494;">14:15:36</span>    SBLK    1        <span style="color: #BB0000;">NA</span>       </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 250,987 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 13 more variables: replicate_no &lt;int&gt;, specimen &lt;chr&gt;, feature_id &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 14 more variables: replicate_no &lt;int&gt;, specimen &lt;chr&gt;, feature_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   feature_class &lt;chr&gt;, feature_label &lt;chr&gt;, is_istd &lt;lgl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   is_quantifier &lt;lgl&gt;, analyte_id &lt;chr&gt;, feature_rt &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   feature_area &lt;dbl&gt;, feature_height &lt;dbl&gt;, feature_fwhm &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   feature_intensity &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   feature_width &lt;dbl&gt;, feature_intensity &lt;dbl&gt;</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="analytical-design-and-timeline">3. Analytical design and timeline<a class="anchor" aria-label="anchor" href="#analytical-design-and-timeline"></a>

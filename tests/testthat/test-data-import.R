@@ -399,7 +399,7 @@ test_that("Imports MRMkit result file (long format) into a MidarExperiment", {
     import_metadata = TRUE,
   )
   d <- mexp@dataset
-  expect_equal(ncol(d), 19)
+  expect_equal(ncol(d), 20)
   expect_equal(nrow(d), 13972.0)
   expect_equal(d[[1, "feature_rt"]], 7.2950)
   expect_equal(d[[1, "feature_area"]], 3134.16360)
@@ -459,11 +459,11 @@ test_that("Handles import_data_mrmkit errors", {
 # Test parse_plain_csv
 
 test_that("Parses plain csv file with metadata with correct column names and autodetecting analysis_id", {
-  d <- parse_plain_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = TRUE)
+  d <- parse_plain_wide_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = TRUE)
   expect_identical(names(d), c("analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_equal(mean(d$feature_conc[d$batch_id == 1 & d$feature_id == "Analyte-1"]), 1004.61572)
 
-  d <- parse_plain_csv(test_path("testdata/plain_wide_nometadata.csv"), variable_name = "conc", import_metadata = TRUE)
+  d <- parse_plain_wide_csv(test_path("testdata/plain_wide_nometadata.csv"), variable_name = "conc", import_metadata = TRUE)
   expect_identical(names(d), c("analysis_id","feature_id","feature_conc", "integration_qualifier"))
 })
 
@@ -471,22 +471,22 @@ test_that("Parses plain csv file with metadata with correct column names and aut
 
 
 test_that("Returns error when parse_plain_csv imports other than csv", {
-  expect_error(parse_plain_csv(test_path("testdata/MRMkit_demo.tsv"), variable_name = "conc", import_metadata = FALSE),
+  expect_error(parse_plain_wide_csv(test_path("testdata/MRMkit_demo.tsv"), variable_name = "conc", import_metadata = FALSE),
                  regexp = "Only csv files are currently supported", fixed = TRUE)
 })
 
 test_that("Returns error when plain csv file with columns containing text is read, when import_metadata = FALSE", {
-  expect_message(parse_plain_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = FALSE),
+  expect_message(parse_plain_wide_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), variable_name = "conc", import_metadata = FALSE),
                  regexp = "Metadata column(s) 'qc_type, batch_id' found and ignored", fixed = TRUE)
 })
 
 test_that("Returns error when plain csv file with analysis_id_col set that does not exist", {
-  expect_error(parse_plain_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE),
+  expect_error(parse_plain_wide_csv(test_path("batch_effect-simdata-u1000-sd100_7batches.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE),
                regexp = "No column with the name `sample_id` found in the data file.", fixed = TRUE)
 })
 
 test_that("Returns error when plain csv file with analysis_id_col  = NA and no analysis_id col present", {
-  expect_error(parse_plain_csv(test_path("testdata/plain_wide_noanalysisid.csv"), variable_name = "conc", import_metadata = TRUE),
+  expect_error(parse_plain_wide_csv(test_path("testdata/plain_wide_noanalysisid.csv"), variable_name = "conc", import_metadata = TRUE),
                regexp = "Column `analysis_id` not found in imported data.", fixed = TRUE)
 })
 
@@ -494,7 +494,7 @@ test_that("Returns error when plain csv file with analysis_id_col  = NA and no a
 
 
 test_that("Parses plain csv file with metadata and defined analysis_id_col, with correct data types", {
-  d <- parse_plain_csv(test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE)
+  d <- parse_plain_wide_csv(test_path("batch_effect-simdata-diff_firstcol.csv"), analysis_id_col = "sample_id", variable_name = "conc", import_metadata = TRUE)
   expect_identical(names(d), c("analysis_id","qc_type","batch_id","feature_id","feature_conc", "integration_qualifier"))
   expect_identical(typeof(d$analysis_id), "character")
   expect_identical(typeof(d$batch_id), "character")
@@ -774,4 +774,154 @@ test_that("Imports plain csv file with metadata parsing the numbers to 'analysis
 })
 
 
+test_that("import_data_csv_long handels errors", {
+  path <- test_path("testdata/data_plain_long_1_no-analysisid.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_csv_long(data = mexp,
+                            path = path),
+    "Required `analysis_id` column is missing",
+    fixed = TRUE)
+
+  path <- test_path("testdata/data_plain_long_1_no-featureid.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_csv_long(data = mexp,
+                                 path = path),
+    "Required `feature_id` column is missing",
+    fixed = TRUE)
+
+  path <- test_path("testdata/data_plain_long_2.csv")
+  expect_message(
+    mexp <- import_data_csv_long(data = mexp,
+                                 path = path),
+    "Following unrecognized columns present in the data and were ignored",
+    fixed = TRUE)
+
+})
+
+test_that("import_data_csv_long works", {
+  path <- test_path("testdata/data_plain_long_1.csv")
+  mexp <- MidarExperiment()
+  expect_message(
+    mexp <- import_data_csv_long(data = mexp,
+                                 path = path, warn_unrecognized_columns = FALSE),
+    "Imported 499 analyses with 28 features",
+    fixed = TRUE)
+
+  col_map <- c(
+    "analysis_id" = "raw_data_filename",
+    "qc_type" = "qc_type",
+    "feature_id" = "feature_id",
+    "feature_class" = "feature_class",
+    "istd_feature_id" = "istd_feature_id",
+    "qc_type" = "qc_type",
+    "feature_rt" = "rt",
+    "feature_area" = "area"
+  )
+
+  expect_message(
+    mexp <- import_data_csv_long(data = mexp,
+                                 path = path,
+                                 column_mapping = col_map,
+                                 warn_unrecognized_columns = FALSE),
+    "Imported 499 analyses with 28 features",
+    fixed = TRUE)
+
+
+  expect_equal(mexp@dataset[[81,"feature_area"]], 3387892.3)
+  expect_equal(mexp@dataset[[81,"feature_class"]], NA_character_)
+  expect_equal(mexp@dataset[[81,"feature_id"]], "TG 48:1 d7 (ISTD) [SIM]")
+
+})
+
+
+test_that("Skyline long-format handles errors", {
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                 path = path, transition_id_columns = "none"),
+    "`Molecule Name` is not unique identifier for each transition.",
+    fixed = TRUE)
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1_noMoleculeName.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path, transition_id_columns = "none"),
+    "The `Molecule Name` column is missing in the data file",
+    fixed = TRUE)
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1_noReplicateName.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path, transition_id_columns = "none"),
+    "The `Replicate Name` column is missing in the data file",
+    fixed = TRUE)
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1_noMZ.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path, transition_id_columns = "mz"),
+    "`Precursor Mz` and/or `Product Mz` columns are missing or contain no/missing values",
+    fixed = TRUE)
+
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1_noNames.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path, transition_id_columns = "name"),
+    "`Precursor Name` and/or `Product Name` columns are missing or contain no/missing values",
+    fixed = TRUE)
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1_duplicateMz.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path, transition_id_columns = "mz"),
+    "Feature IDs are not unique even with precursor/product ion details added",
+    fixed = TRUE)
+
+
+  path <- test_path("testdata/data_plain_long_1_no-featureid.csv")
+  mexp <- MidarExperiment()
+  expect_error(
+    mexp <- import_data_csv_long(data = mexp,
+                                 path = path),
+    "Required `feature_id` column is missing",
+    fixed = TRUE)
+})
+
+test_that("import_data_skyline works", {
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1.csv")
+  mexp <- MidarExperiment()
+  expect_message(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path,
+                                transition_id_columns = "mz"),
+    "Imported 6 analyses with 21 features",
+    fixed = TRUE)
+
+  expect_equal(mexp@dataset[[81,"feature_area"]], 151509)
+  expect_equal(mexp@dataset[[81,"feature_class"]], "Steroids")
+  expect_equal(mexp@dataset[[81,"feature_id"]], "Aldosterone D4_365.2_319.2")
+
+  path <- test_path("testdata/Skyline_MoleculeTransitionResults_1.csv")
+  mexp <- MidarExperiment()
+  expect_message(
+    mexp <- import_data_skyline(data = mexp,
+                                path = path,
+                                transition_id_columns = "name"),
+    "Imported 6 analyses with 21 features",
+    fixed = TRUE)
+
+  expect_equal(mexp@dataset[[81,"feature_area"]], 151509)
+  expect_equal(mexp@dataset[[81,"feature_class"]], "Steroids")
+  expect_equal(mexp@dataset[[81,"feature_id"]], "Aldosterone D4_365_319")
+
+})
 

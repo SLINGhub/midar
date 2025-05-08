@@ -2,7 +2,7 @@
 % Please edit documentation in R/data-import.R
 \name{import_data_csv}
 \alias{import_data_csv}
-\title{Import Analysis Results from Plain CSV Files}
+\title{(Depreciated) Import Wide CSV Files}
 \usage{
 import_data_csv(
   data = NULL,
@@ -34,32 +34,10 @@ Only following metadata column names are supported: "qc_type", "batch_id", "is_q
 MidarExperiment object
 }
 \description{
-Import Analysis Results from Plain CSV Files
+(Depreciated) Import Wide CSV Files
 }
 \details{
-This function imports analysis result data from .csv files in wide format,
-where each row represents a sample and each column signifies a feature.
-
-The dataset must have an analysis identifier, either in an "analysis_id"
-column or inferred from the first column if it contains unique values. The
-\code{variable_name} argument specifies the data type in the table: "area",
-"height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
-"rt", or "fwhm".
-
-Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
-"is_quantifier", "is_istd", can be imported if present.
-
-WHen there are other columns that not represent features, use the \code{first_feature_column} parameter
-to define where feature columns start.
-
-When a directory path is specified, the function processes all .csv files in
-that directory, merging them into a single dataset. This is useful for
-datasets divided into multiple files during preprocessing. Ensure each
-feature and raw data file pair appears only once to avoid duplication
-errors.
-
-The \code{na_strings} parameter allows specifying strings to be interpreted as NA,
-ensuring the dataset is clean for analysis.
+This function is deprecated. Please use \code{\link[=import_data_csv_wide]{import_data_csv_wide()}} instead.
 }
 \examples{
 file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")

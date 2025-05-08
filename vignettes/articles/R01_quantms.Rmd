@@ -35,7 +35,7 @@ metadata. This also required that `sample_id` and `analyte_id` is
 defined for the corresponding analyses in the analysis, and for the
 features in the feature metadata tables, respectively.
 
-![](images/qcconc.jpg){width="588"}
+![Quality control concentration plot](images/qcconc.jpg){width="588"}
 
 
 So, we first import the data and metadata from a MassHunter CSV file and an MsOrganiser template file. 
@@ -98,6 +98,8 @@ mexp <- calc_calibration_results(
 We also can output a summary of the calibration curve results:
 
 ```{r, fig.height=3, fig.width=7}
+#| fig.alt: >
+#|   Calibration plots
 tbl_cal <- get_calibration_metrics(mexp)
 tbl_cal
 ```

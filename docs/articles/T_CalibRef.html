@@ -105,7 +105,7 @@ plasma). Normalization (relative calibration) is based on calculating
 the abundance ratios of features in samples and a reference sample.</p>
 <p>Below, we will demonstrate both absolute and relative calibration
 using NIST SRM1950 plasma samples that were measured as part of the same
-analysis.</p>
+analysis..</p>
 <div class="section level2">
 <h2 id="import-data-and-metata">Import data and metata,<a class="anchor" aria-label="anchor" href="#import-data-and-metata"></a>
 </h2>
@@ -287,7 +287,8 @@ R_\text{ratio}^\text{Analyte} = \frac{c_\text{measured}^\text{Analyte}}{c_\text{
 <span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span>
 <span>    absolute_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span>
-<span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span></span>
+<span>    undefined_conc_action <span class="op">=</span> <span class="st">"na"</span>,</span>
+<span>    store_conc_ratio <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. `NA` will be returned for these features. To change this, modify `undefined_conc_action` argument.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were re-calibrated using the reference sample SRM1950.</span></span></span>
@@ -1265,7 +1266,6 @@ of 1.</p>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_sd">conc_sd</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="cv_intra">cv_intra</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="bias">bias</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="conc_ratio">conc_ratio</th>
     </tr></thead>
 <tbody class="gt_table_body">
 <tr>
@@ -1278,7 +1278,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.016</td>
 <td headers="cv_intra" class="gt_row gt_right">14.771</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 <tr>
 <td headers="feature_id" class="gt_row gt_left">S1P d17:1 [M&gt;60]</td>
@@ -1290,7 +1289,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.001</td>
 <td headers="cv_intra" class="gt_row gt_right">3.550</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 <tr>
 <td headers="feature_id" class="gt_row gt_left">S1P d18:0 [M&gt;60]</td>
@@ -1302,7 +1300,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.001</td>
 <td headers="cv_intra" class="gt_row gt_right">0.995</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 <tr>
 <td headers="feature_id" class="gt_row gt_left">S1P d18:1 [M&gt;60]</td>
@@ -1314,7 +1311,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.000</td>
 <td headers="cv_intra" class="gt_row gt_right">0.040</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 <tr>
 <td headers="feature_id" class="gt_row gt_left">S1P d18:2 [M&gt;60]</td>
@@ -1326,7 +1322,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.004</td>
 <td headers="cv_intra" class="gt_row gt_right">1.460</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 <tr>
 <td headers="feature_id" class="gt_row gt_left">S1P d19:1 [M&gt;60]</td>
@@ -1338,7 +1333,6 @@ of 1.</p>
 <td headers="conc_sd" class="gt_row gt_right">0.002</td>
 <td headers="cv_intra" class="gt_row gt_right">9.713</td>
 <td headers="bias" class="gt_row gt_right">0.000</td>
-<td headers="conc_ratio" class="gt_row gt_right">1.000</td>
 </tr>
 </tbody>
 </table>
