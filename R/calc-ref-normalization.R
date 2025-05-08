@@ -7,6 +7,7 @@
 #' For both approaches, multiple measurements of the same reference sample are
 #' summarized using either `mean` (default) or `median` (set by the `summarize_fun` argument).
 #'
+#' @details
 #' Calibration can be performed in two ways, either absolute, resulting in
 #' concentrations, or relative, resulting in ratios:
 #'
