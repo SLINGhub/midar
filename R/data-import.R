@@ -58,6 +58,79 @@ import_data_masshunter <- function(data = NULL,
 
 }
 
+#' @title Import Skyline Peak Integration Results
+#'
+#' @description
+#' This function imports tabular data files (*.csv) exported from `Skyline`,
+#' containing peak integration results.
+#'
+#' @details
+#' In Skyline, transitions are defined by
+#' the `Molecule Name` and corresponding precursor and product m/z values,
+#' rather than any identifier. When importing this data, the `feature_id` is
+#' generated using the `Molecule Name` with either precursor/product names or
+#' m/z values, unless `Molecule Name` uniquely identifies the features (refer to
+#' the `transition_id_columns` argument below).
+#'
+#' The following supported columns from Skyline can be imported:
+#'
+#' | Skyline Column Name    | MiDAR Column Name      | Required  |
+#' |------------------------|------------------------|-----------|
+#' | `Replicate Name`       | `analysis_id`          | Yes       |
+#' | `Molecule List Name`   | `feature_class`        | No        |
+#' | `Molecule Name`        | `feature_id`           | Yes       |
+#' | `Precursor Name`       | `feature_id`           | Yes*      |
+#' | `Product Name`         | `feature_id`           | Yes*      |
+#' | `Precursor Mz`         | `method_precursor_mz`  | Yes*      |
+#' | `Product Mz`           | `method_product_mz`    | Yes*      |
+#' | `Area`                 | `feature_area`         | Yes       |
+#' | `Retention Time`       | `feature_rt`           | No        |
+#'
+#' *Requirements for these columns are described in `transition_id_columns`.
+#'
+#' To export results from Skyline, use the 'Molecule Transition Results' format
+#' and include `Replicate Name`, `Molecule Name`, and either
+#' `Precursor Mz`/`Product Mz` or `Precursor Name`/`Product Name` columns.
+#' At least one feature variable, such as `Area` or `RT`, must also be exported.
+#'
+#' @param data A `MidarExperiment` object.
+#' @param path One or more file paths, or a directory path from which all
+#' matching files will be imported.
+#' @param transition_id_columns A character vector specifying the columns that
+#' define the transition (precursor and product) to use for unique `feature_id`
+#' generation. Options are "name", "mz", or "none". If "none", `feature_id` is
+#' derived from `Molecule Name` and `Precursor Name` or `Product Name`. If "mz",
+#' `feature_id` is based on `Precursor Mz` and `Product Mz`. Using "none" will
+#' result in `feature_id` being a copy of `Molecule Name`, with an error raised
+#' if it is not unique for each transition.
+#' @param import_metadata Logical; whether to import additional metadata columns
+#' (e.g., precursor/product m/z values).
+#' @param silent Logical; whether to suppress most notifications.
+#' @return A `MidarExperiment` object containing the imported data.
+#' @examples
+#' mexp <- MidarExperiment()
+#' file_path <- system.file("extdata", "Skyline_MoleculeTransitionResults.csv", package = "midar")
+#' mexp <- import_data_skyline(
+#'   data = mexp,
+#'   path = file_path,
+#'   transition_id_columns = "mz",
+#'   import_metadata = TRUE
+#' )
+#' print(mexp)
+#' @export
+import_data_skyline <- function(data = NULL, path,
+                                transition_id_columns = c("name", "mz", "none"),
+                                import_metadata = TRUE, silent = FALSE) {
+  check_data(data)
+  rlang::arg_match(transition_id_columns, c("name", "mz", "none"))
+  data <- import_data_main(data = data, path = path, import_function = "parse_skyline_result", file_ext = "*.tsv|*.csv", silent = FALSE, transition_id_columns = transition_id_columns)
+  data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
+
+  if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "sample_type")
+  data
+}
+
+
 #' @title Import MRMkit peak integration results
 #' @description
 #' Imports tabular data files (*.tsv) generated from `MRMkit` containing peak
@@ -98,36 +171,14 @@ import_data_mrmkit <- function(data = NULL, path, import_metadata = TRUE, silent
   data <- import_data_main(data = data, path = path, import_function = "parse_mrmkit_result", file_ext = "*.tsv|*.csv", silent = FALSE)
   data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = TRUE, "feature_area", "feature_height")
 
-  if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "sample_type")
+  if (import_metadata) data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
   data
 }
 
-#' Import Analysis Results from Plain CSV Files
+#' (Depreciated) Import Wide CSV Files
 #' @details
-#' This function imports analysis result data from .csv files in wide format,
-#' where each row represents a sample and each column signifies a feature.
-#'
-#' The dataset must have an analysis identifier, either in an "analysis_id"
-#' column or inferred from the first column if it contains unique values. The
-#' `variable_name` argument specifies the data type in the table: "area",
-#' "height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
-#' "rt", or "fwhm".
-#'
-#' Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
-#' "is_quantifier", "is_istd", can be imported if present.
-#'
-#' WHen there are other columns that not represent features, use the `first_feature_column` parameter
-#' to define where feature columns start.
-#'
-#' When a directory path is specified, the function processes all .csv files in
-#' that directory, merging them into a single dataset. This is useful for
-#' datasets divided into multiple files during preprocessing. Ensure each
-#' feature and raw data file pair appears only once to avoid duplication
-#' errors.
-#'
-#'
-#' The `na_strings` parameter allows specifying strings to be interpreted as NA,
-#' ensuring the dataset is clean for analysis.
+#' This function is deprecated. Please use [import_data_csv_wide()] instead.
+
 #'
 #' @param data MidarExperiment object
 #' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
@@ -155,86 +206,81 @@ import_data_mrmkit <- function(data = NULL, path, import_metadata = TRUE, silent
 #' @export
 
 import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata  = TRUE, first_feature_column = NA, na_strings = "NA") {
-  check_data(data)
-  data <- import_data_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata, first_feature_column)
-  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
-
-  if (import_metadata)
-    data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
-  else{
-    #set_analysis_order_analysismetadata(data, order_by = "default")
-    data <- link_data_metadata(data)
-  }
-
-  data
+  cli::cli_alert_warning(col_yellow("The function import_data_csv is deprecated. Please use import_data_csv_wide instead."))
+  import_data_csv_wide(data = data, path = path, variable_name = variable_name, analysis_id_col = analysis_id_col, import_metadata = import_metadata, first_feature_column = first_feature_column, na_strings = na_strings)
 }
 
-
-#' Import Analysis Results from Plain Long-Format CSV Files
+#' Import Analysis Results from Plain Wide-Format CSV Files
+#'
+#' @description
+#' Imports analysis result data from wide-format `.csv` files, where each row corresponds
+#' to a unique analysis-feature pair and columns contain analysis- or feature-specific variables.
 #'
 #' @details
-#' This function imports analysis result data from long-format `.csv` files,
-#' where each row represents a unique analysis-feature pair, and columns contain
-#' analysis- or feature-specific variables.
-#'
 #' The dataset must include two identifier columns: `"analysis_id"` and `"feature_id"`,
-#' where each pair of values must be unique across the table. Additionally, the table
-#' must contain at least one feature variable column, such as `"area"`, `"height"`,
-#' `"intensity"`, `"norm_intensity"`, `"response"`, `"conc"`, `"rt"`, or `"fwhm"`.
-#' Some downstream functions may require specific columns among these to be present.
-
+#' with each pair of values unique across the table. Additionally, the table must contain
+#' at least one feature variable column, such as `"area"`, `"height"`, `"intensity"`,
+#' `"norm_intensity"`, `"response"`, `"conc"`, `"rt"`, or `"fwhm"`. Some downstream
+#' functions may require specific columns among these to be present.
 #'
+#' The `variable_name` argument specifies the data type represented in the table, which
+#' must be one of: `"area"`, `"height"`, `"intensity"`, `"norm_intensity"`, `"response"`,
+#' `"conc"`, `"conc_raw"`, `"rt"`, or `"fwhm"`.
 #'
+#' If there is no column named `analysis_id`, it will be inferred from the first column,
+#' provided it contains unique values.
 #'
-#' column or inferred from the first column if it contains unique values. The
-#' `variable_name` argument specifies the data type in the table: "area",
-#' "height", "intensity", "norm_intensity", "response", "conc", "conc_raw",
-#' "rt", or "fwhm".
+#' When `import_metadata` is set to `TRUE`, the following metadata columns will be imported
+#' if present:
+#' \itemize{
+#'   \item \code{analysis_order}
+#'   \item \code{qc_type}
+#'   \item \code{batch_id}
+#'   \item \code{is_quantifier}
+#' }
 #'
-#' Specific metadata columns, i.e., "analysis_order", "qc_type", "batch_id",
-#' "is_quantifier", "is_istd", can be imported if present.
+#' To prevent additional non-metadata columns from being misinterpreted as features,
+#' use the `first_feature_column` parameter to specify the column where feature data starts.
 #'
-#' WHen there are other columns that not represent features, use the `first_feature_column` parameter
-#' to define where feature columns start.
+#' If a directory path is provided to `path`, all `.csv` files in that directory will be
+#' processed and merged into a single dataset. This facilitates handling datasets split
+#' into multiple files during preprocessing. Ensure each feature and raw data file pair
+#' appears only once to avoid duplication errors.
 #'
-#' When a directory path is specified, the function processes all .csv files in
-#' that directory, merging them into a single dataset. This is useful for
-#' datasets divided into multiple files during preprocessing. Ensure each
-#' feature and raw data file pair appears only once to avoid duplication
-#' errors.
+#' The `na_strings` parameter allows specifying character strings to be interpreted as
+#' missing values (NA). Blank fields are also treated as missing.
 #'
+#' @param data A \code{MidarExperiment} object.
+#' @param path A file path or vector of file paths, or a directory path. If a directory is
+#'   provided, all `.csv` files within it will be read.
+#' @param variable_name A character string specifying the variable type contained in the
+#'   data. Must be one of `"intensity"`, `"norm_intensity"`, `"conc"`, `"area"`, `"height"`, or `"response"`.
+#' @param analysis_id_col The column name or index to be used as `analysis_id`. Defaults to `NA`,
+#'   in which case `"analysis_id"` is used if present; otherwise, the first column is used if it contains unique values.
+#' @param import_metadata Logical indicating whether to import additional metadata columns
+#'   (e.g., batch ID, sample type) into the `MidarExperiment` object. Supported metadata columns are:
+#'   `"qc_type"`, `"batch_id"`, `"is_quantifier"`, `"is_istd"`, and `"analysis_order"`.
+#' @param first_feature_column Integer indicating the column number where feature value columns start.
+#' @param na_strings Character vector of strings to interpret as NA values. Blank fields are also treated as NA.
 #'
-#' The `na_strings` parameter allows specifying strings to be interpreted as NA,
-#' ensuring the dataset is clean for analysis.
+#' @return A \code{MidarExperiment} object containing the imported dataset.
 #'
-#' @param data MidarExperiment object
-#' @param path One or more file names with path, or a folder path, which case all *.csv files in this folder will be read.
-#' @param variable_name Variable type representing the values in the table. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response")
-#' @param analysis_id_col Column to be used as analysis_id. `NA` (default) used 'analysis_id' if present, or the first column if it contains unique values.
-#' @param import_metadata Import additional metadata columns (e.g. batch ID, sample type) and add to the `MidarExperiment` object.
-#' Only following metadata column names are supported: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order"
-#' @param first_feature_column Column number of the first column representing the feature values
-#' @param na_strings A character vector of strings which are to be interpreted as NA values. Blank fields are also considered to be missing values.
-# #' @param silent Su ppress notifications
-#' @return MidarExperiment object
 #' @examples
 #' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
-#'
 #' mexp <- MidarExperiment()
-#'
-#' mexp <- import_data_csv(
+#' mexp <- import_data_csv_wide(
 #'   data = mexp,
 #'   path = file_path,
-#'  variable_name = "conc",
-#'  import_metadata = TRUE)
-#'
+#'   variable_name = "conc",
+#'   import_metadata = TRUE
+#' )
 #' print(mexp)
 #'
 #' @export
 
-import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata  = TRUE, first_feature_column = NA, na_strings = "NA") {
+import_data_csv_wide <- function(data = NULL, path, variable_name, analysis_id_col = NA, import_metadata  = TRUE, first_feature_column = NA, na_strings = "NA") {
   check_data(data)
-  data <- import_data_main(data = data, path = path, import_function = "parse_plain_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata, first_feature_column)
+  data <- import_data_main(data = data, path = path, import_function = "parse_plain_wide_csv", file_ext = "*.csv", silent = FALSE, variable_name = variable_name, analysis_id_col = analysis_id_col, import_metadata = import_metadata, first_feature_column =first_feature_column, na_strings = na_strings)
   data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
 
   if (import_metadata)
@@ -248,51 +294,113 @@ import_data_csv <- function(data = NULL, path, variable_name, analysis_id_col = 
 }
 
 #' Import Analysis Results from Long Format CSV Files
+#'
+#' @description
+#' This function imports analysis results from CSV files in long table format,
+#' where each row represents a unique observation of a feature-value pair for
+#' an analysis (sample), along with associated feature variables and other
+#' metadata. See "Details" below for more information on using this function.
+#'
 #' @details
-#' This function imports analysis result data from .csv files in long format,
-#' where each row represents a unique observation of a feature-value pair for a sample,
-#' along with additional feature variables and other information.
+#' When no column mapping is provided via the `column_mapping` argument, the
+#' function will automatically detect and import columns with the following
+#' names:
 #'
-#' The dataset must contain an analysis identifier, either explicitly in an "analysis_id"
-#' column or inferred from another column containing unique values. The `intensity_var`
-#' parameter identifies the specific feature variable should be used as `feature_intensity` if one of  is present in the data.
+#' | CSV Column Name      | MiDAR Internal Name   | Required  |
+#' |----------------------|-----------------------|-----------|
+#' | `analysis_id`        | `analysis_id`         | Yes       |
+#' | `feature_id`         | `feature_id`          | Yes       |
+#' | `qc_type`            | `qc_type`             | No        |
+#' | `sample_id`          | `sample_id`           | No        |
+#' | `batch_id`           | `batch_id`            | No        |
+#' | `istd_feature_id`    | `istd_feature_id`     | No        |
+#' | `feature_class`      | `feature_class`       | No        |
+#' | `analyte_id`         | `analyte_id`          | No        |
+#' | `precursor_mz`       | `method_precursor_mz` | No        |
+#' | `product_mz`         | `method_product_mz`   | No        |
+#' | `area`               | `feature_area`        | No        |
+#' | `height`             | `feature_height`      | No        |
+#' | `intensity`          | `feature_intensity`   | No        |
+#' | `rt`                 | `feature_rt`          | No        |
+#' | `fwhm`               | `feature_fwhm`        | No        |
+#' | `width`              | `feature_width`       | No        |
 #'
-#' Following feature variables will be imported if available: "area", "height", "intensity", "norm_intensity", "response", "conc", "rt", or "fwhm".
-#' Following metadata columns can also be imported: "analysis_order", "qc_type", "batch_id", "is_quantifier", and "is_istd",if available.
+#' Detection of these columns is case-insensitive. Additionally, if feature
+#' variable columns use the internal naming convention with prefixes
+#' "feature_" or "method_" (e.g. `feature_area` instead of `area`), the
+#' function will detect and import them automatically.
 #'
-#' The function processes all .csv files in the specified directory path, combining them into a single dataset.
-#' This is useful for datasets split across multiple files during preprocessing. Each feature and raw data file pair
-#' should appear only once to avoid duplication errors.
+#' To import data with different column names, provide a named vector mapping
+#' CSV column names to the internal column names used by `MidarExperiment`.
+#' The mapping should be in the format:
+#' `c("analysis_id" = "[CSV column name for analysis]", "feature_id" = "[CSV
+#' column name for feature]", ...)`, where the right-hand side refers to the
+#' exact column name in the CSV file header. Columns matching internal names
+#' do not require mapping and will be imported automatically. The mapping is
+#' case-insensitive.
 #'
-#' The `na_strings` parameter allows specification of strings to be interpreted as NA,
-#' ensuring the dataset is clean for analysis.
+#' Note that the dataset must contain an analysis identifier, either as an
+#' `analysis_id` column or via a mapped column.
 #'
-#' @param data MidarExperiment object
-#' @param path One or more file names with paths, or a directory path, in which case all *.csv files in this folder will be read.
-#' @param variable_name Character string indicating the type of variable representing feature values. Must be one of "intensity", "norm_intensity", "conc", "area", "height", "response".
-#' @param analysis_id_col Column name to be used as `analysis_id`. If `NA` (default), it uses 'analysis_id' if present, or another unique column.
-#' @param import_metadata Logical indicating whether to import additional metadata columns (e.g., batch ID, sample type) into the `MidarExperiment` object. Supported metadata column names: "qc_type", "batch_id", "is_quantifier", "is_istd", "analysis_order".
-#' @param na_strings A character vector of strings to be interpreted as NA values. Blank fields are also considered to be missing values.
-#' @return MidarExperiment object
+#' The function processes all CSV files in the specified directory or the
+#' given file(s), combining them into a single dataset. This supports datasets
+#' split across multiple files during preprocessing. Each feature and raw data
+#' file pair should appear only once to avoid duplication.
+#'
+#' The `na_strings` parameter allows specifying character strings that should
+#' be interpreted as `NA`, ensuring proper handling of missing values.
+#'
+#' @param data A `MidarExperiment` object to which the imported data will be
+#'   added.
+#' @param path A single file path, multiple file paths, or a directory path. If
+#'   a directory is provided, all `*.csv` files within will be imported.
+#' @param column_mapping A named character vector mapping internal column names
+#'   to CSV column names. Should include keys such as `"analysis_id"`,
+#'   `"feature_id"`, and feature variable names. If `NULL` (default), the
+#'   function attempts automatic detection.
+#' @param import_metadata Logical indicating whether to import additional
+#'   metadata columns (e.g., batch ID, sample type) into the
+#'   `MidarExperiment` object. Supported metadata column names include
+#'   `"qc_type"`, `"batch_id"`, `"is_quantifier"`, `"is_istd"`, and
+#'   `"analysis_order"`.
+#' @param na_strings Character vector of strings to interpret as missing values
+#'   (`NA`). Blank fields are always treated as missing.
+#' @param warn_unrecognized_columns Logical indicating whether to issue a
+#'   warning when unknown columns are encountered in the dataset.
+#' @param silent Logical indicating whether to suppress most notifications and
+#'   messages.
+#' @return A `MidarExperiment` object containing the imported data.
+#'
 #' @examples
-#' file_path <- system.file("extdata", "long_format_dataset.csv", package = "midar")
-#'
+#' file_path <- system.file("extdata", "plain_long_dataset.csv", package = "midar")
 #' mexp <- MidarExperiment()
 #'
-#' mexp <- import_data_longformat(
+#' # Define the column mapping; right side is the CSV column name
+#' col_map <- c(
+#'   "analysis_id" = "raw_data_filename",
+#'   "qc_type" = "qc_type",
+#'   "feature_id" = "feature_id",
+#'   "feature_class" = "feature_class",
+#'   "istd_feature_id" = "istd_feature_id",
+#'   "feature_rt" = "rt",
+#'   "feature_area" = "area"
+#' )
+#'
+#' mexp <- import_data_csv_long(
 #'   data = mexp,
 #'   path = file_path,
-#'   variable_name = "conc",
-#'   import_metadata = TRUE)
+#'   column_mapping = col_map,
+#'   import_metadata = TRUE
+#' )
 #'
 #' print(mexp)
 #'
 #' @export
 
-import_data_longformat <- function(data = NULL, path, intensity_var, analysis_id_col = NA, import_metadata = TRUE, na_strings = "NA") {
+import_data_csv_long <- function(data = NULL, path, import_metadata = TRUE, column_mapping = NULL, na_strings = "NA", warn_unrecognized_columns = TRUE, silent = FALSE) {
   check_data(data)
-  data <- import_data_main(data = data, path = path, import_function = "parse_long_csv", file_ext = "*.csv", silent = FALSE, variable_name, analysis_id_col, import_metadata)
-  data <- set_intensity_var(data, variable_name = paste0("feature_", str_remove(variable_name, "feature_")), auto_select = FALSE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
+  data <- import_data_main(data = data, path = path, import_function = "parse_plain_long_csv", file_ext = "*.csv", silent = silent, column_mapping = column_mapping, na_strings = na_strings, warn_unrecognized_columns = warn_unrecognized_columns)
+  data <- set_intensity_var(data, variable_name = NULL, auto_select = TRUE, warnings = FALSE, "feature_area", "feature_height", "feature_conc")
 
   if (import_metadata)
     data <- import_metadata_from_data(data, qc_type_column_name = "qc_type")
@@ -304,7 +412,7 @@ import_data_longformat <- function(data = NULL, path, intensity_var, analysis_id
 }
 
 
-import_data_main <- function(data = NULL, path, import_function, file_ext, silent, ...) {
+import_data_main <- function(data = NULL, path, import_function, file_ext, na_strings, silent, ...) {
   check_data(data)
   if (all(!fs::is_dir(path))) {
     file_paths <- fs::path_tidy(path)
@@ -319,7 +427,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
   args <- list(...)
 
   d_raw <- file_paths |>
-    purrr::map_dfr(.f = \(x) do.call(what = import_function, append(x, args)), .id = "data_source") |>
+    purrr::map_dfr(.f = \(x) do.call(what = import_function, args = append(x, args)), .id = "data_source") |>
     relocate("analysis_id", "data_source")
 
 
@@ -347,7 +455,7 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, silen
 
     n_idvalpairs_distinct <- d_raw |>
       select("analysis_order", "analysis_id", "feature_id",
-        any_of(c("method_precursor_mz", "method_product_mz", "method_collision_energy", "method_polarity", "method_conc_expected",
+        any_of(c("method_precursor_mz", "method_product_mz", "feature_class", "method_collision_energy", "method_polarity", "method_conc_expected",
           "feature_area", "feature_rt", "feature_fwhm", "feature_intensity", "feature_height", "feature_conc", "feauture_norm_intensity"))) |>
       distinct(.keep_all = FALSE) |>
       nrow()
@@ -686,6 +794,50 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 }
 
 
+#' Parses skyline peak integration results into a tibble
+#'
+#' @param path File name of the MRMkit result file (*.tsv or *.csv)
+# #' @param use_normalized_data Import raw peak areas or normalized peak areas from the file
+#' @param na_strings A character vector of strings to be interpreted as NA values.
+#' @param silent No comments printed
+#' @param ... Additional arguments passed to the function. Currently only `transition_id_columns`, which is used for
+#' Skyline-like data files. The column mapped to `feature_id` will be appended with following info: if  `transition_id_columns = "name"`, the function will use the `method_precursor_name` and `method_product_name` columns to create unique feature IDs.
+#' If `transition_id_columns = "mz"`, the function will use the `method_precursor_mz` and `method_product_mz` columns to create unique feature IDs.
+
+#' @return A tibble in the long format
+#' @examples
+#'
+#' file_path = system.file("extdata", "MRMkit_demo.tsv", package = "midar")
+#'
+#' tbl <- parse_mrmkit_result(path = file_path)
+#'
+#' head(tbl)
+#' @export
+
+# TODO: remove support for norm intensity
+parse_skyline_result <- function(path, na_strings, silent = FALSE, ...) {
+
+
+  col_map <- c(
+    "analysis_id"= "Replicate Name",
+    "feature_id" = "Molecule Name",
+    "feature_class" = "Molecule List Name",
+    "feature_rt" = "Retention Time",
+    "feature_area" = "Area",
+    "method_precursor_name" = "Precursor Name",
+    "method_product_name" = "Product Name",
+    "method_precursor_mz" = "Precursor Mz",
+    "method_product_mz" = "Product Mz"
+  )
+
+  parse_plain_long_csv(path = path,
+                       na_strings  = na_strings,
+                       silent = silent,
+                       column_mapping = col_map,
+                       warn_unrecognized_columns = FALSE,
+                       ...)
+}
+
 #' Parses MRMkit peak integration results into a tibble
 #'
 #' @param path File name of the MRMkit result file (*.tsv or *.csv)
@@ -705,17 +857,18 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
 parse_mrmkit_result <- function(path, silent = FALSE) {
 
   col_map <- c(
-       "raw_data_filename"= "raw_data_filename",
+      "raw_data_filename"= "raw_data_filename",
       "acquisition_time_stamp" = "time_stamp",
-      "sample_type" = "sample_type",
+      "qc_type" = "sample_type",
       "batch_id" = "batch",
-      "featurename" = "feature_name",
+      "feature_id" = "feature_name",
       "istd_feature_id" = "internal_standard",
       "feature_rt" = "rt_apex",
       "feature_area" = "area",
       #"feature_norm_intensity" = "area_normalized",
       "feature_height" = "height",
       "feature_fwhm" = "FWHM",
+      #"feature_width" = "width",
       "feature_int_start" = "rt_int_start",
       "feature_int_end" = "rt_int_end",
       "method_polarity" = "polarity",
@@ -724,9 +877,14 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
       "method_collision_energy" = "collision_energy"
     )
 
-  parse_plain_long_csv(path = path,
+  d_raw <- parse_plain_long_csv(path = path,
                        column_mapping = col_map,
+                       warn_unrecognized_columns = FALSE,
                        silent = silent)
+
+  d_raw <- d_raw |> mutate(feature_width = .data$feature_int_end - .data$feature_int_start)
+
+  d_raw
 }
 
 
@@ -736,19 +894,29 @@ parse_mrmkit_result <- function(path, silent = FALSE) {
 #' columns representing the feature variables.
 #'
 #' @param path File name (*.tsv or *.csv)
+#' @param na_strings A character vector of strings to be interpreted as NA values.
+#' Blank fields are also considered to be missing values.
+#' @param column_mapping A named character vector with the mapping of the columns in the input file to the columns in the output table.
+#' If NULL (default), the function will use the default mapping. See [import_data_csv_long()] for details.
+#' @param warn_unrecognized_columns Logical indicating whether to issue a warning for unknown columns in the dataset.
+#' @param ... Additional arguments passed to the function. Currently only `transition_id_columns`, which is used for
+#' Skyline-like data files. The column mapped to `feature_id` will be appended with following info: if  `transition_id_columns = "name"`, the function will use the `method_precursor_name` and `method_product_name` columns to create unique feature IDs.
+#' If `transition_id_columns = "mz"`, the function will use the `method_precursor_mz` and `method_product_mz` columns to create unique feature IDs.
 #' @param silent No comments printed
 #' @return A tibble in the long format
 #' @examples
 #'
-#' file_path = system.file("extdata", "plain_long.tsv", package = "midar")
+#' file_path = system.file("extdata", "plain_long_dataset.csv", package = "midar")
 #'
 #' tbl <- parse_plain_long_csv(path = file_path)
 #'
 #' head(tbl)
 #' @export
-parse_plain_long_csv <- function(path, column_mapping = NULL, silent = FALSE) {
-  ext_file <- tolower(fs::path_ext(path))
+parse_plain_long_csv <- function(path, na_strings = "NA", silent = FALSE, column_mapping = NULL, warn_unrecognized_columns = TRUE, ...) {
 
+  args <- list(...)
+
+  ext_file <- tolower(fs::path_ext(path))
   sep <- case_when(
     ext_file == "csv" ~ ",",
     ext_file == "tsv" ~ "\t",
@@ -760,60 +928,212 @@ parse_plain_long_csv <- function(path, column_mapping = NULL, silent = FALSE) {
                                     delim = sep, col_types = readr::cols(.default = "c"),
                                     col_names = TRUE, trim_ws = TRUE)
 
+  d_raw <- d_raw |> dplyr::rename_with(tolower)
 
-  # d_mrmkit_data <- d_raw |>
-  # dplyr::select(
-  #   "analysis_id",
-  #   "acquisition_time_stamp" = "time_stamp",
-  #   "sample_type" = "sample_type",
-  #   "batch_id" = "batch",
-  #   "featurename" = "feature_name",
-  #   "istd_feature_id" = "internal_standard",
-  #   "feature_rt" = "rt",
-  #   "feature_area" = "area",
-  #   "feature_height" = "height",
-  #   #"feature_norm_intensity" = "norm_area",
-  #   "feature_height" = "height",
-  #   "feature_fwhm" = "FWHM",
-  #   "feature_int_start" = "int_start",
-  #   "feature_int_end" = "int_end",
-  #   "method_polarity" = "polarity",
-  #   "method_precursor_mz" = "precursor_mz",
-  #   "method_product_mz" = "product_mz",
-  #   "method_collision_energy" = "collision_energy",
-  # )
+
+  if(is.null(column_mapping)){
+    column_mapping <- c(
+      "analysis_id" = "analysis_id",
+      "raw_data_filename" = "raw_data_filename",
+      "acquisition_time_stamp" = "time_stamp",
+      "qc_type" = "qc_type",
+      "batch_id" = "batch_id",
+      "feature_id" = "feature_id",
+      "feature_class" = "feature_class",
+      "istd_feature_id" = "istd_feature_id",
+      "qc_type" = "qc_type",
+      "feature_rt" = "rt",
+      "feature_area" = "area",
+      "feature_height" = "height",
+      "feature_norm_intensity" = "norm_area",
+      "feature_height" = "height",
+      "feature_fwhm" = "fwhm",
+      "feature_width" = "width",
+      "feature_int_start" = "int_start",
+      "feature_int_end" = "int_end",
+      "method_polarity" = "polarity",
+      "method_precursor_mz" = "precursor_mz",
+      "method_product_mz" = "product_mz",
+      "method_collision_energy" = "collision_energy"
+    )
+
+    d_raw <- d_raw |>
+      dplyr::rename_with(
+        .fn = ~ ifelse(
+          str_detect(., "_id|_class|_name"),
+          .,
+          str_replace_all(., "^(method_|feature_)", "")
+        )
+      )
+  }
+  column_mapping <- tolower(column_mapping)
+  names(column_mapping) <- tolower(names(column_mapping))
 
   column_mapping_filt <- column_mapping[column_mapping %in% names(d_raw)]
-
-  d_raw <- d_raw %>%
+  d_raw <- d_raw |>
     rename(!!!column_mapping_filt)
 
 
+  # -------- SKYLINE-Like format -----
+  #Check if input is of Skyline format (analysis id defined by molecule name and ion names/mz)
+  # TODO: A bit of a workaround... needs to be shifted, wrapped in a separate function called here
+  if ("transition_id_columns" %in% names(args)){
+
+    if(!"analysis_id" %in% names(d_raw) ){
+      cli_abort(col_red("The `Replicate Name` column is missing in the data file. Please ensure it is included in the Skyline export."))
+    }
+
+    if(!"feature_id" %in% names(d_raw) ){
+      cli_abort(col_red("The `Molecule Name` column is missing in the data file. Please ensure it is included in the Skyline export."))
+    }
+
+    if (args$transition_id_columns == "name") {
+      if("method_precursor_name" %in% names(d_raw) &&
+         "method_product_name" %in% names(d_raw) &&
+         !any(is.na(d_raw$method_precursor_name)) &&
+         !any(is.na(d_raw$method_product_name))){
+        d_raw <- d_raw |>
+          unite("feature_id", c("feature_id", "method_precursor_name", "method_product_name"), sep = "_", remove = FALSE)
+      } else {
+        cli_abort(col_red(
+          "`Precursor Name` and/or `Product Name` columns are missing or contain no/missing values. Ensure these are included in the Skyline export, or modify `transition_id_columns` argument"
+        ))
+      }
+    } else if (args$transition_id_columns == "mz") {
+      if("method_precursor_mz" %in% names(d_raw) &&
+         "method_product_mz" %in% names(d_raw) &&
+         !any(is.na(d_raw$method_precursor_mz)) &&
+         !any(is.na(d_raw$method_product_mz)))
+         {
+        d_raw <- d_raw |>
+          unite("feature_id", c("feature_id", "method_precursor_mz", "method_product_mz"), sep = "_", remove = FALSE)
+    } else {
+      cli_abort(col_red(
+        "`Precursor Mz` and/or `Product Mz` columns are missing or contain no/missing values. Ensure these are included in the Skyline export, or modify `transition_id_columns` argument"
+      ))
+      }
+    } else if (args$transition_id_columns == "none") {
+      # Do nothing, as Molecule Name was mapped to feature_id
+    }
+
+    # Check for duplicate feature IDs
+    duplicate_rows <- d_raw |>
+      group_by(.data$feature_id, .data$analysis_id) |>
+      filter(n() > 1)
+
+    if (nrow(duplicate_rows) > 0) {
+      if(args$transition_id_columns == "none")
+        cli::cli_abort(col_red("`Molecule Name` is not unique identifier for each transition. To generate unique feature IDs, please set the `transition_id_columns` argument to either `name` or `mz`."))
+      else
+        cli::cli_abort(col_red("Feature IDs are not unique even with precursor/product ion details added. Please check Precursor/Product Name/Mz columns in the data file."))
+    }
+  }
+  # ---
+
+
+
+  # Conditionally add 'analysis_id' if not present but raw_data_filename exists
+  if ("raw_data_filename" %in% names(d_raw) && !("analysis_id" %in% names(d_raw))) {
+    d_raw <- d_raw |> dplyr::mutate(analysis_id = .data$raw_data_filename)
+  }
+
+
+  # Check required IDs
+  missing_ids <- setdiff("analysis_id", names(d_raw))
+  if (length(missing_ids) > 0) {
+    cli::cli_abort(col_red("Required `analysis_id` column is missing. Please map column names via the `column_mapping` argument or verify data file."))
+  }
+
+  d_raw <- d_raw |>
+    dplyr::mutate(
+      analysis_id = stringr::str_remove(
+        .data$analysis_id,
+        stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE)
+      )
+    )
+
+  # 2. Check for unmapped columns
+
+  unmapped <- setdiff(names(d_raw), c("analysis_id", names(column_mapping)))
+  if (length(unmapped) > 0) {
+    if(warn_unrecognized_columns){
+      cli::cli_alert_warning(col_yellow("Following unrecognized columns present in the data and were ignored: {.val {unmapped}}."))
+      cli::cli_alert_warning(col_yellow("Use argument `column_mapping` to define column mapping."))
+    }
+    d_raw <- d_raw |> select(-!!unmapped)
+  }
+
+
+
+  # 3. Check for presence of at least one quant/intensity column
+  intensity_cols <- c(
+    "feature_rt", "feature_area", "feature_norm_intensity", "feature_conc", "feature_intensity", "feature_response",
+    "feature_height", "feature_fwhm", "feature_width", "feature_symmetry", "feature_int_start", "feature_int_end"
+  )
+  if (!any(intensity_cols %in% names(d_raw))) {
+    cli::cli_abort("No feature variable column found. PLease column mapping via `column_mapping` and data source")
+  }
+
   # extract and pivot to improve speed
   d_sample <- d_raw |>
-    dplyr::select("raw_data_filename", "acquisition_time_stamp", "batch_id") |>
-    dplyr::distinct() |>
-    dplyr::mutate(analysis_id = stringr::str_remove(.data$raw_data_filename, stringr::regex("\\.mzML$|\\.d$|\\.raw$|\\.wiff$|\\.wiff2$|\\.lcd$", ignore_case = TRUE))) |>
-    dplyr::mutate(acquisition_time_stamp = lubridate::parse_date_time(.data$acquisition_time_stamp, c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM", "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p", "%y-%m-%d %H:%M:%S"), quiet=TRUE)) |>
+    dplyr::select(any_of(c("analysis_id", "raw_data_filename", "qc_type", "acquisition_time_stamp", "batch_id"))) |>
+    dplyr::distinct()
+
+
+  # Conditionally parse acquisition_time_stamp if it exists
+  if ("acquisition_time_stamp" %in% names(d_sample)) {
+    d_sample <- d_sample |>
+      dplyr::mutate(
+        acquisition_time_stamp = lubridate::parse_date_time(
+          .data$acquisition_time_stamp,
+          c("mdy_HM", "dmy_HM", "ymd_HM", "ydm_HM",
+            "mdy_HM %p", "dmy_HM %p", "ymd_HM %p", "ydm_HM %p",
+            "%y-%m-%d %H:%M:%S"),
+          quiet = TRUE
+        )
+      )
+  }
+
+
+
+  missing_ids <- setdiff("feature_id", names(d_raw))
+  if (length(missing_ids) > 0) {
+    cli::cli_abort(col_red("Required `feature_id` column is missing. Please map column names via the `column_mapping` argument or verify data file."))
+  }
+
+  # Always squish all character columns that exist
+  d_sample <- d_sample |>
     dplyr::mutate(dplyr::across(where(is.character), stringr::str_squish))
 
   d_feature <- d_raw |>
-    dplyr::select(c("featurename", "istd_feature_id")) |>
-    distinct() |>
-    mutate(feature_id = stringr::str_squish(.data$featurename),
-           istd_feature_id = stringr::str_squish(.data$istd_feature_id))
+    dplyr::select(any_of(c("feature_id", "feature_class", "istd_feature_id"))) |>
+    dplyr::distinct() |>
+    dplyr::mutate(
+      dplyr::across(
+        any_of(c("feature_id", "istd_feature_id")),
+        ~ stringr::str_squish(as.character(.))
+      )
+    )
+
 
   # finalize data
+
+
+
   d_raw_final <- d_raw |>
-    dplyr::mutate(dplyr::across(starts_with("feature_"), as.numeric)) |>
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::starts_with("feature_") & !dplyr::matches(c("_name", "_id", "_class")),
+        as.numeric
+      )
+    ) |>
     dplyr::mutate(dplyr::across(ends_with("_mz"), as.numeric)) |>
     dplyr::mutate(dplyr::across(ends_with("_energy"), as.numeric)) |>
     dplyr::mutate(integration_qualifier = FALSE) |>
-    dplyr::select(-c("acquisition_time_stamp",  "istd_feature_id", "batch_id")) |>
-    left_join(d_sample, by = "raw_data_filename") |>
-    left_join(d_feature, by = "featurename", keep = FALSE) |>
-    dplyr::select(-"featurename") |>
-    relocate("analysis_id", "raw_data_filename", "acquisition_time_stamp", "sample_type", "batch_id", "feature_id", "istd_feature_id", "integration_qualifier")
+    dplyr::select(-any_of(c("acquisition_time_stamp",  "raw_data_filename", "qc_type", "feature_class", "istd_feature_id", "batch_id"))) |>
+    left_join(d_sample, by = "analysis_id") |>
+    left_join(d_feature, by = "feature_id", keep = FALSE) |>
+    relocate(any_of(c("analysis_id", "raw_data_filename", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "istd_feature_id","feature_class", "integration_qualifier")))
 
   # if (!use_normalized_data) {
   #   #d_mrmkit_data <- d_mrmkit_data |> mutate(feature_norm_intensity = NA_real_)
@@ -840,7 +1160,7 @@ parse_plain_long_csv <- function(path, column_mapping = NULL, silent = FALSE) {
 #' @examples
 #' file_path <- system.file("extdata", "plain_wide_dataset.csv", package = "midar")
 #'
-#' tbl <- parse_plain_csv(
+#' tbl <- parse_plain_wide_csv(
 #'  path = file_path,
 #'  variable_name = "conc",
 #'  analysis_id_col = "analysis_id",
@@ -859,6 +1179,8 @@ parse_plain_long_csv <- function(path, column_mapping = NULL, silent = FALSE) {
 
 
   d <- readr::read_csv(path, col_names = TRUE, trim_ws = TRUE, locale = readr::locale(encoding = "UTF-8"), col_types = "?", na = na_strings, progress = FALSE, name_repair = "minimal")
+
+
 
   if (!is.null(analysis_id_col) & !is.na(analysis_id_col)){
     # a column name was provided as analysis_id
