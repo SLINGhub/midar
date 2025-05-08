@@ -119,7 +119,7 @@ plot_pca <- function(data = NULL,
 
   check_data(data)
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm", "width", "symmetry"))
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)

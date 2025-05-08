@@ -311,7 +311,7 @@ plot_runsequence <- function(data = NULL,
 plot_runscatter <- function(data = NULL,
                             variable = c(
                               "intensity", "norm_intensity", "conc",
-                              "rt", "area", "height", "fwhm",
+                              "rt", "area", "height", "fwhm", "width", "symmetry",
                               "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"
                             ),
                             # Data and filtering arguments
@@ -391,7 +391,7 @@ plot_runscatter <- function(data = NULL,
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
                                "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "response",
-                               "conc", "conc_raw", "conc_before", "rt", "fwhm"))
+                               "conc", "conc_raw", "conc_before", "rt", "fwhm", "width", "symmetry"))
   variable <- stringr::str_c("feature_", variable)
   variable_sym = rlang::sym(variable)
 
@@ -883,7 +883,7 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 plot_rla_boxplot <- function(
                                 data = NULL,
                                 rla_type_batch = c("within", "across"),
-                                variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm"),
+                                variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm", "width"),
                                 filter_data = FALSE,
                                 qc_types = NA,
 
@@ -915,7 +915,7 @@ plot_rla_boxplot <- function(
 
 
   # Check if selected variable is valid
-  rlang::arg_match(variable, c("intensity", "norm_intensity", "conc", "intensity_raw","norm_intensity_raw", "conc_raw", "area", "height", "rt", "fwhm", "response"))
+  rlang::arg_match(variable, c("intensity", "norm_intensity", "conc", "intensity_raw","norm_intensity_raw", "conc_raw", "area", "height", "rt", "fwhm", "response", "width", "symmetry"))
   variable <- str_remove(variable, "feature_")
   variable <- stringr::str_c("feature_", variable)
 

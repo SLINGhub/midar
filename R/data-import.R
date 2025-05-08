@@ -694,7 +694,7 @@ parse_masshunter_csv <- function(path, expand_qualifier_names = TRUE, silent = F
     "feature_sn_ratio" = "Results_SN",
     "feature_int_start" = "Results_IntStart",
     "feature_int_end" = "Results_IntEnd",
-    "feature_symetry" = "Results_Symmetry",
+    "feature_symmetry" = "Results_Symmetry",
     "feature_istd_responseratio" = "Results_ISTD Resp. Ratio",
     "method_target_rt" = "Method_RT",
     "method_conc_expected" = "Method_ExpConc",

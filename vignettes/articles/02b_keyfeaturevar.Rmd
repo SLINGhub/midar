@@ -167,7 +167,7 @@ will be extended in upcoming versions.
 +-------------------+-----------------------+--------------------------------+
 | int_end           | feature_int_end       | Peak Integration End Time      |
 +-------------------+-----------------------+--------------------------------+
-| symetry           | feature_symetry       | Peak symetry                   |
+| symmetry           | feature_symmetry       | Peak symmetry                   |
 +-------------------+-----------------------+--------------------------------+
 | sn_ratio          | feature_sn_ratio      | Signal-to-Noise ratio          |
 +-------------------+-----------------------+--------------------------------+

@@ -23,7 +23,7 @@ test_that("Parses nested Agilent MH-Quant .csv file with diverse peak variables"
 
   expect_identical(names(d), c(
     "analysis_id", "file_analysis_order", "raw_data_filename", "sample_name", "sample_type", "sample_level", "acquisition_time_stamp", "feature_id", "integration_qualifier", "feature_rt", "feature_area",
-    "feature_fwhm", "feature_height", "feature_int_start", "feature_int_end", "feature_sn_ratio", "feature_symetry", "feature_width", "feature_manual_integration"
+    "feature_fwhm", "feature_height", "feature_int_start", "feature_int_end", "feature_sn_ratio", "feature_symmetry", "feature_width", "feature_manual_integration"
   ))
   expect_equal(nrow(d), 1040)
   expect_equal(mean(d$feature_area, na.rm = TRUE), 17237.244)
