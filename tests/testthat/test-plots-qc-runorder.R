@@ -746,6 +746,20 @@ expect_error(
   "No data available"
 )
 
+
+
+  expect_error(
+    p <- plot_runscatter(
+      data = mexp,
+      variable = "intensity",
+      rows_page = 3,
+      cols_page = 4,
+      return_plots = TRUE,
+      y_min = "NO"
+    ),
+    "`y_min` must be a numeric value or", fixed = TRUE
+  )
+
   expect_error(
     p <- plot_runscatter(
       data = mexp,
