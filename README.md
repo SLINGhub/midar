@@ -37,8 +37,8 @@ Please visit the [Getting Started](https://slinghub.github.io/midar/articles/00_
 #  Installation
 To install, or to update, MiDAR, run the following code in the R console:
 ``` r
-if (!require("pak")) install.packages("pak")
-pak::pkg_install("SLINGhub/midar")
+if (!require("remotes")) install.packages("remotes")
+remotes::install_github("SLINGhub/midar")
 ```
 
 #  Example Workflow
