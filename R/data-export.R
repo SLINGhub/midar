@@ -162,7 +162,7 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", norm
     qc_metrics <- data@metrics_qc
 
   if(nrow(data@metrics_calibration) == 0)
-    metrics_calibration <- tibble(tibble("Calibration metrics has not been calculated." = NA)) |> tibble::add_row()
+    metrics_calibration <- tibble(tibble("Calibration metrics have not been calculated." = NA)) |> tibble::add_row()
   else
     metrics_calibration <- data@metrics_calibration
 
