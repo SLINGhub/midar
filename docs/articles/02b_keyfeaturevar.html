@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Feature Variables in MiDAR • midar</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -272,82 +271,97 @@ and are not being modified by any MiDAR function. They are typically not
 available in MiDAR’s data processing functions, but plotting functions
 support some of these. The support will be extended in upcoming
 versions.</p>
-<table style="width:99%;" class="table">
+<table style="width:98%;" class="table">
 <colgroup>
-<col width="25%">
-<col width="30%">
-<col width="42%">
+<col width="24%">
+<col width="29%">
+<col width="40%">
+<col width="3%">
 </colgroup>
-<thead><tr class="header">
-<th>Variable Short Name</th>
-<th>Internal Name</th>
-<th>Description</th>
-</tr></thead>
 <tbody>
 <tr class="odd">
-<td>area</td>
-<td>feature_area</td>
-<td>Peak area</td>
+<td rowspan="2">Variable Short Name =================== area</td>
+<td rowspan="2">
+<p>Internal Name</p>
+<p>======================= feature_area</p>
+</td>
+<td rowspan="2">
+<p>Description</p>
+<p>================================ Peak area</p>
+</td>
+<td></td>
 </tr>
 <tr class="even">
+<td></td>
+</tr>
+<tr class="odd">
 <td>height</td>
 <td>height_height</td>
 <td>Peak height</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>response</td>
 <td>height_response</td>
 <td>Feature response (vendor specific)</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>intensity</td>
 <td>feature_intensity</td>
 <td>Feature intensity (vendor specific)</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>rt</td>
 <td>feature_rt</td>
 <td>Retention time</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>fwhm</td>
 <td>feature_fwhm</td>
 <td>Full Width at Half Maximum Peak Height</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>width</td>
 <td>feature_width</td>
 <td>Peak Width</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>int_start</td>
 <td>feature_int_start</td>
 <td>Peak integration Start Time</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>int_end</td>
 <td>feature_int_end</td>
 <td>Peak Integration End Time</td>
-</tr>
-<tr class="even">
-<td>symetry</td>
-<td>feature_symetry</td>
-<td>Peak symetry</td>
+<td></td>
 </tr>
 <tr class="odd">
+<td colspan="4">symmetry | feature_symmetry | Peak symmetry</td>
+</tr>
+<tr class="even">
 <td>sn_ratio</td>
 <td>feature_sn_ratio</td>
 <td>Signal-to-Noise ratio</td>
+<td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>accuracy</td>
 <td>feature_accuracy</td>
 <td>Accuracy (often in reference to target value)</td>
+<td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>ionratio</td>
 <td>feature_ionratio</td>
 <td>Ion ratio</td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -367,7 +381,7 @@ comparison of different QC types across various visualizations.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

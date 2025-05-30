@@ -36,7 +36,7 @@ plot_pca(
 \item{data}{A MidarExperiment object}
 
 \item{variable}{A character string indicating the variable to use for PCA
-analysis. Must be one of: "area", "height", "intensity", "response",
+analysis. Must be one of: "area", "height", "intensity", "norm_intensity", "response",
 "conc", "conc_raw", "rt", "fwhm".}
 
 \item{qc_types}{A character vector specifying the QC types to plot. It

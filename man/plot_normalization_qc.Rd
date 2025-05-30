@@ -79,7 +79,7 @@ The function preselects the corresponding variables from the QC metrics and uses
 calculation of the QC metrics table via \code{\link[=calc_qc_metrics]{calc_qc_metrics()}} or
 \code{\link[=filter_features_qc]{filter_features_qc()}}, see examples below.
 \item When \code{facet_by_class = TRUE}, then the \code{feature_class} must be defined in the
-metadata or retrieved via specific functions, e.g., \code{\link[=get_lipid_class_names]{get_lipid_class_names()}}.
+metadata or retrieved via specific functions, e.g., \code{\link[=parse_lipid_feature_names]{parse_lipid_feature_names()}}.
 }
 }
 \examples{

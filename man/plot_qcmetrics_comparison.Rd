@@ -73,7 +73,7 @@ across feature classes. A list of available QC metrics is available from the
 Please refer to the help page of \code{\link[=calc_qc_metrics]{calc_qc_metrics()}} for more information on
 the available QC metric variables.
 \item When \code{facet_by_class = TRUE}, then the \code{feature_class} must be defined in the
-metadata or retrieved via specific functions, e.g., \code{\link[=get_lipid_class_names]{get_lipid_class_names()}}.
+metadata or retrieved via specific functions, e.g., \code{\link[=parse_lipid_feature_names]{parse_lipid_feature_names()}}.
 }
 }
 \examples{

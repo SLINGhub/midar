@@ -8,7 +8,7 @@ plot_rla_boxplot(
   data = NULL,
   rla_type_batch = c("within", "across"),
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
-    "fwhm"),
+    "fwhm", "width"),
   filter_data = FALSE,
   qc_types = NA,
   include_qualifier = TRUE,

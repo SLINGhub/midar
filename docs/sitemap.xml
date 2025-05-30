@@ -61,7 +61,6 @@
 <url><loc>https://slinghub.github.io/midar/reference/get_calibration_metrics.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_feature_count.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_featurelist.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/get_lipid_class_names.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_mad_tails.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_qc_bias_variability.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_response_curve_stats.html</loc></url>
@@ -84,6 +83,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/midar-package.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/normalize_by_istd.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/order_chained_columns_tbl.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/parse_lipid_feature_names.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_masshunter_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_mrmkit_result.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_plain_long_csv.html</loc></url>
@@ -97,6 +97,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/plot_qcmetrics_comparison.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_responsecurves.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_rla_boxplot.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_rt_vs_chain.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_runscatter.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_runsequence.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/quant_lcms_dataset.html</loc></url>

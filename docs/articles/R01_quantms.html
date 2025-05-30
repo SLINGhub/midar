@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Quantitative assay with Ext. calibration and QC • midar</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -111,7 +110,7 @@ calibrator and QC samples must be defined in the
 corresponding analyses in the analysis, and for the features in the
 feature metadata tables, respectively.</p>
 <div class="float">
-<img src="images%2Fqcconc.jpg" width="588" alt="Quality control concentration plot"><div class="figcaption">Quality control concentration plot</div>
+<img src="images/qcconc.jpg" width="588" alt="Quality control concentration plot"><div class="figcaption">Quality control concentration plot</div>
 </div>
 <p>So, we first import the data and metadata from a MassHunter CSV file
 and an MsOrganiser template file. The datasets used in this example can
@@ -127,7 +126,7 @@ be obtained from <a href="https://github.com/SLINGhub/midar/tree/main/data-raw" 
 <span>  data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"QuantLCMS_Example_MassHunter.csv"</span>,</span>
 <span>  import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.83PB/s</span>                                                                              </span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.41PB/s</span>                                                                              </span></span>
 <span></span>
 <span><span class="co"># Import metadata from an msorganiser template fie</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span></span>
@@ -228,7 +227,7 @@ shown below. The final concentration data is saved to a CSV file.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

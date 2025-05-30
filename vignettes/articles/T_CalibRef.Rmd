@@ -19,6 +19,7 @@ knitr::opts_chunk$set(
   comment = "#>")
 
 library(tidyverse)
+library(gt)
 ```
 
 Feature abundances in samples can also be calibrated to corresponding
