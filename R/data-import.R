@@ -431,6 +431,9 @@ import_data_main <- function(data = NULL, path, import_function, file_ext, na_st
     relocate("analysis_id", "data_source")
 
 
+  d_raw$analysis_id <- str_squish(as.character(d_raw$analysis_id))
+  d_raw$feature_id <- str_squish(as.character(d_raw$feature_id))
+
   if(!"analysis_order" %in% names(d_raw)) {
     d_runorder <- d_raw |>
       select("analysis_id") |>
