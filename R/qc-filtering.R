@@ -146,7 +146,12 @@ calc_qc_metrics <- function(
 
   # If the analysis type is lipidomics, extract lipid class names
    # TODO: remove later when fixed
-  if (!is.na(data@analysis_type) && tolower(data@analysis_type) == "lipidomics") data <- get_lipid_class_names(data)
+  if (!is.na(data@analysis_type) && tolower(data@analysis_type) == "lipidomics")
+    data@dataset <- parse_lipid_feature_names(data@dataset,
+                                 add_chain_composition = FALSE,
+                                 use_as_feature_class = "lipid_class_lcb",
+                                 add_transition_names = FALSE
+                                 )
 
   # Select relevant feature information from the dataset
   d_feature_info <- data@annot_features |>
