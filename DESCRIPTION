@@ -45,6 +45,7 @@ Suggests:
     ggrepel,
     covr,
     lancer,
+    rgoslin,
     knitr,
     ComplexHeatmap,
     ggExtra,
@@ -91,6 +92,7 @@ Collate:
     'plots-eda.R'
     'plots-qc-cv.R'
     'plots-qc-filtering.R'
+    'plots-qc-identification.R'
     'plots-qc-pca.R'
     'plots-qc-responsecurves.R'
     'plots-qc-runorder.R'
