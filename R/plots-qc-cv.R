@@ -43,7 +43,7 @@
 #' [filter_features_qc()], see examples below.
 #'
 #' - When `facet_by_class = TRUE`, then the `feature_class` must be defined in the
-#'   metadata or retrieved via specific functions, e.g., [get_lipid_class_names()].
+#'   metadata or retrieved via specific functions, e.g., [parse_lipid_feature_names()].
 #'
 #' @seealso
 #' [plot_qcmetrics_comparison()], [calc_qc_metrics()], [filter_features_qc()],
@@ -171,7 +171,7 @@ plot_normalization_qc <- function(data = NULL,
 #' the available QC metric variables.
 #'
 #' - When `facet_by_class = TRUE`, then the `feature_class` must be defined in the
-#'   metadata or retrieved via specific functions, e.g., [get_lipid_class_names()].
+#'   metadata or retrieved via specific functions, e.g., [parse_lipid_feature_names()].
 #'
 #' @seealso
 #' [calc_qc_metrics()], [filter_features_qc()], [plot_normalization_qc()], [normalize_by_istd()]
