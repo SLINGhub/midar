@@ -8,7 +8,7 @@
 #' @param data A MidarExperiment object
 #'
 #' @param variable A character string indicating the variable to use for PCA
-#' analysis. Must be one of: "area", "height", "intensity", "response",
+#' analysis. Must be one of: "area", "height", "intensity", "norm_intensity", "response",
 #' "conc", "conc_raw", "rt", "fwhm".
 #' @param qc_types A character vector specifying the QC types to plot. It
 #' must contain at least one element. The default is `NA`, which means any
@@ -119,7 +119,7 @@ plot_pca <- function(data = NULL,
 
   check_data(data)
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "response", "conc", "conc_raw", "rt", "fwhm", "width", "symmetry"))
+  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt", "fwhm", "width", "symmetry"))
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
@@ -298,13 +298,24 @@ plot_pca <- function(data = NULL,
         values = ellipse_fillcolor,
         drop = TRUE) +
       ggplot2::guides(
-        fill =  if (ellipse_fill) ggplot2::guide_legend(title = ellipse_variable) else "none",
+        fill = if (ellipse_fill) {
+          ggplot2::guide_legend(
+            title = ellipse_variable,
+            override.aes = list(size = 1)
+          )
+        } else {
+          "none"
+        },
         color = ggplot2::guide_legend(
           title = ellipse_variable,
           override.aes = list(
-          size = 5,
-          alpha = if (ellipse_fill) ellipse_alpha else 0.0))
-    )
+            size = 1,
+            alpha = if (ellipse_fill) ellipse_alpha else 0.0
+          )
+        )
+      )
+
+
   }
 
   p <- p +

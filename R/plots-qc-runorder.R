@@ -94,14 +94,14 @@ plot_runsequence <- function(data = NULL,
       panel.grid.minor.x = element_line(colour = "grey90", linetype = "dotted",
                                         linewidth = 0.25),
       panel.border = element_rect(linewidth = 1),
-      axis.title = element_text(face = "bold", size = base_font_size *0.8),
+      axis.title = element_text(face = "bold", size = base_font_size),
       axis.text.x = element_text(face = "plain", size = base_font_size),
-      axis.text.y = element_text(face = "bold", size = base_font_size),
+      axis.text.y = element_text(face = "plain", size = base_font_size),
       axis.text.y.right = element_text(face = "plain", size = base_font_size),
       axis.ticks.y.right = element_blank(),
       axis.title.y.right = element_text(angle = 0, vjust = 0.5, size = base_font_size ),
       axis.ticks.x = element_line(colour = "grey80", linetype = "dotted", linewidth = 0.5),
-      plot.margin = unit(c(1, 5, 1, 1), "lines"),
+      plot.margin = unit(c(1, 1, 1, 1), "mm"),
       legend.position = if (single_row) "right" else "none"  # Show legend if single_row
     )
 
@@ -179,7 +179,8 @@ plot_runsequence <- function(data = NULL,
 
     title_text <- if(data@title == "") "A" else glue::glue("{data@title} - A" )
 
-    p <- p + labs(title = glue::glue("{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)}) - median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min - interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
+    p <- p + labs(title = glue::glue("{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)})
+                                     Median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min - interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
   }
 
   # Color mapping
@@ -363,7 +364,7 @@ plot_runscatter <- function(data = NULL,
                             point_size = 1.5,
                             point_transparency = 1,
                             point_border_width = 1,
-                            base_font_size = 11,
+                            base_font_size = 10,
 
                             # Layout settings
                             rows_page = 3,
@@ -778,9 +779,9 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   p <- p +
     ggh4x::facet_wrap2(ggplot2::vars(.data$feature_id), scales = "free_y", ncol = cols_page, nrow = rows_page, trim_blank = FALSE) +
-    ggplot2::scale_color_manual(values = qc_types_color, drop = TRUE, na.value = "yellow") +
-    ggplot2::scale_fill_manual(values = qc_types_fill, drop = TRUE, na.value = "yellow") +
-    ggplot2::scale_shape_manual(values = qc_types_shape, drop = TRUE, na.value = 4)
+    ggplot2::scale_color_manual(name = NULL, values = qc_types_color, drop = TRUE, na.value = "yellow") +
+    ggplot2::scale_fill_manual(name = NULL, values = qc_types_fill, drop = TRUE, na.value = "yellow") +
+    ggplot2::scale_shape_manual(name = NULL, values = qc_types_shape, drop = TRUE, na.value = 4)
 
 
 
@@ -985,10 +986,10 @@ plot_rla_boxplot <- function(
 
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
   if(x_axis_variable != "analysis_order"){
-    labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 20)]
+    labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 10)]
     breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$analysis_order) |> unique()
   } else {
-    breaks <- scales::breaks_pretty(n = 20)(range(d_filt$analysis_order))
+    breaks <- scales::breaks_pretty(n = 10)(range(d_filt$analysis_order))
     labels = breaks
   }
   p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
@@ -1016,8 +1017,9 @@ plot_rla_boxplot <- function(
 
   p <- p +
     geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +
-    scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
-    scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col) +
+    scale_fill_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
+    scale_color_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
+    guides(color = guide_legend(name = NULL, override.aes = list(size = 3))) +
     theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(variable)))) +
     xlab("Analysis order") +
@@ -1029,7 +1031,13 @@ plot_rla_boxplot <- function(
       axis.text.y = element_text(size = base_font_size),
       axis.text.x = element_text(size = base_font_size, angle = x_text_angle, vjust = 0.5, hjust = x_text_just),
       axis.title = element_text(size = base_font_size * 1, face = "bold"),
-      panel.border = element_rect(linewidth = 1, color = "grey20")
+      panel.border = element_rect(linewidth = 1, color = "grey20"),
+      legend.position = "inside",
+      legend.direction = "horizontal",         # vertical layout
+      legend.text = element_text(size = base_font_size*0.8), # text size
+      legend.title = element_text(size = base_font_size*0.8),
+      legend.key.size = unit(base_font_size *0.8, "pt"),   # box size
+      legend.position.inside = c(0.6, 0.1)
     )
 
   if(x_gridlines)
