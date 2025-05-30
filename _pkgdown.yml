@@ -169,6 +169,7 @@ reference:
   - plot_runscatter
   - plot_rla_boxplot
   - plot_pca
+  - plot_rt_vs_chain
   - plot_normalization_qc
   - plot_qcmetrics_comparison
 - title: Response Curves
@@ -187,7 +188,7 @@ reference:
 - title: Lipidomics
   description: |
     Functions specific to lipidomics data processing and analysis.
-  contents: get_lipid_class_names
+  contents: parse_lipid_feature_names
 - title: Datasets
   description: |
     Example datasets for testing and demonstration.
