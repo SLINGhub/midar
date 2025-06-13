@@ -409,13 +409,14 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::verify(assertr::has_all_names("quant_istd_feature_id", "istd_conc_nmolar"), obligatory=TRUE, description = "DX;Column missing;ISTDs;quant_istd_feature_id", defect_fun = assertr::defect_append)
 
     ## Check data integrity =====
+    ### TODO: istd_conc_nmolar check, make optinal istd_conc_nmolar and istd_conc_ngml
     metadata$annot_istds  <- metadata$annot_istds  |>
       assertr::chain_start(store_success = FALSE) |>
-      assertr::assert(\(x){not_na(x)}, all_of(c("quant_istd_feature_id", "istd_conc_nmolar")), obligatory=TRUE, description = "E;Missing value(s);ISTDs; ") |>
+      assertr::assert(\(x){not_na(x)}, all_of(c("quant_istd_feature_id")), obligatory=TRUE, description = "E;Missing value(s);ISTDs; ") |>
       #assertr::assert(\(x) {unique(x) %in% metadata$annot_istds$quant_istd_feature_id},quant_istd_feature_id, obligatory=TRUE, description = "W;Internal standard(s) not defined;ISTDs;quant_istd_feature_id") |>
       assertr::verify(all(assertr::is_uniq("quant_istd_feature_id")), obligatory=TRUE, description = "E;Internal standard(s) duplicated;ISTDs;quant_istd_feature_id") |>
       assertr::assert(\(x) {x %in% metadata$annot_features$feature_id}, "quant_istd_feature_id", description = "W;Internal standard(s) not used;ISTDs;feature_id") |>
-      assertr::assert(\(x){x > 0}, any_of(c("istd_conc_nmolar")), description = "W;Values 0 or negative;ISTDs;istd_conc_nmolar") |>
+      #assertr::assert(\(x){x > 0}, any_of(c("istd_conc_nmolar")), description = "W;Values 0 or negative;ISTDs;istd_conc_nmolar") |>
       assertr::chain_end(error_fun = assertr::error_append)
 
     if("annot_istds" %in% names(metadata_new)) {
@@ -662,6 +663,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
                               skip_empty_cols = FALSE,
                               skip_hidden_rows = FALSE,
                               skip_hidden_cols = FALSE,
+                              na.strings = c("", "''", "NA", "N/A", "#N/A", "n/a", "NaN", "nan"),
                               convert = TRUE,
                               col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
@@ -693,6 +695,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
                                          skip_empty_cols = FALSE,
                                          skip_hidden_rows = FALSE,
                                          skip_hidden_cols = FALSE,
+                                         na.strings = c("", "''", "NA", "N/A", "#N/A", "n/a", "NaN", "nan"),
                                          convert = TRUE,
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
@@ -734,6 +737,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
                                          skip_empty_cols = FALSE,
                                          skip_hidden_rows = FALSE,
                                          skip_hidden_cols = FALSE,
+                                         na.strings = c("", "''", "NA", "N/A", "#N/A", "n/a", "NaN", "nan"),
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
     as_tibble() |>
@@ -763,6 +767,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
                                          skip_empty_cols = FALSE,
                                          skip_hidden_rows = FALSE,
                                          skip_hidden_cols = FALSE,
+                                         na.strings = c("", "''", "NA", "N/A", "#N/A", "n/a", "NaN", "nan"),
                                          col_names = TRUE) |>
     mutate(across(where(is.character), str_trim)) |>
     as_tibble() |>
@@ -792,6 +797,7 @@ read_metadata_msorganiser <- function(path, trim_ws = TRUE) {
                                  skip_empty_cols = FALSE,
                                  skip_hidden_rows = FALSE,
                                  skip_hidden_cols = FALSE,
+                                 na.strings = c("", "''", "NA", "N/A", "#N/A", "n/a", "NaN", "nan"),
                                  col_names = TRUE)
       d_cal <- d_cal |>
       mutate(across(where(is.character), str_trim)) |>
@@ -1071,6 +1077,7 @@ clean_response_metadata <- function(d_rqc) {
       analysis_id = stringr::str_remove(.data$analysis_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       analysis_id = stringr::str_squish(as.character(.data$analysis_id)),
       curve_id = stringr::str_squish(as.character(.data$curve_id)),
+      analyzed_amount = as.numeric(stringr::str_squish(.data$analyzed_amount)),
       analyzed_amount_unit = stringr::str_squish(.data$analyzed_amount_unit)
     ) |>
     dplyr::select(
