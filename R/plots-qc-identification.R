@@ -154,7 +154,7 @@ plot_rt_vs_chain <- function(data = NULL,
       })) |>
       filter(!purrr::map_lgl(.data$model, is.null)) |>
       mutate(pred = purrr::map2(.data$model, data, ~ suppressWarnings(broom::augment(.x, newdata = .y)))) |>
-      unnest(.data$pred)
+      unnest("pred")
     fitted_lines |>  ungroup()
   }
 
