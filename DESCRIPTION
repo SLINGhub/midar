@@ -88,6 +88,7 @@ Collate:
     'lipidomics.R'
     'metadata-import.R'
     'midar-package.R'
+    'plot-qc-correlations.R'
     'plots-calibcurves.R'
     'plots-eda.R'
     'plots-qc-cv.R'
