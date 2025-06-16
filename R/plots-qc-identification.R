@@ -59,7 +59,7 @@ plot_rt_vs_chain <- function(data = NULL,
       if(length(unique(data[[1]])) < nrow(data))
         cli::cli_abort(col_red("The first column has one or more replicated feature identifier. Please check your data."))
 
-      if(!is.numeric(df[[2]]))
+      if(!is.numeric(data[[2]]))
         cli::cli_abort(col_red("All values in the second column must be numeric, as they are interpreted as retention times. Please check your data."))
       data <- MidarExperiment()
       data@dataset <- tibble(analysis_id = "NA", qc_type = "SPL", feature_id = data[, 1], feature_rt = data[, 2])

@@ -177,7 +177,7 @@ convert_triglycerides <- function(dat){
     mutate(new_nl_name = .data$analyte_id) |>
     mutate(new_nl_name = str_replace(.data$new_nl_name, "DG O-", "DG-O ")) |>
     mutate(new_nl_name = str_replace(.data$new_nl_name, "TG O-", "TG-O ")) |>
-    filter(str_detect(analyte_id,
+    filter(str_detect(.data$analyte_id,
                       "^(DG|DG-O|TG|TG-O)\\s\\d{2}:\\d{1,2}\\s.*?(\\[-\\d{2}:\\d\\]|\\[NL-\\d{2}:\\d\\]|\\[NL\\s\\d{2}:\\d\\])")) |>
 
 

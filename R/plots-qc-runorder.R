@@ -1019,7 +1019,7 @@ plot_rla_boxplot <- function(
     geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +
     scale_fill_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
     scale_color_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
-    guides(color = guide_legend(name = NULL, override.aes = list(size = 3))) +
+    ggplot2::guides(color = ggplot2::guide_legend(name = NULL, override.aes = list(size = 3))) +
     theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(variable)))) +
     xlab("Analysis order") +
