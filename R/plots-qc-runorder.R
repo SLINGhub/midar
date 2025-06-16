@@ -604,9 +604,9 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
-  n_cmpd <- length(unique(d_filt$analysis_id))
-  row_start <- n_cmpd * cols_page * rows_page * (page_no - 1) + 1
-  row_end <- n_cmpd * cols_page * rows_page * page_no
+  n_samples <- length(unique(d_filt$analysis_id))
+  row_start <- n_samples * cols_page * rows_page * (page_no - 1) + 1
+  row_end <- n_samples * cols_page * rows_page * page_no
 
 
   d_subset <- d_filt |>
