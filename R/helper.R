@@ -285,8 +285,35 @@ order_chained_columns_tbl <- function(df, from_col, to_col, include_chain_id, di
 
 
 
+#' Custom axis formatting function
+#'
+#' @keywords internal
+scientific_format_end <- function(x) {
+  if (length(x) == 0) return(x)
 
+  # Remove NAs for determining max value
+  x_clean <- x[!is.na(x)]
+  if (length(x_clean) == 0) return(x)
 
+  # Function to format with one digit
+  format_one_digit <- function(value) {
+    if (is.na(value)) return("")
+    if (value == 0) return("0")
+    # Get exponent
+    exp <- floor(log10(abs(value)))
+    # Get mantissa with one digit
+    mantissa <- round(value / 10^exp, 1)
+    sprintf("%.1fe%d", mantissa, exp)
+  }
+
+  # Convert to scientific notation with one digit
+  formatted <- sapply(x, format_one_digit)
+
+  # Show only 0 and the highest value
+  formatted[!(x == 0 | x == max(x_clean, na.rm = TRUE))] <- ""
+
+  formatted
+}
 
 
 
