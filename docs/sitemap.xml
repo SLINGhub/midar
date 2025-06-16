@@ -59,6 +59,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/get_analyticaldata.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_batch_boundaries.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_calibration_metrics.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/get_feature_correlations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_feature_count.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_featurelist.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_mad_tails.html</loc></url>
@@ -90,6 +91,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/parse_plain_wide_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_skyline_result.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_calibrationcurves.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_feature_correlations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_normalization_qc.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_pca.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_summary_byclass.html</loc></url>
@@ -108,6 +110,7 @@
 <url><loc>https://slinghub.github.io/midar/reference/save_metadata_msorganiser_template.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_metadata_templates.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/save_report_xlsx.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/scientific_format_end.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/set_analysis_order.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/set_intensity_var.html</loc></url>
 </urlset>
