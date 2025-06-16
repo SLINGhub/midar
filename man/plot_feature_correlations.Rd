@@ -11,19 +11,28 @@ plot_feature_correlations(
   cor_min,
   cor_min_neg = -0.99,
   log_scale = FALSE,
+  sort_by_corr = TRUE,
+  rows_page = 4,
+  cols_page = 5,
   filter_data = FALSE,
   include_qualifier = FALSE,
   include_istd = FALSE,
   include_feature_filter = NA,
   exclude_feature_filter = NA,
   min_median_value = NA,
+  output_pdf = FALSE,
+  path = NA,
+  specific_page = NA,
+  page_orientation = "LANDSCAPE",
+  return_plots = FALSE,
   point_size = 1,
   point_alpha = 0.8,
   point_stroke = 0.3,
   line_size = 0.5,
   line_color = "orange",
   line_alpha = 0.5,
-  font_base_size = 8
+  font_base_size = 8,
+  show_progress = TRUE
 )
 }
 \arguments{
@@ -48,6 +57,13 @@ corrections.}
 
 \item{log_scale}{A logical value indicating whether to use a log10 scale for
 both axes. Default is \code{FALSE}.}
+
+\item{sort_by_corr}{A logical value indicating whether to sort the features in
+the plot by correlation or alphabetically by feature ID. Default is \code{TRUE}.}
+
+\item{rows_page}{Number of rows of plots per page.}
+
+\item{cols_page}{Number of columns of plots per page.}
 
 \item{filter_data}{A logical value indicating whether to use all data
 (default) or only QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
@@ -78,6 +94,21 @@ parameter provides an fast way to exclude noisy features from the
 analysis. However, it is recommended to use \code{filter_data} with
 \code{\link[=filter_features_qc]{filter_features_qc()}}.}
 
+\item{output_pdf}{If \code{TRUE}, saves the generated plots as a PDF
+file. When \code{FALSE}, plots are directly plotted.}
+
+\item{path}{The file path for saving the PDF. Must be defined if
+\code{output_pdf} is \code{TRUE}.}
+
+\item{specific_page}{An integer specifying a specific page to plot. If
+\code{NA} (default), all pages are plotted.}
+
+\item{page_orientation}{Orientation of the PDF paper: \code{"LANDSCAPE"} or
+\code{"PORTRAIT"}.}
+
+\item{return_plots}{Logical. If \code{TRUE}, returns the plots as a list of
+\code{ggplot2} objects.}
+
 \item{point_size}{A numeric value indicating the size of points in
 millimeters. Default is 1.}
 
@@ -94,6 +125,9 @@ points (0-1). Default is 0.8.}
 
 \item{font_base_size}{A numeric value indicating the base font size for
 plot text elements. Default is 8.}
+
+\item{show_progress}{Logical. If \code{TRUE}, displays a progress bar during
+plot creation.}
 }
 \value{
 A ggplot object showing scatter plots of highly correlated feature pairs.

@@ -57,7 +57,10 @@ get_feature_correlations <- function(tbl, cor_min_neg, cor_min) {
 #' corrections.
 #' @param log_scale A logical value indicating whether to use a log10 scale for
 #' both axes. Default is `FALSE`.
-
+#' @param sort_by_corr A logical value indicating whether to sort the features in
+#' the plot by correlation or alphabetically by feature ID. Default is `TRUE`.
+#' @param rows_page Number of rows of plots per page.
+#' @param cols_page Number of columns of plots per page.
 #' @param filter_data A logical value indicating whether to use all data
 #' (default) or only QC-filtered data (filtered via [filter_features_qc()]).
 #' @param include_qualifier A logical value indicating whether to include
@@ -81,6 +84,16 @@ get_feature_correlations <- function(tbl, cor_min_neg, cor_min) {
 #' parameter provides an fast way to exclude noisy features from the
 #' analysis. However, it is recommended to use `filter_data` with
 #' [filter_features_qc()].
+#' @param output_pdf If `TRUE`, saves the generated plots as a PDF
+#'   file. When `FALSE`, plots are directly plotted.
+#' @param path The file path for saving the PDF. Must be defined if
+#'   `output_pdf` is `TRUE`.
+#' @param return_plots Logical. If `TRUE`, returns the plots as a list of
+#'   `ggplot2` objects.
+#' @param specific_page An integer specifying a specific page to plot. If
+#'   `NA` (default), all pages are plotted.
+#' @param page_orientation Orientation of the PDF paper: `"LANDSCAPE"` or
+#'   `"PORTRAIT"`.
 #'
 #' @param point_size A numeric value indicating the size of points in
 #' millimeters. Default is 1.
@@ -93,7 +106,8 @@ get_feature_correlations <- function(tbl, cor_min_neg, cor_min) {
 #'
 #' @param font_base_size A numeric value indicating the base font size for
 #' plot text elements. Default is 8.
-
+#' @param show_progress Logical. If `TRUE`, displays a progress bar during
+#'   plot creation.
 #'
 #' @return A ggplot object showing scatter plots of highly correlated feature pairs.
 #' Returns NULL if no correlations meet the threshold criteria.
@@ -105,19 +119,28 @@ plot_feature_correlations <- function(data,
                               cor_min,
                               cor_min_neg = -0.99,
                               log_scale = FALSE,
+                              sort_by_corr = TRUE,
+                              rows_page = 4,
+                              cols_page = 5,
                               filter_data = FALSE,
                               include_qualifier = FALSE,
                               include_istd = FALSE,
                               include_feature_filter = NA,
                               exclude_feature_filter = NA,
                               min_median_value = NA,
+                              output_pdf = FALSE,
+                              path = NA,
+                              specific_page = NA,
+                              page_orientation = "LANDSCAPE",
+                              return_plots = FALSE,
                               point_size = 1,
                               point_alpha = 0.8,
                               point_stroke = 0.3,
                               line_size = 0.5,
                               line_color = "orange",
                               line_alpha  = 0.5,
-                              font_base_size = 8) {
+                              font_base_size = 8,
+                              show_progress = TRUE) {
 
   check_data(data)
 
@@ -177,7 +200,7 @@ plot_feature_correlations <- function(data,
   }
 
   # Create plotting data
-  plot_data <- purrr::map_df(1:nrow(cor_matrix), function(i) {
+  d_plot <- purrr::map_df(1:nrow(cor_matrix), function(i) {
     var1 <- cor_matrix$var1[i]
     var2 <- cor_matrix$var2[i]
     cor_val <- round(cor_matrix$value[i], 3)
@@ -192,46 +215,148 @@ plot_feature_correlations <- function(data,
       abs_cor = abs(cor_val),
       stringsAsFactors = FALSE
     )
-  })  |>
-    arrange(desc(.data$abs_cor)) |>
-    dplyr::mutate(pair = factor(.data$pair, levels = unique(.data$pair)))
+  })
 
 
 
-  plot_data$qc_type <- droplevels(factor(plot_data$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
-  plot_data <- plot_data |>
+  d_plot$qc_type <- droplevels(factor(d_plot$qc_type, levels = c("SPL", "UBLK", "SBLK", "TQC", "BQC", "RQC", "LTR", "NIST", "PBLK")))
+  d_plot <- d_plot |>
     dplyr::arrange(.data$qc_type)
 
+  # Prepare PDF output
+  if (output_pdf && !is.na(path)) { # nocov start
+    path <- ifelse(stringr::str_detect(path, ".pdf"), path,
+                   paste0(path, ".pdf"))
+    if (page_orientation == "LANDSCAPE") {
+      pdf(file = path, onefile = TRUE, paper = "A4r", useDingbats = FALSE,
+          width = 28 / 2.54, height = 20 / 2.54)
+    } else {
+      pdf(file = path, onefile = TRUE, paper = "A4", useDingbats = FALSE,
+          height = 28 / 2.54, width = 20 / 2.54)
+    }
+  } # nocov end
+
+  # Determine the range of pages to generate
+  if (!is.na(specific_page)) {
+    total_pages <- ceiling(n_distinct(d_plot$pair) /
+                             (cols_page * rows_page))
+    if (specific_page > total_pages) {
+      cli::cli_abort(col_red(
+        "Selected page exceeds the total number of pages. Please select a page number between {.strong 1} and {.strong {total_pages}}."
+      ))
+    }
+    page_range <- specific_page
+  } else {
+    page_range <- 1:ceiling(n_distinct(d_plot$pair) /
+                              (cols_page * rows_page))
+  }
+
+  # Action text for progress output
+  action_text <- if (output_pdf) "Saving plots to pdf" else "Generating plots"
+  page_suffix <- if (max(page_range) > 1) {
+    glue::glue("{max(page_range)} pages")
+  } else {
+    glue::glue("{max(page_range)} page")
+  }
+  progress_suffix <- if (show_progress) ":" else "..."
+
+  # Output formatted message
+  message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"))
+
+  # Initialize progress bar if requested
+  if (show_progress) pb <- txtProgressBar(min = 0, max = max(page_range),
+                                          width = 30, style = 3)
+
+  p_list <- list()  # List to store plots for each page
+  for (i in page_range) {
+    p <- plot_feature_correlations_page(
+      d_plot = d_plot,
+      output_pdf = output_pdf,
+      path = path,
+      rows_page = rows_page,
+      cols_page = cols_page,
+      specific_page = i,
+      sort_by_corr = sort_by_corr,
+      log_scale = log_scale,
+      point_size = point_size,
+      point_alpha = point_alpha,
+      point_stroke = point_stroke,
+      line_size = line_size,
+      line_color = line_color,
+      line_alpha  = line_alpha,
+      font_base_size = font_base_size
+    )
+    if(!return_plots) plot(p)
+    dev.flush()  # Flush the plot
+    flush.console()  # Ensure plot is rendered
+    if (show_progress) setTxtProgressBar(pb, i)  # Update progress bar
+    p_list[[i]] <- p
+  }
+
+  if (output_pdf) dev.off()  # Close PDF device
+  message(" - done!")  # Completion message
+  if (show_progress) close(pb)  # Close progress bar if open
+
+  # Return plot list or invisible
+  if (return_plots) {
+    return(p_list[page_range])
+  } else {
+    invisible()
+  }
+}
+
+
+plot_feature_correlations_page <- function(d_plot, ...){
+
+  args <- base::list(...)
+  # Subset dataset for current page
+  n_samples <- length(unique(d_plot$analysis_id))
+  row_start <- n_samples * args$cols_page * args$rows_page * (args$specific_page - 1) + 1
+  row_end <- n_samples * args$cols_page * args$rows_page * args$specific_page
+
+  if (args$sort_by_corr) {
+    d_plot <- d_plot |>
+      arrange(desc(.data$abs_cor),.data$analysis_id) |>
+      dplyr::mutate(pair = factor(.data$pair, levels = unique(.data$pair)))
+  } else {
+    d_plot <- d_plot |>
+      arrange(.data$pair, .data$analysis_id) |>
+      dplyr::mutate(pair = factor(.data$pair, levels = unique(.data$pair)))
+  }
+
+  d_plot <- d_plot |>
+    slice(row_start:row_end)
+
   # Create plot
-  p <- plot_data |>
+  p <- d_plot |>
     ggplot2::ggplot(ggplot2::aes(x = .data$x, y = .data$y)) +
-    ggplot2::geom_point(size = point_size,
+    ggplot2::geom_point(size = args$point_size,
                         aes(color = .data$qc_type, shape = .data$qc_type, fill = .data$qc_type),
-                        alpha = point_alpha,
-                        stroke = point_stroke) +
+                        alpha = args$point_alpha,
+                        stroke = args$point_stroke) +
     ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
     ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
-    if (log_scale) {
-      p <- p +
-        ggplot2::scale_x_log10(labels = scientific_format_end,
-                               expand = ggplot2::expansion(mult = c(0, 0.05))) +
-        ggplot2::scale_y_log10(labels = scientific_format_end,
-                               expand = ggplot2::expansion(mult = c(0, 0.05)))
-    } else {
-      p <- p +
-        ggplot2::scale_x_continuous(labels = scientific_format_end,
-                                    limits = function(x) c(0, max(x)),
-                                    expand = ggplot2::expansion(mult = c(0, 0.05))) +
-        ggplot2::scale_y_continuous(labels = scientific_format_end,
-                                    limits = function(x) c(0, max(x)),
-                                    expand = ggplot2::expansion(mult = c(0, 0.05)))
-    }
+  if (args$log_scale) {
+    p <- p +
+      ggplot2::scale_x_log10(labels = scientific_format_end,
+                             expand = ggplot2::expansion(mult = c(0, 0.05))) +
+      ggplot2::scale_y_log10(labels = scientific_format_end,
+                             expand = ggplot2::expansion(mult = c(0, 0.05)))
+  } else {
+    p <- p +
+      ggplot2::scale_x_continuous(labels = scientific_format_end,
+                                  limits = function(x) c(0, max(x)),
+                                  expand = ggplot2::expansion(mult = c(0, 0.05))) +
+      ggplot2::scale_y_continuous(labels = scientific_format_end,
+                                  limits = function(x) c(0, max(x)),
+                                  expand = ggplot2::expansion(mult = c(0, 0.05)))
+  }
 
   p <- p +
-    suppressWarnings({ggplot2::geom_smooth(method = "lm", formula = y ~ x, linewidth = line_size, color = line_color, alpha = line_alpha, se = FALSE, , na.rm = TRUE)}) +
+    suppressWarnings({ggplot2::geom_smooth(method = "lm", formula = y ~ x, linewidth = args$line_size, color = args$line_color, alpha = args$line_alpha, se = FALSE,  na.rm = TRUE)}) +
     ggplot2::geom_text(
-      data = plot_data |>
+      data = d_plot |>
         dplyr::group_by(.data$pair, .data$r) |>
         dplyr::slice(1),
       ggplot2::aes(label = .data$r),
@@ -239,13 +364,13 @@ plot_feature_correlations <- function(data,
       hjust = -0.1, vjust = 1.5,
       size = 2.5
     ) +
-    ggplot2::facet_wrap(~pair, scales = "free") +
-    theme_bw(base_size = font_base_size) +
+    ggh4x::facet_wrap2(~pair, scales = "free", ncol = args$cols_page, nrow = args$rows_page, trim_blank = FALSE) +
+    theme_bw(base_size = args$font_base_size) +
     theme(
-      plot.title = element_text(size = font_base_size, face = "bold"),
-      strip.text = ggplot2::element_text(size = font_base_size, face = "bold"),
-      axis.text = element_text(size = font_base_size),
-      axis.title = element_text(size = font_base_size, face = "bold"),
+      plot.title = element_text(size = args$font_base_size, face = "bold"),
+      strip.text = ggplot2::element_text(size = args$font_base_size, face = "bold"),
+      axis.text = element_text(size = args$font_base_size),
+      axis.title = element_text(size = args$font_base_size, face = "bold"),
       panel.grid = element_line(linewidth = 0.001),
       panel.grid.minor = element_blank(),
       panel.grid.major = element_line(linewidth = 0.2),
