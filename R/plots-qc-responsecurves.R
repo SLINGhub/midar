@@ -31,7 +31,7 @@
 #' @param max_regression_value The maximum sample_amount (x) value for fitting
 #' the regression line. If `NA`, regression is based on all data points.
 #' @param output_pdf If `TRUE`, saves the generated plots as a PDF
-#'   file. Wjen `FALSE`, plots are directly plotted.
+#'   file. When `FALSE`, plots are directly plotted.
 #' @param path The file path for saving the PDF. Must be defined if
 #'   `output_pdf` is `TRUE`.
 #' @param return_plots Logical. If `TRUE`, returns the plots as a list of
@@ -271,6 +271,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
   dat_subset <- dataset |>
     arrange(.data$feature_id, .data$curve_id) |>
     slice(row_start:row_end)
+
   p <- ggplot(
     data = dat_subset,
     aes(x = .data$analyzed_amount, y = !!plot_var, color = .data$curve_id)
@@ -289,7 +290,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
     scale_y_continuous(limits = c(0, NA)) +
     scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
     ggh4x::facet_wrap2(
-      vars(.data$feature_id), scales = "free", nrow = rows_page, ncol = cols_page
+      vars(.data$feature_id), scales = "free", nrow = rows_page, ncol = cols_page, trim_blank = FALSE
     ) +
     geom_point(size = point_size) +
     labs(x = x_axis_title, y = stringr::str_remove(response_variable, "feature_")) +
