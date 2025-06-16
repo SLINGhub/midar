@@ -24,7 +24,7 @@
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param ylim Numeric vector of length 2 for y-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
-#' @param ncol Number of facet columns per page, representing
+#' @param cols_page Number of facet columns per page, representing
 #'   different feature classes (default is `5`). Only used if
 #'   `facet_by_class = TRUE`.
 #' @param point_size Size of points in millimeters (default is `1`).
@@ -74,7 +74,7 @@ plot_normalization_qc <- function(data = NULL,
                                   cv_threshold_value = 25,
                                   xlim = c(0, NA),
                                   ylim = c(0, NA),
-                                  ncol = 5,
+                                  cols_page = 5,
                                   point_size = 1,
                                   point_alpha = 0.5,
                                   font_base_size = 8) {
@@ -124,7 +124,7 @@ plot_normalization_qc <- function(data = NULL,
     include_qualifier = include_qualifier,
     xlim = xlim,
     ylim = ylim,
-    ncol = ncol,
+    cols_page = cols_page,
     point_size = point_size,
     point_alpha = point_alpha,
     font_base_size = font_base_size
@@ -157,7 +157,7 @@ plot_normalization_qc <- function(data = NULL,
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param ylim Numeric vector of length 2 for y-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
-#' @param ncol Integer; number of facet columns per page (default is `5`).
+#' @param cols_page Integer; number of facet columns per page (default is `5`).
 #' @param point_size Numeric; size of points in millimeters (default is `1`).
 #' @param point_alpha Numeric; transparency of points (default is `0.5`).
 #' @param font_base_size Numeric; base font size in points (default is `8`).
@@ -197,7 +197,7 @@ plot_qcmetrics_comparison <- function(data = NULL,
                                    threshold_value = NA,
                                    xlim = c(0, NA),
                                    ylim = c(0, NA),
-                                   ncol = 5,
+                                   cols_page = 5,
                                    point_size = 1,
                                    point_alpha = 0.5,
                                    font_base_size = 8) {
@@ -246,7 +246,7 @@ plot_qcmetrics_comparison <- function(data = NULL,
 
   # Apply faceting if requested
   if (facet_by_class) {
-    g <- g + facet_wrap(vars(.data$feature_class), scales = "free", ncol = ncol)
+    g <- g + facet_wrap(vars(.data$feature_class), scales = "free", ncol  = cols_page)
   }
 
   # Plot points
