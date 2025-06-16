@@ -15,7 +15,7 @@ plot_normalization_qc(
   cv_threshold_value = 25,
   xlim = c(0, NA),
   ylim = c(0, NA),
-  ncol = 5,
+  cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
   font_base_size = 8
@@ -51,7 +51,7 @@ auto-scaling (default is \code{c(0, NA)}).}
 \item{ylim}{Numeric vector of length 2 for y-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
 
-\item{ncol}{Number of facet columns per page, representing
+\item{cols_page}{Number of facet columns per page, representing
 different feature classes (default is \code{5}). Only used if
 \code{facet_by_class = TRUE}.}
 

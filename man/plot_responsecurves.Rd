@@ -51,7 +51,7 @@ is supplied, only features with exactly these names are excluded (applied indivi
 the regression line. If \code{NA}, regression is based on all data points.}
 
 \item{output_pdf}{If \code{TRUE}, saves the generated plots as a PDF
-file. Wjen \code{FALSE}, plots are directly plotted.}
+file. When \code{FALSE}, plots are directly plotted.}
 
 \item{path}{The file path for saving the PDF. Must be defined if
 \code{output_pdf} is \code{TRUE}.}
