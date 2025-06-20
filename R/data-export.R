@@ -198,27 +198,37 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", norm
     "BatchInfo" = if(nrow(data@annot_batches) == 0) tibble("No batches defined" = NA) |> tibble::add_row() else data@annot_batches
   )
 
+  if(length(normalized_variable) == 0){
+    table_list$name_all_normalized <- NULL
+    tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+
+
+  } else {
+    names(table_list)[9] <- c(name_all_normalized)
+    tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad","#f7b37c", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+
+  }
+
   names(table_list)[4:5] <- c(name_filt_spl, name_filt_all)
-  names(table_list)[9] <- c(name_all_normalized)
+
 
   message("\rSaving report to disk - please wait...")
   wb <- openxlsx2::write_xlsx(x = table_list,
                         #file = path,
                         na.strings = "",
-                        as_table = TRUE,
-                        overwrite = TRUE,
+                        as_table = c(TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
                         col_names = TRUE,
                         grid_lines = FALSE,
                         col_widths = "auto",
-                        first_col = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        first_row = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
-                        with_filter = c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE),
-                        tab_color = c("#d7fc5d", "#34fac5","#34fac5","#ff170f", "#9e0233", "#0A83ad", "#0313ad","#7113ad","#f7b37c", "#c9c9c9", "#c9c9c9", "#c9c9c9", "#c9c9c9")
+                        first_col = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,TRUE),
+                        first_row = c(FALSE, TRUE, TRUE,TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,TRUE),
+                        # with_filter = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE),
+                        tab_color = tab_color
   )
 
-  if(length(normalized_variable) == 0){
-    wb <- openxlsx2::wb_remove_worksheet(wb, name_all_normalized)
-  }
+  # if(length(normalized_variable) == 0){
+  #   wb <- openxlsx2::wb_remove_worksheet(wb, 9)
+  # }
 
   openxlsx2::wb_save(
     wb = wb,
