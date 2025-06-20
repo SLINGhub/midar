@@ -153,7 +153,7 @@ plot_feature_correlations <- function(data,
 
 
   if(all(is.na(qc_types))){
-    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "TQC", "HQC", "MQC", "LQC", "QC", "NIST", "LTR"))
+    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "HQC", "MQC", "LQC", "QC", "NIST", "LTR"))
   }
 
   # Subset dataset according to filter arguments
@@ -362,7 +362,7 @@ plot_feature_correlations_page <- function(d_plot, ...){
       ggplot2::aes(label = .data$r),
       x = -Inf, y = Inf,
       hjust = -0.1, vjust = 1.5,
-      size = 2.5
+      size = args$font_base_size / 3.5,
     ) +
     ggh4x::facet_wrap2(~pair, scales = "free", ncol = args$cols_page, nrow = args$rows_page, trim_blank = FALSE) +
     theme_bw(base_size = args$font_base_size) +
