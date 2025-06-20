@@ -32,7 +32,7 @@ Imports:
     pillar,
     openxlsx2,
     ggh4x,
-    ggplot2 (>= 3.5.0),
+    ggplot2 (>= 3.5.0)
 Suggests: 
     enviPat,
     ggvenn,
@@ -89,6 +89,7 @@ Collate:
     'metadata-import.R'
     'midar-package.R'
     'plot-qc-correlations.R'
+    'plot_qc_matrixeffects.R'
     'plots-calibcurves.R'
     'plots-eda.R'
     'plots-qc-cv.R'
