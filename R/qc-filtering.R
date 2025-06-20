@@ -168,14 +168,17 @@ calc_qc_metrics <- function(
   # Check if the method variables exist in the dataset
   if (any(c(method_var) %in% names(data@dataset_orig))) {
     # Summarize method information for each feature
+    method_vars <- c("method_precursor_mz", "method_product_mz", "method_collision_energy")
+
     d_method_info <- data@dataset_orig |>
-      select(c("feature_id", any_of(method_var))) |>
-      summarise(
-        .by = "feature_id",
-        precursor_mz = stringr::str_c(unique(.data$method_precursor_mz), collapse = "; "),
-        product_mz = stringr::str_c(unique(.data$method_product_mz), collapse = "; "),
-        collision_energy = stringr::str_c(unique(.data$method_collision_energy), collapse = "; ")
-      ) |>
+      select("feature_id", any_of(method_vars)) |>
+      group_by(.data$feature_id) |>
+      summarise(across(
+        .cols = any_of(method_vars),
+        .fns = ~ stringr::str_c(unique(.x), collapse = "; "),
+        .names = "{.col}"
+      ), .groups = "drop") |>
+      dplyr::rename_with(~ stringr::str_replace(.x, "^method_", ""), starts_with("method_")) |>
       ungroup() |>
       bind_rows(d_method_template) |>
       dplyr::mutate(across(where(is.character) & !c("feature_id"),
