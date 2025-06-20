@@ -65,8 +65,8 @@
 #'
 #' @export
 plot_normalization_qc <- function(data = NULL,
-                                  before_norm_var = c("intensity", "norm_intensity"),
-                                  after_norm_var = c("norm_intensity", "conc"),
+                                  before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
+                                  after_norm_var = c("norm_intensity", "conc", "conc_raw"),
                                   qc_type,
                                   facet_by_class = FALSE,
                                   filter_data = FALSE,
@@ -83,10 +83,10 @@ plot_normalization_qc <- function(data = NULL,
 
   # Match and clean variable names
   before_norm_var <- str_remove(before_norm_var, "feature_")
-  rlang::arg_match(before_norm_var, c("intensity", "norm_intensity"))
+  rlang::arg_match(before_norm_var, c("intensity", "norm_intensity", "conc_raw"))
 
   after_norm_var <- str_remove(after_norm_var, "feature_")
-  rlang::arg_match(after_norm_var, c("norm_intensity", "conc"))
+  rlang::arg_match(after_norm_var, c("norm_intensity", "conc", "conc_raw"))
 
   # Match qc_type
   rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
