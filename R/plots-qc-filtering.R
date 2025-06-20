@@ -70,7 +70,7 @@ plot_qc_summary_byclass <- function(data = NULL,
     group_by(.data$feature_class) |>
     summarise(
       has_only_na = sum(.data$na_in_all, na.rm = TRUE),
-      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
+      above_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
       below_lod = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
       below_sb = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
       above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
@@ -83,13 +83,13 @@ plot_qc_summary_byclass <- function(data = NULL,
     group_by(.data$feature_class) |>
     mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100)
 
-  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
+  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", above_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
   # Remove levels/qc criteria for which was not filtered for
   if(all(is.na(d_qc$na_in_all))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
-  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "exceed_missingness")
+  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_missingness")
   if(all(is.na(d_qc$pass_lod))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_lod")
   if(all(is.na(d_qc$pass_sb))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_sb")
   if(all(is.na(d_qc$pass_cva))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_cva")
@@ -109,7 +109,7 @@ plot_qc_summary_byclass <- function(data = NULL,
     ggplot2::scale_x_continuous(breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
                                 labels = rev(levels(d_qc_sum$feature_class)),
                                 expand = expansion(0.02, 0.02),
-                                sec.axis = ggplot2::sec_axis(~ ., name = "Number of features that passed the filter (% per class)",
+                                sec.axis = ggplot2::sec_axis(~ ., name = "Features passing filter (% per class)",
                                                   breaks = seq(1, nlevels(d_qc_sum$feature_class), by = 1),
                                                   labels = rev(d_qc_sum |> filter(.data$qc_criteria == "all_filter_pass") |> mutate(txt = (paste0(.data$count_pass, " (", round(.data$percent_pass,0), "%)"))) |> pull(.data$txt)))) +
     theme_bw(base_size = font_base_size) +
@@ -169,7 +169,7 @@ plot_qc_summary_overall <- function(data = NULL,
     ungroup() |>
     summarise(
       has_only_na = sum(.data$na_in_all, na.rm = TRUE),
-      exceed_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
+      above_missingness = sum((!replace_na(.data$na_in_all, TRUE) & !replace_na(.data$pass_missingval, TRUE)), na.rm = TRUE),
       below_lod = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE)) & !replace_na(.data$pass_lod, TRUE), na.rm = TRUE),
       below_sb = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE)) & !replace_na(.data$pass_sb, TRUE), na.rm = TRUE),
       above_cva = sum((!replace_na(.data$na_in_all, TRUE) & replace_na(.data$pass_missingval, TRUE) & replace_na(.data$pass_lod, TRUE) & replace_na(.data$pass_sb, TRUE)) & !replace_na(.data$pass_cva, TRUE), na.rm = TRUE),
@@ -181,15 +181,15 @@ plot_qc_summary_overall <- function(data = NULL,
     ungroup() |>
     mutate(percent_pass = .data$count_pass / sum(.data$count_pass, na.rm = TRUE) * 100) |>
     ungroup() |>
-    mutate(qc_criteria = factor(.data$qc_criteria, c("exceed_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "all_filter_pass")))
+    mutate(qc_criteria = factor(.data$qc_criteria, c("above_missingness", "below_lod", "has_only_na", "below_sb", "above_cva", "above_dratio", "bad_linearity", "all_filter_pass")))
 
-  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", exceed_missingness = "yellow", has_only_na = "#111111")
+  qc_colors <- c(all_filter_pass = "#02bf83", above_dratio = "#b5a2f5", bad_linearity = "#abdeed", above_cva = "#F44336", below_sb = "#d9d5b6", below_lod = "#ada3a3", above_missingness = "yellow", has_only_na = "#111111")
   d_qc_sum$qc_criteria <- forcats::fct_relevel(d_qc_sum$qc_criteria, rev(names(qc_colors)))
 
 
   # Remove levels/qc criteria for which was not filtered for
   if(all(is.na(d_qc$na_in_all)) | d_qc_sum$count_pass[d_qc_sum$qc_criteria == "has_only_na"] == 0) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "has_only_na")
-  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "exceed_missingness")
+  if(all(is.na(d_qc$pass_missingval))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_missingness")
   if(all(is.na(d_qc$pass_lod))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_lod")
   if(all(is.na(d_qc$pass_sb))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "below_sb")
   if(all(is.na(d_qc$pass_cva))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_cva")
