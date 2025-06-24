@@ -8,6 +8,7 @@ plot_qcmetrics_comparison(
   data = NULL,
   x_variable,
   y_variable,
+  col_pattern,
   facet_by_class = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
@@ -29,6 +30,8 @@ x-axis.}
 
 \item{y_variable}{The name of the QC metric variable to be plotted on the
 y-axis.}
+
+\item{col_pattern}{A string pattern to match the columns in the QC metrics}
 
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
@@ -75,17 +78,6 @@ the available QC metric variables.
 \item When \code{facet_by_class = TRUE}, then the \code{feature_class} must be defined in the
 metadata or retrieved via specific functions, e.g., \code{\link[=parse_lipid_feature_names]{parse_lipid_feature_names()}}.
 }
-}
-\examples{
-# Example usage
-mexp <- lipidomics_dataset
-mexp <- calc_qc_metrics(mexp)
-plot_qcmetrics_comparison(data = mexp,
-            filter_data = FALSE,
-            x_variable = "precursor_mz",
-            y_variable = "rt_median_SPL",
-            include_qualifier = TRUE)
-
 }
 \seealso{
 \code{\link[=calc_qc_metrics]{calc_qc_metrics()}}, \code{\link[=filter_features_qc]{filter_features_qc()}}, \code{\link[=plot_normalization_qc]{plot_normalization_qc()}}, \code{\link[=normalize_by_istd]{normalize_by_istd()}}

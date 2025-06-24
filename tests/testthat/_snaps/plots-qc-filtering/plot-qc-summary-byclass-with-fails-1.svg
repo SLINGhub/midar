@@ -167,33 +167,33 @@
 <text x='661.84' y='561.53' text-anchor='middle' style='font-size: 6.40px; fill: #4D4D4D; font-family: sans;' textLength='3.56px' lengthAdjust='spacingAndGlyphs'>5</text>
 <text x='364.45' y='570.35' text-anchor='middle' style='font-size: 8.00px; font-family: sans;' textLength='68.49px' lengthAdjust='spacingAndGlyphs'>Number of features</text>
 <text transform='translate(9.49,285.05) rotate(-90)' text-anchor='middle' style='font-size: 8.00px; font-family: sans;' textLength='48.03px' lengthAdjust='spacingAndGlyphs'>Feature class</text>
-<text transform='translate(715.18,285.05) rotate(-90)' text-anchor='middle' style='font-size: 8.00px; font-family: sans;' textLength='191.66px' lengthAdjust='spacingAndGlyphs'>Number of features that passed the filter (% per class)</text>
-<rect x='542.13' y='62.47' width='82.62' height='69.29' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<text x='546.12' y='72.79' style='font-size: 8.00px; font-family: sans;' textLength='36.91px' lengthAdjust='spacingAndGlyphs'>qc_criteria</text>
-<rect x='546.12' y='77.61' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='78.32' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #111111;' />
-<rect x='546.12' y='83.88' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='84.59' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFF00;' />
-<rect x='546.12' y='90.15' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='90.86' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ADA3A3;' />
-<rect x='546.12' y='96.42' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='97.13' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #D9D5B6;' />
-<rect x='546.12' y='102.69' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='103.40' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #F44336;' />
-<rect x='546.12' y='108.96' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='109.67' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ABDEED;' />
-<rect x='546.12' y='115.23' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='115.94' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #B5A2F5;' />
-<rect x='546.12' y='121.50' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<rect x='546.83' y='122.21' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #02BF83;' />
-<text x='555.77' y='83.15' style='font-size: 7.00px; font-family: sans;' textLength='39.71px' lengthAdjust='spacingAndGlyphs'>has_only_na</text>
-<text x='555.77' y='89.42' style='font-size: 7.00px; font-family: sans;' textLength='65.00px' lengthAdjust='spacingAndGlyphs'>exceed_missingness</text>
-<text x='555.77' y='95.69' style='font-size: 7.00px; font-family: sans;' textLength='31.53px' lengthAdjust='spacingAndGlyphs'>below_lod</text>
-<text x='555.77' y='101.96' style='font-size: 7.00px; font-family: sans;' textLength='29.58px' lengthAdjust='spacingAndGlyphs'>below_sb</text>
-<text x='555.77' y='108.23' style='font-size: 7.00px; font-family: sans;' textLength='33.87px' lengthAdjust='spacingAndGlyphs'>above_cva</text>
-<text x='555.77' y='114.51' style='font-size: 7.00px; font-family: sans;' textLength='39.69px' lengthAdjust='spacingAndGlyphs'>bad_linearity</text>
-<text x='555.77' y='120.78' style='font-size: 7.00px; font-family: sans;' textLength='40.48px' lengthAdjust='spacingAndGlyphs'>above_dratio</text>
-<text x='555.77' y='127.05' style='font-size: 7.00px; font-family: sans;' textLength='42.80px' lengthAdjust='spacingAndGlyphs'>all_filter_pass</text>
+<text transform='translate(715.18,285.05) rotate(-90)' text-anchor='middle' style='font-size: 8.00px; font-family: sans;' textLength='127.62px' lengthAdjust='spacingAndGlyphs'>Features passing filter (% per class)</text>
+<rect x='543.88' y='62.47' width='79.12' height='69.29' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<text x='547.87' y='72.79' style='font-size: 8.00px; font-family: sans;' textLength='36.91px' lengthAdjust='spacingAndGlyphs'>qc_criteria</text>
+<rect x='547.87' y='77.61' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='78.32' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #111111;' />
+<rect x='547.87' y='83.88' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='84.59' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #FFFF00;' />
+<rect x='547.87' y='90.15' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='90.86' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ADA3A3;' />
+<rect x='547.87' y='96.42' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='97.13' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #D9D5B6;' />
+<rect x='547.87' y='102.69' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='103.40' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #F44336;' />
+<rect x='547.87' y='108.96' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='109.67' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ABDEED;' />
+<rect x='547.87' y='115.23' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='115.94' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #B5A2F5;' />
+<rect x='547.87' y='121.50' width='5.67' height='6.27' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
+<rect x='548.58' y='122.21' width='4.25' height='4.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #02BF83;' />
+<text x='557.52' y='83.15' style='font-size: 7.00px; font-family: sans;' textLength='39.71px' lengthAdjust='spacingAndGlyphs'>has_only_na</text>
+<text x='557.52' y='89.42' style='font-size: 7.00px; font-family: sans;' textLength='61.50px' lengthAdjust='spacingAndGlyphs'>above_missingness</text>
+<text x='557.52' y='95.69' style='font-size: 7.00px; font-family: sans;' textLength='31.53px' lengthAdjust='spacingAndGlyphs'>below_lod</text>
+<text x='557.52' y='101.96' style='font-size: 7.00px; font-family: sans;' textLength='29.58px' lengthAdjust='spacingAndGlyphs'>below_sb</text>
+<text x='557.52' y='108.23' style='font-size: 7.00px; font-family: sans;' textLength='33.87px' lengthAdjust='spacingAndGlyphs'>above_cva</text>
+<text x='557.52' y='114.51' style='font-size: 7.00px; font-family: sans;' textLength='39.69px' lengthAdjust='spacingAndGlyphs'>bad_linearity</text>
+<text x='557.52' y='120.78' style='font-size: 7.00px; font-family: sans;' textLength='40.48px' lengthAdjust='spacingAndGlyphs'>above_dratio</text>
+<text x='557.52' y='127.05' style='font-size: 7.00px; font-family: sans;' textLength='42.80px' lengthAdjust='spacingAndGlyphs'>all_filter_pass</text>
 <text x='51.60' y='10.59' style='font-size: 9.60px; font-family: sans;' textLength='160.63px' lengthAdjust='spacingAndGlyphs'>plot_qc_summary_byclass with fails 1</text>
 </g>
 </svg>

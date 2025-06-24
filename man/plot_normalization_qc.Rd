@@ -6,9 +6,9 @@
 \usage{
 plot_normalization_qc(
   data = NULL,
-  before_norm_var = c("intensity", "norm_intensity"),
-  after_norm_var = c("norm_intensity", "conc"),
-  qc_type,
+  before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
+  after_norm_var = c("norm_intensity", "conc", "conc_raw"),
+  qc_types,
   facet_by_class = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
@@ -30,8 +30,10 @@ table to be used for the x-axis (before normalization).}
 \item{after_norm_var}{A string specifying the variable from the QC metrics
 table to be used for the y-axis (after normalization).}
 
-\item{qc_type}{QC type to be used for the comparison (one of: "SPL", "BQC",
-"TQC", "NIST", "LTR").}
+\item{qc_types}{A character vector specifying the QC types to plot. It
+must contain at least one element. The default is \code{NA}, which means any
+of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
+"NIST", "LTR") will be plotted if present in the dataset.}
 
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
