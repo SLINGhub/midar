@@ -10,8 +10,10 @@
 #'   table to be used for the x-axis (before normalization).
 #' @param after_norm_var A string specifying the variable from the QC metrics
 #'   table to be used for the y-axis (after normalization).
-#' @param qc_type QC type to be used for the comparison (one of: "SPL", "BQC",
-#'   "TQC", "NIST", "LTR").
+#' @param qc_types A character vector specifying the QC types to plot. It
+#' must contain at least one element. The default is `NA`, which means any
+#' of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
+#' "NIST", "LTR") will be plotted if present in the dataset.
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
 #' @param filter_data Whether to use all data (default) or only
@@ -67,7 +69,7 @@
 plot_normalization_qc <- function(data = NULL,
                                   before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
                                   after_norm_var = c("norm_intensity", "conc", "conc_raw"),
-                                  qc_type,
+                                  qc_types,
                                   facet_by_class = FALSE,
                                   filter_data = FALSE,
                                   include_qualifier = FALSE,
@@ -89,15 +91,28 @@ plot_normalization_qc <- function(data = NULL,
   rlang::arg_match(after_norm_var, c("norm_intensity", "conc", "conc_raw"))
 
   # Match qc_type
-  rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
+  #rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
+
+  if(all(is.na(qc_types))){
+    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "TQC", "HQC", "MQC", "LQC", "NIST", "LTR", "SBLK", "PBLK", "IBLK", "QC"))
+  }
+
+  start_regex <- paste(c(before_norm_var, after_norm_var), collapse = "|")
+  middle_string <- "_cv_"
+  end_regex <- paste(qc_types, collapse = "|")
+
+
+  col_pattern <- paste0("^(", start_regex, ")", middle_string, "(", end_regex, ")$")
+
+
 
   # Generate variable names for CV metrics
-  x_variable <- stringr::str_c(before_norm_var, "_cv_", qc_type)
-  y_variable <- stringr::str_c(after_norm_var, "_cv_", qc_type)
+  x_variable <- stringr::str_c(before_norm_var, "_cv")
+  y_variable <- stringr::str_c(after_norm_var, "_cv")
 
-  if (x_variable == y_variable) {
-    cli::cli_abort(col_red("`before_norm_var` and `after_norm_var` cannot be the same."))
-  }
+ if (x_variable == y_variable) {
+  cli::cli_abort(col_red("`before_norm_var` and `after_norm_var` cannot be the same."))
+ }
 
   # Check if QC metrics table is available
   if (nrow(data@metrics_qc) == 0) {
@@ -115,6 +130,7 @@ plot_normalization_qc <- function(data = NULL,
    # Call plot_qcmetrics_comparison to generate the plot
   plot_qcmetrics_comparison(
     data = data,
+    col_pattern = col_pattern,
     filter_data = filter_data,
     facet_by_class = facet_by_class,
     x_variable = x_variable,
@@ -143,6 +159,7 @@ plot_normalization_qc <- function(data = NULL,
 #'   x-axis.
 #' @param y_variable The name of the QC metric variable to be plotted on the
 #'   y-axis.
+#' @param col_pattern A string pattern to match the columns in the QC metrics
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
 #' @param filter_data Logical; whether to use all data (default) or only
@@ -176,20 +193,11 @@ plot_normalization_qc <- function(data = NULL,
 #' @seealso
 #' [calc_qc_metrics()], [filter_features_qc()], [plot_normalization_qc()], [normalize_by_istd()]
 #'
-#' @examples
-#' # Example usage
-#' mexp <- lipidomics_dataset
-#' mexp <- calc_qc_metrics(mexp)
-#' plot_qcmetrics_comparison(data = mexp,
-#'             filter_data = FALSE,
-#'             x_variable = "precursor_mz",
-#'             y_variable = "rt_median_SPL",
-#'             include_qualifier = TRUE)
-#'
 #' @export
 plot_qcmetrics_comparison <- function(data = NULL,
                                    x_variable,
                                    y_variable,
+                                   col_pattern,
                                    facet_by_class = FALSE,
                                    filter_data = FALSE,
                                    include_qualifier = TRUE,
@@ -211,28 +219,42 @@ plot_qcmetrics_comparison <- function(data = NULL,
                            `calc_qc_metrics()`, or apply QC filters first."))
   }
 
-  if(!all(c(x_variable, y_variable) %in% colnames(data@metrics_qc))) {
-    cli::cli_abort(col_red("One or both of the specified variables (`x_variable`
-                           and `y_variable`) are not present in the QC metrics
-                           table. Please verify the help page"))
+  # if(!all(c(x_variable, y_variable) %in% colnames(data@metrics_qc))) {
+  #   cli::cli_abort(col_red("One or both of the specified variables (`x_variable`
+  #                          and `y_variable`) are not present in the QC metrics
+  #                          table. Please verify the help page"))
+  # }
+
+
+  d_qc <- data@metrics_qc
+
+  # Include or exclude qualifier features
+  if (!include_qualifier) {
+    d_qc <- d_qc |> filter(.data$is_quantifier, .data$valid_feature)
   }
 
   # Filter data based on valid features
-  d_qc <- data@metrics_qc |> filter(.data$valid_feature)
+  d_qc <- d_qc|>
+    filter(.data$valid_feature) |>
+    select("feature_id", "feature_class", dplyr::matches(col_pattern)) |>
+    tidyr::pivot_longer(
+      cols = dplyr::matches(col_pattern),
+      names_to = c(".value", "qc_type"),
+      names_pattern = "^(.*)_(.*)$"
+    ) |>
+    mutate(across(c(!!x_variable, !!y_variable), ~ ifelse(.x == 0, NA, .x))) |>
+    drop_na()
 
   # Apply additional QC filtering if requested
   if (filter_data) {
     if (data@is_filtered) {
       d_qc <- d_qc |> filter(.data$valid_feature, .data$all_filter_pass)
     } else {
-      cli_abort(cli::col_red("Data has not yet been QC-filtered. Apply filter or set `filter_data = FALSE`."))
+      cli_abort(cli::col_red("Data has not yet been QC-filtered. Apply filter, or set `filter_data = FALSE`."))
     }
   }
 
-  # Include or exclude qualifier features
-  if (!include_qualifier) {
-    d_qc <- d_qc |> filter(.data$is_quantifier, .data$valid_feature)
-  }
+
 
   # Check if feature_class exists and is valid
   if (facet_by_class && (!"feature_class" %in% names(d_qc) || all(is.na(d_qc$feature_class)))) {
@@ -242,15 +264,19 @@ plot_qcmetrics_comparison <- function(data = NULL,
 
 
   # Begin ggplot object
-  g <- ggplot(data = d_qc, aes(x = !!rlang::sym(x_variable), y = !!rlang::sym(y_variable)))
-
+  g <- ggplot(data = d_qc, aes(x = !!rlang::sym(x_variable),
+                               y = !!rlang::sym(y_variable),
+                               color = .data$qc_type,
+                               fill = .data$qc_type,
+                               shape = .data$qc_type))
+  #g <- ggplot(data = d_qc, aes(x = x_var, y = y_var, color = .data$qc_type, fill = .data$qc_type))
   # Apply faceting if requested
   if (facet_by_class) {
     g <- g + facet_wrap(vars(.data$feature_class), scales = "free", ncol  = cols_page)
   }
 
   # Plot points
-  g <- g + geom_point(fill = "blue", size = point_size, shape = 21, alpha = point_alpha, stroke = 0.3, na.rm = TRUE)
+  g <- g + geom_point(size = point_size, alpha = point_alpha, stroke = 0.3, na.rm = TRUE)
 
   # Plot equality line if specified
   if (equality_line) {
@@ -260,7 +286,7 @@ plot_qcmetrics_comparison <- function(data = NULL,
       group_by(.data$feature_class) |>
       mutate(xy_max = max(!!rlang::sym(x_variable), !!rlang::sym(y_variable), na.rm = TRUE)) |>
       ungroup()
-    g <- g + geom_abline(intercept = 0, slope = 1, linewidth = 0.3, color = "#ed5578")
+    g <- g + geom_abline(intercept = 0, slope = 1, linewidth = 0.3, color = "orange")
   }
 
   # Add threshold lines if specified
@@ -273,7 +299,10 @@ plot_qcmetrics_comparison <- function(data = NULL,
   # Set axis limits
   g <- g +
     scale_x_continuous(limits = xlim, expand = expansion(mult = c(0, 0.2))) +
-    scale_y_continuous(limits = ylim, expand = expansion(mult = c(0, 0.2)))
+    scale_y_continuous(limits = ylim, expand = expansion(mult = c(0, 0.2))) +
+    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
+    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
+    ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
 
   # Customize plot theme
   g <- g + theme_bw(base_size = font_base_size) +
