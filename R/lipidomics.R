@@ -67,7 +67,7 @@ get_analyte_id <- function(transition_name, remove_nl_transitions) {
 
 
 parse_lipid_feature_names <- function(tbl, use_as_feature_class = "lipid_class_lcb", add_transition_names = FALSE, add_chain_composition = TRUE) {
-  #check_installed("rgoslin")
+  check_installed("rgoslin")
   use_as_feature_class_s <- rlang::sym(use_as_feature_class)
 
   dat <- tbl |>
