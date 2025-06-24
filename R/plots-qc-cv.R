@@ -93,8 +93,13 @@ plot_normalization_qc <- function(data = NULL,
   # Match qc_type
   #rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
 
+
   if(all(is.na(qc_types))){
     qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "TQC", "HQC", "MQC", "LQC", "NIST", "LTR", "SBLK", "PBLK", "IBLK", "QC"))
+  }
+
+  if (!all(qc_types %in% unique(data$dataset$qc_type))) {
+    cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
   }
 
   start_regex <- paste(c(before_norm_var, after_norm_var), collapse = "|")
