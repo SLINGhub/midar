@@ -248,13 +248,15 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   t2 <- get_assert_summary_table(attr(data$annot_features, "assertr_errors"))
   t3 <- get_assert_summary_table(attr(data$annot_istds, "assertr_errors"))
   t4 <- get_assert_summary_table(attr(data$annot_responsecurves, "assertr_errors"))
+  t5 <- get_assert_summary_table(attr(data$annot_qcconcentrations, "assertr_errors"))
 
   if(!is.null(t1)) t1 <- t1 |> mutate(ignore_warn_flag = attr(data$annot_analyses, "ignore_warnings"))
   if(!is.null(t2)) t2 <- t2 |> mutate(ignore_warn_flag = attr(data$annot_features, "ignore_warnings"))
   if(!is.null(t3)) t3 <- t3 |> mutate(ignore_warn_flag = attr(data$annot_istds, "ignore_warnings"))
   if(!is.null(t4)) t4 <- t4 |> mutate(ignore_warn_flag = attr(data$annot_responsecurves, "ignore_warnings"))
+  if(!is.null(t5)) t5 <- t5 |> mutate(ignore_warn_flag = attr(data$annot_qcconcentrations, "ignore_warnings"))
 
-  t_all <- bind_rows(t1, t2, t3, t4)
+  t_all <- bind_rows(t1, t2, t3, t4, t5)
 
   if(is.null(t_all) | nrow(t_all) == 0)
     return(NULL)
@@ -459,22 +461,21 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
   if (!is.null(metadata$annot_qcconcentrations) && nrow(metadata$annot_qcconcentrations) > 0){
     ## Check for data defects ----
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
-      assertr::verify(assertr::has_all_names("sample_id", "analyte_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;Calibration Curves; ", defect_fun = assertr::defect_append)
+      assertr::verify(assertr::has_all_names("sample_id", "analyte_id", "concentration", "concentration_unit"), obligatory=TRUE, description = "D;Column missing;QC concentrations; ", defect_fun = assertr::defect_append)
 
     ## Check data integrity ----
     ### TODO: check for qc_type RQC
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("sample_id")), obligatory=TRUE, description = "E;Missing value(s);QC concentrations;sample_id") |>
-      assertr::verify(all(assertr::is_uniq(.data$sample_id)), obligatory=TRUE, description = "E;Duplicated sample IDs;QC concentrations;sample_id") |>
-      assertr::verify(check_groupwise_identical_ids(metadata$annot_qcconcentrations , group_col = .data$curve_id, id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_qcconcentrations , group_col = "sample_id", id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
       assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);QC concentrations;analyzed_amount")
     if(!is.null(data)){
       metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
-        assertr::verify((.data$analysis_id %in% unique(data@annot_analyses$sample_id)), description = "E;Samples not present in analysis data;QC concentrations;sample_id")
-      metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
-        assertr::verify((.data$feature_id %in% unique(data@dataset_orig$feature_id)), description = "E;Feature not present in analysis data;QC concentrations;feature_id")
+        assertr::verify((.data$sample_id %in% unique(data@annot_analyses$sample_id)), description = "E;Samples not present in analysis data;QC concentrations;sample_id")
     }
+    metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
+      assertr::verify(all(metadata$annot_features$analyte_id[!(metadata$annot_features$feature_id %in% metadata$annot_istds$quant_istd_feature_id)] %in% unique(.data$analyte_id)), description = "N;Non-ISTD analytes missing from QC concentrations;QC concentrations;analyte_id")
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |> assertr::chain_end(error_fun = assertr::error_append)
 
     if("annot_qcconcentrations" %in% names(metadata_new)) {
