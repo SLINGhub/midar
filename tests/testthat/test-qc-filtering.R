@@ -89,7 +89,9 @@ test_that("calc_qc_metrics batch-wise works for all qc groups", {
 test_that("calc_qc_metrics batch-wise works for with calibration metrics ", {
   mexp_quant <- quant_lcms_dataset
   mexp_quant_norm <- normalize_by_istd(mexp_quant)
-  mexp_quant_norm <- calc_calibration_results(mexp_quant_norm,fit_model = "quadratic",fit_weighting = "1/x")
+  mexp_quant_norm <- calc_calibration_results(mexp_quant_norm,
+                                              fit_overwrite = FALSE,
+                                              fit_model = "quadratic",fit_weighting = "1/x")
 
   mexp_res <- calc_qc_metrics(mexp_quant_norm,
                               use_batch_medians = TRUE,

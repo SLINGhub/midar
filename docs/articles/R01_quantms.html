@@ -150,7 +150,7 @@ the external calibration curves.</p>
 <span><span class="co"># can also be specified per feature in the feature metadata</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_calibration_results.html">calc_calibration_results</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp</span>, </span>
-<span>  overwrite_fit_param  <span class="op">=</span> <span class="cn">TRUE</span>,  <span class="co"># Set to FALSE if defined in metadata</span></span>
+<span>  fit_overwrite  <span class="op">=</span> <span class="cn">TRUE</span>,  <span class="co"># Set to FALSE if defined in metadata</span></span>
 <span>  fit_model <span class="op">=</span> <span class="st">"quadratic"</span>, </span>
 <span>  fit_weighting <span class="op">=</span> <span class="st">"1/x"</span><span class="op">)</span></span>
 <span></span>
@@ -189,7 +189,7 @@ shown below. The final concentration data is saved to a CSV file.</p>
 <code class="sourceCode R"><span><span class="co"># Calculate concentrations for all samples using external calibration</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/quantify_by_calibration.html">quantify_by_calibration</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp</span>,</span>
-<span>  overwrite_fit_param <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  fit_overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ignore_failed_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  fit_model <span class="op">=</span> <span class="st">"quadratic"</span>,</span>

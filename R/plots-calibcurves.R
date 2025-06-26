@@ -27,20 +27,20 @@
 #' These QC types need to be present in the data and defined in the analysis metadata.
 #' The default is `NA`, which means any of the QC types "CAL", "HQC", "MQC", "LQC",
 #' "EQA", "QC", will be plotted if present and have assigned concentrations.
-#' @param overwrite_fit_param If `TRUE`,
-#'   the function will ignore any fit method and weighting settings defined in
-#'   the metadata and use the provided `fit_model` and `fit_weighting` values
-#'   for all analytes.
+#' @param fit_overwrite If `TRUE`,
+#'   the function will use the provided `fit_model` and `fit_weighting` values
+#'   for all analytes and ignore any fit method and weighting settings defined in
+#'   the metadata .
 #' @param fit_model A character string specifying the default regression fit
 #'   method to use for the calibration curve. Must be one of `"linear"` or
 #'   `"quadratic"`. This method will be applied if no specific fit method is
 #'   defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #' @param fit_weighting A character string specifying the default weighting
 #'   method for the regression points in the calibration curve. Must be one of
 #'   `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no
 #'   specific weighting method is defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #' @param show_confidence_interval Logical, if `TRUE`, displays the confidence interval as ribbon.
 #' Default is `NA`, in which case confidence intervals are plotted in a linear
 #' scale and ommitted in log-log scale.
@@ -93,7 +93,7 @@
 plot_calibrationcurves <- function(data = NULL,
                                    variable = "norm_intensity",
                                    qc_types = NA,
-                                   overwrite_fit_param = FALSE,
+                                   fit_overwrite,
                                    fit_model = c("linear", "quadratic"),
                                    fit_weighting = c(NA, "none", "1/x", "1/x^2"),
                                    show_confidence_interval = NA,
@@ -141,7 +141,7 @@ plot_calibrationcurves <- function(data = NULL,
   variable_sym <- rlang::sym(variable)
   rlang::arg_match(fit_model, c(NA, "linear", "quadratic"))
   rlang::arg_match(fit_weighting, c(NA, "none", "1/x", "1/x^2"))
-  # rlang::arg_match(overwrite_fit_param, c("TRUE", "FALSE"))
+  # rlang::arg_match(fit_overwrite, c("TRUE", "FALSE"))
 
   plot_var <- rlang::sym(variable)
 
@@ -219,7 +219,7 @@ plot_calibrationcurves <- function(data = NULL,
     dplyr::right_join(
       data@annot_qcconcentrations,
       by = c("sample_id" = "sample_id", "analyte_id" = "analyte_id")
-    )
+    ) |> drop_na("concentration")
 
   if (all(is.na(qc_types))) {
     qc_types <- unique(d_calib$qc_type)
@@ -301,13 +301,13 @@ plot_calibrationcurves <- function(data = NULL,
   d_calib <- d_calib |> mutate(
     curve_fit_model = ifelse(
       is.na(.data$curve_fit_model) |
-        overwrite_fit_param,
+        fit_overwrite,
       fit_model,
       .data$curve_fit_model
     ),
     fit_weighting = ifelse(
       is.na(.data$curve_fit_weighting) |
-        overwrite_fit_param,
+        fit_overwrite,
       fit_weighting,
       .data$curve_fit_weighting
     )
@@ -335,7 +335,7 @@ plot_calibrationcurves <- function(data = NULL,
     data = data,
     variable = variable,
     include_qualifier = include_qualifier,
-    overwrite_fit_param = overwrite_fit_param,
+    fit_overwrite = fit_overwrite,
     fit_model = fit_model,
     fit_weighting = fit_weighting,
     include_fit_object = TRUE
@@ -540,7 +540,7 @@ plot_calibrationcurves <- function(data = NULL,
       fit_weighting = fit_weighting,
       log_axes = log_axes,
       show_confidence_interval = show_confidence_interval,
-      overwrite_fit_param = overwrite_fit_param
+      fit_overwrite = fit_overwrite
     )
     plot(p)
     dev.flush()
@@ -596,7 +596,7 @@ plot_calibcurves_page <- function(d_pred,
                                   fit_weighting,
                                   log_axes,
                                   show_confidence_interval,
-                                  overwrite_fit_param) {
+                                  fit_overwrite) {
   plot_var <- rlang::sym(response_variable)
   d_calib$curve_id <- as.character(d_calib$curve_id)
 
@@ -611,11 +611,14 @@ plot_calibcurves_page <- function(d_pred,
     mutate(!!plot_var := if_else(is.nan(!!plot_var), NA_real_, !!plot_var)) |>
     drop_na((!!plot_var))
 
-  d_pred <- d_pred |>
+  d_pred_filt <- d_pred |>
     dplyr::semi_join(dat_subset, by = c("feature_id")) |>
-    dplyr::arrange(.data$feature_id, .data$curve_id)
+    dplyr::arrange(.data$feature_id, .data$curve_id) |>
+    group_by(.data$feature_id) %>%
+    filter(!(all(is.na(lwr)) | all(is.na(upr)))) |>
+    ungroup()
 
-  d_pred_sum <- d_pred |>
+  d_pred_sum <- d_pred_filt |>
     dplyr::group_by(.data$feature_id) |>
     dplyr::summarise(
       x_min = safe_min(.data$concentration, na.rm = TRUE),
@@ -631,14 +634,14 @@ plot_calibcurves_page <- function(d_pred,
     dplyr::semi_join(dat_subset, by = c("feature_id")) |>
     dplyr::inner_join(d_pred_sum, by = c("feature_id"))
 
-  p <- ggplot(data = dat_subset, aes(x = .data$concentration, y = !!plot_var, ))
+  p <- ggplot(data = dat_subset, aes(x = .data$concentration, y = !!plot_var))
 
   if (show_confidence_interval &&
-    nrow(d_pred |> filter(!is.na(.data$concentration))) > 0) {
+    nrow(d_pred_filt |> filter(!is.na(.data$concentration))) > 0) {
     # Confidence interval
     p <- p +
       ggplot2::geom_ribbon(
-        data = d_pred,
+        data = d_pred_filt,
         aes(
           x = .data$concentration,
           ymin = .data$y_pred,
@@ -649,7 +652,7 @@ plot_calibcurves_page <- function(d_pred,
         na.rm = TRUE
       ) +
       ggplot2::geom_ribbon(
-        data = d_pred,
+        data = d_pred_filt,
         aes(
           x = .data$concentration,
           ymin = .data$lwr,
@@ -662,7 +665,7 @@ plot_calibcurves_page <- function(d_pred,
   }
   p <- p +
     ggplot2::geom_line(
-      data = d_pred,
+      data = d_pred_filt,
       aes(x = .data$concentration, y = .data$y_pred),
       color = line_color,
       linewidth = line_width,
@@ -732,15 +735,17 @@ plot_calibcurves_page <- function(d_pred,
       ggplot2::geom_text(
         data = d_calib_stats,
         aes(
-          x = .data$x_min,
-          y = .data$y_max,
+          x = if (!log_axes) 0 else .data$x_min,
+          y = Inf,
           label = glue::glue(
             "{stringr::str_to_title(fit_model)}\nR\u00B2 = {round(.data$r2_cal_1, 4)}"
           )
         ),
         inherit.aes = FALSE,
-        vjust = 0,
-        hjust = 0,
+        hjust = if (!log_axes) -0.1 else -0.2,
+        vjust = 1.5,
+        #vjust = 0,
+        #hjust = 0,
         size = 2,
         color = "grey36",
         fontface = "italic",

@@ -8,7 +8,7 @@ plot_calibrationcurves(
   data = NULL,
   variable = "norm_intensity",
   qc_types = NA,
-  overwrite_fit_param = FALSE,
+  fit_overwrite,
   fit_model = c("linear", "quadratic"),
   fit_weighting = c(NA, "none", "1/x", "1/x^2"),
   show_confidence_interval = NA,
@@ -49,22 +49,22 @@ These QC types need to be present in the data and defined in the analysis metada
 The default is \code{NA}, which means any of the QC types "CAL", "HQC", "MQC", "LQC",
 "EQA", "QC", will be plotted if present and have assigned concentrations.}
 
-\item{overwrite_fit_param}{If \code{TRUE},
-the function will ignore any fit method and weighting settings defined in
-the metadata and use the provided \code{fit_model} and \code{fit_weighting} values
-for all analytes.}
+\item{fit_overwrite}{If \code{TRUE},
+the function will use the provided \code{fit_model} and \code{fit_weighting} values
+for all analytes and ignore any fit method and weighting settings defined in
+the metadata .}
 
 \item{fit_model}{A character string specifying the default regression fit
 method to use for the calibration curve. Must be one of \code{"linear"} or
 \code{"quadratic"}. This method will be applied if no specific fit method is
 defined for a feature in the metadata, or
-when \code{overwrite_fit_param = TRUE}.}
+when \code{fit_overwrite = TRUE}.}
 
 \item{fit_weighting}{A character string specifying the default weighting
 method for the regression points in the calibration curve. Must be one of
 \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no
 specific weighting method is defined for a feature in the metadata, or
-when \code{overwrite_fit_param = TRUE}.}
+when \code{fit_overwrite = TRUE}.}
 
 \item{show_confidence_interval}{Logical, if \code{TRUE}, displays the confidence interval as ribbon.
 Default is \code{NA}, in which case confidence intervals are plotted in a linear

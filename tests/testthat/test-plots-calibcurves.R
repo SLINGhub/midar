@@ -7,13 +7,17 @@
 mexp <- quant_lcms_dataset
 
 mexp <- normalize_by_istd(mexp)
-mexp <- calc_calibration_results(mexp, fit_model = "quadratic", fit_weighting = "1/x")
+mexp <- calc_calibration_results(mexp,
+                                 fit_overwrite = TRUE,
+                                 fit_model = "quadratic",
+                                 fit_weighting = "1/x")
 
 test_that("plot_responsecurves generates a plot", {
 
   # Test with valid arguments
   p <- plot_calibrationcurves(
     data = mexp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     rows_page = 2,
@@ -25,8 +29,24 @@ test_that("plot_responsecurves generates a plot", {
   expect_equal(length(p), 2)
   vdiffr::expect_doppelganger("default plot_calibration plot 1", p[[1]])
 
+  # Test with valid arguments and using fit param from feature metadata
   p <- plot_calibrationcurves(
     data = mexp,
+    fit_overwrite = FALSE,
+    fit_model = "quadratic",
+    fit_weighting = "1/x",
+    rows_page = 2,
+    cols_page = 2,
+    return_plots = TRUE
+  )
+  expect_s3_class(p[[1]], "gg")
+  # Check how many pages
+  expect_equal(length(p), 2)
+  vdiffr::expect_doppelganger("default plot_calibration plot 2 ", p[[1]])
+
+  p <- plot_calibrationcurves(
+    data = mexp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     show_confidence_interval = FALSE,
     fit_weighting = "1/x",
@@ -43,6 +63,8 @@ test_that("plot_responsecurves generates a plot", {
     p <- plot_calibrationcurves(
       data = mexp,
       log_axes = TRUE,
+      fit_overwrite = TRUE,
+      show_confidence_interval = TRUE,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -56,6 +78,7 @@ test_that("plot_responsecurves generates a plot", {
     p <- plot_calibrationcurves(
       data = mexp,
       log_axes = TRUE,
+      fit_overwrite = TRUE,
       fit_model = "quadratic",
       show_confidence_interval = TRUE,
       fit_weighting = "1/x",
@@ -77,7 +100,7 @@ test_that("plot_responsecurves generates a plot", {
     expect_message(
       p <- plot_calibrationcurves(
         data = mexp_temp,
-        overwrite_fit_param = TRUE,
+        fit_overwrite = TRUE,
         fit_model = "linear",
         fit_weighting = "1/x",
         log_axes = TRUE,
@@ -91,7 +114,7 @@ test_that("plot_responsecurves generates a plot", {
     expect_message(
       p <- plot_calibrationcurves(
         data = mexp_temp,
-        overwrite_fit_param = TRUE,
+        fit_overwrite = TRUE,
         show_confidence_interval = TRUE,
         fit_model = "linear",
         fit_weighting = "1/x",
@@ -110,6 +133,7 @@ test_that("plot_responsecurves generates a plot", {
   temp_pdf_path <- file.path(tempdir(), "midar_test_calibcurve.pdf")
   p <- plot_calibrationcurves(
     data = mexp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     rows_page = 2,
@@ -120,13 +144,14 @@ test_that("plot_responsecurves generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "29K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "28.9K")
   fs::file_delete(temp_pdf_path)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
   expect_no_error(
     p <- plot_calibrationcurves(
       data = mexp,
+      fit_overwrite = TRUE,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -139,12 +164,13 @@ test_that("plot_responsecurves generates a plot", {
 
   expect_silent(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "29K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "28.9K")
   fs::file_delete(temp_pdf_path)
 
   expect_error(
     p <- plot_calibrationcurves(
       data = mexp,
+      fit_overwrite = TRUE,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -158,6 +184,7 @@ test_that("plot_responsecurves generates a plot", {
   )
   p <- plot_calibrationcurves(
     data = mexp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     rows_page = 2,
@@ -172,6 +199,7 @@ test_that("plot_responsecurves generates a plot", {
   expect_error(
     p <- plot_calibrationcurves(
       data = mexp,
+      fit_overwrite = TRUE,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -297,6 +325,7 @@ test_that("curve color definition works", {
   expect_no_error(
     p <- plot_calibrationcurves(
       data = mexp,
+      fit_overwrite = TRUE,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -420,6 +449,7 @@ test_that("plot_responsecurves generates a plot with calib failes", {
   expect_message(
   p <- plot_calibrationcurves(
     data = mexp_temp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     rows_page = 2,
@@ -434,6 +464,7 @@ test_that("plot_responsecurves generates a plot with calib failes", {
 
   p <- plot_calibrationcurves(
     data = mexp_temp,
+    fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
     log_axes = TRUE,
@@ -448,3 +479,22 @@ test_that("plot_responsecurves generates a plot with calib failes", {
 })
 
 
+test_that("plot_responsecurves generates a plot with some calib concs is NA ", {
+  mexp_temp <- mexp
+  mexp_temp@annot_qcconcentrations <- mexp_temp@annot_qcconcentrations |>
+    mutate(concentration = if_else(str_detect(sample_id, "CAL-F"), NA_real_, concentration))
+
+
+  p <- plot_calibrationcurves(
+    data = mexp_temp,
+    fit_overwrite = TRUE,
+    fit_model = "quadratic",
+    fit_weighting = "1/x",
+    log_axes = TRUE,
+    rows_page = 2,
+    cols_page = 2,
+    return_plots = TRUE
+  )
+vdiffr::expect_doppelganger("plot_calibration somecal na", p[[1]])
+
+})

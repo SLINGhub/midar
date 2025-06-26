@@ -7,7 +7,7 @@
 quantify_by_calibration(
   data = NULL,
   include_qualifier = TRUE,
-  overwrite_fit_param = FALSE,
+  fit_overwrite,
   fit_model = c("linear", "quadratic"),
   fit_weighting = c("none", "1/x", "1/x^2"),
   ignore_failed_calibration = FALSE,
@@ -19,22 +19,22 @@ quantify_by_calibration(
 
 \item{include_qualifier}{A logical value. If \code{TRUE}, the function will include quantifier features in the calibration curve calculations.}
 
-\item{overwrite_fit_param}{If \code{TRUE},
-the function will ignore any fit method and weighting settings defined in
-the metadata and use the provided \code{fit_model} and \code{fit_weighting} values
-for all analytes.}
+\item{fit_overwrite}{If \code{TRUE},
+the function will use the provided \code{fit_model} and \code{fit_weighting} values
+for all analytes and ignore any fit method and weighting settings defined in
+the metadata.}
 
 \item{fit_model}{A character string specifying the default regression fit
 method to use for the calibration curve. Must be one of \code{"linear"} or
 \code{"quadratic"}. This method will be applied if no specific fit method is
 defined for a feature in the metadata, or
-when \code{overwrite_fit_param = TRUE}.}
+when \code{fit_overwrite = TRUE}.}
 
 \item{fit_weighting}{A character string specifying the default weighting
 method for the regression points in the calibration curve. Must be one of
 \code{"none"}, \code{"1/x"}, or \code{"1/x^2"}. This method will be applied if no
 specific weighting method is defined for a feature in the metadata, or
-when \code{overwrite_fit_param = TRUE}.}
+when \code{fit_overwrite = TRUE}.}
 
 \item{ignore_failed_calibration}{If \code{FALSE}, raises error if calibration curve fit fails for any feature. If \code{TRUE}, failed fits will be ignored, and resulting feature concentration will be \code{NA}.}
 
@@ -48,7 +48,7 @@ A modified \code{MidarExperiment} object with updated concentration values.
 Concentrations of all features in all analyses are determined using ISTD-normalized intensities and corresponding external calibration curves.
 Calibration curves are calculated for each feature based on calibration sample concentrations defined in the \code{qc_concentrations} metadata.
 The regression fit model (linear or quadratic) and the weighting method (either "none", "1/x", or "1/x^2") can be defined globally via
-the arguments \code{fit_model} and \code{fit_weighting} for all features, if \code{overwrite_fit_param} is \code{TRUE}.
+the arguments \code{fit_model} and \code{fit_weighting} for all features, if \code{fit_overwrite} is \code{TRUE}.
 Alternatively, the model and weighting can be defined individually for each feature in the \code{feature} metadata (columns \code{curve_fit_model} and \code{fit_weighting}).
 If these details are missing in the metadata, the default values provided via \code{fit_model} and \code{fit_weighting} will be used.
 }

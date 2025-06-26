@@ -3,7 +3,7 @@
 #' Concentrations of all features in all analyses are determined using ISTD-normalized intensities and corresponding external calibration curves.
 #' Calibration curves are calculated for each feature based on calibration sample concentrations defined in the `qc_concentrations` metadata.
 #' The regression fit model (linear or quadratic) and the weighting method (either "none", "1/x", or "1/x^2") can be defined globally via
-#' the arguments `fit_model` and `fit_weighting` for all features, if `overwrite_fit_param` is `TRUE`.
+#' the arguments `fit_model` and `fit_weighting` for all features, if `fit_overwrite` is `TRUE`.
 #' Alternatively, the model and weighting can be defined individually for each feature in the `feature` metadata (columns `curve_fit_model` and `fit_weighting`).
 #' If these details are missing in the metadata, the default values provided via `fit_model` and `fit_weighting` will be used.
 #'
@@ -11,20 +11,20 @@
 
 #' @param data A `MidarExperiment` object
 #' @param include_qualifier A logical value. If `TRUE`, the function will include quantifier features in the calibration curve calculations.
-#' @param overwrite_fit_param If `TRUE`,
-#'   the function will ignore any fit method and weighting settings defined in
-#'   the metadata and use the provided `fit_model` and `fit_weighting` values
-#'   for all analytes.
+#' @param fit_overwrite If `TRUE`,
+#'   the function will use the provided `fit_model` and `fit_weighting` values
+#'   for all analytes and ignore any fit method and weighting settings defined in
+#'   the metadata.
 #' @param fit_model A character string specifying the default regression fit
 #'   method to use for the calibration curve. Must be one of `"linear"` or
 #'   `"quadratic"`. This method will be applied if no specific fit method is
 #'   defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #' @param fit_weighting A character string specifying the default weighting
 #'   method for the regression points in the calibration curve. Must be one of
 #'   `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no
 #'   specific weighting method is defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #'@param ignore_missing_annotation If `FALSE`, raises error if any of the following information is missing: calibration curve data, ISTD mix volume and sample amounts for any feature.
 #'   If `TRUE`, missing annotations will be ignored, and resulting feature concentration will be `NA`
 #'@param ignore_failed_calibration If `FALSE`, raises error if calibration curve fit fails for any feature. If `TRUE`, failed fits will be ignored, and resulting feature concentration will be `NA`.
@@ -35,7 +35,7 @@
 #' @export
 quantify_by_calibration <- function(data = NULL,
                                     include_qualifier = TRUE,
-                                     overwrite_fit_param = FALSE,
+                                     fit_overwrite,
                                      fit_model = c("linear", "quadratic"),
                                      fit_weighting = c("none", "1/x", "1/x^2"),
                                      ignore_failed_calibration = FALSE,
@@ -51,7 +51,7 @@ quantify_by_calibration <- function(data = NULL,
    data <- calc_calibration_results(data = data,
                                     variable = "feature_norm_intensity",
                                     include_qualifier = include_qualifier,
-                                   overwrite_fit_param = overwrite_fit_param,
+                                   fit_overwrite = fit_overwrite,
                                    fit_model = fit_model,
                                    fit_weighting = fit_weighting,
                                    ignore_missing_annotation = ignore_missing_annotation)
@@ -166,7 +166,7 @@ quantify_by_calibration <- function(data = NULL,
 #' defined in the `qc_concentrations` metadata. The regression fit model (linear
 #' or quadratic) and the weighting method (either "none", "1/x", or "1/x^2")
 #' can be defined globally via the arguments `fit_model` and `fit_weighting`
-#' for all features, if `overwrite_fit_param` is `TRUE`. Alternatively, the
+#' for all features, if `fit_overwrite` is `TRUE`. Alternatively, the
 #' model and weighting can be defined individually for each feature in the
 #' `feature` metadata (columns `curve_fit_model` and `fit_weighting`). If
 #' these details are missing in the metadata, the default values provided via
@@ -191,20 +191,20 @@ quantify_by_calibration <- function(data = NULL,
 #'   internal standardization, use `"feature_intensity"`.
 #' @param include_qualifier A logical value. If `TRUE`, the function will
 #'   include quantifier features in the calibration curve calculations.
-#' @param overwrite_fit_param If `TRUE`,
-#'   the function will ignore any fit method and weighting settings defined in
-#'   the metadata and use the provided `fit_model` and `fit_weighting` values
-#'   for all analytes.
+#' @param fit_overwrite If `TRUE`,
+#'   the function will se the provided `fit_model` and `fit_weighting` values
+#'   for all analytes and ignore any fit method and weighting settings defined in
+#'   the metadata.
 #' @param fit_model A character string specifying the default regression fit
 #'   method to use for the calibration curve. Must be one of `"linear"` or
 #'   `"quadratic"`. This method will be applied if no specific fit method is
 #'   defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #' @param fit_weighting A character string specifying the default weighting
 #'   method for the regression points in the calibration curve. Must be one of
 #'   `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no
 #'   specific weighting method is defined for a feature in the metadata, or
-#'   when `overwrite_fit_param = TRUE`.
+#'   when `fit_overwrite = TRUE`.
 #' @param ignore_missing_annotation If `FALSE`, an error will be raised if any of
 #'   the following information is missing: calibration curve data, ISTD mix
 #'   volume, and sample amounts for any feature.
@@ -224,7 +224,7 @@ quantify_by_calibration <- function(data = NULL,
 calc_calibration_results <- function(data = NULL,
                                     variable = "feature_norm_intensity",
                                     include_qualifier = TRUE,
-                                    overwrite_fit_param = TRUE,
+                                    fit_overwrite,
                                     fit_model,
                                     fit_weighting,
                                     ignore_missing_annotation = FALSE,
@@ -349,7 +349,7 @@ calc_calibration_results <- function(data = NULL,
     dplyr::inner_join(data@annot_qcconcentrations, by = c("sample_id" = "sample_id", "analyte_id" = "analyte_id")) |>
     mutate(curve_id = "1")
 
-  if (!overwrite_fit_param) {
+  if (!fit_overwrite) {
     d_calib <- d_calib |>
       dplyr::left_join(data@annot_features |> select("feature_id", "curve_fit_model", "curve_fit_weighting"), by = c("feature_id" = "feature_id")) |>
       mutate(fit_model = if_else(is.na(.data$curve_fit_model), fit_model, .data$curve_fit_model),

@@ -82,7 +82,7 @@ or feature metadata.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"norm_intensity"</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  overwrite_fit_param <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  fit_overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  fit_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear"</span>, <span class="st">"quadratic"</span><span class="op">)</span>,</span>
 <span>  fit_weighting <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="st">"none"</span>, <span class="st">"1/x"</span>, <span class="st">"1/x^2"</span><span class="op">)</span>,</span>
 <span>  show_confidence_interval <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -133,7 +133,7 @@ The default is <code>NA</code>, which means any of the QC types "CAL", "HQC", "M
 "EQA", "QC", will be plotted if present and have assigned concentrations.</p></dd>
 
 
-<dt id="arg-overwrite-fit-param">overwrite_fit_param<a class="anchor" aria-label="anchor" href="#arg-overwrite-fit-param"></a></dt>
+<dt id="arg-overwrite-fit-param">fit_overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite-fit-param"></a></dt>
 <dd><p>If <code>TRUE</code>,
 the function will ignore any fit method and weighting settings defined in
 the metadata and use the provided <code>fit_model</code> and <code>fit_weighting</code> values
@@ -145,7 +145,7 @@ for all analytes.</p></dd>
 method to use for the calibration curve. Must be one of <code>"linear"</code> or
 <code>"quadratic"</code>. This method will be applied if no specific fit method is
 defined for a feature in the metadata, or
-when <code>overwrite_fit_param = TRUE</code>.</p></dd>
+when <code>fit_overwrite = TRUE</code>.</p></dd>
 
 
 <dt id="arg-fit-weighting">fit_weighting<a class="anchor" aria-label="anchor" href="#arg-fit-weighting"></a></dt>
@@ -153,7 +153,7 @@ when <code>overwrite_fit_param = TRUE</code>.</p></dd>
 method for the regression points in the calibration curve. Must be one of
 <code>"none"</code>, <code>"1/x"</code>, or <code>"1/x^2"</code>. This method will be applied if no
 specific weighting method is defined for a feature in the metadata, or
-when <code>overwrite_fit_param = TRUE</code>.</p></dd>
+when <code>fit_overwrite = TRUE</code>.</p></dd>
 
 
 <dt id="arg-show-confidence-interval">show_confidence_interval<a class="anchor" aria-label="anchor" href="#arg-show-confidence-interval"></a></dt>

@@ -7,7 +7,7 @@ mexp_norm <- normalize_by_istd(mexp)
 test_that("calc_calibration_results works", {
   expect_message(
     mexp_res <- calc_calibration_results(mexp_norm,
-                                         overwrite_fit_param = TRUE,
+                                         fit_overwrite = TRUE,
                                          fit_model = "linear",
                                          fit_weighting = "1/x"),
     "Calibration curve fits calculated for all 4 quantifier and 4 qualifier features")
@@ -21,7 +21,7 @@ test_that("calc_calibration_results works", {
   expect_message(
     mexp_res <- calc_calibration_results(mexp_norm,
                                          include_qualifier = FALSE,
-                                         overwrite_fit_param = TRUE,
+                                         fit_overwrite = TRUE,
                                          fit_model = "linear",
                                          fit_weighting = "1/x"),
     "Calibration curve fits calculated for all 4 quantifier features")
@@ -33,7 +33,7 @@ test_that("calc_calibration_results works", {
 
 
   mexp_res <- calc_calibration_results(mexp_norm,
-                                       overwrite_fit_param = FALSE,
+                                       fit_overwrite = FALSE,
                                        fit_model = "linear",
                                        fit_weighting = "1/x")
   res <- mexp_res@metrics_calibration
@@ -49,7 +49,7 @@ test_that("calc_calibration_results works", {
   mexp_temp@annot_features$curve_fit_weighting[c(1,3, 5, 7)] <- NA
 
   mexp_res <- calc_calibration_results(mexp_temp,
-                                       overwrite_fit_param = FALSE,
+                                       fit_overwrite = FALSE,
                                        fit_model = "linear",
                                        fit_weighting = "none")
   res <- mexp_res@metrics_calibration
@@ -66,14 +66,14 @@ test_that("calc_calibration_results error handling works", {
 
   expect_error(
     mexp_res <- calc_calibration_results(mexp_temp,
-                                         overwrite_fit_param = TRUE,
+                                         fit_overwrite = TRUE,
                                          fit_model = "linear",
                                          fit_weighting = "1/x"),
     "All calibration curve fits for quantifier features")
 
   expect_error(
     mexp_res <- calc_calibration_results(mexp_temp,
-                                         overwrite_fit_param = TRUE,
+                                         fit_overwrite = TRUE,
                                          include_qualifier = FALSE,
                                          fit_model = "linear",
                                          fit_weighting = "1/x"),
@@ -85,7 +85,7 @@ test_that("calc_calibration_results error handling works", {
 test_that("quantify_by_calibration works", {
   expect_message(
     mexp_res <- quantify_by_calibration(mexp_norm,
-                                         overwrite_fit_param = FALSE,
+                                         fit_overwrite = FALSE,
                                          include_qualifier = TRUE,
                                          fit_model = "quadratic",
                                          fit_weighting = "1/x"),
@@ -99,7 +99,7 @@ test_that("quantify_by_calibration works", {
 
   expect_message(
     mexp_res <- quantify_by_calibration(mexp_norm,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         fit_model = "quadratic",
                                         fit_weighting = "1/x"),
@@ -118,7 +118,7 @@ test_that("quantify_by_calibration handles errors", {
 
   expect_error(
     mexp_res <- quantify_by_calibration(mexp_temp,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         ignore_failed_calibration = FALSE,
                                         fit_model = "quadratic",
@@ -127,7 +127,7 @@ test_that("quantify_by_calibration handles errors", {
 
   expect_message(
     mexp_res <- quantify_by_calibration(mexp_temp,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         ignore_failed_calibration = TRUE,
                                         fit_model = "quadratic",
@@ -136,7 +136,7 @@ test_that("quantify_by_calibration handles errors", {
 
   expect_message(
     mexp_res <- quantify_by_calibration(mexp_temp,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         ignore_failed_calibration = TRUE,
                                         fit_model = "quadratic",
@@ -148,7 +148,7 @@ test_that("quantify_by_calibration handles errors", {
 
   expect_error(
     mexp_res <- quantify_by_calibration(mexp_temp,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         ignore_failed_calibration = FALSE,
                                         fit_model = "quadratic",
@@ -157,7 +157,7 @@ test_that("quantify_by_calibration handles errors", {
 
   expect_message(
     mexp_res <- quantify_by_calibration(mexp_temp,
-                                        overwrite_fit_param = FALSE,
+                                        fit_overwrite = FALSE,
                                         include_qualifier = FALSE,
                                         ignore_failed_calibration = FALSE,
                                         ignore_missing_annotation = TRUE,
@@ -174,8 +174,11 @@ test_that("quantify_by_calibration handles errors", {
 
 mexp_quant <- quant_lcms_dataset
 mexp_quant_norm <- normalize_by_istd(mexp_quant)
-mexp_quant_norm <- calc_calibration_results(mexp_quant_norm,fit_model = "quadratic",fit_weighting = "1/x")
+mexp_quant_norm <- calc_calibration_results(mexp_quant_norm,
+                                            fit_overwrite = FALSE,
+                                            fit_model = "quadratic",fit_weighting = "1/x")
 mexp_quant_norm <- quantify_by_calibration(mexp_quant_norm,
+                                           fit_overwrite = FALSE,
                                            fit_model = "quadratic",fit_weighting = "1/x")
 
 

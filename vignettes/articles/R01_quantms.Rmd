@@ -81,7 +81,7 @@ mexp <- normalize_by_istd(mexp)
 # can also be specified per feature in the feature metadata
 mexp <- calc_calibration_results(
   mexp, 
-  overwrite_fit_param  = TRUE,  # Set to FALSE if defined in metadata
+  fit_overwrite  = TRUE,  # Set to FALSE if defined in metadata
   fit_model = "quadratic", 
   fit_weighting = "1/x")
 
@@ -118,7 +118,7 @@ The final concentration data is saved to a CSV file.
 # Calculate concentrations for all samples using external calibration
 mexp <- quantify_by_calibration(
   mexp,
-  overwrite_fit_param = FALSE,
+  fit_overwrite = FALSE,
   include_qualifier = FALSE,
   ignore_failed_calibration = TRUE,
   fit_model = "quadratic",

@@ -4,7 +4,7 @@ intensities and the corresponding concentrations of calibration samples, as
 defined in the qc_concentrations metadata. The regression fit model (linear
 or quadratic) and the weighting method (either "none", "1/x", or "1/x^2")
 can be defined globally via the arguments fit_model and fit_weighting
-for all features, if overwrite_fit_param is TRUE. Alternatively, the
+for all features, if fit_overwrite is TRUE. Alternatively, the
 model and weighting can be defined individually for each feature in the
 feature metadata (columns curve_fit_model and fit_weighting). If
 these details are missing in the metadata, the default values provided via
@@ -13,7 +13,7 @@ intensities and the corresponding concentrations of calibration samples, as
 defined in the qc_concentrations metadata. The regression fit model (linear
 or quadratic) and the weighting method (either "none", "1/x", or "1/x^2")
 can be defined globally via the arguments fit_model and fit_weighting
-for all features, if overwrite_fit_param is TRUE. Alternatively, the
+for all features, if fit_overwrite is TRUE. Alternatively, the
 model and weighting can be defined individually for each feature in the
 feature metadata (columns curve_fit_model and fit_weighting). If
 these details are missing in the metadata, the default values provided via
@@ -84,7 +84,7 @@ intensities and the corresponding concentrations of calibration samples, as
 defined in the <code>qc_concentrations</code> metadata. The regression fit model (linear
 or quadratic) and the weighting method (either "none", "1/x", or "1/x^2")
 can be defined globally via the arguments <code>fit_model</code> and <code>fit_weighting</code>
-for all features, if <code>overwrite_fit_param</code> is <code>TRUE</code>. Alternatively, the
+for all features, if <code>fit_overwrite</code> is <code>TRUE</code>. Alternatively, the
 model and weighting can be defined individually for each feature in the
 <code>feature</code> metadata (columns <code>curve_fit_model</code> and <code>fit_weighting</code>). If
 these details are missing in the metadata, the default values provided via
@@ -97,7 +97,7 @@ these details are missing in the metadata, the default values provided via
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"feature_norm_intensity"</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  overwrite_fit_param <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  fit_overwrite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">fit_model</span>,</span>
 <span>  <span class="va">fit_weighting</span>,</span>
 <span>  ignore_missing_annotation <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -126,7 +126,7 @@ internal standardization, use <code>"feature_intensity"</code>.</p></dd>
 include quantifier features in the calibration curve calculations.</p></dd>
 
 
-<dt id="arg-overwrite-fit-param">overwrite_fit_param<a class="anchor" aria-label="anchor" href="#arg-overwrite-fit-param"></a></dt>
+<dt id="arg-overwrite-fit-param">fit_overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite-fit-param"></a></dt>
 <dd><p>If <code>TRUE</code>,
 the function will ignore any fit method and weighting settings defined in
 the metadata and use the provided <code>fit_model</code> and <code>fit_weighting</code> values
@@ -138,7 +138,7 @@ for all analytes.</p></dd>
 method to use for the calibration curve. Must be one of <code>"linear"</code> or
 <code>"quadratic"</code>. This method will be applied if no specific fit method is
 defined for a feature in the metadata, or
-when <code>overwrite_fit_param = TRUE</code>.</p></dd>
+when <code>fit_overwrite = TRUE</code>.</p></dd>
 
 
 <dt id="arg-fit-weighting">fit_weighting<a class="anchor" aria-label="anchor" href="#arg-fit-weighting"></a></dt>
@@ -146,7 +146,7 @@ when <code>overwrite_fit_param = TRUE</code>.</p></dd>
 method for the regression points in the calibration curve. Must be one of
 <code>"none"</code>, <code>"1/x"</code>, or <code>"1/x^2"</code>. This method will be applied if no
 specific weighting method is defined for a feature in the metadata, or
-when <code>overwrite_fit_param = TRUE</code>.</p></dd>
+when <code>fit_overwrite = TRUE</code>.</p></dd>
 
 
 <dt id="arg-ignore-missing-annotation">ignore_missing_annotation<a class="anchor" aria-label="anchor" href="#arg-ignore-missing-annotation"></a></dt>
