@@ -472,7 +472,8 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
       assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);QC concentrations;analyzed_amount")
     if(!is.null(data)){
       metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
-        assertr::verify((.data$sample_id %in% unique(metadata$annot_analyses$sample_id)), description = "E;Samples not present in analysis data;QC concentrations;sample_id")
+        assertr::verify((.data$sample_id %in% unique(metadata$annot_analyses$sample_id)), description = "N;Samples not defined in analysis data;QC concentrations;sample_id") |>
+        assertr::verify((.data$analyte_id %in% unique(metadata$annot_analyses$analyte_id)), description = "N;Analytes not defined in analysis data;QC concentrations;analyte_id")
     }
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
       assertr::verify(all(metadata$annot_features$analyte_id[!(metadata$annot_features$feature_id %in% metadata$annot_istds$quant_istd_feature_id)] %in% unique(.data$analyte_id)), description = "N;Non-ISTD analytes missing from QC concentrations;QC concentrations;analyte_id")
