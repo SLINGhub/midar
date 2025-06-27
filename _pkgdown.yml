@@ -171,6 +171,7 @@ reference:
   - plot_pca
   - plot_feature_correlations
   - plot_rt_vs_chain
+  - plot_qc_matrixeffects
   - plot_normalization_qc
   - plot_qcmetrics_comparison
 - title: Response Curves

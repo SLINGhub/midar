@@ -468,12 +468,14 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
       assertr::chain_start(store_success = FALSE) |>
       assertr::assert(\(x){not_na(x)}, any_of(c("sample_id")), obligatory=TRUE, description = "E;Missing value(s);QC concentrations;sample_id") |>
-      assertr::verify(check_groupwise_identical_ids(metadata$annot_qcconcentrations , group_col = "sample_id", id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;Calibration Curves;analyzed_amount_unit") |>
-      assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);QC concentrations;analyzed_amount")
+      assertr::verify(check_groupwise_identical_ids(metadata$annot_qcconcentrations , group_col = "sample_id", id_col = .data$concentration_unit), obligatory=FALSE, description = "W;Units not identical in at least one group;QC concentrations;analyzed_amount_unit") |>
+      assertr::assert(\(x){not_na(x)}, any_of(c("concentration")), description = "W;Missing value(s);QC concentrations;analyzed_amount") |>
+      assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("include_in_analysis")), description = "E;Not defined for all entries;QC concentrations;include_in_analysis")
+
     if(!is.null(data)){
       metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
         assertr::verify((.data$sample_id %in% unique(metadata$annot_analyses$sample_id)), description = "N;Samples not defined in analysis data;QC concentrations;sample_id") |>
-        assertr::verify((.data$analyte_id %in% unique(metadata$annot_analyses$analyte_id)), description = "N;Analytes not defined in analysis data;QC concentrations;analyte_id")
+        assertr::verify((.data$analyte_id %in% unique(metadata$annot_features$analyte_id)), description = "N;Analytes not defined in analysis data;QC concentrations;analyte_id")
     }
     metadata$annot_qcconcentrations <- metadata$annot_qcconcentrations |>
       assertr::verify(all(metadata$annot_features$analyte_id[!(metadata$annot_features$feature_id %in% metadata$annot_istds$quant_istd_feature_id)] %in% unique(.data$analyte_id)), description = "N;Non-ISTD analytes missing from QC concentrations;QC concentrations;analyte_id")
@@ -940,7 +942,7 @@ clean_analysis_metadata <- function(d_analyses) {
   else
     if (any(is.na(d_analyses$valid_analysis)) & !all(is.na(d_analyses$valid_analysis))){
         cli::cli_abort("`valid_analysis` is inconsistently defined, i.e., not for one or more analyses. Please verify imported analysis metadata.")
-        }
+  }
   # Add template table structure
   d_analyses <- dplyr::bind_rows(pkg.env$table_templates$annot_analyses_template, d_analyses)
   d_analyses
@@ -1100,21 +1102,38 @@ clean_qcconc_metadata <- function(d_cal) {
   }
 
   d_cal <- d_cal |> add_missing_column(col_name = "remarks", init_value = NA_character_, make_lowercase = FALSE)
+  d_cal <- d_cal |> add_missing_column(col_name = "include_in_analysis", init_value = TRUE, make_lowercase = FALSE, all_na_replace = TRUE)
+
 
   d_cal <- d_cal |>
     dplyr::mutate(
       sample_id = stringr::str_remove(.data$sample_id, stringr::regex("\\.mzML|\\.d|\\.raw|\\.wiff|\\.lcd", ignore_case = TRUE)),
       sample_id = stringr::str_squish(as.character(.data$sample_id)),
       analyte_id = stringr::str_squish(as.character(.data$analyte_id)),
-      concentration_unit = stringr::str_squish(.data$concentration_unit)
+      concentration_unit = stringr::str_squish(.data$concentration_unit),
+      include_in_analysis = as.logical(case_match(tolower(.data$include_in_analysis),
+                                             "yes" ~ TRUE,
+                                             "no"~ FALSE,
+                                             "true" ~ TRUE,
+                                             "false" ~ FALSE,
+                                             NA ~ TRUE,
+                                             .default = NA)),
     ) |>
     dplyr::select(
       "sample_id",
       "analyte_id",
       "concentration",
       "concentration_unit",
+      "include_in_analysis",
       "remarks"
     )
+
+  if (all(is.na(d_cal$include_in_analysis)))
+    d_cal$include_in_analysis <- TRUE
+  else
+    if (any(is.na(d_cal$include_in_analysis))){
+      cli::cli_abort("Invalid value(s) detected in `include_in_analysis`. Please check the QC concentration metadata, allowed values are 'true', 'false', 'yes', 'no', or empty (case-insensitive).")
+    }
   d_cal <- dplyr::bind_rows(pkg.env$table_templates$annot_qcconcentrations_template,
                             d_cal)
   d_cal

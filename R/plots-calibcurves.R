@@ -219,7 +219,8 @@ plot_calibrationcurves <- function(data = NULL,
     dplyr::right_join(
       data@annot_qcconcentrations,
       by = c("sample_id" = "sample_id", "analyte_id" = "analyte_id")
-    ) |> drop_na("concentration")
+    ) |>
+    drop_na("concentration")
 
   if (all(is.na(qc_types))) {
     qc_types <- unique(d_calib$qc_type)
@@ -352,14 +353,14 @@ plot_calibrationcurves <- function(data = NULL,
     )
   }
 
-  get_predictions <- function(stats, log_scale) {
+  get_predictions <- function(stats,d_calib, log_scale) {
     if (!stats$reg_failed_cal_1) {
       fit <- stats$fit_cal_1[[1]]
       conc_orig <- model.matrix(fit)[, 2]
       if (log_scale) {
-        concs <- 10^(seq(log10(min(conc_orig)), log10(max(conc_orig)), length.out = 100))
+        concs <- 10^(seq(log10(min(d_calib$concentration[d_calib$feature_id == stats$feature_id])), log10(max(d_calib$concentration[d_calib$feature_id == stats$feature_id])), length.out = 100))
       } else {
-        concs <- seq(min(conc_orig), max(conc_orig), length.out = 100)
+        concs <- seq(min(d_calib$concentration[d_calib$feature_id == stats$feature_id]), max(d_calib$concentration[d_calib$feature_id == stats$feature_id]), length.out = 100)
       }
       predictions <- predict(fit,
         newdata = data.frame(concentration = concs),
@@ -372,13 +373,19 @@ plot_calibrationcurves <- function(data = NULL,
         y_pred = predictions[, "fit"],
         lwr = predictions[, "lwr"],
         upr = predictions[, "upr"]
-      )
+      ) |>
+        mutate(
+          y_pred_fit =if_else(.data$concentration < min(conc_orig) | .data$concentration > max(conc_orig), NA_real_, .data$y_pred),
+          lwr_fit =if_else(.data$concentration < min(conc_orig) | .data$concentration > max(conc_orig), NA_real_, .data$lwr),
+          upr_fit =if_else(.data$concentration < min(conc_orig) | .data$concentration > max(conc_orig), NA_real_, .data$upr)
+        )
     } else {
       prediction_data <- tibble(
         feature_id = stats$feature_id,
         curve_id = "1",
         concentration = NA_real_,
         y_pred = NA_real_,
+        y_pred_fit = NA_real_,
         lwr = NA_real_,
         upr = NA_real_
       )
@@ -391,7 +398,7 @@ plot_calibrationcurves <- function(data = NULL,
     dplyr::group_split(.data$feature_id) # TODO .data$curve_id
 
   d_pred <- map(d_calib_stats_grp, function(x) {
-    get_predictions(x, log_axes)
+    get_predictions(x, d_calib, log_axes)
   }) |> bind_rows()
 
 
@@ -615,7 +622,7 @@ plot_calibcurves_page <- function(d_pred,
     dplyr::semi_join(dat_subset, by = c("feature_id")) |>
     dplyr::arrange(.data$feature_id, .data$curve_id) |>
     group_by(.data$feature_id) |>
-    filter(!(all(is.na(lwr)) | all(is.na(upr)))) |>
+    filter(!(all(is.na(.data$lwr)) | all(is.na(.data$upr)))) |>
     ungroup()
 
   d_pred_sum <- d_pred_filt |>
@@ -648,6 +655,7 @@ plot_calibcurves_page <- function(d_pred,
           ymax = .data$upr
         ),
         fill = ribbon_fill,
+        alpha = 0.07,
         inherit.aes = FALSE,
         na.rm = TRUE
       ) +
@@ -659,6 +667,29 @@ plot_calibcurves_page <- function(d_pred,
           ymax = .data$y_pred
         ),
         fill = ribbon_fill,
+        alpha = 0.07,
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      ) +
+      ggplot2::geom_ribbon(
+        data = d_pred_filt,
+        aes(
+          x = .data$concentration,
+          ymin = .data$y_pred_fit,
+          ymax = .data$upr_fit
+        ),
+        fill = ribbon_fill,
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      ) +
+      ggplot2::geom_ribbon(
+        data = d_pred_filt,
+        aes(
+          x = .data$concentration,
+          ymin = .data$lwr_fit,
+          ymax = .data$y_pred_fit
+        ),
+        fill = ribbon_fill,
         inherit.aes = FALSE,
         na.rm = TRUE
       )
@@ -667,6 +698,15 @@ plot_calibcurves_page <- function(d_pred,
     ggplot2::geom_line(
       data = d_pred_filt,
       aes(x = .data$concentration, y = .data$y_pred),
+      color = line_color,
+      linewidth = line_width * 0.8,
+      linetype = "dotted",
+      inherit.aes = FALSE,
+      na.rm = TRUE
+    ) +
+    ggplot2::geom_line(
+      data = d_pred_filt,
+      aes(x = .data$concentration, y = .data$y_pred_fit),
       color = line_color,
       linewidth = line_width,
       inherit.aes = FALSE,

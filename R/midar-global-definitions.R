@@ -76,7 +76,8 @@ pkg.env$table_templates <- list(
     "sample_id" = character(),
     "analyte_id" = character(),
     "concentration" = numeric(),
-    "concentration_unit" = character()
+    "concentration_unit" = character(),
+    "include_in_analysis" = logical()
   ),
   annot_batch_info_template = dplyr::tibble(
     "batch_id" = character(),

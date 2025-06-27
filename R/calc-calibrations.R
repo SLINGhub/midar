@@ -347,6 +347,7 @@ calc_calibration_results <- function(data = NULL,
 
   d_calib <- d_calib |>
     dplyr::inner_join(data@annot_qcconcentrations, by = c("sample_id" = "sample_id", "analyte_id" = "analyte_id")) |>
+    filter(.data$include_in_analysis) |>
     mutate(curve_id = "1")
 
   if (!fit_overwrite) {

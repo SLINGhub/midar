@@ -37,10 +37,9 @@ features in the feature metadata tables, respectively.
 
 ![Quality control concentration plot](images/qcconc.jpg){width="588"}
 
-
-So, we first import the data and metadata from a MassHunter CSV file and an MsOrganiser template file. 
-The datasets used in this example can be obtained from
-<https://github.com/SLINGhub/midar/tree/main/data-raw>.
+So, we first import the data and metadata from a MassHunter CSV file and
+an MsOrganiser template file. The datasets used in this example can be
+obtained from <https://github.com/SLINGhub/midar/tree/main/data-raw>.
 
 ```{r, fig.height=3, fig.width=7}
 #| results: true 
@@ -61,13 +60,13 @@ mexp <- import_data_masshunter(
 # Import metadata from an msorganiser template fie
 mexp <- import_metadata_msorganiser(
   mexp,
-  path = "QuantLCMS_Example_Metadata.xlsm",
+  path = "datasets/QuantLCMS_Example_Metadata.xlsm",
   excl_unmatched_analyses = T, ignore_warnings = T)
 ```
 
-Next, the raw peak areas are normalized with the corresponding internal standard and
-then we calculate and plot the regression fits for the external calibration curves.
-
+Next, the raw peak areas are normalized with the corresponding internal
+standard and then we calculate and plot the regression fits for the
+external calibration curves.
 
 ```{r, fig.height=3, fig.width=7}
 #| results: true 
@@ -86,13 +85,15 @@ mexp <- calc_calibration_results(
   fit_weighting = "1/x")
 
 # Plot calibration curves
-  p <- plot_calibrationcurves(
+  plot_calibrationcurves(
     data = mexp,
-    fit_model = "quadratic",
-    fit_weighting = "1/x",
+    fit_overwrite = TRUE,  # Set to FALSE if defined in metadata
+    fit_model = "linear",
+    fit_weighting = "1/x",log_axes = T,
     rows_page = 2,
     cols_page = 4, show_progress = FALSE
   )
+  
 ```
 
 We also can output a summary of the calibration curve results:
@@ -104,12 +105,12 @@ tbl_cal <- get_calibration_metrics(mexp)
 tbl_cal
 ```
 
+After we have inspected the curves and are happy with the quality of the
+analysis, we can calculate the concentrations for all features in
+samples using the external calibration curves.
 
-After we have inspected the curves and are happy with the quality of the analysis, 
-we can calculate the concentrations for all features in samples using the external calibration curves.
-
-A summary of the QC results (bias and variability) is calculated and shown below. 
-The final concentration data is saved to a CSV file. 
+A summary of the QC results (bias and variability) is calculated and
+shown below. The final concentration data is saved to a CSV file.
 
 ```{r, fig.height=3, fig.width=7}
 #| fig.alt: >
@@ -135,5 +136,3 @@ tbl <- get_qc_bias_variability(mexp, qc_types = c("HQC", "LQC"))
  
  print(tbl)
 ```
-
-
