@@ -614,7 +614,7 @@ plot_calibcurves_page <- function(d_pred,
   d_pred_filt <- d_pred |>
     dplyr::semi_join(dat_subset, by = c("feature_id")) |>
     dplyr::arrange(.data$feature_id, .data$curve_id) |>
-    group_by(.data$feature_id) %>%
+    group_by(.data$feature_id) |>
     filter(!(all(is.na(lwr)) | all(is.na(upr)))) |>
     ungroup()
 
