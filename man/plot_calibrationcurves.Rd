@@ -12,6 +12,7 @@ plot_calibrationcurves(
   fit_model = c("linear", "quadratic"),
   fit_weighting = c(NA, "none", "1/x", "1/x^2"),
   show_confidence_interval = NA,
+  zoom_n_points = NA,
   log_axes = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
@@ -27,7 +28,7 @@ plot_calibrationcurves(
   point_fill = NA,
   point_shape = NA,
   line_color = "#4575b4",
-  ribbon_fill = "#91bfdb40",
+  ribbon_fill = "#e6f6ff",
   font_base_size = 7,
   rows_page = 4,
   cols_page = 5,
@@ -69,6 +70,8 @@ when \code{fit_overwrite = TRUE}.}
 \item{show_confidence_interval}{Logical, if \code{TRUE}, displays the confidence interval as ribbon.
 Default is \code{NA}, in which case confidence intervals are plotted in a linear
 scale and ommitted in log-log scale.}
+
+\item{zoom_n_points}{Number of x lowest concentration points to display, used for zooming. Set to \code{NULL} or \code{NA} (default) to show all points.}
 
 \item{log_axes}{Logical. Determines whether the x and y axes are displayed in a logarithmic scale (log-log scale).
 Set to \code{TRUE} to enable logarithmic scaling; otherwise, set to \code{FALSE} for a linear scale.

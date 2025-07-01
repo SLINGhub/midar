@@ -82,10 +82,11 @@ or feature metadata.</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"norm_intensity"</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  fit_overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  <span class="va">fit_overwrite</span>,</span>
 <span>  fit_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear"</span>, <span class="st">"quadratic"</span><span class="op">)</span>,</span>
 <span>  fit_weighting <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="st">"none"</span>, <span class="st">"1/x"</span>, <span class="st">"1/x^2"</span><span class="op">)</span>,</span>
 <span>  show_confidence_interval <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  zoom_n_points <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  log_axes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -101,7 +102,7 @@ or feature metadata.</p>
 <span>  point_fill <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  point_shape <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  line_color <span class="op">=</span> <span class="st">"#4575b4"</span>,</span>
-<span>  ribbon_fill <span class="op">=</span> <span class="st">"#91bfdb40"</span>,</span>
+<span>  ribbon_fill <span class="op">=</span> <span class="st">"#e6f6ff"</span>,</span>
 <span>  font_base_size <span class="op">=</span> <span class="fl">7</span>,</span>
 <span>  rows_page <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">5</span>,</span>
@@ -133,11 +134,11 @@ The default is <code>NA</code>, which means any of the QC types "CAL", "HQC", "M
 "EQA", "QC", will be plotted if present and have assigned concentrations.</p></dd>
 
 
-<dt id="arg-overwrite-fit-param">fit_overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite-fit-param"></a></dt>
+<dt id="arg-fit-overwrite">fit_overwrite<a class="anchor" aria-label="anchor" href="#arg-fit-overwrite"></a></dt>
 <dd><p>If <code>TRUE</code>,
-the function will ignore any fit method and weighting settings defined in
-the metadata and use the provided <code>fit_model</code> and <code>fit_weighting</code> values
-for all analytes.</p></dd>
+the function will use the provided <code>fit_model</code> and <code>fit_weighting</code> values
+for all analytes and ignore any fit method and weighting settings defined in
+the metadata .</p></dd>
 
 
 <dt id="arg-fit-model">fit_model<a class="anchor" aria-label="anchor" href="#arg-fit-model"></a></dt>
@@ -160,6 +161,10 @@ when <code>fit_overwrite = TRUE</code>.</p></dd>
 <dd><p>Logical, if <code>TRUE</code>, displays the confidence interval as ribbon.
 Default is <code>NA</code>, in which case confidence intervals are plotted in a linear
 scale and ommitted in log-log scale.</p></dd>
+
+
+<dt id="arg-zoom-n-points">zoom_n_points<a class="anchor" aria-label="anchor" href="#arg-zoom-n-points"></a></dt>
+<dd><p>Number of x lowest concentration points to display, used for zooming. Set to <code>NULL</code> or <code>NA</code> (default) to show all points.</p></dd>
 
 
 <dt id="arg-log-axes">log_axes<a class="anchor" aria-label="anchor" href="#arg-log-axes"></a></dt>

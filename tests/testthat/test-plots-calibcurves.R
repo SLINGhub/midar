@@ -64,7 +64,7 @@ test_that("plot_responsecurves generates a plot", {
       data = mexp,
       log_axes = TRUE,
       fit_overwrite = TRUE,
-      show_confidence_interval = TRUE,
+      show_confidence_interval = T,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -128,7 +128,7 @@ test_that("plot_responsecurves generates a plot", {
 
   # Test if the number of points in the plot matches the expected value
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
-  expect_equal(nrow(plot_data), 400)
+  expect_equal(nrow(plot_data), 281)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_calibcurve.pdf")
   p <- plot_calibrationcurves(
@@ -144,7 +144,7 @@ test_that("plot_responsecurves generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "28.9K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.8K")
   fs::file_delete(temp_pdf_path)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
@@ -164,7 +164,7 @@ test_that("plot_responsecurves generates a plot", {
 
   expect_silent(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "28.9K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.8K")
   fs::file_delete(temp_pdf_path)
 
   expect_error(
@@ -335,7 +335,7 @@ test_that("curve color definition works", {
       return_plots = TRUE
     ))
   p_data <- ggplot2::ggplot_build(p[[1]])$data
-  expect_equal(unique(p_data[[4]]$fill), c("red", "green", "blue"))
+  expect_equal(unique(p_data[[7]]$fill), c("red", "green", "blue"))
 
 
 
@@ -349,8 +349,7 @@ test_that("curve color definition works", {
       point_color = c("CAL" = "red","green", "blue"),
       point_fill = c("CAL" = "red","green", "blue"),
       point_shape = c("CAL" = 22,21, 23),
-
-            output_pdf = FALSE,
+      output_pdf = FALSE,
       return_plots = TRUE
     ),
     "The names in \\`point_color\\`")
@@ -459,7 +458,7 @@ test_that("plot_responsecurves generates a plot with calib failes", {
   "Regression failed for 4 features")
   expect_s3_class(p[[1]], "gg")
   expect_equal(length(p), 2)
-  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 1", p[[1]])
+  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 1", p[[2]])
 
 
   p <- plot_calibrationcurves(

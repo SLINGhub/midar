@@ -20,6 +20,7 @@ bibliography: references.bib
 knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
 set.seed(1041)
 options(dplyr.print_max = 10)
+library(midar)
 ```
 
 Analytical data, i.e. preprocessed data from mass spectrometry

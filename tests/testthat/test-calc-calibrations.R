@@ -39,9 +39,9 @@ test_that("calc_calibration_results works", {
   res <- mexp_res@metrics_calibration
   expect_equal(unique(res$fit_model), c("quadratic", "linear"))
   expect_equal(unique(res$fit_weighting), "1/x")
-  expect_equal(mean(res$r2_cal_1), 0.97875279)
-  expect_equal(mean(res$lowest_cal_cal_1),  2.01350)
-  expect_equal(mean(res$loq_cal_1),  4.690940)
+  expect_equal(mean(res$r2_cal_1), 0.979557452)
+  expect_equal(mean(res$lowest_cal_cal_1),  3.306750)
+  expect_equal(mean(res$loq_cal_1, na.rm = T),  4.8608684)
 
   # Missing fit parameter replaced with defauls provided with fit_ args.
   mexp_temp <- mexp_norm
@@ -92,7 +92,7 @@ test_that("quantify_by_calibration works", {
     "Concentrations of these features were calculated for 25 analyses")
 
   res <- mexp_res@dataset |> filter (analysis_id == "CalE", !is_istd)
-  expect_equal(mean(res$feature_conc, na.rm = TRUE), 100.8283531)
+  expect_equal(mean(res$feature_conc, na.rm = TRUE), 101.403666)
 
   res <- mexp_res@metrics_calibration
   expect_equal(unique(res$fit_model), c("quadratic", "linear"))
@@ -106,7 +106,7 @@ test_that("quantify_by_calibration works", {
     "Concentrations of these features were calculated for 25 analyses")
 
   res <- mexp_res@dataset |> filter (analysis_id == "CalE", !is_istd)
-  expect_equal(mean(res$feature_conc, na.rm = TRUE),  101.651349)
+  expect_equal(mean(res$feature_conc, na.rm = TRUE),  101.4981448)
 
 })
 

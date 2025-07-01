@@ -74,7 +74,7 @@ test_that("Add metadata table by table, the normalize and quantify based on ISTD
   expect_equal(mexp@dataset[[582, "feature_conc"]], 0.78046967)  # ISTD norm by itself
 
   expect_equal(dim(mexp@annot_responsecurves), c(12,5))
-  expect_equal(dim(mexp@annot_qcconcentrations), c(6,5))
+  expect_equal(dim(mexp@annot_qcconcentrations), c(6,6))
 
 })
 

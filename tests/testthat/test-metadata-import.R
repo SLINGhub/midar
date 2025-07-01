@@ -17,7 +17,7 @@ test_that("Imports/associates data and metadata, orders analyses by dataset (tim
   expect_equal(dim(mexp@annot_istds),c(2, 5))
   expect_equal(dim(mexp@annot_responsecurves),c(12, 5))
   expect_equal(dim(mexp@annot_batches),c(3, 4))
-  expect_equal(dim(mexp@annot_qcconcentrations),c(6, 5))
+  expect_equal(dim(mexp@annot_qcconcentrations),c(6, 6))
   expect_in(c("analysis_order", "batch_id", "is_quantifier", "qc_type", "is_istd", "is_quantifier"), names(mexp@dataset))
 })
 
@@ -218,7 +218,7 @@ test_that("Prepare qc concentration metadata from given table imported from an X
   expect_equal(metadata[[2,"sample_id"]], "198_LTR_LTR04")
   expect_equal(metadata[[3,"concentration"]], 0.1)
   expect_equal(nrow(metadata), 6)
-  expect_equal(ncol(metadata), 5)
+  expect_equal(ncol(metadata), 6)
   expect_error(clean_qcconc_metadata(tbl |> select(-"analyte_id")), regexp = "must have following columns")
 })
 

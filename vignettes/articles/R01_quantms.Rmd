@@ -86,7 +86,7 @@ mexp <- calc_calibration_results(
 
 # Plot calibration curves
   plot_calibrationcurves(
-    data = mexp,
+    data = mexp, zoom_n_points = 4,
     fit_overwrite = TRUE,  # Set to FALSE if defined in metadata
     fit_model = "linear",
     fit_weighting = "1/x",log_axes = T,

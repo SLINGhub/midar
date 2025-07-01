@@ -126,12 +126,12 @@ be obtained from <a href="https://github.com/SLINGhub/midar/tree/main/data-raw" 
 <span>  data <span class="op">=</span> <span class="va">mexp</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"QuantLCMS_Example_MassHunter.csv"</span>,</span>
 <span>  import_metadata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.46PB/s</span>                                                                              </span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">0B</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">0B/s</span><span style="font-weight: bold;">indexed</span> <span style="color: #00BB00;">1.00TB</span> in <span style="color: #00BBBB;"> 0s</span>, <span style="color: #00BB00;">3.85PB/s</span>                                                                              </span></span>
 <span></span>
 <span><span class="co"># Import metadata from an msorganiser template fie</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span></span>
 <span>  <span class="va">mexp</span>,</span>
-<span>  path <span class="op">=</span> <span class="st">"QuantLCMS_Example_Metadata.xlsm"</span>,</span>
+<span>  path <span class="op">=</span> <span class="st">"datasets/QuantLCMS_Example_Metadata.xlsm"</span>,</span>
 <span>  excl_unmatched_analyses <span class="op">=</span> <span class="cn">T</span>, ignore_warnings <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span></span>
 <span><span class="co">#&gt;   Type Table    Column    Issue                        Count</span></span>
@@ -155,10 +155,11 @@ the external calibration curves.</p>
 <span>  fit_weighting <span class="op">=</span> <span class="st">"1/x"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Plot calibration curves</span></span>
-<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_calibrationcurves.html">plot_calibrationcurves</a></span><span class="op">(</span></span>
-<span>    data <span class="op">=</span> <span class="va">mexp</span>,</span>
-<span>    fit_model <span class="op">=</span> <span class="st">"quadratic"</span>,</span>
-<span>    fit_weighting <span class="op">=</span> <span class="st">"1/x"</span>,</span>
+<span>  <span class="fu"><a href="../reference/plot_calibrationcurves.html">plot_calibrationcurves</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">mexp</span>, zoom_n_points <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    fit_overwrite <span class="op">=</span> <span class="cn">TRUE</span>,  <span class="co"># Set to FALSE if defined in metadata</span></span>
+<span>    fit_model <span class="op">=</span> <span class="st">"linear"</span>,</span>
+<span>    fit_weighting <span class="op">=</span> <span class="st">"1/x"</span>,log_axes <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>    rows_page <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>    cols_page <span class="op">=</span> <span class="fl">4</span>, show_progress <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -172,8 +173,8 @@ the external calibration curves.</p>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Aldosterone  TRUE          quadratic 1/x           FALSE      0.980      0.277</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Aldosterone… FALSE         quadratic 1/x           FALSE      0.981      0.277</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Corticoster… TRUE          quadratic 1/x           FALSE      0.998      0.867</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Corticoster… FALSE         quadratic 1/x           FALSE      0.994      0.867</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Corticoster… TRUE          quadratic 1/x           FALSE      0.994      2.28 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Corticoster… FALSE         quadratic 1/x           FALSE      0.985      2.28 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Cortisol     TRUE          quadratic 1/x           FALSE      0.988      5.52 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Cortisol [Q… FALSE         quadratic 1/x           FALSE      0.995      5.52 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> Cortisone    TRUE          quadratic 1/x           FALSE      0.997      1.39 </span></span>
@@ -210,8 +211,8 @@ shown below. The final concentration data is saved to a CSV file.</p>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Aldosterone    HQC       HQC         5       9.74      8.65    1.14     13.1 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Aldosterone    LQC       LQC         5       0.911     0.843   0.132    15.7 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Corticosterone HQC       HQC         5      77.5      77.3     3.15      4.08</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Corticosterone LQC       LQC         5       4.11      3.53    0.376    10.7 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Corticosterone HQC       HQC         5      77.5      75.5     2.98      3.95</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Corticosterone LQC       LQC         5       4.11      3.64    0.378    10.4 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Cortisol       HQC       HQC         5     472       495.     68.3      13.8 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Cortisol       LQC       LQC         5      25.2      20.0     2.40     12.0 </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> Cortisone      HQC       HQC         5     119.      114.      6.73      5.89</span></span>

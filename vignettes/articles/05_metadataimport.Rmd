@@ -19,6 +19,7 @@ editor_options:
 knitr::opts_chunk$set(collapse = TRUE, results = FALSE, message = FALSE, comment = "#>")
 set.seed(1041)
 options(dplyr.print_max = 10)
+library(midar)
 
 if(fs::file_exists("metadata_template.xlsx")) fs::file_delete("metadata_template.xlsx")
 if(fs::file_exists("metadata_msorganiser_template.xlsm")) fs::file_delete("metadata_msorganiser_template.xlsm")
