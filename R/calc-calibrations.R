@@ -261,7 +261,7 @@ calc_calibration_results <- function(data = NULL,
                                   paste0(variable, " ~ concentration"),
                                   paste0(variable, " ~ poly(concentration, 2, raw = TRUE)"))
 
-        res <- lm(formula = formula, weights = weight, data = dt, na.action = na.exclude)
+        res <- suppressWarnings(lm(formula = formula, weights = weight, data = dt, na.action = na.exclude))
 
         r.squared <- summary(res)$r.squared
         sigma <- summary(res)$sigma
