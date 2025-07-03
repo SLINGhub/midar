@@ -41,14 +41,18 @@
 #'   `"none"`, `"1/x"`, or `"1/x^2"`. This method will be applied if no
 #'   specific weighting method is defined for a feature in the metadata, or
 #'   when `fit_overwrite = TRUE`.
-#' @param show_confidence_interval Logical, if `TRUE`, displays the confidence interval as ribbon.
+#' @param ci_show Logical, if `TRUE`, displays the confidence interval as ribbon.
 #' Default is `NA`, in which case confidence intervals are plotted in a linear
 #' scale and ommitted in log-log scale.
+#' @param ci_clip Logical, if `TRUE`, clips the confidence interval above or below the highest and lowest data point, respectively.
 #' @param zoom_n_points Number of x lowest concentration points to display, used for zooming. Set to `NULL` or `NA` (default) to show all points.
 #' @param log_axes Logical. Determines whether the x and y axes are displayed in a logarithmic scale (log-log scale).
 #'   Set to `TRUE` to enable logarithmic scaling; otherwise, set to `FALSE` for a linear scale.
 #'   Note: If `TRUE`, any regression curves or standard error regions with negative
 #'   values will be omitted from display.
+#' @param show_istd_reference Logical. If TRUE, displays the ISTD reference line, which represents the expected
+#' equimolar response of spiked-in non-labelled and labelled standards. At a normalized intensity of 1,
+#' assuming an equimolar response, both types of standards are present at equal concentrations.
 #' @param filter_data Logical, if `TRUE`, uses QC filtered data; otherwise uses
 #'   raw data. Default is `FALSE`.
 #' @param include_qualifier Logical, whether to include qualifier features. Default is `TRUE`.
@@ -97,9 +101,11 @@ plot_calibrationcurves <- function(data = NULL,
                                    fit_overwrite,
                                    fit_model = c("linear", "quadratic"),
                                    fit_weighting = c(NA, "none", "1/x", "1/x^2"),
-                                   show_confidence_interval = NA,
+                                   ci_show = NA,
+                                   ci_clip = TRUE,
                                    zoom_n_points = NA,
                                    log_axes = FALSE,
+                                   show_istd_reference = FALSE,
                                    filter_data = FALSE,
                                    include_qualifier = TRUE,
                                    include_istd = FALSE,
@@ -152,8 +158,8 @@ plot_calibrationcurves <- function(data = NULL,
     cli::cli_abort(col_red("`zoom_n_points` must be a positive integer greater than 1 or Inf."))
   }
 
-  if (is.na(show_confidence_interval)) {
-    show_confidence_interval <- !log_axes
+  if (is.na(ci_show)) {
+    ci_show <- !log_axes
   }
 
 
@@ -338,6 +344,17 @@ plot_calibrationcurves <- function(data = NULL,
 
   d_calib <- d_calib |> mutate(qc_type_cat = if_else(str_detect(.data$qc_type, "CAL"), "CAL", "QC"))
 
+  # Used for zoom in
+  d_calib$curve_id <- as.character(d_calib$curve_id)
+  d_calib_subset <- d_calib |>
+    #filter(.data$qc_type == "CAL") |>
+    group_by(.data$feature_id, .data$curve_id) |>
+    # Get first N unique x values per group
+    mutate(x_rank = dplyr::dense_rank(.data$concentration)) |>
+    filter(.data$x_rank <= zoom_n_points)|>
+    ungroup() |>
+    select("sample_id","curve_id", "feature_id","concentration", dplyr::all_of(plot_var)) |>
+    distinct()
 
 
   # Verify if unit is the same for all data points/curves
@@ -373,11 +390,13 @@ plot_calibrationcurves <- function(data = NULL,
     )
   }
 
-  get_predictions <- function(stats,d_calib, log_scale) {
+  get_predictions <- function(stats,d_calib, d_calib_subset, log_scale) {
+    d_calib <- d_calib #|> filter(.data$qc_type == "CAL")
+    d_calib_subset <- d_calib_subset  |> filter(.data$feature_id == stats$feature_id[[1]])
     if (log_scale) {
-      concs <- 10^(seq(log10(min(d_calib$concentration[d_calib$feature_id == stats$feature_id])), log10(max(d_calib$concentration[d_calib$feature_id == stats$feature_id])), length.out = 100))
+      concs <- 10^(seq(log10(min(d_calib_subset$concentration[d_calib_subset$feature_id == stats$feature_id])), log10(max(d_calib_subset$concentration[d_calib_subset$feature_id == stats$feature_id])), length.out = 100))
     } else {
-      concs <- seq(min(d_calib$concentration[d_calib$feature_id == stats$feature_id]), max(d_calib$concentration[d_calib$feature_id == stats$feature_id]), length.out = 100)
+      concs <- seq(min(d_calib_subset$concentration[d_calib_subset$feature_id == stats$feature_id]), max(d_calib_subset$concentration[d_calib_subset$feature_id == stats$feature_id]), length.out = 100)
     }
     if (!stats$reg_failed_cal_1) {
       fit <- stats$fit_cal_1[[1]]
@@ -416,11 +435,40 @@ plot_calibrationcurves <- function(data = NULL,
 
   d_calib_stats <- data@metrics_calibration
   d_calib_stats_grp <- d_calib_stats |>
-    dplyr::group_split(.data$feature_id) # TODO .data$curve_id
+    dplyr::group_split(.data$feature_id) # TOD |> O .data$curve_id
 
   d_pred <- map(d_calib_stats_grp, function(x) {
-    get_predictions(x, d_calib, log_axes)
+    get_predictions(x, d_calib,d_calib_subset, log_axes)
   }) |> bind_rows()
+
+
+  # Get ISTD concentrations for ISTD reference line
+
+  d_istd <- d_calib |>
+    filter(.data$qc_type == "CAL") |>
+    left_join(
+      data@annot_analyses|> select("analysis_id", "sample_amount", "istd_volume"),
+      by = c("analysis_id")
+    ) |>
+    left_join(
+      data@annot_features |> select("feature_id", "quant_istd_feature_id", "response_factor"),
+      by = c("feature_id")
+    ) |>
+    left_join(
+      data@annot_istds,
+      by = c("quant_istd_feature_id" = "quant_istd_feature_id")
+    ) |>
+    mutate(
+      theo_norm_intensity = (.data$concentration * .data$sample_amount * .data$response_factor) / (.data$istd_conc_nmolar *.data$istd_volume),
+      istd_conc_spiked = (.data$istd_conc_nmolar * .data$istd_volume) / .data$sample_amount
+    )   |>
+    select(
+      "feature_id",
+      "concentration",
+      "theo_norm_intensity",
+      "istd_conc_spiked",
+      "concentration_unit"
+    )
 
 
   # Prepare PDF output
@@ -476,10 +524,10 @@ plot_calibrationcurves <- function(data = NULL,
   if (log_flag) {
     txt <- "" # nocov start
     txt2 <- ""
-    if (show_confidence_interval) {
+    if (ci_show) {
       txt2 <- ifelse(
-        show_confidence_interval,
-        "Consider set `show_confidence_interval = FALSE`",
+        ci_show,
+        "Consider set `ci_show = FALSE`",
         ""
       )
       if (any(d_pred$y_pred <= 0, na.rm = T)) {
@@ -547,9 +595,12 @@ plot_calibrationcurves <- function(data = NULL,
       d_pred = d_pred,
       d_calib = d_calib,
       d_calib_stats = d_calib_stats,
+      d_calib_subset = d_calib_subset,
+      d_istd = d_istd,
       output_pdf = output_pdf,
       response_variable = variable,
       zoom_n_points = zoom_n_points,
+      show_istd_reference = show_istd_reference,
       include_qualifier = include_qualifier,
       path = path,
       rows_page = rows_page,
@@ -567,7 +618,8 @@ plot_calibrationcurves <- function(data = NULL,
       fit_model = fit_model,
       fit_weighting = fit_weighting,
       log_axes = log_axes,
-      show_confidence_interval = show_confidence_interval,
+      ci_show = ci_show,
+      ci_clip = ci_clip,
       fit_overwrite = fit_overwrite
     )
     plot(p)
@@ -595,18 +647,16 @@ plot_calibrationcurves <- function(data = NULL,
   }
 }
 
-
-
-
-
-
 # Define function to plot 1 page
 plot_calibcurves_page <- function(d_pred,
                                   d_calib,
                                   d_calib_stats,
+                                  d_calib_subset,
+                                  d_istd,
                                   output_pdf,
                                   response_variable,
                                   zoom_n_points,
+                                  show_istd_reference,
                                   include_qualifier,
                                   path,
                                   rows_page,
@@ -624,7 +674,8 @@ plot_calibcurves_page <- function(d_pred,
                                   fit_model,
                                   fit_weighting,
                                   log_axes,
-                                  show_confidence_interval,
+                                  ci_show,
+                                  ci_clip,
                                   fit_overwrite) {
   plot_var <- rlang::sym(response_variable)
   d_calib$curve_id <- as.character(d_calib$curve_id)
@@ -650,7 +701,7 @@ plot_calibcurves_page <- function(d_pred,
     dplyr::group_by(.data$feature_id) |>
     dplyr::summarise(
       x_min = safe_min(.data$concentration, na.rm = TRUE),
-      y_max = if (show_confidence_interval) {
+      y_max = if (ci_show) {
         safe_max(.data$upr, na.rm = TRUE)
       } else {
         safe_max(.data$y_pred, na.rm = TRUE)
@@ -660,19 +711,13 @@ plot_calibcurves_page <- function(d_pred,
 
   d_calib_stats <- d_calib_stats |>
     dplyr::semi_join(dat_subset, by = c("feature_id")) |>
-    dplyr::inner_join(d_pred_sum, by = c("feature_id"))
+    dplyr::left_join(d_pred_sum, by = c("feature_id"))
 
-  d_calib_subset <- dat_subset |>
-    filter(.data$qc_type == "CAL") |>
-    group_by(.data$feature_id, .data$curve_id) |>
-    # Get first N unique x values per group
-    mutate(x_rank = dplyr::dense_rank(.data$concentration)) |>
-    filter(.data$x_rank <= zoom_n_points)|>
-    ungroup() |>
-    select("sample_id","curve_id", "feature_id","concentration", dplyr::all_of(plot_var)) |>
-    distinct()
 
-  if(nrow(d_calib_subset)){
+  d_calib_subset <- d_calib_subset |>
+    dplyr::semi_join(dat_subset, by = c("feature_id", "curve_id"))
+
+  if(nrow(d_calib_subset) > 0){
     facet_limits_data <- d_calib_subset |>
       group_by(.data$feature_id, .data$curve_id) |>
       summarise(xmin = if(log_axes) min(.data$concentration, na.rm = TRUE) else 0,
@@ -691,18 +736,25 @@ plot_calibcurves_page <- function(d_pred,
     facet_limits_y_fit <- d_pred_sum_subset |>
       group_by(.data$feature_id, .data$curve_id) |>
       summarise(
-        ymax_fit = if (show_confidence_interval) {
+        ymax_fit = if (ci_show && !ci_clip) {
           safe_max(.data$upr, na.rm = TRUE)
         } else {
           safe_max(.data$y_pred, na.rm = TRUE)
         },
-        ymin_fit = if(log_axes) {
-          if (show_confidence_interval) {
-            safe_min(.data$lwr, na.rm = TRUE)
+        ymin_fit =
+          if(log_axes) {
+            if (ci_show && !ci_clip) {
+              safe_min(.data$lwr, na.rm = TRUE)
+            } else {
+              safe_min(.data$y_pred, na.rm = TRUE)
+            }
           } else {
-            safe_min(.data$y_pred, na.rm = TRUE)
-          }} else {
-         0},
+            if (ci_show && !ci_clip) {
+              if_else(safe_min(.data$lwr) < 0, safe_min(.data$lwr, na.rm = TRUE), 0)
+            } else {
+              if_else(safe_min(.data$y_pred) < 0, safe_min(.data$y_pred, na.rm = TRUE), 0)
+            }
+          },
         .groups = "drop"
       )
 
@@ -711,9 +763,12 @@ plot_calibcurves_page <- function(d_pred,
       mutate(
         ymax = pmax(.data$ymax, .data$ymax_fit, na.rm = TRUE),
         ymin = pmin(.data$ymin, .data$ymin_fit, na.rm = TRUE)
-      )
+      ) |>
+      arrange(.data$feature_id, .data$curve_id)
 
     trans_txt <- if(log_axes) "log10" else "identity"
+
+    facet_limits$feature_id <- factor(facet_limits$feature_id)
 
     x_scales <- purrr::set_names(
       purrr::map2(
@@ -735,12 +790,14 @@ plot_calibcurves_page <- function(d_pred,
     x_scales = NULL
   }
 
+  dat_subset$feature_id <- forcats::as_factor(dat_subset$feature_id)
+
+  dat_subset <- dat_subset |> arrange(.data$feature_id)
+
   p <- ggplot(data = dat_subset, aes(x = .data$concentration, y = !!plot_var))
 
-
-
-  if (show_confidence_interval &&
-    nrow(d_pred_filt |> filter(!is.na(.data$concentration))) > 0) {
+  if (ci_show &&
+    nrow(d_pred_filt |> filter(!is.na(.data$concentration))) > 0 & !all(is.na(d_pred_filt$y_pred))) {
 
     d_pred_filt_ci <- d_pred_filt |> group_by(.data$feature_id) |>
       filter(!(all(is.na(.data$lwr)) |
@@ -748,6 +805,8 @@ plot_calibcurves_page <- function(d_pred,
         all(is.nan(.data$lwr))|
         all(is.nan(.data$upr)))) |>
       filter(!is.na(.data$lwr), !is.na(.data$upr), !is.na(.data$y_pred))
+
+    d_pred_filt_ci$feature_id <- forcats::as_factor(d_pred_filt_ci$feature_id)
     p <- p +
     ggplot2::geom_ribbon(
         data = d_pred_filt_ci,
@@ -797,41 +856,66 @@ plot_calibcurves_page <- function(d_pred,
       )
   }
 
-
-  p <- p +
-    ggplot2::geom_line(
-      data = if(log_axes) d_pred_filt |> filter(.data$y_pred > 0) else d_pred_filt,
-      aes(x = .data$concentration, y = .data$y_pred),
-      color = line_color,
-      linewidth = line_width * 0.8,
-      linetype = "dotted",
-      inherit.aes = FALSE,
-      na.rm = TRUE
-    ) +
-    ggplot2::geom_line(
-      data = if(log_axes) d_pred_filt |> filter(.data$y_pred_fit > 0) else d_pred_filt,
-      aes(x = .data$concentration, y = .data$y_pred_fit),
-      color = line_color,
-      linewidth = line_width,
-      inherit.aes = FALSE,
-      na.rm = TRUE
-    ) +
+  d_pred_filt$feature_id <- forcats::as_factor(d_pred_filt$feature_id)
+  if (nrow(d_pred_filt |> filter(!is.na(.data$concentration))) > 0 & !all(is.na(d_pred_filt$y_pred))) {
+    p <- p +
+      ggplot2::geom_line(
+        data = if(log_axes) d_pred_filt |> filter(.data$y_pred > 0) else d_pred_filt,
+        aes(x = .data$concentration, y = .data$y_pred),
+        color = line_color,
+        linewidth = line_width * 0.8,
+        linetype = "dotted",
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      ) +
+      ggplot2::geom_line(
+        data = if(log_axes) d_pred_filt |> filter(.data$y_pred_fit > 0) else d_pred_filt,
+        aes(x = .data$concentration, y = .data$y_pred_fit),
+        color = line_color,
+        linewidth = line_width,
+        inherit.aes = FALSE,
+        na.rm = TRUE
+      )
+  }
 
 
     # color = ifelse(after_stat(r.squared) < 0.80, "red", "darkgreen")), size = 1.4) +
+  p <- p +
     scale_color_manual(values = point_color) +
-    scale_fill_manual(values = point_fill) +
-    scale_shape_manual(values = point_shape) +
-    # scale_y_continuous(limits = c(0, NA)) +
-    # scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
-    ggh4x::facet_wrap2(
-      vars(.data$feature_id),
-      scales = "free",
-      nrow = rows_page,
-      ncol = cols_page,
-      trim_blank = FALSE
-    )
-  p <- p + ggh4x::facetted_pos_scales(x = x_scales, y = y_scales)
+      scale_fill_manual(values = point_fill) +
+      scale_shape_manual(values = point_shape) +
+      ggh4x::facet_wrap2(
+        vars(.data$feature_id),
+        scales = "free",
+        nrow = rows_page,
+        ncol = cols_page,
+        trim_blank = FALSE
+      )
+
+  if(show_istd_reference){
+    p <- p +
+      geom_line(
+        data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) ,
+        aes(
+          x = .data$concentration,
+          y = .data$theo_norm_intensity
+        ),
+        inherit.aes = FALSE,
+        color = "green",
+        linewidth = line_width * 0.8,
+        na.rm = TRUE
+      ) +
+      geom_vline(
+        data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) |> select("feature_id", "istd_conc_spiked") |> distinct(),
+        aes(
+          xintercept = .data$istd_conc_spiked,
+        ),
+        color = "lightgreen",
+        linewidth = line_width * 0.8,
+        linetype = "dashed",
+        na.rm = TRUE
+      )
+  }
 
   p <- p +
     geom_point(
@@ -884,6 +968,7 @@ plot_calibcurves_page <- function(d_pred,
         )
       )
 
+    d_calib_stats$feature_id <- forcats::as_factor(d_calib_stats$feature_id)
     p <- p +
       ggplot2::geom_text(
         data = d_calib_stats,
@@ -904,5 +989,6 @@ plot_calibcurves_page <- function(d_pred,
         parse = FALSE
       )
   }
+  p <- p + ggh4x::facetted_pos_scales(x = x_scales, y = y_scales)
   p
 }
