@@ -11,9 +11,11 @@ plot_calibrationcurves(
   fit_overwrite,
   fit_model = c("linear", "quadratic"),
   fit_weighting = c(NA, "none", "1/x", "1/x^2"),
-  show_confidence_interval = NA,
+  ci_show = NA,
+  ci_clip = TRUE,
   zoom_n_points = NA,
   log_axes = FALSE,
+  show_istd_reference = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
   include_istd = FALSE,
@@ -67,9 +69,11 @@ method for the regression points in the calibration curve. Must be one of
 specific weighting method is defined for a feature in the metadata, or
 when \code{fit_overwrite = TRUE}.}
 
-\item{show_confidence_interval}{Logical, if \code{TRUE}, displays the confidence interval as ribbon.
+\item{ci_show}{Logical, if \code{TRUE}, displays the confidence interval as ribbon.
 Default is \code{NA}, in which case confidence intervals are plotted in a linear
 scale and ommitted in log-log scale.}
+
+\item{ci_clip}{Logical, if \code{TRUE}, clips the confidence interval above or below the highest and lowest data point, respectively.}
 
 \item{zoom_n_points}{Number of x lowest concentration points to display, used for zooming. Set to \code{NULL} or \code{NA} (default) to show all points.}
 
@@ -77,6 +81,10 @@ scale and ommitted in log-log scale.}
 Set to \code{TRUE} to enable logarithmic scaling; otherwise, set to \code{FALSE} for a linear scale.
 Note: If \code{TRUE}, any regression curves or standard error regions with negative
 values will be omitted from display.}
+
+\item{show_istd_reference}{Logical. If TRUE, displays the ISTD reference line, which represents the expected
+equimolar response of spiked-in non-labelled and labelled standards. At a normalized intensity of 1,
+assuming an equimolar response, both types of standards are present at equal concentrations.}
 
 \item{filter_data}{Logical, if \code{TRUE}, uses QC filtered data; otherwise uses
 raw data. Default is \code{FALSE}.}

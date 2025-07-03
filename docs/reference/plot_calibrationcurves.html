@@ -85,9 +85,11 @@ or feature metadata.</p>
 <span>  <span class="va">fit_overwrite</span>,</span>
 <span>  fit_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"linear"</span>, <span class="st">"quadratic"</span><span class="op">)</span>,</span>
 <span>  fit_weighting <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="st">"none"</span>, <span class="st">"1/x"</span>, <span class="st">"1/x^2"</span><span class="op">)</span>,</span>
-<span>  show_confidence_interval <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  ci_show <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  ci_clip <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  zoom_n_points <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  log_axes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  show_istd_reference <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_istd <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -157,10 +159,14 @@ specific weighting method is defined for a feature in the metadata, or
 when <code>fit_overwrite = TRUE</code>.</p></dd>
 
 
-<dt id="arg-show-confidence-interval">show_confidence_interval<a class="anchor" aria-label="anchor" href="#arg-show-confidence-interval"></a></dt>
+<dt id="arg-ci-show">ci_show<a class="anchor" aria-label="anchor" href="#arg-ci-show"></a></dt>
 <dd><p>Logical, if <code>TRUE</code>, displays the confidence interval as ribbon.
 Default is <code>NA</code>, in which case confidence intervals are plotted in a linear
 scale and ommitted in log-log scale.</p></dd>
+
+
+<dt id="arg-ci-clip">ci_clip<a class="anchor" aria-label="anchor" href="#arg-ci-clip"></a></dt>
+<dd><p>Logical, if <code>TRUE</code>, clips the confidence interval above or below the highest and lowest data point, respectively.</p></dd>
 
 
 <dt id="arg-zoom-n-points">zoom_n_points<a class="anchor" aria-label="anchor" href="#arg-zoom-n-points"></a></dt>
@@ -172,6 +178,12 @@ scale and ommitted in log-log scale.</p></dd>
 Set to <code>TRUE</code> to enable logarithmic scaling; otherwise, set to <code>FALSE</code> for a linear scale.
 Note: If <code>TRUE</code>, any regression curves or standard error regions with negative
 values will be omitted from display.</p></dd>
+
+
+<dt id="arg-show-istd-reference">show_istd_reference<a class="anchor" aria-label="anchor" href="#arg-show-istd-reference"></a></dt>
+<dd><p>Logical. If TRUE, displays the ISTD reference line, which represents the expected
+equimolar response of spiked-in non-labelled and labelled standards. At a normalized intensity of 1,
+assuming an equimolar response, both types of standards are present at equal concentrations.</p></dd>
 
 
 <dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>

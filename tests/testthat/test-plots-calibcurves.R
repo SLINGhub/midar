@@ -48,7 +48,7 @@ test_that("plot_responsecurves generates a plot", {
     data = mexp,
     fit_overwrite = TRUE,
     fit_model = "quadratic",
-    show_confidence_interval = FALSE,
+    ci_show = FALSE,
     fit_weighting = "1/x",
     rows_page = 2,
     cols_page = 2,
@@ -64,7 +64,7 @@ test_that("plot_responsecurves generates a plot", {
       data = mexp,
       log_axes = TRUE,
       fit_overwrite = TRUE,
-      show_confidence_interval = T,
+      ci_show = T,
       fit_model = "quadratic",
       fit_weighting = "1/x",
       rows_page = 2,
@@ -80,7 +80,7 @@ test_that("plot_responsecurves generates a plot", {
       log_axes = TRUE,
       fit_overwrite = TRUE,
       fit_model = "quadratic",
-      show_confidence_interval = TRUE,
+      ci_show = TRUE,
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
@@ -115,7 +115,7 @@ test_that("plot_responsecurves generates a plot", {
       p <- plot_calibrationcurves(
         data = mexp_temp,
         fit_overwrite = TRUE,
-        show_confidence_interval = TRUE,
+        ci_show = TRUE,
         fit_model = "linear",
         fit_weighting = "1/x",
         log_axes = TRUE,
@@ -144,7 +144,7 @@ test_that("plot_responsecurves generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.8K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.9K")
   fs::file_delete(temp_pdf_path)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
@@ -164,7 +164,7 @@ test_that("plot_responsecurves generates a plot", {
 
   expect_silent(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.8K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "26.9K")
   fs::file_delete(temp_pdf_path)
 
   expect_error(
