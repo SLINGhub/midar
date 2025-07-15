@@ -264,6 +264,9 @@ calc_calibration_results <- function(data = NULL,
         res <- suppressWarnings(lm(formula = formula, weights = weight, data = dt, na.action = na.exclude))
 
         r.squared <- summary(res)$r.squared
+
+
+
         sigma <- summary(res)$sigma
 
         if(dt$fit_model[1] == "quadratic"){
@@ -277,9 +280,9 @@ calc_calibration_results <- function(data = NULL,
               lowest_cal = sort(dt$concentration[dt$concentration != 0])[1],
               highest_cal = sort(dt$concentration[dt$concentration != 0],decreasing = TRUE)[1],
               r.squared = r.squared,
-              coef_a = res$coefficients[[3]],
+              coef_a = res$coefficients[[1]],
               coef_b = res$coefficients[[2]],
-              coef_c = res$coefficients[[1]],
+              coef_c = res$coefficients[[3]],
               sigma = sigma,
               reg_failed = reg_failed,
               fit = if (include_fit_object) list(res) else list(NULL)
@@ -296,8 +299,8 @@ calc_calibration_results <- function(data = NULL,
                 lowest_cal = sort(dt$concentration[dt$concentration != 0])[1],
                 highest_cal = sort(dt$concentration[dt$concentration != 0],decreasing = TRUE)[1],
                 r.squared = r.squared,
-                coef_a = res$coefficients[[2]],
-                coef_b = res$coefficients[[1]],
+                coef_a = res$coefficients[[1]],
+                coef_b = res$coefficients[[2]],
                 coef_c = NA_real_,
                 sigma = sigma,
                 reg_failed = reg_failed,
@@ -323,12 +326,12 @@ calc_calibration_results <- function(data = NULL,
   add_quantlimits <- function(data, mult_lowest_calib = 1) {
     data <- data |>
       mutate(slope_at_conc = if_else(.data$fit_model == "quadratic",
-                                     .data$coef_a + 2 * .data$coef_b * mult_lowest_calib,
-                                     .data$coef_a))
+                                     .data$coef_b + 2 * .data$coef_c * mult_lowest_calib,
+                                     .data$coef_b))
 
     data <- data |>
       mutate(
-        lod = 3 * .data$sigma / .data$slope_at_conc,
+        lod = 3.3 * .data$sigma / .data$slope_at_conc,
         loq = 10 * .data$sigma / .data$slope_at_conc
       )
 
