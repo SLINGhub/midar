@@ -680,14 +680,16 @@ plot_calibcurves_page <- function(d_pred,
   plot_var <- rlang::sym(response_variable)
   d_calib$curve_id <- as.character(d_calib$curve_id)
 
-  # subset the dataset with only the rows used for plotting the facets of the selected page
-  n_samples <- length(unique(d_calib$analysis_id))
-  row_start <- n_samples * cols_page * rows_page * (specific_page - 1) + 1
-  row_end <- n_samples * cols_page * rows_page * specific_page
-
+  n_features_page <- rows_page * cols_page
   dat_subset <- d_calib |>
-    dplyr::arrange(.data$feature_id, .data$curve_id) |>
-    dplyr::slice(row_start:row_end) |>
+    mutate(
+      feature_id = forcats::fct_inorder(.data$feature_id),
+      curve_id   = forcats::fct_inorder(.data$curve_id)
+    ) |>
+    mutate(feat_rank = match(.data$feature_id, unique(.data$feature_id))) |>
+    mutate(page = ceiling(feat_rank / n_features_page)) %>%
+    filter(page == specific_page) |>
+    select(-feat_rank, -page) |>
     mutate(!!plot_var := if_else(is.nan(!!plot_var), NA_real_, !!plot_var)) |>
     drop_na((!!plot_var))
 
@@ -719,6 +721,10 @@ plot_calibcurves_page <- function(d_pred,
 
   if(nrow(d_calib_subset) > 0){
     facet_limits_data <- d_calib_subset |>
+      mutate(
+        feature_id = forcats::fct_inorder(.data$feature_id),
+        curve_id   = forcats::fct_inorder(.data$curve_id)
+      ) |>
       group_by(.data$feature_id, .data$curve_id) |>
       summarise(xmin = if(log_axes) min(.data$concentration, na.rm = TRUE) else 0,
                 xmax = max(.data$concentration),
@@ -734,6 +740,10 @@ plot_calibcurves_page <- function(d_pred,
       )
 
     facet_limits_y_fit <- d_pred_sum_subset |>
+      mutate(
+        feature_id = forcats::fct_inorder(.data$feature_id),
+        curve_id   = forcats::fct_inorder(.data$curve_id)
+      ) |>
       group_by(.data$feature_id, .data$curve_id) |>
       summarise(
         ymax_fit = if (ci_show && !ci_clip) {
