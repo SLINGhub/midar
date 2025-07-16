@@ -687,7 +687,7 @@ plot_calibcurves_page <- function(d_pred,
       curve_id   = forcats::fct_inorder(.data$curve_id)
     ) |>
     mutate(feat_rank = match(.data$feature_id, unique(.data$feature_id))) |>
-    mutate(page = ceiling(feat_rank / n_features_page)) %>%
+    mutate(page = ceiling(feat_rank / n_features_page)) |>
     filter(page == specific_page) |>
     select(-feat_rank, -page) |>
     mutate(!!plot_var := if_else(is.nan(!!plot_var), NA_real_, !!plot_var)) |>
