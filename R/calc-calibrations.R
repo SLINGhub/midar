@@ -87,18 +87,18 @@ quantify_by_calibration <- function(data = NULL,
     mutate(feature_conc = case_when(
       fit_model != "quadratic" ~ (.data$feature_norm_intensity - .data$coef_b_cal_1) / .data$coef_a_cal_1,
       TRUE ~ purrr::pmap_dbl(
-        list(coef_c_cal_1, coef_b_cal_1, coef_a_cal_1, feature_norm_intensity),
-        function(c, b, a, x) {
-          # Check for invalid coefficients that would lead to a degenerate polynomial
+        list(coef_a_cal_1, coef_b_cal_1, coef_c_cal_1, feature_norm_intensity),
+        function(a, b, c, x) {
+          # Check for invalid coefficients
           if (is.na(c) || is.na(b) || is.na(a) || is.na(x) || a == 0) {
             return(NA_real_)  # Return NA if coefficients are invalid
           }
 
-          # extract the real root
+          # get the root
           root <- tryCatch({
-            polyroot(c(c - x, b, a))
+            polyroot(c(a-x, b, c))
           }, error = function(e) {
-            # Catch errors in polyroot and return NA in case of error
+           r
             return(NA_complex_)
           })
 
@@ -590,16 +590,16 @@ get_qc_bias_variability <- function(data,
 #' - `lowest_cal`: Lowest nonzero calibration concentration.
 #' - `highest_cal`: Highest  calibration concentration.
 #' - `r.squared`: R-squared value, indicating goodness of fit.
-#' - `coef_a`: Slope of the regression line (**linear**) or coefficient of the quadratic term (`x^2`) (**quadratic**).
-#' - `coef_b`: Intercept of the regression line (**linear**) or coefficient of the linear term (`x`) (**quadratic**).
-#' - `coef_c`: Intercept of the regression equation (**quadratic**). Set to `NA` for **linear** models.
-#' - `sigma`: Residual standard error of the model.
+#' - `coef_a`: Intercept of the regression line
+#' - `coef_b`: Slope of the regression line in **linear** models, or coefficient of the linear term (`x`) in **quadratic** models.
+#' - `coef_c`: Coefficient of the quadratic term (`x^2`) in **quadratic** models. Returns `NA` for **linear** models.
+#' - `sigma`: Standard deviation of residuals.
 #' - `reg_failed`: `TRUE` if regression fitting failed.
-#' - `LoD` = 3× the sample standard error of residuals / slope of the regression.
-#' - `LoQ` = 10× the sample standard error of residuals / slope of the regression.
+#' - `LoD` = 3.3× the sample standard error of residuals / slope of the regression (see Notes).
+#' - `LoQ` = 10× the sample standard error of residuals / slope of the regression (see Notes).
 #'
-#' **Note:** For LoD/LoQ calculations, the slope used in the formula is calculated
-#' at the lowest nonzero calibration point for **quadratic** fits.
+#' **Note:** For LoD/LoQ calculation using **quadratic** fits, the slope used
+#' in the formula is calculated at the lowest nonzero calibration point.
 
 #'
 #' @param data A `MidarExperiment` object with QC metrics.
