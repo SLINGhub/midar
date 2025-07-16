@@ -41,7 +41,7 @@ test_that("calc_calibration_results works", {
   expect_equal(unique(res$fit_weighting), "1/x")
   expect_equal(mean(res$r2_cal_1), 0.979557452)
   expect_equal(mean(res$lowest_cal_cal_1),  3.306750)
-  expect_equal(mean(res$loq_cal_1, na.rm = T),  4.8608684)
+  expect_equal(mean(res$loq_cal_1, na.rm = T),  7.898128)
 
   # Missing fit parameter replaced with defauls provided with fit_ args.
   mexp_temp <- mexp_norm
@@ -92,7 +92,10 @@ test_that("quantify_by_calibration works", {
     "Concentrations of these features were calculated for 25 analyses")
 
   res <- mexp_res@dataset |> filter (analysis_id == "CalE", !is_istd)
-  expect_equal(mean(res$feature_conc, na.rm = TRUE), 101.403666)
+  expect_equal(mean(res$feature_conc, na.rm = TRUE), 42.191117)
+
+  # below is the original conc from Corticosterone CAL-E as r2 = 1
+  expect_equal(res$feature_conc[1], 42.2000)
 
   res <- mexp_res@metrics_calibration
   expect_equal(unique(res$fit_model), c("quadratic", "linear"))

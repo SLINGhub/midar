@@ -44,16 +44,16 @@ See its documentation for details.
 \item \code{lowest_cal}: Lowest nonzero calibration concentration.
 \item \code{highest_cal}: Highest  calibration concentration.
 \item \code{r.squared}: R-squared value, indicating goodness of fit.
-\item \code{coef_a}: Slope of the regression line (\strong{linear}) or coefficient of the quadratic term (\code{x^2}) (\strong{quadratic}).
-\item \code{coef_b}: Intercept of the regression line (\strong{linear}) or coefficient of the linear term (\code{x}) (\strong{quadratic}).
-\item \code{coef_c}: Intercept of the regression equation (\strong{quadratic}). Set to \code{NA} for \strong{linear} models.
-\item \code{sigma}: Residual standard error of the model.
+\item \code{coef_a}: Intercept of the regression line
+\item \code{coef_b}: Slope of the regression line in \strong{linear} models, or coefficient of the linear term (\code{x}) in \strong{quadratic} models.
+\item \code{coef_c}: Coefficient of the quadratic term (\code{x^2}) in \strong{quadratic} models. Returns \code{NA} for \strong{linear} models.
+\item \code{sigma}: Standard deviation of residuals.
 \item \code{reg_failed}: \code{TRUE} if regression fitting failed.
-\item \code{LoD} = 3× the sample standard error of residuals / slope of the regression.
-\item \code{LoQ} = 10× the sample standard error of residuals / slope of the regression.
+\item \code{LoD} = 3.3× the sample standard error of residuals / slope of the regression (see Notes).
+\item \code{LoQ} = 10× the sample standard error of residuals / slope of the regression (see Notes).
 }
 
-\strong{Note:} For LoD/LoQ calculations, the slope used in the formula is calculated
-at the lowest nonzero calibration point for \strong{quadratic} fits.
+\strong{Note:} For LoD/LoQ calculation using \strong{quadratic} fits, the slope used
+in the formula is calculated at the lowest nonzero calibration point.
 }
 }

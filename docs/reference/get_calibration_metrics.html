@@ -121,15 +121,15 @@ See its documentation for details.</p><div class="section">
 <li><p><code>lowest_cal</code>: Lowest nonzero calibration concentration.</p></li>
 <li><p><code>highest_cal</code>: Highest  calibration concentration.</p></li>
 <li><p><code>r.squared</code>: R-squared value, indicating goodness of fit.</p></li>
-<li><p><code>coef_a</code>: Slope of the regression line (<strong>linear</strong>) or coefficient of the quadratic term (<code>x^2</code>) (<strong>quadratic</strong>).</p></li>
-<li><p><code>coef_b</code>: Intercept of the regression line (<strong>linear</strong>) or coefficient of the linear term (<code>x</code>) (<strong>quadratic</strong>).</p></li>
-<li><p><code>coef_c</code>: Intercept of the regression equation (<strong>quadratic</strong>). Set to <code>NA</code> for <strong>linear</strong> models.</p></li>
-<li><p><code>sigma</code>: Residual standard error of the model.</p></li>
+<li><p><code>coef_a</code>: Intercept of the regression line</p></li>
+<li><p><code>coef_b</code>: Slope of the regression line in <strong>linear</strong> models, or coefficient of the linear term (<code>x</code>) in <strong>quadratic</strong> models.</p></li>
+<li><p><code>coef_c</code>: Coefficient of the quadratic term (<code>x^2</code>) in <strong>quadratic</strong> models. Returns <code>NA</code> for <strong>linear</strong> models.</p></li>
+<li><p><code>sigma</code>: Standard deviation of residuals.</p></li>
 <li><p><code>reg_failed</code>: <code>TRUE</code> if regression fitting failed.</p></li>
-<li><p><code>LoD</code> = 3× the sample standard error of residuals / slope of the regression.</p></li>
-<li><p><code>LoQ</code> = 10× the sample standard error of residuals / slope of the regression.</p></li>
-</ul><p><strong>Note:</strong> For LoD/LoQ calculations, the slope used in the formula is calculated
-at the lowest nonzero calibration point for <strong>quadratic</strong> fits.</p>
+<li><p><code>LoD</code> = 3.3× the sample standard error of residuals / slope of the regression (see Notes).</p></li>
+<li><p><code>LoQ</code> = 10× the sample standard error of residuals / slope of the regression (see Notes).</p></li>
+</ul><p><strong>Note:</strong> For LoD/LoQ calculation using <strong>quadratic</strong> fits, the slope used
+in the formula is calculated at the lowest nonzero calibration point.</p>
 </div>
 
     </div>
