@@ -62,7 +62,7 @@
 <polygon points='134.54,195.51 137.17,190.95 131.91,190.95 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
 <polygon points='134.54,201.58 137.17,197.02 131.91,197.02 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
 <text x='35.21' y='40.42' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
-<text x='35.21' y='48.61' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='15.66px' lengthAdjust='spacingAndGlyphs'>R² = 1</text>
+<text x='35.21' y='48.61' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='29.90px' lengthAdjust='spacingAndGlyphs'>R² = 1.0000</text>
 <text x='35.21' y='56.81' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='1.58px' lengthAdjust='spacingAndGlyphs'> </text>
 <rect x='20.87' y='26.35' width='315.48' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
 </g>
@@ -106,7 +106,7 @@
 <polygon points='467.54,184.51 470.18,179.95 464.91,179.95 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
 <polygon points='467.54,201.33 470.18,196.77 464.91,196.77 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
 <text x='368.21' y='40.42' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
-<text x='368.21' y='48.61' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='15.66px' lengthAdjust='spacingAndGlyphs'>R² = 1</text>
+<text x='368.21' y='48.61' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='29.90px' lengthAdjust='spacingAndGlyphs'>R² = 1.0000</text>
 <text x='368.21' y='56.81' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='1.58px' lengthAdjust='spacingAndGlyphs'> </text>
 <rect x='353.87' y='26.35' width='315.48' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
 </g>

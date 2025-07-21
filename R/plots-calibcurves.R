@@ -228,12 +228,16 @@ plot_calibrationcurves <- function(data = NULL,
         variable
       )
     )) |>
+    mutate(
+      feature_id = forcats::fct_inorder(.data$feature_id)
+    ) |>
     # REMOVE filter(str_detect(.data$qc_type, "CAL|[MLH]QC|^QC|EQA")) |>
     dplyr::right_join(
       data@annot_qcconcentrations,
       by = c("sample_id" = "sample_id", "analyte_id" = "analyte_id")
     ) |>
-    drop_na("concentration")
+    drop_na("concentration") |>
+    arrange(.data$feature_id)
 
   n_cal <- length(unique(d_calib$sample_id[d_calib$qc_type == "CAL"]))
 
@@ -974,7 +978,7 @@ plot_calibcurves_page <- function(d_pred,
         label = if_else(
           .data$reg_failed_cal_1,
           glue::glue("{stringr::str_to_title(fit_model)}\nRegression failed"),
-          glue::glue("{stringr::str_to_title(fit_model)}\nR\u00B2 = {round(.data$r2_cal_1, 4)}\n{txt}")
+          glue::glue("{stringr::str_to_title(fit_model)}\nR\u00B2 = {sprintf('%.4f', .data$r2_cal_1)}\n{txt}")
         )
       )
 
