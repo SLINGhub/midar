@@ -187,7 +187,7 @@ test_that("scientific notation formatting works", {
 
   expect_equal(formatted[1], "0")
   expect_equal(formatted[2:3], c("", ""))
-  expect_match(formatted[4], "1\\.0e4")
+  expect_match(formatted[4], "1e\\+4")
 })
 
 test_that("save plots", {

@@ -14,9 +14,12 @@ mexp <- calc_calibration_results(mexp,
 
 test_that("plot_responsecurves generates a plot", {
 
+  mexp_temp <- mexp
+  mexp_temp@annot_qcconcentrations$concentration[19] <- NA
+
   # Test with valid arguments
   p <- plot_calibrationcurves(
-    data = mexp,
+    data = mexp_temp,
     fit_overwrite = TRUE,
     fit_model = "quadratic",
     fit_weighting = "1/x",
