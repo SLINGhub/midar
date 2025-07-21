@@ -288,28 +288,52 @@ order_chained_columns_tbl <- function(df, from_col, to_col, include_chain_id, di
 #' Custom axis formatting function
 #'
 #' @keywords internal
+# scientific_format_end <- function(x) {
+#   if (length(x) == 0) return(x)
+#
+#   # Remove NAs for determining max value
+#   x_clean <- x[!is.na(x)]
+#   if (length(x_clean) == 0) return(x)
+#
+#   # Function to format with one digit
+#   format_one_digit <- function(value) {
+#     if (is.na(value)) return("")
+#     if (value == 0) return("0")
+#     # Get exponent
+#     exp <- floor(log10(abs(value)))
+#     # Get mantissa with one digit
+#     mantissa <- round(value / 10^exp, 1)
+#   }
+#
+#   # Convert to scientific notation with one digit
+#   formatted <- sapply(x, format_one_digit)
+#   formatted <- as.character(formatted)
+#   print(formatted)
+#   # Show only 0 and the highest value
+#   formatted[!(x == 0 | x == max(x_clean, na.rm = TRUE))] <- ""
+#
+#   formatted
+# }
 scientific_format_end <- function(x) {
-  if (length(x) == 0) return(x)
+  if (length(x) == 0) return(character(0))
 
-  # Remove NAs for determining max value
+  # Remove NAs for max value check
   x_clean <- x[!is.na(x)]
-  if (length(x_clean) == 0) return(x)
+  if (length(x_clean) == 0) return(as.character(x))
 
-  # Function to format with one digit
+  # Function to format with one-digit mantissa in scientific notation
   format_one_digit <- function(value) {
     if (is.na(value)) return("")
     if (value == 0) return("0")
-    # Get exponent
     exp <- floor(log10(abs(value)))
-    # Get mantissa with one digit
     mantissa <- round(value / 10^exp, 1)
-    sprintf("%.1fe%d", mantissa, exp)
+    paste0(mantissa, "e", ifelse(exp >= 0, "+", ""), exp)
   }
 
-  # Convert to scientific notation with one digit
-  formatted <- sapply(x, format_one_digit)
+  # Apply formatting
+  formatted <- vapply(x, format_one_digit, character(1))
 
-  # Show only 0 and the highest value
+  # Show only 0 and max value
   formatted[!(x == 0 | x == max(x_clean, na.rm = TRUE))] <- ""
 
   formatted
