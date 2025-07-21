@@ -98,7 +98,7 @@ quantify_by_calibration <- function(data = NULL,
           root <- tryCatch({
             polyroot(c(a-x, b, c))
           }, error = function(e) {
-           r
+
             return(NA_complex_)
           })
 
