@@ -556,7 +556,7 @@ fun_correct_drift <- function(data = NULL,
   if (features_with_fit_errors_allbatches > 0)
   {
 
-    cli_abort(col_red("Smoothing failed for {features_with_fit_errors_allbatches} feature(s) in all batches. Please check data, metadata, and fit parameters."))
+    cli_alert_warning(cli::col_yellow("Smoothing failed for {features_with_fit_errors_allbatches} feature(s) in all batches. Please check data, metadata, and fit parameters."))
   }
   features_with_fit_errors_text <- glue::glue_collapse(
     d_smooth_summary$feature_id[d_smooth_summary$any_fit_error_summary], ", ",
