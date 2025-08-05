@@ -41,10 +41,13 @@ plot_qc_summary_byclass <- function(data = NULL,
 
   if (all(is.na(data@metrics_qc$feature_class))) cli::cli_abort(col_red("This plot requires the `feature_class` to be defined in the data. Please define classes in the feature metadata or retrieve via corresponding functions."))
 
+ class_levels <- levels(data@metrics_qc$feature_class)
 
   d_qc <- data@metrics_qc |>
     filter(.data$valid_feature, .data$in_data) |>
-    mutate(feature_class = tidyr::replace_na(.data$feature_class, "Undefined"))
+    mutate(feature_class = factor(
+      tidyr::replace_na(as.character(.data$feature_class), "Undefined"), rev(class_levels)
+    ))
 
 
 
@@ -62,7 +65,7 @@ plot_qc_summary_byclass <- function(data = NULL,
   # if(!all(is.na(d_qc$feature_class)) & any(is.na(d_qc$lipid_class))) d_qc$feature_class <- d_qc$lipid_class
 
 
-  d_qc$feature_class <- forcats::fct(d_qc$feature_class)
+ # d_qc$feature_class <- forcats::fct(d_qc$feature_class)
 
 # Count how many features failed qc criteria, excluding features that failed before tested criteria (lower hiarchy)
 # TODO: can surely be better implemented
