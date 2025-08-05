@@ -43,7 +43,7 @@ plot_runscatter(
   show_gridlines = FALSE,
   point_size = 1.5,
   point_transparency = 1,
-  point_border_width = 1,
+  point_border_width = NA,
   base_font_size = 10,
   rows_page = 3,
   cols_page = 3,

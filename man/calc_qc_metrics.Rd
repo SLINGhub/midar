@@ -7,6 +7,7 @@
 calc_qc_metrics(
   data = NULL,
   use_batch_medians = FALSE,
+  use_robust_cv = FALSE,
   include_norm_intensity_stats = NA,
   include_conc_stats = NA,
   include_response_stats = NA,
@@ -21,6 +22,9 @@ statistics based on normalized intensities and concentrations.}
 \item{use_batch_medians}{Logical, whether to compute QC metrics using the
 median of batch-wise derived values instead of the full dataset. Default is
 FALSE.}
+
+\item{use_robust_cv}{Logical, whether to use robust coefficient of variation (MAD/median) or
+the standard coefficient of variation (SD/mean) for intensity, norm_intensity and concentration metrics.}
 
 \item{include_norm_intensity_stats}{Logical. If \code{NA} (default), statistics on
 normalized intensity values are included if the data is available. If \code{TRUE},

@@ -6,6 +6,8 @@
 \usage{
 plot_qcmetrics_comparison(
   data = NULL,
+  plot_type = c("scatter", "diff", "ratio"),
+  facet_type = c("grid", "stacked"),
   x_variable,
   y_variable,
   col_pattern,
@@ -14,6 +16,7 @@ plot_qcmetrics_comparison(
   include_qualifier = TRUE,
   equality_line = FALSE,
   threshold_value = NA,
+  log_scale = FALSE,
   xlim = c(0, NA),
   ylim = c(0, NA),
   cols_page = 5,

@@ -8,6 +8,7 @@ plot_normalization_qc(
   data = NULL,
   before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
   after_norm_var = c("norm_intensity", "conc", "conc_raw"),
+  plot_type = c("scatter", "diff", "ratio"),
   qc_types,
   facet_by_class = FALSE,
   filter_data = FALSE,

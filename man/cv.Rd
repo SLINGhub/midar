@@ -4,13 +4,15 @@
 \alias{cv}
 \title{Percent coefficient of variation (\%CV)}
 \usage{
-cv(x, na.rm = FALSE)
+cv(x, na.rm = FALSE, use_robust_cv = FALSE)
 }
 \arguments{
 \item{x}{a numeric vector with untransformed data}
 
 \item{na.rm}{logical, if TRUE then NA values are stripped from x before
 computation takes place}
+
+\item{use_robust_cv}{logical, if TRUE then the robust coefficient of variation}
 }
 \value{
 a numeric value. If x contains a zero or is not numeric,

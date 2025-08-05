@@ -8,6 +8,7 @@ filter_features_qc(
   data = NULL,
   clear_existing = TRUE,
   use_batch_medians = FALSE,
+  use_robust_cv = FALSE,
   include_qualifier,
   include_istd,
   features.to.keep = NA,
