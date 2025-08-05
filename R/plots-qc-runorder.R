@@ -363,7 +363,7 @@ plot_runscatter <- function(data = NULL,
                             show_gridlines = FALSE,
                             point_size = 1.5,
                             point_transparency = 1,
-                            point_border_width = 1,
+                            point_border_width = NA,
                             base_font_size = 10,
 
                             # Layout settings
@@ -600,7 +600,10 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                                 show_grid, y_min, y_max, log_scale, plot_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
                                 reference_linewidth, trend_color) {
   point_size <- ifelse(missing(point_size), 2, point_size)
-  point_border_width <- dplyr::if_else(output_pdf, .3, .5)
+
+  if(is.na(point_border_width)){
+    point_border_width <- dplyr::if_else(output_pdf, .1, .4)
+  }
 
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
@@ -707,8 +710,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
                 sd = if(!is.na(reference_k_sd)) reference_k_sd * sd(.data$value_mod, na.rm = TRUE) else 0,
                 y_min = .data$mean - .data$sd,
                 y_max = .data$mean + .data$sd,
-                y_min_cap = if(.data$y_min < 0) 0 else .data$y_min,
-                y_max_cap = if(.data$y_max > max(.data$value_mod, na.rm = TRUE)) max(.data$value_mod, na.rm = TRUE) else .data$y_max,
+                y_min_cap = if_else(.data$y_min < 0, 0, .data$y_min),
+                y_max_cap = if_else(.data$y_max > safe_max(.data$value_mod, na.rm = TRUE), safe_max(.data$value_mod, na.rm = TRUE), .data$y_max),
                 batch_start = min(.data$id_batch_start),
                 batch_end = max(.data$id_batch_end),
                 batch_id = min(.data$batch_id),
@@ -1017,6 +1020,7 @@ plot_rla_boxplot <- function(
 
   p <- p +
     geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +
+    #stat_summary(mapping = aes(color = .data$qc_type), fun = median, geom = "line", color = "red", linetype = "solid") +
     scale_fill_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
     scale_color_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
     ggplot2::guides(color = ggplot2::guide_legend(name = NULL, override.aes = list(size = 3))) +
