@@ -7,6 +7,7 @@
 #' @param x a numeric vector with untransformed data
 #' @param na.rm logical, if TRUE then NA values are stripped from x before
 #' computation takes place
+#' @param use_robust_cv logical, if TRUE then the robust coefficient of variation
 #'
 #' @return a numeric value. If x contains a zero or is not numeric,
 #' NA_real_ is returned
@@ -16,8 +17,13 @@
 #' @examples
 #' cv(c(5, 6, 3, 4, 5, NA), na.rm = TRUE)
 
-cv <- function(x, na.rm = FALSE){
-  sd(x, na.rm = na.rm)/mean(x, na.rm = na.rm) * 100
+cv <- function(x, na.rm = FALSE, use_robust_cv = FALSE){
+  if(use_robust_cv){
+    mad(x, na.rm = na.rm, constant = 1)/median(x, na.rm = na.rm) * 100
+  } else {
+    sd(x, na.rm = na.rm)/mean(x, na.rm = na.rm) * 100
+  }
+
 }
 
 #' Percent coefficient of variation (%CV) based on log-transformation
