@@ -159,10 +159,14 @@ plot_responsecurves <- function(data = NULL,
   if (is.null(color_curves) || length(color_curves) == 0 || all(is.na(color_curves))) {
     # If no color_curves is provided (NA or NULL), generate a discrete color scale
     n_curves <- length(unique(d_rqc$curve_id))
-    if(n_curves < 5)
-      color_curves <- c("#4575b4", "#91bfdb", "#fc8d59", "#d73027")
-    else
+    if(n_curves < 5){
+      color_curves <- c("#34629e", "#91bfdb", "#fc8d59", "#d73027")
+      fill_curves <- c("#8ba7cc", "#b3d2e6", "#f7c0a6", "#f07771")
+    }
+    else {
       color_curves <- scales::hue_pal()(n_curves)
+      fill_curves <- scales::hue_pal()(n_curves)
+    }
   } else {
     # If color_curves is provided, check if it has enough colors
     num_levels <- length(unique(d_rqc$curve_id))
@@ -232,7 +236,8 @@ plot_responsecurves <- function(data = NULL,
       line_width = line_width,
       font_base_size = font_base_size,
       x_axis_title = x_axis_unit,
-      color_curves = color_curves
+      color_curves = color_curves,
+      fill_curves = fill_curves
     )
     if(!return_plots) plot(p)
     dev.flush()  # Flush the plot
@@ -258,7 +263,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
                                      max_regression_value, path, rows_page,
                                      cols_page, specific_page, point_size,
                                      line_width,  font_base_size,
-                                     x_axis_title, color_curves) {
+                                     x_axis_title, color_curves, fill_curves) {
 
   plot_var <- rlang::sym(response_variable)
   dataset$curve_id <- as.character(dataset$curve_id)
@@ -274,7 +279,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
 
   p <- ggplot(
     data = dat_subset,
-    aes(x = .data$analyzed_amount, y = !!plot_var, color = .data$curve_id)
+    aes(x = .data$analyzed_amount, y = !!plot_var, color = .data$curve_id, fill = .data$curve_id)
   ) +
     geom_smooth(
       data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
@@ -287,12 +292,13 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
       size = font_base_size * 0.4, rr.digits = 4, vstep = 0.02
     ) +
     scale_color_manual(values = color_curves) +
+    scale_fill_manual(values = fill_curves) +
     scale_y_continuous(limits = c(0, NA)) +
     scale_x_continuous(limits = c(0, NA), breaks = scales::breaks_extended(6)) +
     ggh4x::facet_wrap2(
       vars(.data$feature_id), scales = "free", nrow = rows_page, ncol = cols_page, trim_blank = FALSE
     ) +
-    geom_point(size = point_size) +
+    geom_point(size = point_size, shape = 21) +
     labs(x = x_axis_title, y = stringr::str_remove(response_variable, "feature_")) +
     theme_light(base_size = font_base_size) +
     theme(
