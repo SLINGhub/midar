@@ -117,6 +117,8 @@
 #' @param use_batch_medians Logical, whether to compute QC metrics using the
 #'   median of batch-wise derived values instead of the full dataset. Default is
 #'   FALSE.
+#' @param use_robust_cv Logical, whether to use robust coefficient of variation (MAD/median) or
+#' the standard coefficient of variation (SD/mean) for intensity, norm_intensity and concentration metrics.
 #' @param include_norm_intensity_stats Logical. If `NA` (default), statistics on
 #' normalized intensity values are included if the data is available. If `TRUE`,
 #' they are always calculated, raising an error if data is missing.
@@ -136,6 +138,7 @@
 calc_qc_metrics <- function(
     data = NULL,
     use_batch_medians = FALSE,
+    use_robust_cv = FALSE,
     include_norm_intensity_stats = NA,
     include_conc_stats = NA,
     include_response_stats = NA,
@@ -270,11 +273,11 @@ calc_qc_metrics <- function(
          intensity_median_NIST = median(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
          intensity_median_LTR = median(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
 
-         intensity_cv_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-         intensity_cv_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-         intensity_cv_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-         intensity_cv_LTR = cv(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
-         intensity_cv_NIST = cv(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+         intensity_cv_TQC = cv(.data$feature_intensity[.data$qc_type == "TQC"], na.rm = TRUE, use_robust_cv),
+         intensity_cv_BQC = cv(.data$feature_intensity[.data$qc_type == "BQC"], na.rm = TRUE, use_robust_cv),
+         intensity_cv_SPL = cv(.data$feature_intensity[.data$qc_type == "SPL"], na.rm = TRUE, use_robust_cv),
+         intensity_cv_LTR = cv(.data$feature_intensity[.data$qc_type == "LTR"], na.rm = TRUE, use_robust_cv),
+         intensity_cv_NIST = cv(.data$feature_intensity[.data$qc_type == "NIST"], na.rm = TRUE, use_robust_cv),
 
          # Calculate quantiles within summarise
          intensity_q10_SPL = quantile(.data$feature_intensity[.data$qc_type == "SPL"], probs = 0.1, na.rm = TRUE, names = FALSE)
@@ -298,11 +301,11 @@ calc_qc_metrics <- function(
       d_stats_var_norm_int <-  d_stats_var |>
         summarise(
          .by = all_of(grp),
-          norm_intensity_cv_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE),
-          norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE),
-          norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
-          norm_intensity_cv_LTR = cv(.data$feature_norm_intensity[.data$qc_type == "LTR"], na.rm = TRUE),
-          norm_intensity_cv_NIST = cv(.data$feature_norm_intensity[.data$qc_type == "NIST"], na.rm = TRUE),
+          norm_intensity_cv_TQC = cv(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE, use_robust_cv),
+          norm_intensity_cv_BQC = cv(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE, use_robust_cv),
+          norm_intensity_cv_SPL = cv(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE, use_robust_cv),
+          norm_intensity_cv_LTR = cv(.data$feature_norm_intensity[.data$qc_type == "LTR"], na.rm = TRUE), use_robust_cv,
+          norm_intensity_cv_NIST = cv(.data$feature_norm_intensity[.data$qc_type == "NIST"], na.rm = TRUE, use_robust_cv),
           normint_dratio_sd_bqc = sd(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
           normint_dratio_sd_tqc = sd(.data$feature_norm_intensity[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
           normint_dratio_mad_bqc = mad(.data$feature_norm_intensity[.data$qc_type == "BQC"], na.rm = TRUE) / mad(.data$feature_norm_intensity[.data$qc_type == "SPL"], na.rm = TRUE),
@@ -328,10 +331,10 @@ calc_qc_metrics <- function(
            conc_median_NIST = median(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
            conc_median_LTR = median(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
 
-           conc_cv_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE),
-           conc_cv_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE),
-           conc_cv_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
-           conc_cv_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE),
+           conc_cv_TQC = cv(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE, use_robust_cv),
+           conc_cv_BQC = cv(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE, use_robust_cv),
+           conc_cv_SPL = cv(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE, use_robust_cv),
+           conc_cv_NIST = cv(.data$feature_conc[.data$qc_type == "NIST"], na.rm = TRUE, use_robust_cv),
            conc_cv_LTR = cv(.data$feature_conc[.data$qc_type == "LTR"], na.rm = TRUE),
            conc_dratio_sd_bqc = sd(.data$feature_conc[.data$qc_type == "BQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
            conc_dratio_sd_tqc = sd(.data$feature_conc[.data$qc_type == "TQC"], na.rm = TRUE) / sd(.data$feature_conc[.data$qc_type == "SPL"], na.rm = TRUE),
@@ -484,6 +487,7 @@ calc_qc_metrics <- function(
 filter_features_qc <- function(data = NULL,
                                     clear_existing = TRUE,
                                     use_batch_medians = FALSE,
+                                    use_robust_cv = FALSE,
                                     include_qualifier,
                                     include_istd,
                                     features.to.keep = NA,
@@ -561,6 +565,7 @@ filter_features_qc <- function(data = NULL,
   message("Calculating feature QC metrics - please wait...")
   data_local = calc_qc_metrics(data,
                          use_batch_medians = use_batch_medians,
+                         use_robust_cv = use_robust_cv,
                          include_norm_intensity_stats = data@is_istd_normalized,
                          include_conc_stats = data@is_quantitated,
                          include_response_stats = resp_criteria_defined)
