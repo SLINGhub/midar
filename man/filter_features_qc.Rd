@@ -54,6 +54,8 @@ filter_features_qc(
 
 \item{use_batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
 
+\item{use_robust_cv}{Logical. If \code{TRUE}, uses robust coefficient of variation (MAD/median) instead of standard CV (SD/mean). Default is \code{FALSE}.}
+
 \item{include_qualifier}{Logical. If \code{TRUE}, includes qualifier features in the filtering process.}
 
 \item{include_istd}{Logical. If \code{TRUE}, includes internal standards (ISTDs) in the filtering process.}

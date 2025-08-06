@@ -10,7 +10,7 @@ plot_pca(
   qc_types = NA,
   ellipse_variable = "qc_type",
   ellipse_levels = NA,
-  pca_dimensions = c(1, 2),
+  pca_dims = c(1, 2),
   log_transform = TRUE,
   filter_data = FALSE,
   include_qualifier = FALSE,
@@ -51,7 +51,7 @@ as ellipses. Must be one of: "none", "qc_type", "batch_id".
 \item{ellipse_levels}{A character vector specifying the levels of
 \code{ellipse_variable} to display as ellipses.}
 
-\item{pca_dimensions}{A numeric vector of length 2 indicating the PCA dimensions
+\item{pca_dims}{A numeric vector of length 2 indicating the PCA dimensions
 to plot. Default is c(1, 2).}
 
 \item{log_transform}{A logical value indicating whether to log-transform

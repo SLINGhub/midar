@@ -7,10 +7,9 @@
 plot_qcmetrics_comparison(
   data = NULL,
   plot_type = c("scatter", "diff", "ratio"),
-  facet_type = c("grid", "stacked"),
+  facet_type = c("grid", "wrap"),
   x_variable,
   y_variable,
-  col_pattern,
   facet_by_class = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
@@ -28,13 +27,17 @@ plot_qcmetrics_comparison(
 \arguments{
 \item{data}{A \code{MidarExperiment} object containing pre-calculated QC metrics.}
 
+\item{plot_type}{A character string specifying the type of plot to generate.
+Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
+as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.}
+
+\item{facet_type}{A character string specifying the type of faceting to apply. "grid" creates a grid of facets with shared axes, while "wrap" creates a wrapped layout of facets, each with its own axes. Default is "wrap".}
+
 \item{x_variable}{The name of the QC metric variable to be plotted on the
 x-axis.}
 
 \item{y_variable}{The name of the QC metric variable to be plotted on the
 y-axis.}
-
-\item{col_pattern}{A string pattern to match the columns in the QC metrics}
 
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
@@ -50,6 +53,8 @@ identical values in both compared variables (default is \code{FALSE}).}
 
 \item{threshold_value}{Numeric; threshold value to be shown as dashed lines
 from both axes on the plot (default is \code{NA}).}
+
+\item{log_scale}{Logical, whether to use a log10 scale the axes.}
 
 \item{xlim}{Numeric vector of length 2 for x-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
@@ -74,6 +79,12 @@ across feature classes. A list of available QC metrics is available from the
 \code{\link[=calc_qc_metrics]{calc_qc_metrics()}} documentation.
 }
 \details{
+The comparison is visualized through one of three plot types:
+\itemize{
+\item Scatter plot: Values of \code{y_variable} vs \code{x_variable}
+\item Difference plot: (\code{y_variable} - `x_variable``) vs mean of both values
+\item Ratio plot: log2(\code{y_variable} / \code{x_variable}) vs mean of both values
+}
 \itemize{
 \item \code{x_variable} and \code{y_variable} must be available in the QC metrics table.
 Please refer to the help page of \code{\link[=calc_qc_metrics]{calc_qc_metrics()}} for more information on

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots-qc-cv.R
 \name{plot_normalization_qc}
 \alias{plot_normalization_qc}
-\title{Compare \%CV values before and after normalization}
+\title{Compare Feature Variability Before and After Normalization}
 \usage{
 plot_normalization_qc(
   data = NULL,
@@ -30,6 +30,10 @@ table to be used for the x-axis (before normalization).}
 
 \item{after_norm_var}{A string specifying the variable from the QC metrics
 table to be used for the y-axis (after normalization).}
+
+\item{plot_type}{A character string specifying the type of plot to generate.
+Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the before and after normalization CV values
+as a scatter plot, "diff" plots the difference between the two CV values against the average CV, and "ratio" plots the log2 ratio of the two CV values against the average CV.}
 
 \item{qc_types}{A character vector specifying the QC types to plot. It
 must contain at least one element. The default is \code{NA}, which means any
@@ -69,10 +73,19 @@ A \code{ggplot2} object representing the scatter plot comparing CV values
 before and after normalization.
 }
 \description{
-This function compares the coefficient of variation (CV) of QC or study
-samples before and after normalization. It preselects the relevant QC metrics
-based on the chosen arguments and visualizes the comparison through a scatter
-plot. The plot can be faceted by \code{feature_class}.
+Evaluates the effectiveness of normalization by comparing feature variability
+(measured as \%CV) in QC and/or study samples before and after normalization.
+The comparison is visualized through one of three plot types:
+\itemize{
+\item Scatter plot: CV values before vs after normalization
+\item Difference plot: (CV after - CV before) vs mean CV
+\item Ratio plot: log2 of (CV after / CV before) vs mean CV
+}
+
+Features can be grouped and visualized by their fature class using facets.
+
+The resulting visualization helps assess whether normalization improved measurement
+precision across different features and sample/QC types.
 }
 \details{
 The function preselects the corresponding variables from the QC metrics and uses
@@ -94,6 +107,7 @@ plot_normalization_qc(
   data = mexp,
   before_norm_var = "intensity",
   after_norm_var = "norm_intensity",
+  plot_type = "scatter",
   qc_type = "SPL",
   filter_data = FALSE,
   facet_by_class = TRUE,
