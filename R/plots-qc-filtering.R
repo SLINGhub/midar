@@ -31,7 +31,6 @@ plot_qc_summary_byclass <- function(data = NULL,
                                     font_base_size = 8) {
   check_data(data)
 
-
   #rlang::arg_match(use_batches, c("across", "individual", "summarise"))
   #if(use_batches != "summarise") stop("Currently only `summarise` supported for parameter `batches`")
 
@@ -41,15 +40,16 @@ plot_qc_summary_byclass <- function(data = NULL,
 
   if (all(is.na(data@metrics_qc$feature_class))) cli::cli_abort(col_red("This plot requires the `feature_class` to be defined in the data. Please define classes in the feature metadata or retrieve via corresponding functions."))
 
- class_levels <- levels(data@metrics_qc$feature_class)
-
-  d_qc <- data@metrics_qc |>
-    filter(.data$valid_feature, .data$in_data) |>
-    mutate(feature_class = factor(
-      tidyr::replace_na(as.character(.data$feature_class), "Undefined"), rev(class_levels)
-    ))
-
-
+ d_qc <- data@metrics_qc |>
+  filter(.data$valid_feature, .data$in_data) |>
+  mutate(
+    feature_class = as.factor(.data$feature_class),
+    feature_class = if (any(is.na(.data$feature_class))) {
+      forcats::fct_na_value_to_level(.data$feature_class, "Undefined")
+    } else {
+      .data$feature_class
+    }
+  )
 
   # TODO: clean up or re-add
   # if(!exclude_qualifier){
@@ -100,6 +100,7 @@ plot_qc_summary_byclass <- function(data = NULL,
   if(all(is.na(d_qc$pass_dratio))) d_qc_sum$qc_criteria <- forcats::fct_recode(d_qc_sum$qc_criteria, NULL = "above_dratio")
 
   d_qc_sum <- d_qc_sum |> drop_na("qc_criteria")
+
   p <- ggplot(d_qc_sum, aes(x = as.numeric(rev(.data$feature_class)), y = .data$count_pass)) +
     ggplot2::geom_bar(aes(fill = .data$qc_criteria), stat = "identity", na.rm = TRUE) +
     scale_fill_manual(values = qc_colors, na.value = "purple", drop = FALSE) +
