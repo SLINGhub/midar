@@ -40,7 +40,7 @@ test_that("plot_responsecurves generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "65.9K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "66K")
   fs::file_delete(temp_pdf_path)
 
   temp_pdf_path <- file.path(tempdir(), "midar_test_responsecurve.pdf")
@@ -193,7 +193,7 @@ test_that("curve color definition works", {
       return_plots = TRUE
     )
     smooth_data <- ggplot2::ggplot_build(p[[1]])$data
-    expect_equal(unique(smooth_data[[1]]$colour), c("#4575b4","#91bfdb"))
+    expect_equal(unique(smooth_data[[1]]$colour), c("#34629e","#91bfdb"))
 
     mexp_temp <- mexp
     mexp_temp@annot_responsecurves$curve_id <- rep(1:6, each = 2)

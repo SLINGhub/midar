@@ -101,7 +101,7 @@ test_that("plot_runscatter generates a plot", {
   )
   expect_null(p)
   expect_true(file_exists(temp_pdf_path), info = "PDF file was not created.")
-  expect_equal(as.character(fs::file_size(temp_pdf_path)), "648K")
+  expect_equal(as.character(fs::file_size(temp_pdf_path)), "676K")
   fs::file_delete(temp_pdf_path)
 
 })

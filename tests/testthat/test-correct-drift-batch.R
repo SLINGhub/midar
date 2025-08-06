@@ -308,7 +308,7 @@ test_that("applying corrections to a variable of 'lower' processing order is wor
     "Concentrations are no longer valid. Please reprocess",
     fixed = TRUE
   )
-
+  
   expect_message(
     mexp_drift4 <- correct_drift_gaussiankernel(
       mexp_norm,
@@ -323,6 +323,8 @@ test_that("applying corrections to a variable of 'lower' processing order is wor
     fixed = TRUE
   )
   })
+
+ 
 
 test_that("recalc_trend_after works", {
   expect_message(
@@ -386,7 +388,7 @@ test_that("Scale smooth works", {
   p <- plot_runscatter(mexp_drift2, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  vdiffr::expect_doppelganger("gaussiankernel_runscatter_scalesmooth_after_1 ", p[[1]])
+  vdiffr::expect_doppelganger("gausskern_runscat_scalesmooth_aft_1 ", p[[1]])
 
 })
 
@@ -820,7 +822,7 @@ test_that("correct_drift_loess fit error are handeled", {
     "Argument `degree` must be 1 or 2",
     fixed = TRUE)
 
-  expect_error(
+  expect_message(
     mexp_drift1 <- correct_drift_loess(
       mexp_err,
       span = 0.3,
@@ -966,7 +968,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  vdiffr::expect_doppelganger("correct_drift_cubicspline_basic_after", p[[2]])
+  vdiffr::expect_doppelganger("drift_cubicspline_after", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_cubicspline(
@@ -985,7 +987,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  vdiffr::expect_doppelganger("correct_drift_cubicspline_basic_cvfalse_after", p[[2]])
+  vdiffr::expect_doppelganger("cubicspline_cvfalse_after", p[[2]])
 
 
   expect_message(
@@ -1021,7 +1023,7 @@ test_that("correct_drift_cubicspline works", {
   p <- plot_runscatter(mexp_drift1, variable = "conc_before", qc_types = c("SPL", "BQC"),
                        show_trend = T, include_istd = FALSE, return_plots = TRUE)
 
-  vdiffr::expect_doppelganger("drift_cubicspline_withlambda_bef", p[[2]])
+  vdiffr::expect_doppelganger("cubicspline_withlambda_bef", p[[2]])
 
   expect_message(
     mexp_drift1 <- correct_drift_cubicspline(

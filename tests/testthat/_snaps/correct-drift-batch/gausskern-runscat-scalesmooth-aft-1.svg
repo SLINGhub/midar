@@ -4320,6 +4320,6 @@
 <circle cx='679.07' cy='300.52' r='1.88' style='stroke-width: 0.57; stroke: #8E9B9E;' />
 <text x='692.69' y='286.00' style='font-size: 8.00px; font-family: sans;' textLength='17.34px' lengthAdjust='spacingAndGlyphs'>BQC</text>
 <text x='692.69' y='303.28' style='font-size: 8.00px; font-family: sans;' textLength='15.12px' lengthAdjust='spacingAndGlyphs'>SPL</text>
-<text x='45.38' y='11.86' style='font-size: 10.00px; font-weight: bold; font-family: sans;' textLength='218.50px' lengthAdjust='spacingAndGlyphs'>gaussiankernel_runscatter_scalesmooth_after_1 </text>
+<text x='45.38' y='11.86' style='font-size: 10.00px; font-weight: bold; font-family: sans;' textLength='176.81px' lengthAdjust='spacingAndGlyphs'>gausskern_runscat_scalesmooth_aft_1 </text>
 </g>
 </svg>

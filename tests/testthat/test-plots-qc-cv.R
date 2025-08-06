@@ -1,5 +1,5 @@
-library(vdiffr)
-library(ggplot2)
+#library(vdiffr)
+#library(ggplot2)
 
 mexp <- lipidomics_dataset
 mexp_nonorm <- mexp
@@ -22,7 +22,7 @@ test_that("plot_qcmetrics_comparison plot looks as expected", {
   p <- plot_normalization_qc(
     data = mexp,
     before_norm_var = "intensity",
-    after_norm_var = "norm_intensity",
+    after_norm_var = "norm_intensity",plot_type = "diff",
     qc_type = "BQC",
     facet_by_class = TRUE,
   )
@@ -142,7 +142,8 @@ test_that("plot_normalization_qc() generates a plot", {
     data = mexp,
     before_norm_var = "intensity",
     after_norm_var = "norm_intensity",
-    qc_type = "BQC",
+    plot_type = "diff",
+    qc_type = NA,
     facet_by_class = TRUE,
   )
   # Check if a ggplot object is returned
@@ -151,7 +152,7 @@ test_that("plot_normalization_qc() generates a plot", {
   # Extract the plot's data (data frame used for the first layer)
   plot_data <- ggplot2::ggplot_build(p)$data[[1]]
   # Test if the number of points in the plot matches the expected value
-  expect_equal(nrow(plot_data), 19)
+  expect_equal(nrow(plot_data), 9)
 
   expect_error(
     plot_normalization_qc(

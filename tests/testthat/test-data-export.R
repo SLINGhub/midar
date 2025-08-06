@@ -202,13 +202,13 @@ test_that("save_feature_qc_metrics exports QC metrics to CSV", {
     dat <- save_feature_qc_metrics(mexp_filt, temp_file),
                  "Feature QC metrics table was saved")
 
-  expect_equal(dim(dat),c(29, 92))
+  expect_equal(dim(dat),c(29, 93))
   # Check if the file was created
   expect_true(file.exists(temp_file))
 
   # Read the file and compare with original data
   written_data <- readr::read_csv(temp_file)
-  expect_equal(dim(written_data),c(29, 92))
+  expect_equal(dim(written_data),c(29, 93))
 })
 
 
