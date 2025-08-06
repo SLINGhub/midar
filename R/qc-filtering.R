@@ -444,6 +444,7 @@ calc_qc_metrics <- function(
 #' @param data MidarExperiment object.
 #' @param clear_existing Logical. If `TRUE`, replaces any existing filters; if `FALSE`, adds new filters on top of existing ones. Default is `TRUE`.
 #' @param use_batch_medians Logical. If `TRUE`, uses batch-wise median QC values for filtering. Default is `FALSE`.
+#' @param use_robust_cv Logical. If `TRUE`, uses robust coefficient of variation (MAD/median) instead of standard CV (SD/mean). Default is `FALSE`.
 #' @param include_qualifier Logical. If `TRUE`, includes qualifier features in the filtering process.
 #' @param include_istd Logical. If `TRUE`, includes internal standards (ISTDs) in the filtering process.
 #' @param features.to.keep A vector of feature identifiers to retain, even if they do not meet the filtering criteria.

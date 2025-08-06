@@ -19,7 +19,7 @@
 #' "none" omits ellipses.
 #' @param ellipse_levels A character vector specifying the levels of
 #' `ellipse_variable` to display as ellipses.
-#' @param pca_dimensions A numeric vector of length 2 indicating the PCA dimensions
+#' @param pc_dimensions A numeric vector of length 2 indicating the PCA dimensions
 #' to plot. Default is c(1, 2).
 #' @param log_transform A logical value indicating whether to log-transform
 #' the data before the PCA. Default is `TRUE`.
@@ -88,7 +88,7 @@ plot_pca <- function(data = NULL,
                     qc_types = NA,
                     ellipse_variable = "qc_type",
                     ellipse_levels = NA,
-                    pca_dimensions = c(1,2),
+                    pc_dimensions = c(1,2),
 
                     log_transform = TRUE,
 
@@ -130,8 +130,8 @@ plot_pca <- function(data = NULL,
   rlang::arg_match(ellipse_variable, c("none", "qc_type","batch_id"))
   ellipse_variable_sym = rlang::sym(ellipse_variable)
 
-  PCx <- rlang::sym(paste0(".fittedPC", pca_dimensions[1]))
-  PCy <- rlang::sym(paste0(".fittedPC", pca_dimensions[2]))
+  PCx <- rlang::sym(paste0(".fittedPC", pc_dimensions[1]))
+  PCy <- rlang::sym(paste0(".fittedPC", pc_dimensions[2]))
 
 
   if(show_labels) check_installed("ggrepel")
@@ -214,7 +214,7 @@ plot_pca <- function(data = NULL,
    }
 
   pca_annot <- pca_annot |>
-    select("analysis_id":stringr::str_c(".fittedPC", max(pca_dimensions))) |>
+    select("analysis_id":stringr::str_c(".fittedPC", max(pc_dimensions))) |>
     left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
 
   if (!is.na(shared_labeltext_hide)) {
@@ -263,8 +263,8 @@ plot_pca <- function(data = NULL,
   p <- ggplot(
     data = pca_annot,
     mapping = aes(
-      x = !!sym(paste0(".fittedPC", pca_dimensions[1])),
-      y = !!sym(paste0(".fittedPC", pca_dimensions[2])))
+      x = !!sym(paste0(".fittedPC", pc_dimensions[1])),
+      y = !!sym(paste0(".fittedPC", pc_dimensions[2])))
   ) +
     ggplot2::geom_hline(yintercept = 0, linewidth = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, linewidth = 0.5, color = "grey80", linetype = "dashed")
@@ -337,8 +337,8 @@ plot_pca <- function(data = NULL,
 
   p <- p +
     ggplot2::theme_bw(base_size = font_base_size) +
-    ggplot2::xlab(glue::glue("PC{pca_dimensions[1]} ({round(pca_contrib[[pca_dimensions[1],'percent']]*100,1)}%)")) +
-    ggplot2::ylab(glue::glue("PC{pca_dimensions[2]} ({round(pca_contrib[[pca_dimensions[2],'percent']]*100,1)}%)")) +
+    ggplot2::xlab(glue::glue("PC{pc_dimensions[1]} ({round(pca_contrib[[pc_dimensions[1],'percent']]*100,1)}%)")) +
+    ggplot2::ylab(glue::glue("PC{pc_dimensions[2]} ({round(pca_contrib[[pc_dimensions[2],'percent']]*100,1)}%)")) +
     ggplot2::theme(
       panel.grid.major = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
@@ -355,6 +355,191 @@ plot_pca <- function(data = NULL,
 
   p
 }
+
+#' Plot PCA loadings
+#'
+#' @param data A MidarExperiment object
+#'
+#' @param variable A character string indicating the variable to use for PCA
+#' analysis. Must be one of: "area", "height", "intensity", "norm_intensity", "response",
+#' "conc", "conc_raw", "rt", "fwhm".
+#' @param qc_types A character vector specifying the QC types to plot. It
+#' must contain at least one element. The default is `NA`, which means any
+#' of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
+#' "NIST", "LTR") will be plotted if present in the dataset.
+#' @param variable
+#' @param pc_dimensions A numeric vector indicating for which PCA dimensions
+#' to the loadings should be shown. Default is c(1, 2, 3, 4).
+#' @param log_transform A logical value indicating whether to log-transform
+#' the data before the PCA. Default is `TRUE`.
+#' 
+#' @param top_n Number of top features with highest absolute loading that will be to shown for each PC dimension. Default is 30.
+#' @param vertical_bars Show vertical bars instead of horizontal bars in the plot. Default is `FALSE`.
+#' @param abs_loading Show absolute loading values instead of signed loadings. Default is `TRUE`.
+#'
+#' @param filter_data A logical value indicating whether to use all data
+#' (default) or only QC-filtered data (filtered via [filter_features_qc()]).
+#' @param include_qualifier A logical value indicating whether to include
+#' qualifier features. Default is `TRUE`.
+#' @param include_istd A logical value indicating whether to include internal
+#' standard (ISTD) features. Default is `TRUE`.
+#' @param include_feature_filter A character or regex pattern used to filter
+#' features by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#' the filter is ignored. When a vector of length > 1 is supplied, only
+#' features with exactly these names are selected (applied individually as
+#' OR conditions).
+#' @param exclude_feature_filter A character or regex pattern used to exclude
+#' features by `feature_id`. If `NA` or an empty string (`""`) is provided,
+#' the filter is ignored. When a vector of length > 1 is supplied, only
+#' features with exactly these names are excluded (applied individually as
+#' OR conditions).
+#' @param min_median_value Minimum median
+#' feature value (as determined by the `variable`) across all samples from
+#' selected QC types that must be met for a feature to be included in the
+#' PCA analysis. `NA` (default) means no filtering will be applied. This
+#' parameter provides an fast way to exclude noisy features from the
+#' analysis. However, it is recommended to use `filter_data` with
+#' [filter_features_qc()].
+#' @param font_base_size A numeric value indicating the base font size for
+#' plot text elements. Default is 7.
+#'
+#' @returns
+#'
+#' @export
+#' @examples
+plot_pca_loading <- function(data = NULL,
+                            variable,
+                            qc_types = NA,
+                            pc_dimensions = c(1, 2, 3, 4),
+                            log_transform = TRUE,
+                            top_n = 30,
+                            vertical_bars = FALSE,
+                            abs_loading = TRUE,
+                            filter_data = FALSE,
+                            include_qualifier = FALSE,
+                            include_istd = FALSE,
+                            include_feature_filter = NA,
+                            exclude_feature_filter = NA,
+                            min_median_value = NA,
+                            font_base_size = 7) {
+ # Check and define arguments
+
+  check_data(data)
+  variable <- str_remove(variable, "feature_")
+  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity", "response", "conc", "conc_raw", "rt"))
+  variable <- stringr::str_c("feature_", variable)
+  check_var_in_dataset(data@dataset, variable)
+  variable_sym = rlang::sym(variable)
+
+
+  if(all(is.na(qc_types))){
+    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "TQC", "HQC", "MQC", "LQC", "NIST", "LTR"))
+  }
+
+  # Subset dataset according to filter arguments
+  # -------------------------------------
+  d_filt <- get_dataset_subset(
+    data,
+    filter_data = filter_data,
+    qc_types = qc_types,
+    include_qualifier = include_qualifier,
+    include_istd = include_istd,
+    include_feature_filter = include_feature_filter,
+    exclude_feature_filter = exclude_feature_filter
+  )
+
+ 
+
+  d_filt <- d_filt |>
+    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }}) |>
+    tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
+
+  d_filt <- d_filt |>
+    tibble::column_to_rownames("analysis_id") |>
+    dplyr::select(where(~ !any(is.na(.))))
+
+  m_raw <- d_filt |>
+    filter(if_any(dplyr::where(is.numeric), ~ !is.na(.))) |>
+    dplyr::select(where(~ !any(is.na(.) | is.nan(.) | is.infinite(.) | . <= 0))) |>
+    as.matrix()
+
+  if (log_transform) m_raw <- log2(m_raw)
+  pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
+
+  d_loading <- pca_res |>
+    broom::tidy(matrix = "rotation") |>
+    tidyr::pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |>
+    dplyr::rename(feature_name = .data$column)
+
+  d_loadings_selected <- d_loading |>
+    tidyr::pivot_longer(cols = -.data$feature_name, names_to = "PC", values_to = "Value") |>
+    dplyr::mutate(PC = as.numeric(stringr::str_remove(.data$PC, "PC"))) |>
+    filter(.data$PC %in% pc_dimensions)
+
+
+  d_loadings_selected <- d_loadings_selected |>
+    dplyr::rowwise() |>
+    dplyr::mutate(
+      direction = if_else(.data$Value < 0, "neg", "pos"),
+      Value = dplyr::if_else(abs_loading, abs(.data$Value), .data$Value),
+      abs_value = abs(.data$Value)
+    ) |>
+    group_by(.data$PC)
+
+  if (vertical_bars) {
+    d_loadings_selected <- d_loadings_selected |> dplyr::arrange(.data$abs_value)
+  } else {
+    d_loadings_selected <- d_loadings_selected |> dplyr::arrange(desc(.data$abs_value))
+  }
+
+  d_loadings_selected <- d_loadings_selected |>
+    dplyr::slice_max(order_by = .data$abs_value, n = top_n) |>
+    ungroup() |>
+    tidyr::unite("Feature", .data$feature_name, .data$PC, remove = FALSE) |>
+    mutate(
+      PC = as.factor(.data$PC),
+      Feature = forcats::fct_reorder(.data$Feature, .data$abs_value)
+    )
+
+
+  p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$Feature, y = .data$Value, color = .data$direction, fill = .data$direction)) +
+    ggplot2::geom_col() +
+    ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pc_dimensions))) +
+    ggplot2::scale_x_discrete(labels = d_loadings_selected$feature_name, breaks = d_loadings_selected$Feature) +
+    ggplot2::scale_color_manual(values = c("neg" = "lightblue", "pos" = "#FF8C00")) +
+    ggplot2::scale_fill_manual(values = c("neg" = "lightblue", "pos" = "#FF8C00")) +
+    ggplot2::labs(x = "Feature", y = "Loading") +
+    ggplot2::theme_bw(base_size = 8)
+
+  if (!vertical_bars) {
+    p <- p +
+      ggplot2::coord_flip()
+  } else {
+    p <- p +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+      ggplot2::scale_x_discrete(limits = rev)
+  }
+
+  p +
+    theme_bw(base_size = font_base_size) +
+      theme(
+        plot.title = element_text(size = font_base_size, face = "bold"),
+        strip.text = ggplot2::element_text(size = font_base_size, face = "bold"),
+        axis.text.x = element_text(size = font_base_size * 0.6),
+        axis.text.y = element_text(size = font_base_size * 0.6),
+        axis.title = element_text(size = font_base_size, face = "bold"),
+        panel.grid = element_line(linewidth = 0.001),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(linewidth = 0.2),
+        strip.background = ggplot2::element_rect(linewidth = 0.0001, fill = "#00283d"),
+        strip.text.x = ggplot2::element_text(color = "white"),
+        #strip.switch.pad.wrap = ggplot2::unit(1, "mm"),
+        panel.border = element_rect(linewidth = 0.5, color = "grey40"),
+        legend.position = "right"
+      )
+
+}
+
 
 # plot_pca_pairs <- function(data = NULL, variable, dim_range = c(1, 8), use_filter_data, qc_types = c("BQC", "TQC", "NIST", "LTR", "SPL"), log_transform = TRUE, grouping = "qc_type", exclude_istds = TRUE, sliding = FALSE, ncol = 3,
 #                            point_size = 0.5, fill_alpha = 0.1, legend_pos = "right") {
@@ -510,77 +695,3 @@ plot_pca <- function(data = NULL,
 #   p
 # }
 #
-# plot_pca_loading <- function(data = NULL, variable, log_transform, pc_dimensions, top_n, exclude_istds, vertical_bars = FALSE, scale_pos_neg = FALSE, point_size = 2, fill_alpha = 0.1) {
-#   check_data(data)
-#   d_wide <- data@dataset_filtered |> filter(.data$qc_type %in% c("BQC", "TQC", "NIST", "LTR", "SPL"))
-#
-#   if (exclude_istds) d_wide <- d_wide |> filter(!.data$is_istd) # !stringr::str_detect(.data$feature_id, "\\(IS")
-#
-#   d_filt <- d_wide |>
-#     dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }}) |>
-#     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
-#
-#   m_raw <- d_filt |>
-#     tibble::column_to_rownames("analysis_id") |>
-#     dplyr::select(where(~ !any(is.na(.)))) |>
-#     as.matrix()
-#
-#   if (log_transform) m_raw <- log2(m_raw)
-#   pca_res <- prcomp(m_raw, scale = TRUE, center = TRUE)
-#
-#   d_loading <- pca_res |>
-#     broom::tidy(matrix = "rotation") |>
-#     tidyr::pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |>
-#     dplyr::rename(feature_name = .data$column)
-#
-#   d_loadings_selected <- d_loading |>
-#     tidyr::pivot_longer(cols = -.data$feature_name, names_to = "PC", values_to = "Value") |>
-#     dplyr::mutate(PC = as.numeric(stringr::str_remove(.data$PC, "PC"))) |>
-#     filter(.data$PC %in% pc_dimensions)
-#
-#
-#   d_loadings_selected <- d_loadings_selected |>
-#     dplyr::rowwise() |>
-#     dplyr::mutate(
-#       direction = if_else(.data$Value < 0, "neg", "pos"),
-#       Value = dplyr::if_else(!scale_pos_neg, abs(.data$Value), .data$Value),
-#       abs_value = abs(.data$Value)
-#     ) |>
-#     group_by(.data$PC)
-#
-#   if (vertical_bars) {
-#     d_loadings_selected <- d_loadings_selected |> dplyr::arrange(.data$abs_value)
-#   } else {
-#     d_loadings_selected <- d_loadings_selected |> dplyr::arrange(desc(.data$abs_value))
-#   }
-#
-#   d_loadings_selected <- d_loadings_selected |>
-#     dplyr::slice_max(order_by = .data$abs_value, n = top_n) |>
-#     ungroup() |>
-#     tidyr::unite("Feature", .data$feature_name, .data$PC, remove = FALSE) |>
-#     mutate(
-#       PC = as.factor(.data$PC),
-#       Feature = forcats::fct_reorder(.data$Feature, .data$abs_value)
-#     )
-#
-#
-#   p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$Feature, y = .data$Value, color = .data$direction, fill = .data$direction)) +
-#     ggplot2::geom_col() +
-#     ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pc_dimensions))) +
-#     ggplot2::scale_x_discrete(labels = d_loadings_selected$feature_name, breaks = d_loadings_selected$Feature) +
-#     ggplot2::scale_color_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
-#     ggplot2::scale_fill_manual(values = c("neg" = "#75CEFF", "pos" = "#FFA166")) +
-#     ggplot2::labs(x = "Feature", y = "Loading") +
-#     ggplot2::theme_bw(base_size = 8)
-#
-#   if (!vertical_bars) {
-#     p <- p +
-#       ggplot2::coord_flip()
-#   } else {
-#     p <- p +
-#       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-#       ggplot2::scale_x_discrete(limits = rev)
-#   }
-#
-#   p
-# }
