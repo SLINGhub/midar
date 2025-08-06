@@ -170,6 +170,7 @@ plot_responsecurves <- function(data = NULL,
   } else {
     # If color_curves is provided, check if it has enough colors
     num_levels <- length(unique(d_rqc$curve_id))
+    fill_curves <- desaturate_colors(color_curves, 0.3)  
     if (length(color_curves) < num_levels) {
       cli::cli_abort(
         cli::col_red(paste("Insufficient colors in `color_curves`. Provide at least",
