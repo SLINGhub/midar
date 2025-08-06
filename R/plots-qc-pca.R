@@ -19,7 +19,7 @@
 #' "none" omits ellipses.
 #' @param ellipse_levels A character vector specifying the levels of
 #' `ellipse_variable` to display as ellipses.
-#' @param pc_dimensions A numeric vector of length 2 indicating the PCA dimensions
+#' @param pca_dims A numeric vector of length 2 indicating the PCA dimensions
 #' to plot. Default is c(1, 2).
 #' @param log_transform A logical value indicating whether to log-transform
 #' the data before the PCA. Default is `TRUE`.
@@ -88,7 +88,7 @@ plot_pca <- function(data = NULL,
                     qc_types = NA,
                     ellipse_variable = "qc_type",
                     ellipse_levels = NA,
-                    pc_dimensions = c(1,2),
+                    pca_dims = c(1,2),
 
                     log_transform = TRUE,
 
@@ -130,8 +130,8 @@ plot_pca <- function(data = NULL,
   rlang::arg_match(ellipse_variable, c("none", "qc_type","batch_id"))
   ellipse_variable_sym = rlang::sym(ellipse_variable)
 
-  PCx <- rlang::sym(paste0(".fittedPC", pc_dimensions[1]))
-  PCy <- rlang::sym(paste0(".fittedPC", pc_dimensions[2]))
+  PCx <- rlang::sym(paste0(".fittedPC", pca_dims[1]))
+  PCy <- rlang::sym(paste0(".fittedPC", pca_dims[2]))
 
 
   if(show_labels) check_installed("ggrepel")
@@ -214,7 +214,7 @@ plot_pca <- function(data = NULL,
    }
 
   pca_annot <- pca_annot |>
-    select("analysis_id":stringr::str_c(".fittedPC", max(pc_dimensions))) |>
+    select("analysis_id":stringr::str_c(".fittedPC", max(pca_dims))) |>
     left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
 
   if (!is.na(shared_labeltext_hide)) {
@@ -263,8 +263,8 @@ plot_pca <- function(data = NULL,
   p <- ggplot(
     data = pca_annot,
     mapping = aes(
-      x = !!sym(paste0(".fittedPC", pc_dimensions[1])),
-      y = !!sym(paste0(".fittedPC", pc_dimensions[2])))
+      x = !!sym(paste0(".fittedPC", pca_dims[1])),
+      y = !!sym(paste0(".fittedPC", pca_dims[2])))
   ) +
     ggplot2::geom_hline(yintercept = 0, linewidth = 0.5, color = "grey80", linetype = "dashed") +
     ggplot2::geom_vline(xintercept = 0, linewidth = 0.5, color = "grey80", linetype = "dashed")
@@ -337,8 +337,8 @@ plot_pca <- function(data = NULL,
 
   p <- p +
     ggplot2::theme_bw(base_size = font_base_size) +
-    ggplot2::xlab(glue::glue("PC{pc_dimensions[1]} ({round(pca_contrib[[pc_dimensions[1],'percent']]*100,1)}%)")) +
-    ggplot2::ylab(glue::glue("PC{pc_dimensions[2]} ({round(pca_contrib[[pc_dimensions[2],'percent']]*100,1)}%)")) +
+    ggplot2::xlab(glue::glue("PC{pca_dims[1]} ({round(pca_contrib[[pca_dims[1],'percent']]*100,1)}%)")) +
+    ggplot2::ylab(glue::glue("PC{pca_dims[2]} ({round(pca_contrib[[pca_dims[2],'percent']]*100,1)}%)")) +
     ggplot2::theme(
       panel.grid.major = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
@@ -367,8 +367,7 @@ plot_pca <- function(data = NULL,
 #' must contain at least one element. The default is `NA`, which means any
 #' of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
 #' "NIST", "LTR") will be plotted if present in the dataset.
-#' @param variable
-#' @param pc_dimensions A numeric vector indicating for which PCA dimensions
+#' @param pca_dims A numeric vector indicating for which PCA dimensions
 #' to the loadings should be shown. Default is c(1, 2, 3, 4).
 #' @param log_transform A logical value indicating whether to log-transform
 #' the data before the PCA. Default is `TRUE`.
@@ -403,14 +402,13 @@ plot_pca <- function(data = NULL,
 #' @param font_base_size A numeric value indicating the base font size for
 #' plot text elements. Default is 7.
 #'
-#' @returns
+#' @returns ggplot object with PCA loadings plot
 #'
 #' @export
-#' @examples
 plot_pca_loading <- function(data = NULL,
                             variable,
                             qc_types = NA,
-                            pc_dimensions = c(1, 2, 3, 4),
+                            pca_dims = c(1, 2, 3, 4),
                             log_transform = TRUE,
                             top_n = 30,
                             vertical_bars = FALSE,
@@ -474,7 +472,7 @@ plot_pca_loading <- function(data = NULL,
   d_loadings_selected <- d_loading |>
     tidyr::pivot_longer(cols = -.data$feature_name, names_to = "PC", values_to = "Value") |>
     dplyr::mutate(PC = as.numeric(stringr::str_remove(.data$PC, "PC"))) |>
-    filter(.data$PC %in% pc_dimensions)
+    filter(.data$PC %in% pca_dims)
 
 
   d_loadings_selected <- d_loadings_selected |>
@@ -504,7 +502,7 @@ plot_pca_loading <- function(data = NULL,
 
   p <- ggplot(d_loadings_selected, ggplot2::aes(x = .data$Feature, y = .data$Value, color = .data$direction, fill = .data$direction)) +
     ggplot2::geom_col() +
-    ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pc_dimensions))) +
+    ggplot2::facet_wrap(ggplot2::vars(.data$PC), scales = "free", ncol = ifelse(vertical_bars, 1, length(pca_dims))) +
     ggplot2::scale_x_discrete(labels = d_loadings_selected$feature_name, breaks = d_loadings_selected$Feature) +
     ggplot2::scale_color_manual(values = c("neg" = "lightblue", "pos" = "#FF8C00")) +
     ggplot2::scale_fill_manual(values = c("neg" = "lightblue", "pos" = "#FF8C00")) +
