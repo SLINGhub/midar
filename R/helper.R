@@ -340,7 +340,18 @@ scientific_format_end <- function(x) {
 }
 
 
-
+# Used to desaturate colors to be used as fill colors in plots
+desaturate_colors <- function(colors, amount = 0.5) {
+  sapply(colors, function(col) {
+    rgb_vals <- grDevices::col2rgb(col)
+    hsv_vals <- grDevices::rgb2hsv(r = rgb_vals[1], 
+                        g = rgb_vals[2], 
+                        b = rgb_vals[3])
+    grDevices::hsv(h = hsv_vals["h",], 
+        s = hsv_vals["s",] * amount, 
+        v = hsv_vals["v",])
+  })
+}
 
 
 #
