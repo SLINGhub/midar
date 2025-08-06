@@ -1,9 +1,17 @@
-#' Compare %CV values before and after normalization
+#' Compare Feature Variability Before and After Normalization
 #'
-#' This function compares the coefficient of variation (CV) of QC or study
-#' samples before and after normalization. It preselects the relevant QC metrics
-#' based on the chosen arguments and visualizes the comparison through a scatter
-#' plot. The plot can be faceted by `feature_class`.
+#' @description
+#' Evaluates the effectiveness of normalization by comparing feature variability
+#' (measured as %CV) in QC and/or study samples before and after normalization.
+#' The comparison is visualized through one of three plot types:
+#' * Scatter plot: CV values before vs after normalization
+#' * Difference plot: (CV after - CV before) vs mean CV
+#' * Ratio plot: log2 of (CV after / CV before) vs mean CV
+#'
+#' Features can be grouped and visualized by their fature class using facets. 
+#'
+#' The resulting visualization helps assess whether normalization improved measurement
+#' precision across different features and sample/QC types.
 #'
 #' @param data A `MidarExperiment` object
 #' @param before_norm_var A string specifying the variable from the QC metrics
@@ -94,6 +102,8 @@ plot_normalization_qc <- function(data = NULL,
 
   after_norm_var <- str_remove(after_norm_var, "feature_")
   rlang::arg_match(after_norm_var, c("norm_intensity", "conc", "conc_raw"))
+  
+  rlang::arg_match(plot_type, c("scatter", "diff", "ratio"))
 
   # Match qc_type
   #rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
@@ -112,7 +122,7 @@ plot_normalization_qc <- function(data = NULL,
   end_regex <- paste(qc_types, collapse = "|")
 
 
-  col_pattern <- paste0("^(", start_regex, ")", middle_string, "(", end_regex, ")$")
+ #col_pattern <- paste0("^(", start_regex, ")", middle_string, "(", end_regex, ")$")
 
 
 
@@ -141,7 +151,6 @@ plot_normalization_qc <- function(data = NULL,
   plot_qcmetrics_comparison(
     data = data,plot_type = plot_type,
     facet_type = "wrap",
-    col_pattern = col_pattern,
     filter_data = filter_data,
     facet_by_class = facet_by_class,
     x_variable = x_variable,
@@ -164,6 +173,12 @@ plot_normalization_qc <- function(data = NULL,
 #' This function generates scatter plots comparing two QC metrics variables
 #' across feature classes. A list of available QC metrics is available from the
 #' [calc_qc_metrics()] documentation.
+#' 
+#' The comparison is visualized through one of three plot types:
+#' * Scatter plot: Values of `y_variable` vs `x_variable`
+#' * Difference plot: (`y_variable` - `x_variable``) vs mean of both values
+#' * Ratio plot: log2(`y_variable` / `x_variable`) vs mean of both values
+#'
 #'
 #' @param data A `MidarExperiment` object containing pre-calculated QC metrics.
 #' @param plot_type A character string specifying the type of plot to generate. 
@@ -174,7 +189,6 @@ plot_normalization_qc <- function(data = NULL,
 #'   x-axis.
 #' @param y_variable The name of the QC metric variable to be plotted on the
 #'   y-axis.
-#' @param col_pattern A string pattern to match the columns in the QC metrics
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
 #' @param filter_data Logical; whether to use all data (default) or only
@@ -215,7 +229,6 @@ plot_qcmetrics_comparison <- function(data = NULL,
                                       facet_type = c("grid", "wrap"),
                                       x_variable,
                                       y_variable,
-                                      col_pattern,
                                       facet_by_class = FALSE,
                                       filter_data = FALSE,
                                       include_qualifier = TRUE,
@@ -229,8 +242,13 @@ plot_qcmetrics_comparison <- function(data = NULL,
                                       point_alpha = 0.5,
                                       font_base_size = 8) {
 
+   
   # Check if data is provided and valid
   check_data(data)
+
+rlang::arg_match(plot_type, c("scatter", "diff", "ratio"))
+rlang::arg_match(facet_type, c("grid", "wrap"))
+
 
   # Check if QC metrics table is available
   if (nrow(data@metrics_qc) == 0) {
@@ -251,8 +269,9 @@ plot_qcmetrics_comparison <- function(data = NULL,
   if (!include_qualifier) {
     d_qc <- d_qc |> filter(.data$is_quantifier, .data$valid_feature)
   }
-
+  col_pattern <- paste0(x_variable, "|", y_variable)
   # Filter data based on valid features
+ 
   d_qc <- d_qc|>
     filter(.data$valid_feature) |>
     select("feature_id", "feature_class", dplyr::matches(col_pattern))
@@ -295,6 +314,17 @@ plot_qcmetrics_comparison <- function(data = NULL,
   }
 
 
+  x_label <- case_when(
+    plot_type == "scatter" ~ paste("QC metric:", x_variable),
+    plot_type == "diff" ~ paste("Mean of", x_variable, "and", y_variable),
+    plot_type == "ratio" ~ paste("Mean of", x_variable, "and", y_variable),
+  )
+
+  y_label <- case_when(
+    plot_type == "scatter" ~ paste("QC metric:", y_variable),
+    plot_type == "diff" ~ paste(y_variable, "-", x_variable),
+    plot_type == "ratio" ~ paste("log2(", y_variable, "/", x_variable, ")"),
+  )
 
   # Check if feature_class exists and is valid
   if (facet_by_class && (!"feature_class" %in% names(d_qc) || all(is.na(d_qc$feature_class)))) {
@@ -359,18 +389,23 @@ plot_qcmetrics_comparison <- function(data = NULL,
   if (log_scale) {
     g <- g +
       ggplot2::scale_x_log10(#labels = scientific_format_end,
+                             #limits = c(0.1, NA),
+                             name = x_label,
                               limits = xlim,
                              expand = ggplot2::expansion(mult = c(0, 0.02))) +
       ggplot2::scale_y_log10(#labels = scientific_format_end,
                               limits = ylim,
+                              name = y_label,
                              expand = ggplot2::expansion(mult = c(0, 0.02)))
   } else {
     g <- g +
       ggplot2::scale_x_continuous(#labels = scientific_format_end,
+                                  name = x_label,
                                   limits = xlim,
                                   expand = ggplot2::expansion(mult = c(0, 0.02))) +
       ggplot2::scale_y_continuous(#labels = scientific_format_end,
                                   limits = ylim,
+                                  name = y_label,
                                   expand = ggplot2::expansion(mult = c(0, 0.02)))
   }
 
