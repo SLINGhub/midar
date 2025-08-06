@@ -5,6 +5,8 @@ Version: 0.2.1
 Authors@R: 
     person("Bo", "Burla", , "bo.burla@nus.edu.sg", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5918-3249"))
+Author: Bo Burla [aut, cre] (<https://orcid.org/0000-0002-5918-3249>)
+Maintainer: Bo Burla <bo.burla@nus.edu.sg>
 Description: The 'midar' package offers R functions for processing, quality control, and visualization of lipidomics mass spectrometry data.
 License: BSD_3_clause + file LICENSE
 URL: https://github.com/SLINGhub/midar, https://slinghub.github.io/midar/
