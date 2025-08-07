@@ -155,6 +155,7 @@ plot_normalization_qc <- function(data = NULL,
     facet_by_class = facet_by_class,
     x_variable = x_variable,
     y_variable = y_variable,
+    qc_types = qc_types,
     threshold_value = cv_threshold_value,
     equality_line = TRUE,
     include_qualifier = include_qualifier,
@@ -189,6 +190,7 @@ plot_normalization_qc <- function(data = NULL,
 #'   x-axis.
 #' @param y_variable The name of the QC metric variable to be plotted on the
 #'   y-axis.
+#' @param qc_types A character vector specifying the QC types to plot. 
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
 #' @param filter_data Logical; whether to use all data (default) or only
@@ -229,6 +231,7 @@ plot_qcmetrics_comparison <- function(data = NULL,
                                       facet_type = c("grid", "wrap"),
                                       x_variable,
                                       y_variable,
+                                      qc_types = NA,
                                       facet_by_class = FALSE,
                                       filter_data = FALSE,
                                       include_qualifier = TRUE,
@@ -276,6 +279,8 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
     filter(.data$valid_feature) |>
     select("feature_id", "feature_class", dplyr::matches(col_pattern))
 
+
+
   var_match <- str_remove(x_variable, "_(TQC|BQC|SPL)$") ==
     str_remove(y_variable, "_(TQC|BQC|SPL)$")
 
@@ -292,7 +297,8 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
 
   d_qc <- d_qc |>
     mutate(across(c(!!x_variable, !!y_variable), ~ ifelse(.x == 0, NA, .x))) |>
-    drop_na()
+    drop_na() |> 
+    filter(.data$qc_type %in% qc_types)
 
   if(plot_type == "diff") {
     d_qc <- d_qc |>
@@ -307,7 +313,7 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
   # Apply additional QC filtering if requested
   if (filter_data) {
     if (data@is_filtered) {
-      d_qc <- d_qc |> filter(.data$valid_feature, .data$all_filter_pass)
+      d_qc <- d_qc |> filter(.data$all_filter_pass)
     } else {
       cli_abort(cli::col_red("Data has not yet been QC-filtered. Apply filter, or set `filter_data = FALSE`."))
     }
@@ -330,6 +336,8 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
   if (facet_by_class && (!"feature_class" %in% names(d_qc) || all(is.na(d_qc$feature_class)))) {
     cli::cli_abort(col_red("`feature_class` to be defined in the metadata. Please ammend metadata or set `facet_by_class = FALSE`."))
   }
+
+
 
   if (plot_type == "scatter") {
     g <- ggplot(data = d_qc, aes(x = !!rlang::sym(x_variable),
