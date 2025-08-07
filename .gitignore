@@ -5,7 +5,6 @@
 .DS_Store
 .testing
 inst/doc
-/doc/
 /Meta/
 .quarto
 vignettes/articles/output/
