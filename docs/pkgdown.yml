@@ -1,4 +1,4 @@
-pandoc: '3.4'
+pandoc: 3.6.3
 pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
@@ -19,7 +19,7 @@ articles:
   articles/T01_prepdata: T01_prepdata.html
   articles/T01_targetlipidomics_workflow: T01_targetlipidomics_workflow.html
   articles/T02_settingup_workflow: T02_settingup_workflow.html
-last_built: 2025-07-16T08:08Z
+last_built: 2025-08-07T05:32Z
 urls:
   reference: https://slinghub.github.io/midar/reference
   article: https://slinghub.github.io/midar/articles
