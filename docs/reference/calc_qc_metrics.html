@@ -78,6 +78,7 @@ of batch-wise calculations.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calc_qc_metrics</span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  use_batch_medians <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use_robust_cv <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_norm_intensity_stats <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  include_conc_stats <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  include_response_stats <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -99,6 +100,11 @@ statistics based on normalized intensities and concentrations.</p></dd>
 <dd><p>Logical, whether to compute QC metrics using the
 median of batch-wise derived values instead of the full dataset. Default is
 FALSE.</p></dd>
+
+
+<dt id="arg-use-robust-cv">use_robust_cv<a class="anchor" aria-label="anchor" href="#arg-use-robust-cv"></a></dt>
+<dd><p>Logical, whether to use robust coefficient of variation (MAD/median) or
+the standard coefficient of variation (SD/mean) for intensity, norm_intensity and concentration metrics.</p></dd>
 
 
 <dt id="arg-include-norm-intensity-stats">include_norm_intensity_stats<a class="anchor" aria-label="anchor" href="#arg-include-norm-intensity-stats"></a></dt>

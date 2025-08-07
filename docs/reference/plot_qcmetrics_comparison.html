@@ -74,14 +74,17 @@ across feature classes. A list of available QC metrics is available from the
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_qcmetrics_comparison</span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scatter"</span>, <span class="st">"diff"</span>, <span class="st">"ratio"</span><span class="op">)</span>,</span>
+<span>  facet_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grid"</span>, <span class="st">"wrap"</span><span class="op">)</span>,</span>
 <span>  <span class="va">x_variable</span>,</span>
 <span>  <span class="va">y_variable</span>,</span>
-<span>  <span class="va">col_pattern</span>,</span>
+<span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  facet_by_class <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  equality_line <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  threshold_value <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  log_scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">5</span>,</span>
@@ -99,6 +102,16 @@ across feature classes. A list of available QC metrics is available from the
 <dd><p>A <code>MidarExperiment</code> object containing pre-calculated QC metrics.</p></dd>
 
 
+<dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
+<dd><p>A character string specifying the type of plot to generate.
+Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
+as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.</p></dd>
+
+
+<dt id="arg-facet-type">facet_type<a class="anchor" aria-label="anchor" href="#arg-facet-type"></a></dt>
+<dd><p>A character string specifying the type of faceting to apply. "grid" creates a grid of facets with shared axes, while "wrap" creates a wrapped layout of facets, each with its own axes. Default is "wrap".</p></dd>
+
+
 <dt id="arg-x-variable">x_variable<a class="anchor" aria-label="anchor" href="#arg-x-variable"></a></dt>
 <dd><p>The name of the QC metric variable to be plotted on the
 x-axis.</p></dd>
@@ -109,8 +122,8 @@ x-axis.</p></dd>
 y-axis.</p></dd>
 
 
-<dt id="arg-col-pattern">col_pattern<a class="anchor" aria-label="anchor" href="#arg-col-pattern"></a></dt>
-<dd><p>A string pattern to match the columns in the QC metrics</p></dd>
+<dt id="arg-qc-types">qc_types<a class="anchor" aria-label="anchor" href="#arg-qc-types"></a></dt>
+<dd><p>A character vector specifying the QC types to plot.</p></dd>
 
 
 <dt id="arg-facet-by-class">facet_by_class<a class="anchor" aria-label="anchor" href="#arg-facet-by-class"></a></dt>
@@ -136,6 +149,10 @@ identical values in both compared variables (default is <code>FALSE</code>).</p>
 <dt id="arg-threshold-value">threshold_value<a class="anchor" aria-label="anchor" href="#arg-threshold-value"></a></dt>
 <dd><p>Numeric; threshold value to be shown as dashed lines
 from both axes on the plot (default is <code>NA</code>).</p></dd>
+
+
+<dt id="arg-log-scale">log_scale<a class="anchor" aria-label="anchor" href="#arg-log-scale"></a></dt>
+<dd><p>Logical, whether to use a log10 scale the axes.</p></dd>
 
 
 <dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
@@ -170,8 +187,10 @@ auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-
-<ul><li><p><code>x_variable</code> and <code>y_variable</code> must be available in the QC metrics table.
+    <p>The comparison is visualized through one of three plot types:</p><ul><li><p>Scatter plot: Values of <code>y_variable</code> vs <code>x_variable</code></p></li>
+<li><p>Difference plot: (<code>y_variable</code> - `x_variable“) vs mean of both values</p></li>
+<li><p>Ratio plot: log2(<code>y_variable</code> / <code>x_variable</code>) vs mean of both values</p></li>
+</ul><ul><li><p><code>x_variable</code> and <code>y_variable</code> must be available in the QC metrics table.
 Please refer to the help page of <code><a href="calc_qc_metrics.html">calc_qc_metrics()</a></code> for more information on
 the available QC metric variables.</p></li>
 <li><p>When <code>facet_by_class = TRUE</code>, then the <code>feature_class</code> must be defined in the

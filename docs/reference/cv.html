@@ -69,7 +69,7 @@ If na.rm is TRUE then missing values are removed before computation proceeds.</p
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cv</span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cv</span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">FALSE</span>, use_robust_cv <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -83,6 +83,10 @@ If na.rm is TRUE then missing values are removed before computation proceeds.</p
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
 <dd><p>logical, if TRUE then NA values are stripped from x before
 computation takes place</p></dd>
+
+
+<dt id="arg-use-robust-cv">use_robust_cv<a class="anchor" aria-label="anchor" href="#arg-use-robust-cv"></a></dt>
+<dd><p>logical, if TRUE then the robust coefficient of variation</p></dd>
 
 </dl></div>
     <div class="section level2">

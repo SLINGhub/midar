@@ -244,7 +244,7 @@ plot_pca(
   data = myexp, 
   variable = "feature_intensity", 
   filter_data = FALSE,
-  pca_dim = c(1,2),
+  pca_dims = c(1,2),
   labels_threshold_mad = 3, 
   qc_types = c("SPL", "BQC", "TQC"),
   log_transform = TRUE,  
@@ -414,11 +414,14 @@ myexp <- midar::filter_features_qc(myexp,
                                    min.intensity.median.spl = 1000)
 midar::plot_normalization_qc(
   data = myexp, 
-  filter_data = FALSE, 
-  facet_by_class = TRUE,
-  qc_type = "SPL", 
   before_norm_var = "intensity", 
-  after_norm_var = "norm_intensity")
+  after_norm_var = "norm_intensity",
+  plot_type = "diff",
+  point_size = 2,
+  facet_by_class = TRUE,
+  qc_types = c("TQC", "BQC", "SPL"),
+  ylim = c(-5, 15))
+  
 ```
 
 ## 13. Drift correction

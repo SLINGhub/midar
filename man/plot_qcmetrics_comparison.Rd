@@ -10,6 +10,7 @@ plot_qcmetrics_comparison(
   facet_type = c("grid", "wrap"),
   x_variable,
   y_variable,
+  qc_types = NA,
   facet_by_class = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
@@ -38,6 +39,8 @@ x-axis.}
 
 \item{y_variable}{The name of the QC metric variable to be plotted on the
 y-axis.}
+
+\item{qc_types}{A character vector specifying the QC types to plot.}
 
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
