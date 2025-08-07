@@ -4,8 +4,16 @@ template:
   bootswatch: sandstone
 navbar:
   structure:
-    left: [intro, tutorials, articles, reference, news]
-    right: [search, github, lightswitch]
+    left:
+    - intro
+    - tutorials
+    - articles
+    - reference
+    - news
+    right:
+    - search
+    - github
+    - lightswitch
   components:
     home: ~
     intro:
@@ -31,7 +39,6 @@ navbar:
         href: articles/R01_quantms.html
       - text: '-------'
       - text: Recipes
-
     articles:
       text: Manual
       menu:
@@ -57,10 +64,8 @@ navbar:
       text: News
       href: news/index.html
     links:
-    - text: "License (BSD-3-Clause)"
+    - text: License (BSD-3-Clause)
       href: LICENSE
-
-
 reference:
 - title: MidarExperiment
   description: |
@@ -142,7 +147,7 @@ reference:
   - quantify_by_calibration
   - calibrate_by_reference
   example:
-    run: false
+    run: no
 - title: Drift/Batch Correction
   description: |
     Function for drift and batch correction correction
@@ -169,6 +174,7 @@ reference:
   - plot_runscatter
   - plot_rla_boxplot
   - plot_pca
+  - plot_pca_loading
   - plot_feature_correlations
   - plot_rt_vs_chain
   - plot_qc_matrixeffects
@@ -213,5 +219,4 @@ reference:
   - fun_gam_smooth
   - get_mad_tails
   - order_chained_columns_tbl
-
 
