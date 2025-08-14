@@ -28,12 +28,15 @@ get_analyte_id <- function(transition_name, remove_nl_transitions) {
   analyte_id <- str_replace(analyte_id, "(?<=m\\d{2}:\\d{1})$", ";O")
   analyte_id <- str_replace(analyte_id, "(?<=d\\d{2}:\\d{1})$", ";O2")
   analyte_id <- str_replace(analyte_id, "(?<=t\\d{2}:\\d{1})$", ";O3")
-  analyte_id <- str_replace(analyte_id, " [dmt]{1}(?=\\d{2}:\\d{1})", " ")
+  analyte_id <- str_replace(analyte_id, "(?<= |\\()[dmt](?=\\d{2}:\\d{1})", "")
   analyte_id <- str_replace(analyte_id, "^AC", "CAR")
+  analyte_id <- str_replace(analyte_id, "^Acyl[cC]arnitine", "CAR")
   analyte_id <- str_replace(analyte_id, "^Sph", "SPB")
   analyte_id <- str_replace(analyte_id, "^S1P", "SPBP")
   analyte_id <- str_replace(analyte_id, "^dhCer", "Cer")
   analyte_id <- str_replace(analyte_id, "^Cer1P", "CerP")
+  analyte_id <- str_replace(analyte_id, "^C1P", "CerP")
+  analyte_id <- str_replace(analyte_id, "^C1P \\(", "CerP(")
   analyte_id <- str_replace(analyte_id, "^S1P", "SPBP")
   analyte_id <- str_replace(analyte_id, "^Hex1Cer", "HexCer")
   analyte_id <- str_replace(analyte_id, "15\\-MHDA", "16:0;15Me")
@@ -127,9 +130,10 @@ parse_lipid_feature_names <- function(tbl, use_as_feature_class = "lipid_class_l
   d_goslin <- d_goslin |>
     #filter(Grammar != "NOT_PARSEABLE") |>
     mutate(lipid_class_lcb = .data$Extended.Species.Name) |>
-    mutate(Normalized.Name = if_else(str_detect(.data$Original.Name, " \\-P| P\\-"), str_replace(.data$Normalized.Name, " O\\-", " P-"), .data$Normalized.Name)) |>
-    mutate(lipid_class_lcb = if_else(.data$Lipid.Maps.Category == "SP" & str_detect(.data$Normalized.Name, "\\;O[1-3]"),
-                                     stringr::str_c(.data$Extended.Species.Name, str_extract(.data$Normalized.Name,"\\;O[1-3]")),.data$lipid_class_lcb)) |>
+    mutate(Normalized.Name = if_else(str_detect(.data$Original.Name, " \\-P| P\\-"), str_replace(.data$Normalized.Name, " O\\-", " P-"), .data$Normalized.Name),
+           Total.DB = if_else(str_detect(.data$Original.Name, " \\-P| P\\-"), .data$Total.DB - 1, .data$Total.DB)) |>
+    mutate(lipid_class_lcb = if_else(.data$Lipid.Maps.Category == "SP" & str_detect(.data$Normalized.Name, ";O\\d?"),
+                                     stringr::str_c(.data$Extended.Species.Name, str_extract(.data$Normalized.Name, ";O\\d?")), .data$lipid_class_lcb)) |>
     mutate(lipid_class_lcb = if_else(.data$Extended.Species.Name == "TG" & str_detect(.data$Normalized.Name, "TG O\\-"),
                                      "TG-O" ,.data$lipid_class_lcb)) |>
     mutate(lipid_class_lcb = if_else(.data$Extended.Species.Name == "DG" & str_detect(.data$Normalized.Name, "DG O\\-"),
@@ -217,7 +221,7 @@ convert_triglycerides <- function(dat){
 covert_lyso_pl <- function(dat){
 
   d_lyso <- dat |>
-    filter(str_detect(.data$analyte_id, "^LPC|^LPE|^LPI|^LPS")) |>
+    filter(str_detect(.data$analyte_id, "^LPC|^LPE|^LPI|^LPS") & !str_detect(.data$analyte_id, "O\\-|P\\-|\\-O|\\-P" )) |>
     mutate(analyte_id_temp = str_replace(.data$analyte_id, "(?i)(\\[sn1\\] |-sn1)", " (sn1)")) |>
     mutate(analyte_id_temp = str_replace(.data$analyte_id_temp, "(?i)(\\[sn2\\] |-sn2)", " (sn1)")) |>
     select("feature_id", "analyte_id", "analyte_id_temp") |>
@@ -236,7 +240,7 @@ covert_lyso_pl <- function(dat){
     left_join(d_lyso, by = c("feature_id", "analyte_id")) |>
     mutate(analyte_id =
              if_else(
-              str_detect(.data$analyte_id, "^LPC|^LPE|^LPI|^LPS"),
+              str_detect(.data$analyte_id, "^LPC|^LPE|^LPI|^LPS") & !str_detect(.data$analyte_id, "O\\-|P\\-|\\-O|\\-P" ),
               str_squish(.data$analyte_new),
               .data$analyte_id
     )) |>
