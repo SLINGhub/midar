@@ -163,3 +163,60 @@ pkg.env$qc_type_annotation <- list(
     "MBLK" = 10
   )
 )
+
+
+pkg.env$lipid_class_themes <- list(
+  lipid_class_order = c(
+    "Cer 18:0;O2",
+    "Cer 18:1;O2",
+    "Cer 18:2;O2",
+    "SM",
+    "GM3",
+    "Hex2Cer",
+    "Hex3Cer",
+    "HexCer",
+    "LPC",
+    "LPE",
+    "LPC-O",
+    "PC",
+    "PE",
+    "PI",
+    "PG",
+    "PS",
+    "PC-O",
+    "PC-P",
+    "PE-O",
+    "PE-P",
+    "CE",
+    "DG",
+    "TG",
+    "TG-O"
+  ),
+  lipid_class_color = c(
+    "Cer 18:0;O2" = "#FFDF0D",
+    "Cer 18:1;O2" = "#f0a802",
+    "Cer 18:2;O2" = "#ffb802",
+    "SM" = "#d8b8ff",
+    "GM3" = "#a7cc00",
+    "Hex2Cer" = "#a7cc00",
+    "Hex3Cer" = "#a7cc00",
+    "HexCer" = "#a7cc00",
+    "LPC" = "#89faf8",
+    "LPE" = "#89faf8",
+    "LPC-O" = "#5ce095",
+    "PC" = "#74C0E6",
+    "PE" = "#74C0E6",
+    "PI" = "#74C0E6",
+    "PG" = "#74C0E6",
+    "PS" = "#74C0E6",
+    "PC-O" = "#5ce095",
+    "PC-P" = "#5ce095",
+    "PE-O" = "#5ce095",
+    "PE-P" = "#5ce095",
+    "CE" = "#635352",
+    "DG" = "#db3d3d",
+    "TG" = "#9c2f2f",
+    "TG-O" = "#9c2f2f",
+    "NA" = "grey90"
+  ) 
+)
