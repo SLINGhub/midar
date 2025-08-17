@@ -856,7 +856,8 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 #' If `NA` or an empty string (`""`) is provided, the filter is ignored. When a vector of length > 1 is supplied,
 #' is supplied, only features with exactly these names are selected (applied individually as OR conditions).
 #' @param exclude_feature_filter A regex pattern or a vector of feature names to exclude features by feature_id.
-#' If `NA` or an empty string (`""`) is provided, the filter is ignored. When a vector of length > 1 is supplied,
+#' If `NA` or an empty string (`""`) is provided, the filter is ignored. When a vector of length > 1 is supplied.
+#' @param remove_gaps Logical, whether to remove gaps in the x-axis, occuring from QC types that were not selected. Default is `TRUE`.
 #' is supplied, only features with exactly these names are excluded (applied individually as OR conditions).
 #' @param plot_range Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. `NA` plots all samples.
 #' @param show_timestamp Logical, whether to use the acquisition timestamp as
@@ -896,6 +897,7 @@ plot_rla_boxplot <- function(
                                 include_feature_filter = NA,
                                 exclude_feature_filter = NA,
 
+                                remove_gaps = TRUE,
                                 plot_range = NA,
                                 show_timestamp = FALSE,
 
@@ -987,30 +989,78 @@ plot_rla_boxplot <- function(
   }
 
 
+  unique_orders <- sort(unique(d_filt$analysis_order))
+    
+  order_map <- tibble(
+      analysis_order = unique_orders, 
+      analysis_order_index = seq_along(unique_orders)
+  )
+    
+  d_filt <- d_filt |>
+      left_join(order_map, by = "analysis_order")
+
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
   if(x_axis_variable != "analysis_order"){
     labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 10)]
     breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$analysis_order) |> unique()
+    p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
   } else {
-    breaks <- scales::breaks_pretty(n = 10)(range(d_filt$analysis_order))
-    labels = breaks
+    n_breaks <- 10 
+    breaks <- scales::breaks_pretty(n = n_breaks)(seq_along(unique_orders))
+    breaks <- breaks[breaks > 0 & breaks <= length(unique_orders)]
+    if(remove_gaps) {
+      # If remove_gaps is TRUE, we use the analysis_order_index
+      labels <- unique_orders[breaks] |> round(-2) |> format(big.mark = ",")
+      p <- ggplot(d_filt, aes(x = .data$analysis_order_index, y = .data$val_res, group = .data$analysis_order_index))
+    } else {
+      # If remove_gaps is FALSE, we use the analysis_order
+      labels <- breaks |> round(-2) |> format(big.mark = ",")
+      p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
+    }
   }
-  p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
 
-  p <- p + scale_x_continuous(breaks = breaks, labels = labels)
+  
+
+  p <- p + scale_x_continuous(
+    breaks = breaks, 
+    labels = labels,
+    limits = if(remove_gaps) range(d_filt$analysis_order_index) else range(d_filt$analysis_order),
+    expand = c(0.02, 0.02)
+  )
 
   if (show_batches) {
-    if (!batch_zebra_stripe) {
-      p <- p + geom_vline(data = data@annot_batches |> slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", linewidth = 1)
-    } else {
+    d_batches <- data@annot_batches |> 
+    filter(.data$id_batch_start <= max(order_map$analysis_order) & .data$id_batch_start >= min(order_map$analysis_order)) |>
+    mutate(
+        mapped_start = purrr::map_dbl(.data$id_batch_start, 
+                              ~find_closest(.x, order_map$analysis_order, method = "higher")),
+        mapped_end = purrr::map_dbl(.data$id_batch_end, 
+                              ~find_closest(.x, order_map$analysis_order, method = "lower"))
+                              
+    ) |> 
+    left_join(order_map, by = c("mapped_start" = "analysis_order")) |> 
+    rename(id_batch_start_index = .data$analysis_order_index) |> 
+    left_join(order_map, by = c("mapped_end" = "analysis_order")) |> 
+    rename(id_batch_end_index = .data$analysis_order_index)
 
-      d_batch_2nd <- data@annot_batches |>
-        slice(-1) |>
-        filter(.data$batch_no %% 2 != 1)
-      p <- p + geom_rect(
-        data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),
-        inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.5, na.rm = TRUE
-      )
+    if (!batch_zebra_stripe) {
+      if(remove_gaps) 
+        p <- p + geom_vline(data = d_batches|> slice(-1), aes(xintercept = .data$id_batch_start_index - 0.5), colour = batch_line_color, linetype = "solid", linewidth = 1)
+      else 
+        p <- p + geom_vline(data = d_batches|> slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", linewidth = 1)
+    } else {
+      d_batch_2nd <- d_batches |>
+          slice(-1) |>
+          filter(.data$batch_no %% 2 != 1)
+      if(remove_gaps) {
+        p <- p + geom_rect(
+          data = d_batch_2nd, aes(xmin = .data$id_batch_start_index - 0.5, xmax = .data$id_batch_end_index + 0.5, ymin = -Inf, ymax = Inf),
+          inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.5, na.rm = TRUE)
+      } else {
+        p <- p + geom_rect(
+          data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),
+          inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.5, na.rm = TRUE)
+      }
     }
   }
 
@@ -1066,8 +1116,11 @@ plot_rla_boxplot <- function(
   if(!all(is.na(plot_range))) {
     xlim = plot_range
   }
-
+  if(remove_gaps) {
+    xlim <- c(order_map[order_map$analysis_order == find_closest(xlim[1], order_map$analysis_order, method = "lower"), ]$analysis_order_index,
+              order_map[order_map$analysis_order == find_closest(xlim[2], order_map$analysis_order, method = "higher"), ]$analysis_order_index)
+  } 
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
 
   return(p)
-}
+      }
