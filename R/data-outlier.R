@@ -24,7 +24,7 @@
 detect_outlier <- function(data = NULL,
                                        variable ,
                                        filter_data,
-                                       qc_types = c("BQC", "TQC", "SPL"),
+                                       qc_types,
                                        pca_component,
                                        fence_multiplicator,
                                        summarize_fun = c("pca", "rma"),
@@ -37,7 +37,7 @@ detect_outlier <- function(data = NULL,
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
 
-  qc_types <- rlang::arg_match(qc_types, c("BQC", "TQC", "SPL"))
+  #qc_types <- rlang::arg_match(qc_types, c("BQC", "TQC", "SPL", "LTR", "NIST", "QC"))
   summarize_fun <- rlang::arg_match(summarize_fun, c("pca", "rma"))
   outlier_detection <- rlang::arg_match(outlier_detection, c("sd", "mad"))
 
@@ -61,9 +61,13 @@ detect_outlier <- function(data = NULL,
   d_wide <- d_filt |>
     tidyr::pivot_wider(id_cols = "analysis_id", names_from = "feature_id", values_from = {{ variable }})
 
+  d_wide <- d_wide |>
+    filter(if_any(dplyr::where(is.numeric), ~ !is.na(.))) |>
+    dplyr::select(where(~ !any(is.na(.) | is.nan(.) | is.infinite(.) | . <= 0)))
+
+  
   m_raw <- d_wide |>
     tibble::column_to_rownames("analysis_id") |>
-    dplyr::select(where(~ !any(is.na(.)))) |>
     as.matrix()
 
   if (log_transform) m_raw <- log2(m_raw)
