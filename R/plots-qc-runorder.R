@@ -1114,13 +1114,15 @@ plot_rla_boxplot <- function(
   }
 
   if(!all(is.na(plot_range))) {
-    xlim = plot_range
+    if(remove_gaps) {
+      xlim <- c(order_map[order_map$analysis_order == find_closest(plot_range[1], order_map$analysis_order, method = "lower"), ]$analysis_order_index,
+                order_map[order_map$analysis_order == find_closest(plot_range[2], order_map$analysis_order, method = "higher"), ]$analysis_order_index)
+    } else {
+      xlim = plot_range
+    }
   }
-  if(remove_gaps) {
-    xlim <- c(order_map[order_map$analysis_order == find_closest(xlim[1], order_map$analysis_order, method = "lower"), ]$analysis_order_index,
-              order_map[order_map$analysis_order == find_closest(xlim[2], order_map$analysis_order, method = "higher"), ]$analysis_order_index)
-  } 
+
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
 
   return(p)
-      }
+}
