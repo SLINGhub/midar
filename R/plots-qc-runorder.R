@@ -28,35 +28,43 @@
 #' @param base_font_size Numeric, base font size for the plot.
 #' @return A ggplot object representing the run sequence plot.
 #' @export
-plot_runsequence <- function(data = NULL,
-                             qc_types = NA,
-                             show_batches = TRUE,
-                             show_timestamp = FALSE,
-                             add_info_title = TRUE,
-                             single_row = FALSE,
-                             segment_linewidth = 0.5,
-                             batch_zebra_stripe = FALSE,
-                             batch_line_color = "#b6f0c5",
-                             batch_fill_color = "grey90",
-                             base_font_size = 8) {
-
+plot_runsequence <- function(
+  data = NULL,
+  qc_types = NA,
+  show_batches = TRUE,
+  show_timestamp = FALSE,
+  add_info_title = TRUE,
+  single_row = FALSE,
+  segment_linewidth = 0.5,
+  batch_zebra_stripe = FALSE,
+  batch_line_color = "#b6f0c5",
+  batch_fill_color = "grey90",
+  base_font_size = 8
+) {
   # Check if data is valid
   check_data(data)
 
   # Extract the required columns from the dataset
   d_filt <- data$dataset |>
-    select("analysis_order", "acquisition_time_stamp", "batch_id", "analysis_id",
-           "qc_type") |>
+    select(
+      "analysis_order",
+      "acquisition_time_stamp",
+      "batch_id",
+      "analysis_id",
+      "qc_type"
+    ) |>
     distinct()
 
   # Filter QC types if provided
   if (!all(is.na(qc_types)) && length(qc_types) > 0) {
     d_filt <- d_filt |>
-      filter(if (is.vector(qc_types) && length(qc_types) > 1) {
-        .data$qc_type %in% qc_types
-      } else {
-        str_detect(.data$qc_type, qc_types)
-      })
+      filter(
+        if (is.vector(qc_types) && length(qc_types) > 1) {
+          .data$qc_type %in% qc_types
+        } else {
+          str_detect(.data$qc_type, qc_types)
+        }
+      )
   }
 
   # Convert acquisition_time_stamp to POSIXct if using datetime
@@ -80,107 +88,207 @@ plot_runsequence <- function(data = NULL,
   qc_colors <- replace(pkg.env$qc_type_annotation$qc_type_col, "SPL", "grey35")
 
   # Initialize the ggplot object
-  p <- ggplot(d_filt, aes(x = if (show_timestamp) .data$acquisition_time_stamp
-                          else .data$analysis_order,
-                          y = rev(.data$qc_type),
-                          color = .data$sample_category)) +
-    labs(x = if (show_timestamp) "Acquisition Time" else "Analysis Order",
-         y = "Sample Type") +
+  p <- ggplot(
+    d_filt,
+    aes(
+      x = if (show_timestamp) {
+        .data$acquisition_time_stamp
+      } else {
+        .data$analysis_order
+      },
+      y = rev(.data$qc_type),
+      color = .data$sample_category
+    )
+  ) +
+    labs(
+      x = if (show_timestamp) "Acquisition Time" else "Analysis Order",
+      y = "Sample Type"
+    ) +
     theme_bw(base_size = base_font_size) +
     theme(
       panel.grid.major.y = element_blank(),
-      panel.grid.major.x = element_line(colour = "grey80", linetype = "dotted",
-                                        linewidth = 0.25),
-      panel.grid.minor.x = element_line(colour = "grey90", linetype = "dotted",
-                                        linewidth = 0.25),
+      panel.grid.major.x = element_line(
+        colour = "grey80",
+        linetype = "dotted",
+        linewidth = 0.25
+      ),
+      panel.grid.minor.x = element_line(
+        colour = "grey90",
+        linetype = "dotted",
+        linewidth = 0.25
+      ),
       panel.border = element_rect(linewidth = 1),
       axis.title = element_text(face = "bold", size = base_font_size),
       axis.text.x = element_text(face = "plain", size = base_font_size),
       axis.text.y = element_text(face = "plain", size = base_font_size),
       axis.text.y.right = element_text(face = "plain", size = base_font_size),
       axis.ticks.y.right = element_blank(),
-      axis.title.y.right = element_text(angle = 0, vjust = 0.5, size = base_font_size ),
-      axis.ticks.x = element_line(colour = "grey80", linetype = "dotted", linewidth = 0.5),
+      axis.title.y.right = element_text(
+        angle = 0,
+        vjust = 0.5,
+        size = base_font_size
+      ),
+      axis.ticks.x = element_line(
+        colour = "grey80",
+        linetype = "dotted",
+        linewidth = 0.5
+      ),
       plot.margin = unit(c(1, 1, 1, 1), "mm"),
-      legend.position = if (single_row) "right" else "none"  # Show legend if single_row
+      legend.position = if (single_row) "right" else "none" # Show legend if single_row
     )
 
   # Add batch shading if defined
   if (show_batches) {
     # Retrieve batch info
     d_batch_info <- data@annot_batches |>
-      left_join(data$dataset |>
-                  select("analysis_order", "acquisition_time_stamp", "batch_id") |>
-                  distinct(), by = c("id_batch_start" = "analysis_order"),
-                suffix = c("", "_start"), keep = FALSE) |>
-      left_join(data$dataset |>
-                  select("analysis_order", "acquisition_time_stamp", "batch_id") |>
-                  distinct(), by = c("id_batch_end" = "analysis_order"),
-                suffix = c("", "_end"), keep = FALSE)
+      left_join(
+        data$dataset |>
+          select("analysis_order", "acquisition_time_stamp", "batch_id") |>
+          distinct(),
+        by = c("id_batch_start" = "analysis_order"),
+        suffix = c("", "_start"),
+        keep = FALSE
+      ) |>
+      left_join(
+        data$dataset |>
+          select("analysis_order", "acquisition_time_stamp", "batch_id") |>
+          distinct(),
+        by = c("id_batch_end" = "analysis_order"),
+        suffix = c("", "_end"),
+        keep = FALSE
+      )
 
     if (batch_zebra_stripe) {
       d_batch_shading <- d_batch_info |>
         slice(-1) |>
         filter(.data$batch_no %% 2 != 1)
-      p <- p + geom_rect(data = d_batch_shading, inherit.aes = FALSE,
-                         aes(xmin = if (show_timestamp) .data$acquisition_time_stamp
-                             else .data$id_batch_start + 0.5,
-                             xmax = if (show_timestamp) .data$acquisition_time_stamp_end
-                             else .data$id_batch_end - 0.5,
-                             ymin = -Inf, ymax = Inf),
-                         fill = batch_fill_color, alpha = 1, color = NA)
+      p <- p +
+        geom_rect(
+          data = d_batch_shading,
+          inherit.aes = FALSE,
+          aes(
+            xmin = if (show_timestamp) {
+              .data$acquisition_time_stamp
+            } else {
+              .data$id_batch_start + 0.5
+            },
+            xmax = if (show_timestamp) {
+              .data$acquisition_time_stamp_end
+            } else {
+              .data$id_batch_end - 0.5
+            },
+            ymin = -Inf,
+            ymax = Inf
+          ),
+          fill = batch_fill_color,
+          alpha = 1,
+          color = NA
+        )
     } else {
-      p <- p + geom_vline(data = d_batch_info,
-                          aes(xintercept = if (show_timestamp) .data$acquisition_time_stamp
-                              else (.data$id_batch_end + 0.5)),
-                          colour = batch_line_color, linewidth = segment_linewidth * 2)
+      p <- p +
+        geom_vline(
+          data = d_batch_info,
+          aes(
+            xintercept = if (show_timestamp) {
+              .data$acquisition_time_stamp
+            } else {
+              (.data$id_batch_end + 0.5)
+            }
+          ),
+          colour = batch_line_color,
+          linewidth = segment_linewidth * 2
+        )
     }
   }
 
   # Add segments for qc_type
   if (single_row) {
-    p <- p + geom_segment(aes(
-      x = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
-      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
-      y = -1, yend = 1
-    ), linewidth = segment_linewidth) +
-      scale_y_continuous(breaks = NULL)  # Hide y-axis breaks
+    p <- p +
+      geom_segment(
+        aes(
+          x = if (show_timestamp) {
+            .data$acquisition_time_stamp
+          } else {
+            .data$analysis_order
+          },
+          xend = if (show_timestamp) {
+            .data$acquisition_time_stamp
+          } else {
+            .data$analysis_order
+          },
+          y = -1,
+          yend = 1
+        ),
+        linewidth = segment_linewidth
+      ) +
+      scale_y_continuous(breaks = NULL) # Hide y-axis breaks
   } else {
-    p <- p + geom_segment(aes(
-      x = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
-      xend = if (show_timestamp) .data$acquisition_time_stamp else .data$analysis_order,
-      y = as.integer(.data$qc_type) - 0.4,
-      yend = as.integer(.data$qc_type) + 0.4
-    ), linewidth = segment_linewidth)
+    p <- p +
+      geom_segment(
+        aes(
+          x = if (show_timestamp) {
+            .data$acquisition_time_stamp
+          } else {
+            .data$analysis_order
+          },
+          xend = if (show_timestamp) {
+            .data$acquisition_time_stamp
+          } else {
+            .data$analysis_order
+          },
+          y = as.integer(.data$qc_type) - 0.4,
+          yend = as.integer(.data$qc_type) + 0.4
+        ),
+        linewidth = segment_linewidth
+      )
 
     # Position sample counts outside the y-axis
     p <- p +
-      scale_y_continuous(breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
-                         labels = sample_counts$qc_type,
-                         expand = expansion(0.02, 0.02),
-                         sec.axis = ggplot2::sec_axis(~ ., name = "n",
-                                                      breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
-                                                      labels = sample_counts$sample_count))
+      scale_y_continuous(
+        breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
+        labels = sample_counts$qc_type,
+        expand = expansion(0.02, 0.02),
+        sec.axis = ggplot2::sec_axis(
+          ~.,
+          name = "n",
+          breaks = seq(1, nlevels(d_filt$qc_type), by = 1),
+          labels = sample_counts$sample_count
+        )
+      )
   }
 
   # Format x-axis as date-time if using acquisition_time_stamp
   if (show_timestamp) {
-    p <- p + ggplot2::scale_x_datetime(date_labels = "%Y-%m-%d",
-                                       expand = expansion(0.02, 0.02),
-                                       date_breaks = "day", date_minor_breaks = "hour")
+    p <- p +
+      ggplot2::scale_x_datetime(
+        date_labels = "%Y-%m-%d",
+        expand = expansion(0.02, 0.02),
+        date_breaks = "day",
+        date_minor_breaks = "hour"
+      )
   } else {
-    p <- p + scale_x_continuous(expand = expansion(0.02, 0.02),
-                                breaks = seq(0, max(d_filt$analysis_order),
-                                             10^ceiling(log10(max(d_filt$analysis_order))) / 10))
+    p <- p +
+      scale_x_continuous(
+        expand = expansion(0.02, 0.02),
+        breaks = seq(
+          0,
+          max(d_filt$analysis_order),
+          10^ceiling(log10(max(d_filt$analysis_order))) / 10
+        )
+      )
   }
 
   # Add additional information in the title
   if (add_info_title) {
+    title_text <- if (data@title == "") "A" else glue::glue("{data@title} - A")
 
-    title_text <- if(data@title == "") "A" else glue::glue("{data@title} - A" )
-
-    p <- p + labs(title = glue::glue("{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)})
-                                     Median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min - interruptions > 1 hour: {get_analysis_breaks(data, 60)}"))
+    p <- p +
+      labs(
+        title = glue::glue(
+          "{title_text}nalysis time: {get_analysis_duration(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -5)}  ({get_analyis_start(data) |> stringr::str_sub(end = -4)} - {get_analyis_end(data, estimate_sequence_end = TRUE) |> stringr::str_sub(end = -4)})
+                                     Median run time: {get_runtime_median(data)@minute}: {get_runtime_median(data)@.Data} min - interruptions > 1 hour: {get_analysis_breaks(data, 60)}"
+        )
+      )
   }
 
   # Color mapping
@@ -309,122 +417,173 @@ plot_runsequence <- function(data = NULL,
 #' @return A list of ggplot2 plots, or `NULL` if `return
 #' @export
 
-plot_runscatter <- function(data = NULL,
-                            variable = c(
-                              "intensity", "norm_intensity", "conc",
-                              "rt", "area", "height", "fwhm", "width", "symmetry",
-                              "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"
-                            ),
-                            # Data and filtering arguments
-                            filter_data = FALSE,
-                            qc_types = NA,
-                            include_qualifier = TRUE,
-                            include_istd = TRUE,
-                            include_feature_filter = NA,
-                            exclude_feature_filter = NA,
+plot_runscatter <- function(
+  data = NULL,
+  variable = c(
+    "intensity",
+    "norm_intensity",
+    "conc",
+    "rt",
+    "area",
+    "height",
+    "fwhm",
+    "width",
+    "symmetry",
+    "intensity_raw",
+    "intensity_before",
+    "norm_intensity_raw",
+    "norm_intensity_before",
+    "conc_raw",
+    "conc_before"
+  ),
+  # Data and filtering arguments
+  filter_data = FALSE,
+  qc_types = NA,
+  include_qualifier = TRUE,
+  include_istd = TRUE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
 
-                            plot_range = NA,
+  plot_range = NA,
 
-                            # Output settings
-                            output_pdf = FALSE,
-                            path = NA,
-                            return_plots = FALSE,
+  # Output settings
+  output_pdf = FALSE,
+  path = NA,
+  return_plots = FALSE,
 
-                            # Display of batches
-                            show_batches = TRUE,
-                            batch_zebra_stripe = FALSE,
-                            batch_line_color = "#cdf7d9",
-                            batch_fill_color = "grey93",
+  # Display of batches
+  show_batches = TRUE,
+  batch_zebra_stripe = FALSE,
+  batch_line_color = "#cdf7d9",
+  batch_fill_color = "grey93",
 
-                            # Outlier capping
-                            cap_outliers = FALSE,
-                            cap_sample_k_mad = 4,
-                            cap_qc_k_mad = 4,
-                            cap_top_n_outliers = NA,
+  # Outlier capping
+  cap_outliers = FALSE,
+  cap_sample_k_mad = 4,
+  cap_qc_k_mad = 4,
+  cap_top_n_outliers = NA,
 
-                            # Control reference lines (mean and SD lines)
-                            show_reference_lines = FALSE,
-                            ref_qc_types = NA,
-                            reference_k_sd = 2,
-                            reference_batchwise = FALSE,
-                            reference_line_color = "#04bf9a",
-                            reference_sd_shade = FALSE,
-                            reference_fill_color = NA,
-                            reference_linewidth = 0.75,
+  # Control reference lines (mean and SD lines)
+  show_reference_lines = FALSE,
+  ref_qc_types = NA,
+  reference_k_sd = 2,
+  reference_batchwise = FALSE,
+  reference_line_color = "#04bf9a",
+  reference_sd_shade = FALSE,
+  reference_fill_color = NA,
+  reference_linewidth = 0.75,
 
-                            # Smoothed trend curve for selected QC sample type
-                            show_trend = FALSE,
-                            trend_color = "#22e06b",
+  # Smoothed trend curve for selected QC sample type
+  show_trend = FALSE,
+  trend_color = "#22e06b",
 
-                            # Plot customization
-                            y_min = 0,
-                            y_max = NA,
-                            log_scale = FALSE,
-                            show_gridlines = FALSE,
-                            point_size = 1.5,
-                            point_transparency = 1,
-                            point_border_width = NA,
-                            base_font_size = 10,
+  # Plot customization
+  y_min = 0,
+  y_max = NA,
+  log_scale = FALSE,
+  show_gridlines = FALSE,
+  point_size = 1.5,
+  point_transparency = 1,
+  point_border_width = NA,
+  base_font_size = 10,
 
-                            # Layout settings
-                            rows_page = 3,
-                            cols_page = 3,
-                            specific_page = NA,
-                            page_orientation = "LANDSCAPE",
+  # Layout settings
+  rows_page = 3,
+  cols_page = 3,
+  specific_page = NA,
+  page_orientation = "LANDSCAPE",
 
-                            # Others
-                            y_label_text = NA,
+  # Others
+  y_label_text = NA,
 
-                            # Progress bar settings
-                            show_progress = FALSE) {
+  # Progress bar settings
+  show_progress = FALSE
+) {
   # Check the validity of input data
   check_data(data)
-  if (nrow(data@dataset) < 1)
+  if (nrow(data@dataset) < 1) {
     cli::cli_abort("No data available. Please import data and metadata first.")
+  }
 
   # Handle saving output to PDF
-  if (output_pdf && (!is.character(path) || path == "")){
-    cli::cli_abort("No valid path defined. When using `output_pdf = TRUE`, please set the output path
-                   for the PDF via `path = `.")
+  if (output_pdf && (!is.character(path) || path == "")) {
+    cli::cli_abort(
+      "No valid path defined. When using `output_pdf = TRUE`, please set the output path
+                   for the PDF via `path = `."
+    )
   }
 
   # Match the selected variable with predefined options
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
-                               "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "response",
-                               "conc", "conc_raw", "conc_before", "rt", "fwhm", "width", "symmetry"))
+  rlang::arg_match(
+    variable,
+    c(
+      "area",
+      "height",
+      "intensity",
+      "norm_intensity",
+      "intensity_raw",
+      "intensity_before",
+      "norm_intensity_raw",
+      "norm_intensity_before",
+      "response",
+      "conc",
+      "conc_raw",
+      "conc_before",
+      "rt",
+      "fwhm",
+      "width",
+      "symmetry"
+    )
+  )
   variable <- stringr::str_c("feature_", variable)
   variable_sym = rlang::sym(variable)
 
   # Check arguments are valid
   check_var_in_dataset(data@dataset, variable)
-  if (str_detect(variable, "\\_raw") && !any(data@var_drift_corrected) && !any(data@var_batch_corrected)){
-      cli::cli_abort(cli::col_red("`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."))
+  if (
+    str_detect(variable, "\\_raw") &&
+      !any(data@var_drift_corrected) &&
+      !any(data@var_batch_corrected)
+  ) {
+    cli::cli_abort(cli::col_red(
+      "`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."
+    ))
   }
 
-  if(!(is.numeric(y_min) || is.na(y_min)))
+  if (!(is.numeric(y_min) || is.na(y_min))) {
     cli::cli_abort(cli::col_red("`y_min` must be a numeric value or `NA`."))
-
-  if(show_reference_lines && is.na(ref_qc_types)) {
-    cli::cli_abort("Please define a QC to show reference lines, via the `ref_qc_types` argument or set `show_reference_lines = FALSE`.")
   }
-  if(show_reference_lines && (!any(ref_qc_types %in% unique(data@dataset$qc_type)))) {
+
+  if (show_reference_lines && is.na(ref_qc_types)) {
+    cli::cli_abort(
+      "Please define a QC to show reference lines, via the `ref_qc_types` argument or set `show_reference_lines = FALSE`."
+    )
+  }
+  if (
+    show_reference_lines &&
+      (!any(ref_qc_types %in% unique(data@dataset$qc_type)))
+  ) {
     cli::cli_abort("Selected `ref_qc_types` not present in the dataset.")
   }
 
   if (str_detect(variable, "_before|_raw")) {
     if (!any(data@var_drift_corrected) && !any(data@var_batch_corrected)) {
-      cli::cli_abort(col_red("Variables `_before` and `_raw` after only available after drift/batch corrections. Please set chose an other variable, or first apply drift/batch correction."))
+      cli::cli_abort(col_red(
+        "Variables `_before` and `_raw` after only available after drift/batch corrections. Please set chose an other variable, or first apply drift/batch correction."
+      ))
     }
   }
 
   if (show_trend | str_detect(variable, "_before|_raw")) {
     if (!any(data@var_drift_corrected) && !any(data@var_batch_corrected)) {
-      cli::cli_abort(col_red("Drift or batch correction is currently required to show trend lines. Please set `show_trend = FALSE`, or apply drift/batch correction first."))
+      cli::cli_abort(col_red(
+        "Drift or batch correction is currently required to show trend lines. Please set `show_trend = FALSE`, or apply drift/batch correction first."
+      ))
     }
   }
 
- # Subset dataset according to arguments
+  # Subset dataset according to arguments
   d_filt <- get_dataset_subset(
     data,
     filter_data = filter_data,
@@ -433,23 +592,27 @@ plot_runscatter <- function(data = NULL,
     include_istd = include_istd,
     include_feature_filter = include_feature_filter,
     exclude_feature_filter = exclude_feature_filter
-    )
+  )
 
- # Cleanup the data
-
+  # Cleanup the data
 
   # Replace infinite values and store the variable values
   d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   # Set the y-axis label text
-  y_label <- dplyr::if_else(cap_outliers,
-                            paste0(ifelse(is.na(y_label_text),
-                                          stringr::str_remove(variable, "feature\\_"),
-                                          y_label_text),
-                                   " (capped by MAD outlier filter) "),
-                            stringr::str_remove(variable, "feature\\_"))
-
+  y_label <- dplyr::if_else(
+    cap_outliers,
+    paste0(
+      ifelse(
+        is.na(y_label_text),
+        stringr::str_remove(variable, "feature\\_"),
+        y_label_text
+      ),
+      " (capped by MAD outlier filter) "
+    ),
+    stringr::str_remove(variable, "feature\\_")
+  )
 
   # Reorder QC types and assign values
   d_filt$qc_type <- d_filt$qc_type |>
@@ -462,24 +625,37 @@ plot_runscatter <- function(data = NULL,
 
   # Cap outliers if the option is selected
   if (cap_outliers) {
-
     outlier_offset_ratio <- 1.03
 
+    if (
+      is.na(cap_top_n_outliers) &&
+        is.na(cap_sample_k_mad) &&
+        is.na(cap_qc_k_mad)
+    ) {
+      cli::cli_abort(col_red(
+        "One or more of `cap_sample_k_mad`, `cap_qc_k_mad`, and  `cap_top_n_outliers` must be a positive number when `cap_outlier = TRUE`, o."
+      ))
+    }
 
-    if(is.na(cap_top_n_outliers) && is.na(cap_sample_k_mad) && is.na(cap_qc_k_mad))
-      cli::cli_abort(col_red("One or more of `cap_sample_k_mad`, `cap_qc_k_mad`, and  `cap_top_n_outliers` must be a positive number when `cap_outlier = TRUE`, o."))
-
-    if (is.na(cap_sample_k_mad)) cap_sample_k_mad <- Inf
-    if (is.na(cap_qc_k_mad)) cap_qc_k_mad <- Inf
+    if (is.na(cap_sample_k_mad)) {
+      cap_sample_k_mad <- Inf
+    }
+    if (is.na(cap_qc_k_mad)) {
+      cap_qc_k_mad <- Inf
+    }
 
     if (!is.na(cap_top_n_outliers) & cap_top_n_outliers > 0) {
-
-
       d_filt <- d_filt |>
         dplyr::group_by(.data$feature_id) |>
         dplyr::arrange(desc(.data$value)) |>
-        mutate(value = ifelse(dplyr::row_number() <= cap_top_n_outliers,
-                              .data$value[row_number() > cap_top_n_outliers] * outlier_offset_ratio, .data$value)) |>
+        mutate(
+          value = ifelse(
+            dplyr::row_number() <= cap_top_n_outliers,
+            .data$value[row_number() > cap_top_n_outliers] *
+              outlier_offset_ratio,
+            .data$value
+          )
+        ) |>
         dplyr::arrange(.data$feature_id, .data$analysis_order) |>
         dplyr::ungroup()
     }
@@ -487,22 +663,38 @@ plot_runscatter <- function(data = NULL,
     d_filt <- d_filt |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::mutate(
-        value_max_spl = median(.data$value[.data$qc_type == "SPL"], na.rm = TRUE) +
-          cap_sample_k_mad * mad(.data$value[.data$qc_type == "SPL"],
-                                 na.rm = TRUE),
-        value_max_tqc = median(.data$value[.data$qc_type == "TQC"], na.rm = TRUE) +
-          cap_qc_k_mad * mad(.data$value[.data$qc_type == "TQC"],
-                             na.rm = TRUE),
-        value_max_bqc = median(.data$value[.data$qc_type == "BQC"], na.rm = TRUE) +
-          cap_qc_k_mad * mad(.data$value[.data$qc_type == "BQC"],
-                             na.rm = TRUE),
-        value_max = pmax(.data$value_max_spl, .data$value_max_tqc, .data$value_max_bqc,
-                         na.rm = TRUE),
-        value_max = ifelse(is.infinite(.data$value_max), .data$value, .data$value_max),
+        value_max_spl = median(
+          .data$value[.data$qc_type == "SPL"],
+          na.rm = TRUE
+        ) +
+          cap_sample_k_mad *
+            mad(.data$value[.data$qc_type == "SPL"], na.rm = TRUE),
+        value_max_tqc = median(
+          .data$value[.data$qc_type == "TQC"],
+          na.rm = TRUE
+        ) +
+          cap_qc_k_mad * mad(.data$value[.data$qc_type == "TQC"], na.rm = TRUE),
+        value_max_bqc = median(
+          .data$value[.data$qc_type == "BQC"],
+          na.rm = TRUE
+        ) +
+          cap_qc_k_mad * mad(.data$value[.data$qc_type == "BQC"], na.rm = TRUE),
+        value_max = pmax(
+          .data$value_max_spl,
+          .data$value_max_tqc,
+          .data$value_max_bqc,
+          na.rm = TRUE
+        ),
+        value_max = ifelse(
+          is.infinite(.data$value_max),
+          .data$value,
+          .data$value_max
+        ),
         value_mod = dplyr::if_else(
           .data$value > .data$value_max,
           if (!all(is.na(.data$value))) {
-            max(.data$value[.data$value <= .data$value_max], na.rm = TRUE) * outlier_offset_ratio
+            max(.data$value[.data$value <= .data$value_max], na.rm = TRUE) *
+              outlier_offset_ratio
           } else {
             NA_real_
           },
@@ -515,74 +707,130 @@ plot_runscatter <- function(data = NULL,
       dplyr::mutate(value_mod = .data$value)
   }
 
-  if (log_scale){
+  if (log_scale) {
     # check if value_mod contains any negative or zero
-    if(any(d_filt$value_mod <= 0)){
-      cli::cli_alert_warning(cli::col_yellow("Zero or negative values were replaced with the minimum positive value divided by 5 to avoid log(0) errors."))
+    if (any(d_filt$value_mod <= 0)) {
+      cli::cli_alert_warning(cli::col_yellow(
+        "Zero or negative values were replaced with the minimum positive value divided by 5 to avoid log(0) errors."
+      ))
 
       d_filt <- d_filt |>
-        dplyr::mutate(value_mod = if_else(.data$value_mod <= 0, min(.data$value_mod[.data$value_mod > 0])/5, .data$value_mod))
+        dplyr::mutate(
+          value_mod = if_else(
+            .data$value_mod <= 0,
+            min(.data$value_mod[.data$value_mod > 0]) / 5,
+            .data$value_mod
+          )
+        )
     }
   }
 
-  if (output_pdf) { # nocov start
-    path <- ifelse(stringr::str_detect(path, ".pdf"), path, paste0(path, ".pdf"))
+  if (output_pdf) {
+    # nocov start
+    path <- ifelse(
+      stringr::str_detect(path, ".pdf"),
+      path,
+      paste0(path, ".pdf")
+    )
     if (page_orientation == "LANDSCAPE") {
-      pdf(file = path, onefile = T, paper = "A4r", useDingbats = FALSE,
-          width = 28 / 2.54, height = 20 / 2.54)
+      pdf(
+        file = path,
+        onefile = T,
+        paper = "A4r",
+        useDingbats = FALSE,
+        width = 28 / 2.54,
+        height = 20 / 2.54
+      )
     } else {
-      pdf(file = path, onefile = T, paper = "A4", useDingbats = FALSE,
-          height = 28 / 2.54, width = 20 / 2.54)
+      pdf(
+        file = path,
+        onefile = T,
+        paper = "A4",
+        useDingbats = FALSE,
+        height = 28 / 2.54,
+        width = 20 / 2.54
+      )
     }
   } # nocov end
 
   # Determine page range for the plots
   if (!is.numeric(specific_page)) {
-    page_range <- 1:ceiling(dplyr::n_distinct(d_filt$feature_id) /
-                              (cols_page * rows_page))
+    page_range <- 1:ceiling(
+      dplyr::n_distinct(d_filt$feature_id) /
+        (cols_page * rows_page)
+    )
   } else {
     page_range <- specific_page
   }
 
   # Prepare and render the plots for each page
-  if(output_pdf)
+  if (output_pdf) {
     action_text = "Saving plots to pdf"
-  else
+  } else {
     action_text = "Generating plots"
+  }
 
-  message(cli::col_green(glue::glue("{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}")))
-  if(show_progress) pb <- txtProgressBar(min = 0, max = max(page_range),
-                                         width = 30, style = 3)
+  message(cli::col_green(glue::glue(
+    "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}"
+  )))
+  if (show_progress) {
+    pb <- txtProgressBar(min = 0, max = max(page_range), width = 30, style = 3)
+  }
 
   p_list <- list()
   for (i in page_range) {
     p <- runscatter_one_page(
-      d_filt = d_filt, data = data, y_var = variable, d_batches = data@annot_batches,
-      cols_page = cols_page, rows_page = rows_page, show_trend = show_trend,
-      output_pdf = output_pdf, page_no = i,
-      point_size = point_size, cap_outliers = cap_outliers, point_transparency =
-        point_transparency,
-      show_batches = show_batches, batch_zebra_stripe = batch_zebra_stripe,
-      batch_line_color = batch_line_color, batch_fill_color =
-        batch_fill_color, y_label = y_label, base_font_size = base_font_size,
-      point_border_width = point_border_width, show_grid = show_gridlines,
-      y_min = y_min, y_max = y_max,
-      log_scale = log_scale, plot_range = plot_range,
-      show_reference_lines = show_reference_lines, ref_qc_types = ref_qc_types, reference_k_sd = reference_k_sd,
-      reference_batchwise = reference_batchwise, reference_line_color = reference_line_color, reference_sd_shade = reference_sd_shade, reference_fill_color = reference_fill_color,
-      reference_linewidth = reference_linewidth, trend_color = trend_color
+      d_filt = d_filt,
+      data = data,
+      y_var = variable,
+      d_batches = data@annot_batches,
+      cols_page = cols_page,
+      rows_page = rows_page,
+      show_trend = show_trend,
+      output_pdf = output_pdf,
+      page_no = i,
+      point_size = point_size,
+      cap_outliers = cap_outliers,
+      point_transparency = point_transparency,
+      show_batches = show_batches,
+      batch_zebra_stripe = batch_zebra_stripe,
+      batch_line_color = batch_line_color,
+      batch_fill_color = batch_fill_color,
+      y_label = y_label,
+      base_font_size = base_font_size,
+      point_border_width = point_border_width,
+      show_grid = show_gridlines,
+      y_min = y_min,
+      y_max = y_max,
+      log_scale = log_scale,
+      plot_range = plot_range,
+      show_reference_lines = show_reference_lines,
+      ref_qc_types = ref_qc_types,
+      reference_k_sd = reference_k_sd,
+      reference_batchwise = reference_batchwise,
+      reference_line_color = reference_line_color,
+      reference_sd_shade = reference_sd_shade,
+      reference_fill_color = reference_fill_color,
+      reference_linewidth = reference_linewidth,
+      trend_color = trend_color
     )
 
     plot(p)
     dev.flush()
     flush.console()
-    if(show_progress) setTxtProgressBar(pb, i)
+    if (show_progress) {
+      setTxtProgressBar(pb, i)
+    }
     p_list[[i]] <- p
   }
 
-  if (output_pdf) dev.off() # nocov
+  if (output_pdf) {
+    dev.off()
+  } # nocov
   message(cli::col_green(" - done!"))
-  if(show_progress) close(pb)
+  if (show_progress) {
+    close(pb)
+  }
 
   flush.console()
 
@@ -592,25 +840,51 @@ plot_runscatter <- function(data = NULL,
 }
 
 
-
-runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_page, page_no,
-                                show_trend, cap_outliers,
-                                show_batches, batch_zebra_stripe, batch_line_color, batch_fill_color,
-                                output_pdf, point_transparency, point_size = point_size, y_label, base_font_size, point_border_width,
-                                show_grid, y_min, y_max, log_scale, plot_range, show_reference_lines,ref_qc_types, reference_k_sd, reference_batchwise, reference_line_color, reference_sd_shade, reference_fill_color,
-                                reference_linewidth, trend_color) {
+runscatter_one_page <- function(
+  d_filt,
+  data,
+  y_var,
+  d_batches,
+  cols_page,
+  rows_page,
+  page_no,
+  show_trend,
+  cap_outliers,
+  show_batches,
+  batch_zebra_stripe,
+  batch_line_color,
+  batch_fill_color,
+  output_pdf,
+  point_transparency,
+  point_size = point_size,
+  y_label,
+  base_font_size,
+  point_border_width,
+  show_grid,
+  y_min,
+  y_max,
+  log_scale,
+  plot_range,
+  show_reference_lines,
+  ref_qc_types,
+  reference_k_sd,
+  reference_batchwise,
+  reference_line_color,
+  reference_sd_shade,
+  reference_fill_color,
+  reference_linewidth,
+  trend_color
+) {
   point_size <- ifelse(missing(point_size), 2, point_size)
 
-  if(is.na(point_border_width)){
+  if (is.na(point_border_width)) {
     point_border_width <- dplyr::if_else(output_pdf, .1, .4)
   }
-
 
   # subset the dataset with only the rows used for plotting the facets of the selected page
   n_samples <- length(unique(d_filt$analysis_id))
   row_start <- n_samples * cols_page * rows_page * (page_no - 1) + 1
   row_end <- n_samples * cols_page * rows_page * page_no
-
 
   d_subset <- d_filt |>
     dplyr::arrange(.data$feature_id, .data$analysis_order) |>
@@ -627,19 +901,30 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   d_subset <- d_subset |> arrange(desc(.data$qc_type))
 
-
   defined_qctypes <- levels(d_subset$qc_type)
 
   # Handle QC types that are not defined in midar
 
   # Assign "grey50" to any undefined qc types
-  qc_types_color <- setNames(rep("grey0", length(defined_qctypes)), defined_qctypes)
-  qc_types_color[names(pkg.env$qc_type_annotation$qc_type_col)] <- pkg.env$qc_type_annotation$qc_type_col  # Override known groups with defined colors
-  qc_types_fill <- setNames(rep("grey40", length(defined_qctypes)), defined_qctypes)
-  qc_types_fill[names(pkg.env$qc_type_annotation$qc_type_fillcol)] <- pkg.env$qc_type_annotation$qc_type_fillcol  # Override known groups with defined colors
+  qc_types_color <- setNames(
+    rep("grey0", length(defined_qctypes)),
+    defined_qctypes
+  )
+  qc_types_color[names(
+    pkg.env$qc_type_annotation$qc_type_col
+  )] <- pkg.env$qc_type_annotation$qc_type_col # Override known groups with defined colors
+  qc_types_fill <- setNames(
+    rep("grey40", length(defined_qctypes)),
+    defined_qctypes
+  )
+  qc_types_fill[names(
+    pkg.env$qc_type_annotation$qc_type_fillcol
+  )] <- pkg.env$qc_type_annotation$qc_type_fillcol # Override known groups with defined colors
 
-
-  undefined_qctypes <- setdiff(defined_qctypes, names(pkg.env$qc_type_annotation$qc_type_shape))
+  undefined_qctypes <- setdiff(
+    defined_qctypes,
+    names(pkg.env$qc_type_annotation$qc_type_shape)
+  )
 
   if (length(undefined_qctypes) > 0) {
     cli_alert_warning(col_yellow(
@@ -647,12 +932,13 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     ))
   }
 
-
-  extra_shapes <- c(8, 3, 4, 9, 21, 22, 23, 24,25, 7, 10, 12, 13, 14, 11 )  # Extra distinct shapes
-  new_shapes <- setNames(extra_shapes[seq_along(undefined_qctypes)], undefined_qctypes)
+  extra_shapes <- c(8, 3, 4, 9, 21, 22, 23, 24, 25, 7, 10, 12, 13, 14, 11) # Extra distinct shapes
+  new_shapes <- setNames(
+    extra_shapes[seq_along(undefined_qctypes)],
+    undefined_qctypes
+  )
 
   qc_types_shape <- c(pkg.env$qc_type_annotation$qc_type_shape, new_shapes)
-
 
   d_subset <- d_subset |>
     dplyr::arrange(rev(.data$qc_type))
@@ -662,23 +948,21 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     dMax <- d_subset |>
       dplyr::group_by(.data$feature_id) |>
       dplyr::summarise(
-        y_max =
-          if (!all(is.na(.data$value_mod))) {
-            max(.data$value_mod, na.rm = TRUE) * 1
-          } else {
-            NA_real_
-          },
-        y_min =
-          if (!all(is.na(.data$value_mod))) {
-            min(.data$value_mod, na.rm = TRUE) * 1
-          } else {
-            NA_real_
-          }
+        y_max = if (!all(is.na(.data$value_mod))) {
+          max(.data$value_mod, na.rm = TRUE) * 1
+        } else {
+          NA_real_
+        },
+        y_min = if (!all(is.na(.data$value_mod))) {
+          min(.data$value_mod, na.rm = TRUE) * 1
+        } else {
+          NA_real_
+        }
       )
   }
 
-
-  d_batch_data <- d_batches |> dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
+  d_batch_data <- d_batches |>
+    dplyr::slice(rep(1:dplyr::n(), each = nrow(dMax)))
   d_batch_data$feature_id <- rep(dMax$feature_id, times = nrow(d_batches))
   d_batch_data <- d_batch_data |> dplyr::left_join(dMax, by = c("feature_id"))
 
@@ -688,45 +972,103 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
   if (show_batches) {
     if (!batch_zebra_stripe) {
       d_batches_temp <- d_batch_data |> filter(.data$id_batch_start != 1)
-      p <- p + ggplot2::geom_vline(data = d_batches_temp, ggplot2::aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", linewidth = .5, na.rm = TRUE)
+      p <- p +
+        ggplot2::geom_vline(
+          data = d_batches_temp,
+          ggplot2::aes(xintercept = .data$id_batch_start - 0.5),
+          colour = batch_line_color,
+          linetype = "solid",
+          linewidth = .5,
+          na.rm = TRUE
+        )
     } else {
       d_batches_temp <- d_batch_data |> dplyr::filter(.data$batch_no %% 2 != 1)
-      p <- p + ggplot2::geom_rect(
-        data = d_batches_temp, ggplot2::aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = .data$y_min, ymax = .data$y_max),
-        inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.3, na.rm = TRUE
-      )
+      p <- p +
+        ggplot2::geom_rect(
+          data = d_batches_temp,
+          ggplot2::aes(
+            xmin = .data$id_batch_start - 0.5,
+            xmax = .data$id_batch_end + 0.5,
+            ymin = .data$y_min,
+            ymax = .data$y_max
+          ),
+          inherit.aes = FALSE,
+          fill = batch_fill_color,
+          color = NA,
+          alpha = 1,
+          linetype = "solid",
+          linewidth = 0.3,
+          na.rm = TRUE
+        )
     }
   }
 
   # Plot reference range as shaded background
-  if(show_reference_lines) {
-    if(reference_batchwise) grp = c("feature_id", "batch_id") else grp = c("feature_id")
+  if (show_reference_lines) {
+    if (reference_batchwise) {
+      grp = c("feature_id", "batch_id")
+    } else {
+      grp = c("feature_id")
+    }
     d_subset_stats <- d_subset |>
       left_join(d_batches, by = c("batch_id")) |>
       filter(.data$qc_type == ref_qc_types) |>
       group_by(across(all_of(grp))) |>
       # TODO: could be cleaned up
-      summarise(mean = mean(.data$value_mod, na.rm = TRUE),
-                sd = if(!is.na(reference_k_sd)) reference_k_sd * sd(.data$value_mod, na.rm = TRUE) else 0,
-                y_min = .data$mean - .data$sd,
-                y_max = .data$mean + .data$sd,
-                y_min_cap = if_else(.data$y_min < 0, 0, .data$y_min),
-                y_max_cap = if_else(.data$y_max > safe_max(.data$value_mod, na.rm = TRUE), safe_max(.data$value_mod, na.rm = TRUE), .data$y_max),
-                batch_start = min(.data$id_batch_start),
-                batch_end = max(.data$id_batch_end),
-                batch_id = min(.data$batch_id),
-                .groups = 'drop')
+      summarise(
+        mean = mean(.data$value_mod, na.rm = TRUE),
+        sd = if (!is.na(reference_k_sd)) {
+          reference_k_sd * sd(.data$value_mod, na.rm = TRUE)
+        } else {
+          0
+        },
+        y_min = .data$mean - .data$sd,
+        y_max = .data$mean + .data$sd,
+        y_min_cap = if_else(.data$y_min < 0, 0, .data$y_min),
+        y_max_cap = if_else(
+          .data$y_max > safe_max(.data$value_mod, na.rm = TRUE),
+          safe_max(.data$value_mod, na.rm = TRUE),
+          .data$y_max
+        ),
+        batch_start = min(.data$id_batch_start),
+        batch_end = max(.data$id_batch_end),
+        batch_id = min(.data$batch_id),
+        .groups = 'drop'
+      )
 
-
-    if(reference_sd_shade){
-      if(is.na(reference_fill_color)) reference_fill_color <- pkg.env$qc_type_annotation$qc_type_col[ref_qc_types]
+    if (reference_sd_shade) {
+      if (is.na(reference_fill_color)) {
+        reference_fill_color <- pkg.env$qc_type_annotation$qc_type_col[
+          ref_qc_types
+        ]
+      }
       p <- p +
-        ggplot2::geom_rect(data = d_subset_stats, inherit.aes = FALSE, aes(xmin = .data$batch_start, xmax = .data$batch_end, ymin = .data$y_min_cap , ymax = .data$y_max_cap, group = .data$batch_id), fill = reference_fill_color, linewidth = reference_linewidth, alpha = .15)
+        ggplot2::geom_rect(
+          data = d_subset_stats,
+          inherit.aes = FALSE,
+          aes(
+            xmin = .data$batch_start,
+            xmax = .data$batch_end,
+            ymin = .data$y_min_cap,
+            ymax = .data$y_max_cap,
+            group = .data$batch_id
+          ),
+          fill = reference_fill_color,
+          linewidth = reference_linewidth,
+          alpha = .15
+        )
     }
   }
 
   if (cap_outliers) {
-    p <- p + ggplot2::geom_hline(data = dMax, ggplot2::aes(yintercept = .data$y_max), color = "#ffefbf", linewidth = 3, alpha = 1)
+    p <- p +
+      ggplot2::geom_hline(
+        data = dMax,
+        ggplot2::aes(yintercept = .data$y_max),
+        color = "#ffefbf",
+        linewidth = 3,
+        alpha = 1
+      )
   }
 
   p <- p +
@@ -742,51 +1084,140 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
       size = point_size,
       alpha = point_transparency,
       stroke = point_border_width,
-      na.rm = TRUE)
+      na.rm = TRUE
+    )
 
   if (show_trend) {
     #browser()
-    y_var_trend <- if_else(str_detect(y_var, "\\_before|\\_raw"), paste0(y_var, "_fit"), paste0(y_var, "_fit_after"))
+    y_var_trend <- if_else(
+      str_detect(y_var, "\\_before|\\_raw"),
+      paste0(y_var, "_fit"),
+      paste0(y_var, "_fit_after")
+    )
     p <- p +
-      ggplot2::geom_line(aes(
-        x = !!sym("analysis_order"),
-        y = !!sym(y_var_trend),
-        group = .data$batch_id
-      ),
-      color = trend_color,
-      linewidth = 1,
-      na.rm = TRUE)
+      ggplot2::geom_line(
+        aes(
+          x = !!sym("analysis_order"),
+          y = !!sym(y_var_trend),
+          group = .data$batch_id
+        ),
+        color = trend_color,
+        linewidth = 1,
+        na.rm = TRUE
+      )
   }
 
   # Plot reference lines
-  if(show_reference_lines) {
-    if(reference_batchwise){
+  if (show_reference_lines) {
+    if (reference_batchwise) {
       p <- p +
-        ggplot2::geom_segment(data = d_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$mean, yend = .data$mean, group = .data$batch_id), color = reference_line_color, linewidth = reference_linewidth, linetype = "solid", alpha = 1)
-      } else{
+        ggplot2::geom_segment(
+          data = d_subset_stats,
+          inherit.aes = FALSE,
+          aes(
+            x = .data$batch_start,
+            xend = .data$batch_end,
+            y = .data$mean,
+            yend = .data$mean,
+            group = .data$batch_id
+          ),
+          color = reference_line_color,
+          linewidth = reference_linewidth,
+          linetype = "solid",
+          alpha = 1
+        )
+    } else {
       p <- p +
-        ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$mean), color = reference_line_color, linewidth = reference_linewidth, alpha = 1, linetype = "longdash")
+        ggplot2::geom_hline(
+          data = d_subset_stats,
+          aes(yintercept = .data$mean),
+          color = reference_line_color,
+          linewidth = reference_linewidth,
+          alpha = 1,
+          linetype = "longdash"
+        )
+    }
+    if (!is.na(reference_k_sd) && !reference_sd_shade) {
+      if (reference_batchwise) {
+        p <- p +
+          ggplot2::geom_segment(
+            data = d_subset_stats,
+            inherit.aes = FALSE,
+            aes(
+              x = .data$batch_start,
+              xend = .data$batch_end,
+              y = .data$y_min_cap,
+              yend = .data$y_min_cap,
+              group = .data$batch_id
+            ),
+            color = reference_line_color,
+            linewidth = reference_linewidth,
+            linetype = "dashed",
+            alpha = 1
+          ) +
+          ggplot2::geom_segment(
+            data = d_subset_stats,
+            inherit.aes = FALSE,
+            aes(
+              x = .data$batch_start,
+              xend = .data$batch_end,
+              y = .data$y_max_cap,
+              yend = .data$y_max_cap,
+              group = .data$batch_id
+            ),
+            color = reference_line_color,
+            linewidth = reference_linewidth,
+            linetype = "dashed",
+            alpha = 1
+          )
+      } else {
+        p <- p +
+          ggplot2::geom_hline(
+            data = d_subset_stats,
+            aes(yintercept = .data$y_min_cap),
+            color = reference_line_color,
+            linewidth = reference_linewidth,
+            alpha = 1,
+            linetype = "dashed"
+          ) +
+          ggplot2::geom_hline(
+            data = d_subset_stats,
+            aes(yintercept = .data$y_max_cap),
+            color = reference_line_color,
+            linewidth = reference_linewidth,
+            alpha = 1,
+            linetype = "dashed"
+          )
       }
-    if(!is.na(reference_k_sd) && !reference_sd_shade) {
-      if(reference_batchwise){
-        p <- p +
-          ggplot2::geom_segment(data = d_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$y_min_cap, yend = .data$y_min_cap, group = .data$batch_id), color = reference_line_color, linewidth = reference_linewidth, linetype = "dashed", alpha = 1) +
-          ggplot2::geom_segment(data = d_subset_stats, inherit.aes = FALSE, aes(x = .data$batch_start, xend = .data$batch_end, y = .data$y_max_cap, yend = .data$y_max_cap, group = .data$batch_id), color = reference_line_color, linewidth = reference_linewidth, linetype = "dashed", alpha = 1)
-       } else {
-        p <- p +
-          ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$y_min_cap), color = reference_line_color, linewidth = reference_linewidth, alpha = 1, linetype = "dashed") +
-          ggplot2::geom_hline(data = d_subset_stats, aes(yintercept = .data$y_max_cap), color = reference_line_color, linewidth = reference_linewidth, alpha = 1, linetype = "dashed")
-       }
     }
   }
 
   p <- p +
-    ggh4x::facet_wrap2(ggplot2::vars(.data$feature_id), scales = "free_y", ncol = cols_page, nrow = rows_page, trim_blank = FALSE) +
-    ggplot2::scale_color_manual(name = NULL, values = qc_types_color, drop = TRUE, na.value = "yellow") +
-    ggplot2::scale_fill_manual(name = NULL, values = qc_types_fill, drop = TRUE, na.value = "yellow") +
-    ggplot2::scale_shape_manual(name = NULL, values = qc_types_shape, drop = TRUE, na.value = 4)
-
-
+    ggh4x::facet_wrap2(
+      ggplot2::vars(.data$feature_id),
+      scales = "free_y",
+      ncol = cols_page,
+      nrow = rows_page,
+      trim_blank = FALSE
+    ) +
+    ggplot2::scale_color_manual(
+      name = NULL,
+      values = qc_types_color,
+      drop = TRUE,
+      na.value = "yellow"
+    ) +
+    ggplot2::scale_fill_manual(
+      name = NULL,
+      values = qc_types_fill,
+      drop = TRUE,
+      na.value = "yellow"
+    ) +
+    ggplot2::scale_shape_manual(
+      name = NULL,
+      values = qc_types_shape,
+      drop = TRUE,
+      na.value = 4
+    )
 
   p <- p +
     # aes(ymin=0) +
@@ -795,22 +1226,40 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
   if (log_scale) {
     p <- p + scale_y_log10(expand = ggplot2::expansion(mult = c(0.02, 0.03)))
-
-  } else{
-    p <- p + scale_y_continuous(limits = c(y_min, y_max), expand = ggplot2::expansion(mult = c(0.02, 0.03))) +
+  } else {
+    p <- p +
+      scale_y_continuous(
+        limits = c(y_min, y_max),
+        expand = ggplot2::expansion(mult = c(0.02, 0.03))
+      ) +
       ggplot2::expand_limits(y = 0)
-
   }
 
   p <- p +
     ggplot2::theme_bw(base_size = base_font_size) +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(size = base_font_size * 1, face = "bold"),
-      strip.text = ggplot2::element_text(size = base_font_size * 1, face = "bold"),
-      strip.background = ggplot2::element_rect(linewidth = 0.0001, fill = "#00283d"),
+      plot.title = ggplot2::element_text(
+        size = base_font_size * 1,
+        face = "bold"
+      ),
+      strip.text = ggplot2::element_text(
+        size = base_font_size * 1,
+        face = "bold"
+      ),
+      strip.background = ggplot2::element_rect(
+        linewidth = 0.0001,
+        fill = "#00283d"
+      ),
       strip.text.x = ggplot2::element_text(color = "white"),
-      axis.text.x = ggplot2::element_text(size = base_font_size * 0.8, , face = NULL),
-      axis.text.y = ggplot2::element_text(size = base_font_size * 0.8 , face = NULL),
+      axis.text.x = ggplot2::element_text(
+        size = base_font_size * 0.8,
+        ,
+        face = NULL
+      ),
+      axis.text.y = ggplot2::element_text(
+        size = base_font_size * 0.8,
+        face = NULL
+      ),
       axis.title = ggplot2::element_text(size = base_font_size, face = NULL),
       panel.grid.major = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
@@ -819,21 +1268,24 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
     )
 
   if (show_grid) {
-    p <- p + ggplot2::theme(panel.grid.major = ggplot2::element_line(linewidth = 0.3, colour = "grey88", linetype = "dashed"))
+    p <- p +
+      ggplot2::theme(
+        panel.grid.major = ggplot2::element_line(
+          linewidth = 0.3,
+          colour = "grey88",
+          linetype = "dashed"
+        )
+      )
   } else {
     p <- p + ggplot2::theme(panel.grid.major = ggplot2::element_blank())
   }
 
-
-
-
-  if(!all(is.na(plot_range))) {
+  if (!all(is.na(plot_range))) {
     p <- p + ggplot2::coord_cartesian(xlim = plot_range)
   }
 
   return(p)
 }
-
 
 
 #' Relative Log Abundance (RLA) Plot
@@ -886,49 +1338,83 @@ runscatter_one_page <- function(d_filt, data, y_var, d_batches, cols_page, rows_
 
 # TODO: Add minor ticks to x-axis
 plot_rla_boxplot <- function(
-                                data = NULL,
-                                rla_type_batch = c("within", "across"),
-                                variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height", "fwhm", "width"),
-                                filter_data = FALSE,
-                                qc_types = NA,
+  data = NULL,
+  rla_type_batch = c("within", "across"),
+  variable = c(
+    "intensity",
+    "norm_intensity",
+    "conc",
+    "conc_raw",
+    "area",
+    "height",
+    "fwhm",
+    "width"
+  ),
+  filter_data = FALSE,
+  qc_types = NA,
 
-                                include_qualifier = TRUE,
-                                include_istd = TRUE,
-                                include_feature_filter = NA,
-                                exclude_feature_filter = NA,
+  include_qualifier = TRUE,
+  include_istd = TRUE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
 
-                                remove_gaps = TRUE,
-                                plot_range = NA,
-                                show_timestamp = FALSE,
+  remove_gaps = TRUE,
+  plot_range = NA,
+  show_timestamp = FALSE,
 
-                                min_feature_intensity = 0,
-                                y_lim = NA,
-                                ignore_outliers = FALSE,
+  min_feature_intensity = 0,
+  y_lim = NA,
+  ignore_outliers = FALSE,
 
-                                show_batches = TRUE,
-                                batch_zebra_stripe = FALSE,
-                                batch_line_color = "#b6f0c5",
-                                batch_fill_color = "grey93",
+  show_batches = TRUE,
+  batch_zebra_stripe = FALSE,
+  batch_line_color = "#b6f0c5",
+  batch_fill_color = "grey93",
 
-                                x_gridlines = FALSE,
-                                linewidth = 0.2,
-                                base_font_size = 8,
-                                relative_log_abundances = TRUE) {
+  x_gridlines = FALSE,
+  linewidth = 0.2,
+  base_font_size = 8,
+  relative_log_abundances = TRUE
+) {
   check_data(data)
-  if (nrow(data@dataset) < 1) cli::cli_abort("No data available. Please import data and metadata first.")
+  if (nrow(data@dataset) < 1) {
+    cli::cli_abort("No data available. Please import data and metadata first.")
+  }
 
   rlang::arg_match(rla_type_batch, c("within", "across"))
 
-
   # Check if selected variable is valid
-  rlang::arg_match(variable, c("intensity", "norm_intensity", "conc", "intensity_raw","norm_intensity_raw", "conc_raw", "area", "height", "rt", "fwhm", "response", "width", "symmetry"))
+  rlang::arg_match(
+    variable,
+    c(
+      "intensity",
+      "norm_intensity",
+      "conc",
+      "intensity_raw",
+      "norm_intensity_raw",
+      "conc_raw",
+      "area",
+      "height",
+      "rt",
+      "fwhm",
+      "response",
+      "width",
+      "symmetry"
+    )
+  )
   variable <- str_remove(variable, "feature_")
   variable <- stringr::str_c("feature_", variable)
 
   # Check arguments are valid
   check_var_in_dataset(data@dataset, variable)
-  if (str_detect(variable, "\\_raw") && !any(data@var_drift_corrected) && !any(data@var_batch_corrected)){
-    cli::cli_abort(cli::col_red("`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."))
+  if (
+    str_detect(variable, "\\_raw") &&
+      !any(data@var_drift_corrected) &&
+      !any(data@var_batch_corrected)
+  ) {
+    cli::cli_abort(cli::col_red(
+      "`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."
+    ))
   }
   variable_sym = rlang::sym(variable)
 
@@ -942,7 +1428,7 @@ plot_rla_boxplot <- function(
     include_feature_filter = include_feature_filter,
     exclude_feature_filter = exclude_feature_filter
   )
-  if(show_timestamp) {
+  if (show_timestamp) {
     d_filt$acquisition_time_stamp <- as.POSIXct(d_filt$acquisition_time_stamp)
     x_axis_variable <- "acquisition_time_stamp"
   } else {
@@ -951,129 +1437,235 @@ plot_rla_boxplot <- function(
 
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
 
-
   if (!all(is.na(plot_range))) {
-    d_filt <- d_filt |> dplyr::filter(.data$analysis_order >= plot_range[1] & .data$analysis_order <= plot_range[2]) |> droplevels()
+    d_filt <- d_filt |>
+      dplyr::filter(
+        .data$analysis_order >= plot_range[1] &
+          .data$analysis_order <= plot_range[2]
+      ) |>
+      droplevels()
   }
-
-
 
   d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
 
   d_filt <- d_filt |>
-    dplyr::select(any_of(c("analysis_id", "analysis_order", "acquisition_time_stamp", "qc_type", "batch_id", "feature_id", "feature_intensity", "feature_norm_intensity", "feature_conc"))) |>
+    dplyr::select(any_of(c(
+      "analysis_id",
+      "analysis_order",
+      "acquisition_time_stamp",
+      "qc_type",
+      "batch_id",
+      "feature_id",
+      "feature_intensity",
+      "feature_norm_intensity",
+      "feature_conc"
+    ))) |>
     group_by(.data$feature_id) |>
     filter(median(.data$feature_intensity) >= min_feature_intensity) |>
     droplevels() |>
     dplyr::arrange(.data$analysis_order)
 
-
   if (relative_log_abundances) {
-
     d_filt = d_filt |>
       mutate(val = log2(!!variable_sym))
 
-    if(rla_type_batch == "within") grp = c("feature_id","batch_id") else grp = c("feature_id")
+    if (rla_type_batch == "within") {
+      grp = c("feature_id", "batch_id")
+    } else {
+      grp = c("feature_id")
+    }
 
     d_filt_medians <- d_filt |>
       group_by(across(all_of(grp))) |>
-      summarise(val_median = median(.data$val, na.rm = TRUE)) |> ungroup()
+      summarise(val_median = median(.data$val, na.rm = TRUE)) |>
+      ungroup()
 
     d_filt <- d_filt |>
       left_join(d_filt_medians, by = grp) |>
       mutate(val_res = .data$val - .data$val_median)
-
   } else {
     d_filt <- d_filt |> mutate(val_res = log2(!!variable_sym))
   }
 
-
   unique_orders <- sort(unique(d_filt$analysis_order))
-    
+
   order_map <- tibble(
-      analysis_order = unique_orders, 
-      analysis_order_index = seq_along(unique_orders)
+    analysis_order = unique_orders,
+    analysis_order_index = seq_along(unique_orders)
   )
-    
+
   d_filt <- d_filt |>
-      left_join(order_map, by = "analysis_order")
+    left_join(order_map, by = "analysis_order")
 
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
-  if(x_axis_variable != "analysis_order"){
-    labels <- unique(d_filt[[x_axis_variable]])[seq(1, length(unique(d_filt[[x_axis_variable]])), length.out = 10)]
-    breaks <- d_filt |> filter(!!x_axis_variable_sym %in% labels) |> pull(.data$analysis_order) |> unique()
-    p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
+  if (x_axis_variable != "analysis_order") {
+    labels <- unique(d_filt[[x_axis_variable]])[seq(
+      1,
+      length(unique(d_filt[[x_axis_variable]])),
+      length.out = 10
+    )]
+    breaks <- d_filt |>
+      filter(!!x_axis_variable_sym %in% labels) |>
+      pull(.data$analysis_order) |>
+      unique()
+    p <- ggplot(
+      d_filt,
+      aes(
+        x = .data$analysis_order,
+        y = .data$val_res,
+        group = .data$analysis_order
+      )
+    )
   } else {
-    n_breaks <- 10 
+    n_breaks <- 10
     breaks <- scales::breaks_pretty(n = n_breaks)(seq_along(unique_orders))
     breaks <- breaks[breaks > 0 & breaks <= length(unique_orders)]
-    if(remove_gaps) {
+    if (remove_gaps) {
       # If remove_gaps is TRUE, we use the analysis_order_index
       labels <- unique_orders[breaks] |> round(-2) |> format(big.mark = ",")
-      p <- ggplot(d_filt, aes(x = .data$analysis_order_index, y = .data$val_res, group = .data$analysis_order_index))
+      p <- ggplot(
+        d_filt,
+        aes(
+          x = .data$analysis_order_index,
+          y = .data$val_res,
+          group = .data$analysis_order_index
+        )
+      )
     } else {
       # If remove_gaps is FALSE, we use the analysis_order
       labels <- breaks |> round(-2) |> format(big.mark = ",")
-      p <- ggplot(d_filt, aes(x = .data$analysis_order, y = .data$val_res, group = .data$analysis_order))
+      p <- ggplot(
+        d_filt,
+        aes(
+          x = .data$analysis_order,
+          y = .data$val_res,
+          group = .data$analysis_order
+        )
+      )
     }
   }
 
-  
-
-  p <- p + scale_x_continuous(
-    breaks = breaks, 
-    labels = labels,
-    limits = if(remove_gaps) range(d_filt$analysis_order_index) else range(d_filt$analysis_order),
-    expand = c(0.02, 0.02)
-  )
+  p <- p +
+    scale_x_continuous(
+      breaks = breaks,
+      labels = labels,
+      limits = if (remove_gaps) {
+        range(d_filt$analysis_order_index)
+      } else {
+        range(d_filt$analysis_order)
+      },
+      expand = c(0.02, 0.02)
+    )
 
   if (show_batches) {
-    d_batches <- data@annot_batches |> 
-    filter(.data$id_batch_start <= max(order_map$analysis_order) & .data$id_batch_start >= min(order_map$analysis_order)) |>
-    mutate(
-        mapped_start = purrr::map_dbl(.data$id_batch_start, 
-                              ~find_closest(.x, order_map$analysis_order, method = "higher")),
-        mapped_end = purrr::map_dbl(.data$id_batch_end, 
-                              ~find_closest(.x, order_map$analysis_order, method = "lower"))
-                              
-    ) |> 
-    left_join(order_map, by = c("mapped_start" = "analysis_order")) |> 
-    rename(id_batch_start_index = .data$analysis_order_index) |> 
-    left_join(order_map, by = c("mapped_end" = "analysis_order")) |> 
-    rename(id_batch_end_index = .data$analysis_order_index)
+    d_batches <- data@annot_batches |>
+      filter(
+        .data$id_batch_start <= max(order_map$analysis_order) &
+          .data$id_batch_start >= min(order_map$analysis_order)
+      ) |>
+      mutate(
+        mapped_start = purrr::map_dbl(
+          .data$id_batch_start,
+          ~ find_closest(.x, order_map$analysis_order, method = "higher")
+        ),
+        mapped_end = purrr::map_dbl(
+          .data$id_batch_end,
+          ~ find_closest(.x, order_map$analysis_order, method = "lower")
+        )
+      ) |>
+      left_join(order_map, by = c("mapped_start" = "analysis_order")) |>
+      rename(id_batch_start_index = .data$analysis_order_index) |>
+      left_join(order_map, by = c("mapped_end" = "analysis_order")) |>
+      rename(id_batch_end_index = .data$analysis_order_index)
 
     if (!batch_zebra_stripe) {
-      if(remove_gaps) 
-        p <- p + geom_vline(data = d_batches|> slice(-1), aes(xintercept = .data$id_batch_start_index - 0.5), colour = batch_line_color, linetype = "solid", linewidth = 1)
-      else 
-        p <- p + geom_vline(data = d_batches|> slice(-1), aes(xintercept = .data$id_batch_start - 0.5), colour = batch_line_color, linetype = "solid", linewidth = 1)
+      if (remove_gaps) {
+        p <- p +
+          geom_vline(
+            data = d_batches |> slice(-1),
+            aes(xintercept = .data$id_batch_start_index - 0.5),
+            colour = batch_line_color,
+            linetype = "solid",
+            linewidth = 1
+          )
+      } else {
+        p <- p +
+          geom_vline(
+            data = d_batches |> slice(-1),
+            aes(xintercept = .data$id_batch_start - 0.5),
+            colour = batch_line_color,
+            linetype = "solid",
+            linewidth = 1
+          )
+      }
     } else {
       d_batch_2nd <- d_batches |>
-          slice(-1) |>
-          filter(.data$batch_no %% 2 != 1)
-      if(remove_gaps) {
-        p <- p + geom_rect(
-          data = d_batch_2nd, aes(xmin = .data$id_batch_start_index - 0.5, xmax = .data$id_batch_end_index + 0.5, ymin = -Inf, ymax = Inf),
-          inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.5, na.rm = TRUE)
+        slice(-1) |>
+        filter(.data$batch_no %% 2 != 1)
+      if (remove_gaps) {
+        p <- p +
+          geom_rect(
+            data = d_batch_2nd,
+            aes(
+              xmin = .data$id_batch_start_index - 0.5,
+              xmax = .data$id_batch_end_index + 0.5,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            inherit.aes = FALSE,
+            fill = batch_fill_color,
+            color = NA,
+            alpha = 1,
+            linetype = "solid",
+            linewidth = 0.5,
+            na.rm = TRUE
+          )
       } else {
-        p <- p + geom_rect(
-          data = d_batch_2nd, aes(xmin = .data$id_batch_start - 0.5, xmax = .data$id_batch_end + 0.5, ymin = -Inf, ymax = Inf),
-          inherit.aes = FALSE, fill = batch_fill_color, color = NA, alpha = 1, linetype = "solid", linewidth = 0.5, na.rm = TRUE)
+        p <- p +
+          geom_rect(
+            data = d_batch_2nd,
+            aes(
+              xmin = .data$id_batch_start - 0.5,
+              xmax = .data$id_batch_end + 0.5,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            inherit.aes = FALSE,
+            fill = batch_fill_color,
+            color = NA,
+            alpha = 1,
+            linetype = "solid",
+            linewidth = 0.5,
+            na.rm = TRUE
+          )
       }
     }
   }
-
 
   x_text_angle <- ifelse(x_axis_variable != "analysis_order", 90, 0)
   x_text_just <- ifelse(x_axis_variable != "analysis_order", 1, 0.5)
 
   p <- p +
-    geom_boxplot(aes(fill = .data$qc_type, color = .data$qc_type), notch = FALSE, outlier.colour = NA, linewidth = linewidth, na.rm = TRUE) +
+    geom_boxplot(
+      aes(fill = .data$qc_type, color = .data$qc_type),
+      notch = FALSE,
+      outlier.colour = NA,
+      linewidth = linewidth,
+      na.rm = TRUE
+    ) +
     #stat_summary(mapping = aes(color = .data$qc_type), fun = median, geom = "line", color = "red", linetype = "solid") +
-    scale_fill_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
-    scale_color_manual(name = NULL, values = pkg.env$qc_type_annotation$qc_type_col) +
-    ggplot2::guides(color = ggplot2::guide_legend(name = NULL, override.aes = list(size = 3))) +
+    scale_fill_manual(
+      name = NULL,
+      values = desaturate_colors(pkg.env$qc_type_annotation$qc_type_col, 0.4)
+    ) +
+    scale_color_manual(
+      name = NULL,
+      values = pkg.env$qc_type_annotation$qc_type_col
+    ) +
+    ggplot2::guides(
+      color = ggplot2::guide_legend(name = NULL, override.aes = list(size = 3))
+    ) +
     theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(variable)))) +
     xlab("Analysis order") +
@@ -1083,40 +1675,78 @@ plot_rla_boxplot <- function(
       panel.grid.major.x = element_blank(), #element_line(colour = "#bdbdbd", linetype = "dotted", size = .5),
       panel.grid.minor.x = element_blank(), #element_line(colour = "grey88", linetype = "dotted", size = .5),
       axis.text.y = element_text(size = base_font_size),
-      axis.text.x = element_text(size = base_font_size, angle = x_text_angle, vjust = 0.5, hjust = x_text_just),
+      axis.text.x = element_text(
+        size = base_font_size,
+        angle = x_text_angle,
+        vjust = 0.5,
+        hjust = x_text_just
+      ),
       axis.title = element_text(size = base_font_size * 1, face = "bold"),
       panel.border = element_rect(linewidth = 1, color = "grey20"),
       legend.position = "inside",
-      legend.direction = "horizontal",         # vertical layout
-      legend.text = element_text(size = base_font_size*0.8), # text size
-      legend.title = element_text(size = base_font_size*0.8),
-      legend.key.size = unit(base_font_size *0.8, "pt"),   # box size
+      legend.direction = "horizontal", # vertical layout
+      legend.text = element_text(size = base_font_size * 0.8), # text size
+      legend.title = element_text(size = base_font_size * 0.8),
+      legend.key.size = unit(base_font_size * 0.8, "pt"), # box size
       legend.position.inside = c(0.6, 0.1)
     )
 
-  if(x_gridlines)
-    p <- p + theme(panel.grid.major.x = element_line(colour = "#bdbdbd", linetype = "dotted", linewidth = .3))
-  else
+  if (x_gridlines) {
+    p <- p +
+      theme(
+        panel.grid.major.x = element_line(
+          colour = "#bdbdbd",
+          linetype = "dotted",
+          linewidth = .3
+        )
+      )
+  } else {
     p <- p + theme(panel.grid.major.x = element_blank())
+  }
 
   if (relative_log_abundances) {
-    p <- p + geom_hline(yintercept = 0, colour = "#5fe3f5", linetype = "longdash", linewidth = 0.5) +
-      ylab(bquote(bold(log[2] ~ "( relative" ~ .(stringr::str_remove(variable, "feature\\_")) ~ ")")))
+    p <- p +
+      geom_hline(
+        yintercept = 0,
+        colour = "#5fe3f5",
+        linetype = "longdash",
+        linewidth = 0.5
+      ) +
+      ylab(bquote(bold(
+        log[2] ~ "( relative" ~ .(stringr::str_remove(variable, "feature\\_")) ~
+          ")"
+      )))
   }
   ylim = c(NA, NA)
   xlim = c(NA, NA)
   # Set y-axis limits
   if (!all(is.na(y_lim))) {
     ylim = y_lim
-  } else if(ignore_outliers) {
+  } else if (ignore_outliers) {
     tails <- get_mad_tails(d_filt$val_res, k = 4, na.rm = TRUE)
     ylim = tails
   }
 
-  if(!all(is.na(plot_range))) {
-    if(remove_gaps) {
-      xlim <- c(order_map[order_map$analysis_order == find_closest(plot_range[1], order_map$analysis_order, method = "lower"), ]$analysis_order_index,
-                order_map[order_map$analysis_order == find_closest(plot_range[2], order_map$analysis_order, method = "higher"), ]$analysis_order_index)
+  if (!all(is.na(plot_range))) {
+    if (remove_gaps) {
+      xlim <- c(
+        order_map[
+          order_map$analysis_order ==
+            find_closest(
+              plot_range[1],
+              order_map$analysis_order,
+              method = "lower"
+            ),
+        ]$analysis_order_index,
+        order_map[
+          order_map$analysis_order ==
+            find_closest(
+              plot_range[2],
+              order_map$analysis_order,
+              method = "higher"
+            ),
+        ]$analysis_order_index
+      )
     } else {
       xlim = plot_range
     }
