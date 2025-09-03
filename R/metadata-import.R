@@ -340,6 +340,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
     # Check data integrity ----
     metadata$annot_analyses <- metadata$annot_analyses |>
       assertr::chain_start(store_success = FALSE) |>
+      assertr::assert(assertr::is_uniq, "analysis_id", obligatory=FALSE, description = "E;IDs duplicated;Analyses;analysis_id") |>
       assertr::assert(\(x){not_na(x)}, any_of(c("analysis_id", "qc_type")), obligatory=FALSE, description = "E;Missing value(s);Analyses;analysis_id|qc_type") |>
       assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_id")), description = "N;Not defined for all analyses;Analyses;sample_id") |>
       assertr::assert(\(x){not_na(x)}, where(\(x){!all(is.na(x))}) & dplyr::any_of(c("sample_amount", "sample_amount_unit")), description = "W;Incomplete value(s);Analyses;sample_amount|sample_amount_unit") |>
