@@ -51,6 +51,8 @@
 #' @param show_labels A logical value indicating whether to show analysis_id
 #' labels for points outside k * MAD of the selected PCA dimensions. Default
 #' is `TRUE`.
+#' @param labels_column A character string indicating the column to be use for the point labels. Typically "analysis_id" or "analysis_order".
+#' Default is "analysis_id".
 #' @param labels_threshold_mad A numeric value determining the threshold
 #' for showing labels based on the median absolute deviation (MAD). Default
 #' is 3. Set to `NULL` to suppress labels.
@@ -100,6 +102,7 @@ plot_pca <- function(data = NULL,
                     min_median_value = NA,
 
                     show_labels = TRUE,
+                    labels_column = "analysis_id",
                     labels_threshold_mad = 3,
                     shared_labeltext_hide = NA,
                     label_font_size = 3,
@@ -154,7 +157,7 @@ plot_pca <- function(data = NULL,
   )
 
   d_filt <- d_filt |>
-    dplyr::select("analysis_id", "qc_type", "batch_id", "feature_id", {{ variable }})
+    dplyr::select("analysis_id", "analysis_order", "qc_type", "batch_id", "feature_id", {{ variable }})
 
   if(!is.na(min_median_value)){
     d_minsignal <- d_filt |>
@@ -184,7 +187,7 @@ plot_pca <- function(data = NULL,
     cli_alert_warning(col_yellow("{n_removed} features contained missing or non-numeric values and were exluded."))
 
   d_metadata <- d_filt |>
-    dplyr::select("analysis_id", "qc_type", "batch_id") |>
+    dplyr::select("analysis_id", "analysis_order", "qc_type", "batch_id") |>
     dplyr::distinct() |>
     dplyr::right_join(d_clean |> dplyr::select("analysis_id") |> distinct(), by = c("analysis_id"))
 
@@ -206,8 +209,6 @@ plot_pca <- function(data = NULL,
 
   pca_contrib <- pca_res |> broom::tidy(matrix = "eigenvalues")
 
-
-
   if (!is.null(labels_threshold_mad) & !is.na(labels_threshold_mad)) {
    d_outlier <- pca_annot |> filter(abs(!!PCx) > (median(!!PCx) + labels_threshold_mad * mad(!!PCx)) |
                                       abs(!!PCy) > (median(!!PCy) + labels_threshold_mad * mad(!!PCy)))
@@ -215,11 +216,12 @@ plot_pca <- function(data = NULL,
 
   pca_annot <- pca_annot |>
     select("analysis_id":stringr::str_c(".fittedPC", max(pca_dims))) |>
-    left_join(d_outlier |> select("analysis_id"), by = "analysis_id", keep = TRUE, suffix = c("", "_outlier"))
+    left_join(d_outlier |> select(labels_column), by = labels_column, keep = TRUE, suffix = c("", "_outlier")) |> 
+    rename(label_outlier = sym(paste0(labels_column, "_outlier")))
 
   if (!is.na(shared_labeltext_hide)) {
-    pca_annot <- pca_annot |> mutate(analysis_id_outlier = str_remove(.data$analysis_id_outlier, shared_labeltext_hide))
-    if(any(duplicated(pca_annot$analysis_id_outlier, incomparables=NA)))
+    pca_annot <- pca_annot |> mutate(label_outlier = str_remove(.data$label_outlier, shared_labeltext_hide))
+    if(any(duplicated(pca_annot$label_outlier, incomparables=NA)))
       cli_abort(cli::col_red("`shared_labeltext_hide` setting causes duplicate labels. Please adjust or set to `NA` to show full labels."))
   }
 
@@ -271,7 +273,7 @@ plot_pca <- function(data = NULL,
 
   if(show_labels){
         p <- p +
-          ggrepel::geom_text_repel(aes(label = .data$analysis_id_outlier), size = label_font_size, na.rm = TRUE, seed = 1237)
+          ggrepel::geom_text_repel(aes(label = .data$label_outlier), size = label_font_size, na.rm = TRUE, seed = 1237)
 
 
   }
