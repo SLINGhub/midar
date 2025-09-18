@@ -22,10 +22,10 @@ library(midar)
 knitr::opts_chunk$set(
   collapse = TRUE,
   warning = FALSE,
-  comment = "#>"
+  comment = "#>",
+  root.dir = tempdir()
 )
 ```
-
 
 `MiDAR` is an R package designed for the reproducible post-processing,
 quality control, and reporting of quantitative small-molecule mass
@@ -57,6 +57,7 @@ for a detailed introduction and comprehensive documentation on this
 package.
 
 ## Installation
+
 ```{r, eval=FALSE}
 if (!require("pak")) install.packages("pak")
 pak::pkg_install("SLINGhub/midar")
@@ -113,6 +114,7 @@ plot_runscatter(mexp,
                    variable = "conc", 
                    filter_data = TRUE)
 ```
+
 ## Contributor Code of Conduct
 
 Please note that the midar project is released with a [Contributor Code
