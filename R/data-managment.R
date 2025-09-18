@@ -1,8 +1,10 @@
-
-
 # TODO: export functions
-check_data_present <- function(data){nrow(data@dataset_orig) > 0}
-check_dataset_present <- function(data){nrow(data@dataset) > 0}
+check_data_present <- function(data) {
+  nrow(data@dataset_orig) > 0
+}
+check_dataset_present <- function(data) {
+  nrow(data@dataset) > 0
+}
 
 
 #' Retrieve and Subset/Filter Dataset
@@ -45,52 +47,72 @@ check_dataset_present <- function(data){nrow(data@dataset) > 0}
 #'
 #' @noRd
 
-
-get_dataset_subset <- function(data,
-                               filter_data = FALSE,
-                               qc_types = NULL,
-                               include_qualifier = TRUE,
-                               include_istd = TRUE,
-                               include_feature_filter = NULL,
-                               exclude_feature_filter = NULL){
-
+get_dataset_subset <- function(
+  data,
+  filter_data = FALSE,
+  qc_types = NULL,
+  include_qualifier = TRUE,
+  include_istd = TRUE,
+  include_feature_filter = NULL,
+  exclude_feature_filter = NULL
+) {
   check_data(data)
 
   # Check if include and exclude filters contain overlapping items, unless both are NULL or NA
-  if (all(!is.null(include_feature_filter)) && all(!is.null(exclude_feature_filter)) &&
-      all(!is.na(include_feature_filter)) && all(!is.na(exclude_feature_filter))) {
-    overlapping_features <- intersect(include_feature_filter, exclude_feature_filter)
+  if (
+    all(!is.null(include_feature_filter)) &&
+      all(!is.null(exclude_feature_filter)) &&
+      all(!is.na(include_feature_filter)) &&
+      all(!is.na(exclude_feature_filter))
+  ) {
+    overlapping_features <- intersect(
+      include_feature_filter,
+      exclude_feature_filter
+    )
     if (length(overlapping_features) > 0) {
       cli::cli_abort(
-        col_red("The include_feature_filter and exclude_feature_filter contain overlapping features: {overlapping_features}")
+        col_red(
+          "The include_feature_filter and exclude_feature_filter contain overlapping features: {overlapping_features}"
+        )
       )
     }
   }
 
   # Apply filtering if specified
   if (filter_data) {
-    if (!data@is_filtered){
-      cli::cli_abort(col_red("Data has not been QC-filtered. Please run `filter_features_qc`."))
+    if (!data@is_filtered) {
+      cli::cli_abort(col_red(
+        "Data has not been QC-filtered. Please run `filter_features_qc`."
+      ))
     }
     d_filt <- data@dataset_filtered |> dplyr::ungroup()
   } else {
     d_filt <- data@dataset |> dplyr::ungroup()
   }
 
-  if (!is.null(qc_types) && length(qc_types) > 0 && all(!is.na(qc_types)) && all(qc_types != "")) {
+  if (
+    !is.null(qc_types) &&
+      length(qc_types) > 0 &&
+      all(!is.na(qc_types)) &&
+      all(qc_types != "")
+  ) {
     if (length(qc_types) == 1) {
       # Single QC type: check if it exists in the dataset
       if (any(str_detect(d_filt$qc_type, qc_types))) {
         d_filt <- d_filt |> dplyr::filter(str_detect(.data$qc_type, qc_types))
       } else {
-        cli::cli_abort(col_red("The defined `qc_type` filter criteria resulted in no analyses to plot. Please verify the criteria set in the arguments."))
+        cli::cli_abort(col_red(
+          "The defined `qc_type` filter criteria resulted in no analyses to plot. Please verify the criteria set in the arguments."
+        ))
       }
     } else {
       # Multiple QC types: check if all are in the dataset
       if (all(qc_types %in% d_filt$qc_type)) {
         d_filt <- d_filt |> dplyr::filter(.data$qc_type %in% qc_types)
       } else {
-        cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
+        cli::cli_abort(col_red(
+          "One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."
+        ))
       }
     }
   }
@@ -106,39 +128,50 @@ get_dataset_subset <- function(data,
   }
 
   # Apply feature inclusion and exclusion filters if provided
-  if (all(!is.na(include_feature_filter)) && all(!is.null(include_feature_filter)) && all(include_feature_filter != "")) {
-
+  if (
+    all(!is.na(include_feature_filter)) &&
+      all(!is.null(include_feature_filter)) &&
+      all(include_feature_filter != "")
+  ) {
     if (length(include_feature_filter) == 1) {
-      d_filt <- d_filt |> dplyr::filter(stringr::str_detect(.data$feature_id,
-                                                            include_feature_filter))
+      d_filt <- d_filt |>
+        dplyr::filter(stringr::str_detect(
+          .data$feature_id,
+          include_feature_filter
+        ))
     } else {
-      d_filt <- d_filt |> dplyr::filter(.data$feature_id %in% include_feature_filter)
+      d_filt <- d_filt |>
+        dplyr::filter(.data$feature_id %in% include_feature_filter)
     }
   }
 
-
-  if (all(!is.na(exclude_feature_filter)) && all(!is.null(exclude_feature_filter)) && all(exclude_feature_filter != "")) {
+  if (
+    all(!is.na(exclude_feature_filter)) &&
+      all(!is.null(exclude_feature_filter)) &&
+      all(exclude_feature_filter != "")
+  ) {
     if (length(exclude_feature_filter) == 1) {
-      d_filt <- d_filt |> dplyr::filter(!stringr::str_detect(.data$feature_id,
-                                                             exclude_feature_filter))
+      d_filt <- d_filt |>
+        dplyr::filter(
+          !stringr::str_detect(.data$feature_id, exclude_feature_filter)
+        )
     } else {
-      d_filt <- d_filt |> dplyr::filter(!.data$feature_id %in% exclude_feature_filter)
+      d_filt <- d_filt |>
+        dplyr::filter(!.data$feature_id %in% exclude_feature_filter)
     }
   }
-
-
-
 
   # Ensure there is data to plot after filtering
-  if (nrow(d_filt) < 1)
-    cli::cli_abort(col_red("The defined feature filter criteria resulted in no selected features to plot.
-                       Please verify the criteria set in the arguments."))
+  if (nrow(d_filt) < 1) {
+    cli::cli_abort(col_red(
+      "The defined feature filter criteria resulted in no selected features to plot.
+                       Please verify the criteria set in the arguments."
+    ))
+  }
 
   # return data
   d_filt
 }
-
-
 
 
 #' @title Get the annotated or the originally imported analytical data
@@ -148,7 +181,7 @@ get_dataset_subset <- function(data,
 #' @return A tibble with the analytical data in the long format
 #' @export
 
-get_analyticaldata <- function(data = NULL, annotated ){
+get_analyticaldata <- function(data = NULL, annotated) {
   check_data(data)
   if (!annotated) {
     return(data@dataset_orig)
@@ -174,11 +207,17 @@ get_analysis_count <- function(data, qc_types = NULL) {
   if (nrow(data@dataset) == 0) {
     return(0)
   }
-  if (is.null(qc_types))
-    return(data@dataset|> select("analysis_id") |> distinct() |> nrow())
-  else
-    return(data@dataset|> filter(.data$qc_type %in% qc_types) |>
-             select("analysis_id") |> distinct() |> nrow())
+  if (is.null(qc_types)) {
+    return(data@dataset |> select("analysis_id") |> distinct() |> nrow())
+  } else {
+    return(
+      data@dataset |>
+        filter(.data$qc_type %in% qc_types) |>
+        select("analysis_id") |>
+        distinct() |>
+        nrow()
+    )
+  }
 }
 
 
@@ -199,8 +238,12 @@ get_feature_count <- function(data, is_istd = NA, is_quantifier = NA) {
     return(0)
   }
   d <- data@dataset
-  if (!is.na(is_istd)) d <- d |> filter(.data$is_istd == !!is_istd)
-  if (!is.na(is_quantifier)) d <- d |> filter(.data$is_quantifier == !!is_quantifier)
+  if (!is.na(is_istd)) {
+    d <- d |> filter(.data$is_istd == !!is_istd)
+  }
+  if (!is.na(is_quantifier)) {
+    d <- d |> filter(.data$is_quantifier == !!is_quantifier)
+  }
 
   d |> select("feature_id") |> distinct() |> nrow()
 }
@@ -222,8 +265,12 @@ get_featurelist <- function(data, is_istd = NA, is_quantifier = NA) {
   if (nrow(data@dataset) == 0) {
     return(NULL)
   }
-  if (!is.na(is_istd)) d <- d |> filter(.data$is_istd == !!is_istd)
-  if (!is.na(is_quantifier)) d <- d |> filter(.data$is_quantifier == !!is_quantifier)
+  if (!is.na(is_istd)) {
+    d <- d |> filter(.data$is_istd == !!is_istd)
+  }
+  if (!is.na(is_quantifier)) {
+    d <- d |> filter(.data$is_quantifier == !!is_quantifier)
+  }
 
   d |> select("feature_id") |> distinct() |> pull(.data$feature_id)
 }
@@ -236,11 +283,12 @@ get_featurelist <- function(data, is_istd = NA, is_quantifier = NA) {
 #' @return A `POSIXct` timestamp, or `NA_POSIXct_` if the dataset is empty.
 #'
 #' @export
-get_analyis_start <- function(data){
-  if (check_data_present(data))
+get_analyis_start <- function(data) {
+  if (check_data_present(data)) {
     return(min(data@dataset$acquisition_time_stamp))
-  else
+  } else {
     return(lubridate::NA_POSIXct_)
+  }
 }
 
 #' Get the end time of the analysis sequence
@@ -258,16 +306,18 @@ get_analyis_start <- function(data){
 #' @return A `POSIXct` timestamp, or `NA_POSIXct_` if the dataset is empty.
 #'
 #' @export
-get_analyis_end <- function(data, estimate_sequence_end){
-  if (check_data_present(data)){
-    if(estimate_sequence_end)
-      return(max(data@dataset$acquisition_time_stamp) + get_runtime_median(data))
-    else
+get_analyis_end <- function(data, estimate_sequence_end) {
+  if (check_data_present(data)) {
+    if (estimate_sequence_end) {
+      return(
+        max(data@dataset$acquisition_time_stamp) + get_runtime_median(data)
+      )
+    } else {
       return(max(data@dataset$acquisition_time_stamp))
-  }
-
-  else
+    }
+  } else {
     return(lubridate::NA_POSIXct_)
+  }
 }
 
 #' Get the median run time
@@ -279,11 +329,13 @@ get_analyis_end <- function(data, estimate_sequence_end){
 #'
 #' @export
 
-get_runtime_median <- function(data){
-  if (check_data_present(data))
-    median(diff(unique(data@dataset$acquisition_time_stamp), units = "secs")) |>  lubridate::seconds_to_period()
-  else
+get_runtime_median <- function(data) {
+  if (check_data_present(data)) {
+    median(diff(unique(data@dataset$acquisition_time_stamp), units = "secs")) |>
+      lubridate::seconds_to_period()
+  } else {
     return(NA)
+  }
 }
 
 #' Get the total duration of the analysis
@@ -303,13 +355,18 @@ get_runtime_median <- function(data){
 #'
 #' @export
 
-get_analysis_duration <- function(data, estimate_sequence_end){
-  if (check_data_present(data)){
+get_analysis_duration <- function(data, estimate_sequence_end) {
+  if (check_data_present(data)) {
     time_end <- max(unique(data@dataset$acquisition_time_stamp))
-    if(estimate_sequence_end) time_end <- time_end + get_runtime_median(data)
+    if (estimate_sequence_end) {
+      time_end <- time_end + get_runtime_median(data)
+    }
 
-    difftime(time_end,
-             min(unique(data@dataset$acquisition_time_stamp)), units = "secs") |>
+    difftime(
+      time_end,
+      min(unique(data@dataset$acquisition_time_stamp)),
+      units = "secs"
+    ) |>
       lubridate::seconds_to_period()
   } else {
     return(NA)
@@ -329,10 +386,15 @@ get_analysis_duration <- function(data, estimate_sequence_end){
 #' @return An integer with the number of interruptions, or `NA_integer_` if the dataset is empty.
 #'
 #' @export
-get_analysis_breaks <- function(data, break_duration_minutes){
+get_analysis_breaks <- function(data, break_duration_minutes) {
   if (check_data_present(data)) {
-    if(all(is.na(unique(data@dataset$acquisition_time_stamp)))) return(NA_integer_)
-    as.integer(sum(diff(unique(data@dataset$acquisition_time_stamp), units = "secs") > break_duration_minutes * 60))
+    if (all(is.na(unique(data@dataset$acquisition_time_stamp)))) {
+      return(NA_integer_)
+    }
+    as.integer(sum(
+      diff(unique(data@dataset$acquisition_time_stamp), units = "secs") >
+        break_duration_minutes * 60
+    ))
   } else {
     return(NA_integer_)
   }
@@ -341,45 +403,115 @@ get_analysis_breaks <- function(data, break_duration_minutes){
 
 # sets is_normalized flag, if FALSE remove normalized intensities and conc if availalble from the dataset
 # is_normalized defines if the data is normalized or not, which is to be set
-update_after_normalization <- function(data, is_normalized, with_message = TRUE){
-  if(data@is_istd_normalized & !is_normalized) {
+update_after_normalization <- function(
+  data,
+  is_normalized,
+  with_message = TRUE
+) {
+  if (data@is_istd_normalized & !is_normalized) {
     data@dataset <- data@dataset |>
       select(-any_of(c("feature_norm_intensity", "feature_norm_intensity_raw")))
 
-    if(data@is_quantitated){
+    if (data@is_quantitated) {
       data <- update_after_quantitation(data, FALSE, FALSE)
-      if(with_message)
-        cli_alert_info(cli::col_yellow("The normalized intensities and concentrations are no longer valid. Please reprocess the data."))
+      if (with_message) {
+        cli_alert_info(cli::col_yellow(
+          "The normalized intensities and concentrations are no longer valid. Please reprocess the data."
+        ))
+      }
     } else {
-      if(with_message)
-        cli_alert_info(cli::col_yellow("Normalized intensities are no longer valid. Please reprocess the data."))
+      if (with_message) {
+        cli_alert_info(cli::col_yellow(
+          "Normalized intensities are no longer valid. Please reprocess the data."
+        ))
+      }
     }
   }
   data@is_istd_normalized <- is_normalized
   data@is_filtered <- FALSE
-  data@dataset_filtered <- data@dataset_filtered[FALSE,]
+  data@dataset_filtered <- data@dataset_filtered[FALSE, ]
   data
 }
 
-update_after_quantitation <- function(data, is_quantitated, with_message = TRUE){
-  if(data@is_quantitated & !is_quantitated) {
-    data@dataset <- data@dataset |> select(-any_of(c("feature_pmol_total", "feature_conc", "feature_raw_conc", "feature_conc_ratio")))
-    if(with_message) cli_alert_info(cli::col_yellow("Concentrations are no longer valid. Please reprocess the data."))
+update_after_quantitation <- function(
+  data,
+  is_quantitated,
+  with_message = TRUE
+) {
+  if (data@is_quantitated & !is_quantitated) {
+    data@dataset <- data@dataset |>
+      select(
+        -any_of(c(
+          "feature_pmol_total",
+          "feature_conc",
+          "feature_raw_conc",
+          "feature_conc_ratio"
+        ))
+      )
+    if (with_message) {
+      cli_alert_info(cli::col_yellow(
+        "Concentrations are no longer valid. Please reprocess the data."
+      ))
+    }
   }
   data@is_quantitated <- is_quantitated
   data@is_filtered <- FALSE
-  data@dataset_filtered <- data@dataset_filtered[FALSE,]
+  data@dataset_filtered <- data@dataset_filtered[FALSE, ]
   data
 }
 
 check_var_in_dataset <- function(table, variable) {
-
-  if(variable == "feature_conc" & !"feature_conc" %in% names(table)) cli_abort(cli::col_red("Concentration data are not available, please process data or choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_area" & !"feature_area" %in% names(table)) cli_abort(cli::col_red("Peak area data are not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_response" & !"feature_response" %in% names(table)) cli_abort(cli::col_red("Response is not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_norm_intensity" & !"feature_norm_intensity" %in% names(table)) cli_abort(cli::col_red("Normalized intensities not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_height" & !"feature_height" %in% names(table)) cli_abort(cli::col_red("Peak height data are not available, please choose another variable.", show = "none", parent = NULL, call= NULL))
-  if(variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) cli_abort(cli::col_red("Concentration data are not available, please process data, or choose another variable.", show = "none", parent = NULL, call= NULL))
+  if (variable == "feature_conc" & !"feature_conc" %in% names(table)) {
+    cli_abort(cli::col_red(
+      "Concentration data are not available, please process data or choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
+  if (variable == "feature_area" & !"feature_area" %in% names(table)) {
+    cli_abort(cli::col_red(
+      "Peak area data are not available, please choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
+  if (variable == "feature_response" & !"feature_response" %in% names(table)) {
+    cli_abort(cli::col_red(
+      "Response is not available, please choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
+  if (
+    variable == "feature_norm_intensity" &
+      !"feature_norm_intensity" %in% names(table)
+  ) {
+    cli_abort(cli::col_red(
+      "Normalized intensities not available, please process data, or choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
+  if (variable == "feature_height" & !"feature_height" %in% names(table)) {
+    cli_abort(cli::col_red(
+      "Peak height data are not available, please choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
+  if (variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) {
+    cli_abort(cli::col_red(
+      "Concentration data are not available, please process data, or choose another variable.",
+      show = "none",
+      parent = NULL,
+      call = NULL
+    ))
+  }
 }
 
 #' @title Get the start and end analysis numbers of specified batches
@@ -400,11 +532,15 @@ get_batch_boundaries <- function(data = NULL, batch_indices = NULL) {
   }
 
   if (length(batch_indices) > 2) {
-    cli::cli_abort("Invalid batch indices. Please provide a numeric vector with one or two elements (start, end).")
-    }
+    cli::cli_abort(
+      "Invalid batch indices. Please provide a numeric vector with one or two elements (start, end)."
+    )
+  }
 
   if (!is.numeric(batch_indices)) {
-    cli::cli_abort("Batch indices must be numbers. Provide a numeric vector with one or two elements.")
+    cli::cli_abort(
+      "Batch indices must be numbers. Provide a numeric vector with one or two elements."
+    )
   }
 
   # Ensure batch_indices has at least one value
@@ -423,12 +559,14 @@ get_batch_boundaries <- function(data = NULL, batch_indices = NULL) {
     cli::cli_abort("Batch indices must be 1 or higher.")
   }
 
-  if (first_batch_id > max(batch_indices_data) || last_batch_id > max(batch_indices_data)) {
-    cli::cli_abort("Batch indices exceed the total number of batches. Please provide numbers between 1 and {max(batch_indices_data)}.")
-    }
-
-
-
+  if (
+    first_batch_id > max(batch_indices_data) ||
+      last_batch_id > max(batch_indices_data)
+  ) {
+    cli::cli_abort(
+      "Batch indices exceed the total number of batches. Please provide numbers between 1 and {max(batch_indices_data)}."
+    )
+  }
 
   # Filter the dataset for the given range of batch IDs
   d <- data@annot_batches |>
@@ -444,8 +582,6 @@ get_batch_boundaries <- function(data = NULL, batch_indices = NULL) {
 
   return(c(lower_bound, upper_bound))
 }
-
-
 
 
 #' @title Set the analysis order
@@ -465,19 +601,30 @@ get_batch_boundaries <- function(data = NULL, batch_indices = NULL) {
 #' @param data A MidarExperiment object
 #' @param order_by Character string specifying ordering method
 #' @noRd
-set_analysis_order_analysismetadata <- function(data = NULL,
-                                                order_by = "default") {
+set_analysis_order_analysismetadata <- function(
+  data = NULL,
+  order_by = "default"
+) {
   # Validate inputs
   check_data(data)
   order_by <- rlang::arg_match(
     arg = order_by,
-    values = c("timestamp", "analysis_order_column", "resultfile", "metadata", "default"),
+    values = c(
+      "timestamp",
+      "analysis_order_column",
+      "resultfile",
+      "metadata",
+      "default"
+    ),
     multiple = FALSE
   )
 
   # Extract relevant columns from original dataset
   d_temp <- data@dataset_orig |>
-    dplyr::select("analysis_id", dplyr::any_of(c("analysis_order", "acquisition_time_stamp"))) |>
+    dplyr::select(
+      "analysis_id",
+      dplyr::any_of(c("analysis_order", "acquisition_time_stamp"))
+    ) |>
     dplyr::distinct()
 
   # Handle default ordering logic
@@ -485,51 +632,55 @@ set_analysis_order_analysismetadata <- function(data = NULL,
   if (order_by == "default") {
     if (!all(is.na(d_temp$acquisition_time_stamp))) {
       order_by <- "timestamp"
-    } else if("analysis_order" %in% names(d_temp)) {
-        cli::cli_alert_info(
-          cli::col_grey(
-            "Analysis order was based on `analysis_order` column of imported data. Use `set_analysis_order` to change the order."
-          )
+    } else if ("analysis_order" %in% names(d_temp)) {
+      cli::cli_alert_info(
+        cli::col_grey(
+          "Analysis order was based on `analysis_order` column of imported data. Use `set_analysis_order` to change the order."
         )
-      order_by <-  "analysis_order_column"
+      )
+      order_by <- "analysis_order_column"
     } else {
-        cli::cli_alert_info(
-          cli::col_grey(
-            "Analysis order was based on sequence of imported analysis data (no timestamps found). Use `set_analysis_order` to define a different order."
-          )
+      cli::cli_alert_info(
+        cli::col_grey(
+          "Analysis order was based on sequence of imported analysis data (no timestamps found). Use `set_analysis_order` to define a different order."
         )
+      )
       order_by <- "resultfile"
     }
   }
 
   # Apply ordering based on specified method
 
-
   data@annot_analyses <- switch(
     order_by,
     "timestamp" = {
       if (all(is.na(d_temp$acquisition_time_stamp))) {
-        cli::cli_abort(col_red(
-          "Acquisition timestamps are not present in analysis results.
-           Please set argument `order_by` to either `resultfile` or `metadata`."),
+        cli::cli_abort(
+          col_red(
+            "Acquisition timestamps are not present in analysis results.
+           Please set argument `order_by` to either `resultfile` or `metadata`."
+          ),
           call. = FALSE
         )
       }
       data@annot_analyses |>
-      select(-"analysis_order") |>
-      dplyr::inner_join(
+        select(-"analysis_order") |>
+        dplyr::inner_join(
           d_temp |>
-          dplyr::arrange(.data$acquisition_time_stamp) |>
-          dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1) |>
-          dplyr::select(-"acquisition_time_stamp"),
-          by = "analysis_id") |>
-          relocate("analysis_order", .before = 1)
+            dplyr::arrange(.data$acquisition_time_stamp) |>
+            dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1) |>
+            dplyr::select(-"acquisition_time_stamp"),
+          by = "analysis_id"
+        ) |>
+        relocate("analysis_order", .before = 1)
     },
     "analysis_order_column" = {
       data@annot_analyses |>
         select(-"analysis_order") |>
         dplyr::inner_join(
-          d_temp, by = "analysis_id") |>
+          d_temp,
+          by = "analysis_id"
+        ) |>
         relocate("analysis_order", .before = 1)
     },
     "resultfile" = {
@@ -538,7 +689,8 @@ set_analysis_order_analysismetadata <- function(data = NULL,
         dplyr::inner_join(
           d_temp |>
             dplyr::mutate(analysis_order = dplyr::row_number(), .before = 1),
-          by = "analysis_id") |>
+          by = "analysis_id"
+        ) |>
         relocate("analysis_order", .before = 1)
     },
     "metadata" = {
@@ -580,32 +732,44 @@ set_analysis_order_analysismetadata <- function(data = NULL,
 #' # Order by metadata definition
 #' mexp <- set_analysis_order(mexp, "metadata")
 
-
-set_analysis_order <- function(data = NULL, order_by =  c("timestamp", "resultfile", "metadata")){
+set_analysis_order <- function(
+  data = NULL,
+  order_by = c("timestamp", "resultfile", "metadata")
+) {
   check_data(data)
-  order_by <- rlang::arg_match(arg = order_by, c("timestamp", "resultfile", "metadata"), multiple = FALSE)
+  order_by <- rlang::arg_match(
+    arg = order_by,
+    c("timestamp", "resultfile", "metadata"),
+    multiple = FALSE
+  )
   data <- set_analysis_order_analysismetadata(data, order_by)
   data <- link_data_metadata(data)
 
-  cli::cli_alert_success(cli::col_green("Analysis order set to {.val {order_by}}"))
+  cli::cli_alert_success(cli::col_green(
+    "Analysis order set to {.val {order_by}}"
+  ))
 
-  if (data@is_isotope_corr | data@is_filtered | data@is_istd_normalized | data@is_quantitated | any(data@var_batch_corrected) | any(data@var_drift_corrected))
-  cli::cli_alert_info(col_yellow(c(
-    "All data processing has been reset. ",
-    "i" = "Please rerun processing steps"
-  )))
+  if (
+    data@is_isotope_corr |
+      data@is_filtered |
+      data@is_istd_normalized |
+      data@is_quantitated |
+      any(data@var_batch_corrected) |
+      any(data@var_drift_corrected)
+  ) {
+    cli::cli_alert_info(col_yellow(c(
+      "All data processing has been reset. ",
+      "i" = "Please rerun processing steps"
+    )))
+  }
   data
 }
-
-
-
-
 
 
 # Link DATA with METADATA and create DATASET table. =================
 ## - Only valid analyses and features will be added
 ## - Only key information will be added
-link_data_metadata <- function(data = NULL, minimal_info = TRUE){
+link_data_metadata <- function(data = NULL, minimal_info = TRUE) {
   check_data(data)
   data@dataset <- data@dataset_orig |>
     select(
@@ -617,10 +781,10 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
       starts_with("feature_")
     )
   if (nrow(data@annot_analyses) > 0) {
-  data@dataset <- data@dataset |>
-    select(-any_of("analysis_order")) |>
-    inner_join(data@annot_analyses, by = "analysis_id") |>
-    filter(.data$valid_analysis)
+    data@dataset <- data@dataset |>
+      select(-any_of("analysis_order")) |>
+      inner_join(data@annot_analyses, by = "analysis_id") |>
+      filter(.data$valid_analysis)
   }
 
   if (nrow(data@annot_features) > 0) {
@@ -630,22 +794,28 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
       filter(.data$valid_feature)
   }
 
-  data@dataset <- dplyr::bind_rows(pkg.env$table_templates$dataset_template, data@dataset)
+  data@dataset <- dplyr::bind_rows(
+    pkg.env$table_templates$dataset_template,
+    data@dataset
+  )
   data@dataset <- data@dataset |>
-    select(any_of(c(
-      "analysis_order",
-      "analysis_id",
-      "acquisition_time_stamp",
-      "qc_type",
-      "batch_id",
-      "sample_id",
-      "replicate_no",
-      "feature_id",
-      "feature_class",
-      "is_istd",
-      "is_quantifier",
-      "analyte_id",
-      "specimen")),
+    select(
+      any_of(c(
+        "analysis_order",
+        "analysis_id",
+        "acquisition_time_stamp",
+        "qc_type",
+        "batch_id",
+        "sample_id",
+        "replicate_no",
+        "feature_id",
+        "feature_class",
+        "is_istd",
+        "is_quantifier",
+        "analyte_id",
+        "istd_istd_feature_id",
+        "specimen"
+      )),
       starts_with("method_"),
       starts_with("feature_"),
     ) |>
@@ -655,25 +825,36 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
     relocate("specimen", .before = "feature_id") |>
     relocate("replicate_no", .after = "sample_id")
 
-  if(minimal_info)
-    data@dataset <- data@dataset |> select(-starts_with("method_"), -starts_with("feature_int_"))
+  if (minimal_info) {
+    data@dataset <- data@dataset |>
+      select(-starts_with("method_"), -starts_with("feature_int_"))
+  }
 
-
-  if(data@feature_intensity_var != "")
-    data@dataset <- data@dataset |> mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
-
+  if (data@feature_intensity_var != "") {
+    data@dataset <- data@dataset |>
+      mutate(feature_intensity = !!(sym(data@feature_intensity_var)))
+  }
 
   data@is_isotope_corr <- FALSE
   #data@is_istd_normalized <- FALSE
   #data@is_quantitated <- FALSE
-  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
-  data@var_drift_corrected <- c(feature_intensity = FALSE, feature_norm_intensity = FALSE, feature_conc = FALSE)
+  data@var_drift_corrected <- c(
+    feature_intensity = FALSE,
+    feature_norm_intensity = FALSE,
+    feature_conc = FALSE
+  )
+  data@var_drift_corrected <- c(
+    feature_intensity = FALSE,
+    feature_norm_intensity = FALSE,
+    feature_conc = FALSE
+  )
   data@is_filtered <- FALSE
 
+  data@status_processing <- glue::glue(
+    "Annotated raw {toupper(str_remove(data@feature_intensity_var, 'feature_'))} values"
+  )
 
-  data@status_processing <- glue::glue("Annotated raw {toupper(str_remove(data@feature_intensity_var, 'feature_'))} values")
-
-  data@metrics_qc <- data@metrics_qc[FALSE,]
+  data@metrics_qc <- data@metrics_qc[FALSE, ]
 
   # Arrange analysis_order and then by feature_id, as they appear in the metadata
   data@dataset <- data@dataset |>
@@ -697,48 +878,86 @@ link_data_metadata <- function(data = NULL, minimal_info = TRUE){
 #' @return MidarExperiment object
 #' @export
 
-set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, warnings = TRUE, ...){
+set_intensity_var <- function(
+  data = NULL,
+  variable_name,
+  auto_select = FALSE,
+  warnings = TRUE,
+  ...
+) {
   check_data(data)
   variable_strip <- str_remove(variable_name, "feature_")
   #rlang::arg_match(variable_strip, c("area", "height", "conc"))
   variable_name <- stringr::str_c("feature_", variable_strip)
   if (auto_select) {
     var_list <- unlist(rlang::list2(...), use.names = FALSE)
-    id_all <- match(var_list,names(data@dataset_orig))
+    id_all <- match(var_list, names(data@dataset_orig))
     idx <- which(!is.na(id_all))[1]
     if (!is.na(idx)) {
       data@feature_intensity_var = var_list[idx]
-      cli_alert_info(text = cli::col_grey("{.var {var_list[idx]}} selected as default feature intensity. Modify with {.fn set_intensity_var}."))
+      cli_alert_info(
+        text = cli::col_grey(
+          "{.var {var_list[idx]}} selected as default feature intensity. Modify with {.fn set_intensity_var}."
+        )
+      )
       variable_name <- var_list[idx]
-      } else {
-      cli_alert_warning(text = cli::col_yellow("No typical feature intensity variable found in the data. Use {.fn set_intensity_var} to set it.}}."))
+    } else {
+      cli_alert_warning(
+        text = cli::col_yellow(
+          "No typical feature intensity variable found in the data. Use {.fn set_intensity_var} to set it.}}."
+        )
+      )
       return(data)
-      }
+    }
   } else {
     #TODO: Double check behavior if there a feature_intensity in the raw data file
-    if (! variable_name %in% names(data@dataset_orig))
-      cli_abort(c("x" = "{.var {variable_name}} is not present in the raw data."))
-
-    if (! variable_name %in% c("feature_intensity", "feature_response", "feature_area", "feature_height")){
-      if(warnings) cli_alert_warning(cli::col_yellow("Note: {.var {variable_strip}} is not a typically used raw signal (i.e., area, height, intensity)."))
+    if (!variable_name %in% names(data@dataset_orig)) {
+      cli_abort(c(
+        "x" = "{.var {variable_name}} is not present in the raw data."
+      ))
     }
+
+    if (
+      !variable_name %in%
+        c(
+          "feature_intensity",
+          "feature_response",
+          "feature_area",
+          "feature_height"
+        )
+    ) {
+      if (warnings) {
+        cli_alert_warning(cli::col_yellow(
+          "Note: {.var {variable_strip}} is not a typically used raw signal (i.e., area, height, intensity)."
+        ))
       }
+    }
+  }
   data@feature_intensity_var <- variable_name
 
   if (check_dataset_present(data)) {
-    calc_cols <- c("featue_norm_intensity", "feature_conc", "feature_amount", "feature_raw_conc")
-    if (any(calc_cols %in% names(data@dataset))){
+    calc_cols <- c(
+      "featue_norm_intensity",
+      "feature_conc",
+      "feature_amount",
+      "feature_raw_conc"
+    )
+    if (any(calc_cols %in% names(data@dataset))) {
       data@dataset <- data@dataset |> select(-any_of(calc_cols))
-      cli_alert_info(cli::col_yellow("New feature intensity variable (`{variable_name}`) defined, please reprocess data."))
-    } else
-    {
-      cli::cli_alert_success(cli::col_green("Default feature intensity variable set to {.val {variable_name}}"))
-
+      cli_alert_info(cli::col_yellow(
+        "New feature intensity variable (`{variable_name}`) defined, please reprocess data."
+      ))
+    } else {
+      cli::cli_alert_success(cli::col_green(
+        "Default feature intensity variable set to {.val {variable_name}}"
+      ))
     }
     data <- link_data_metadata(data)
   }
 
-  if(variable_name == "feature_conc") data@is_quantitated <- TRUE
+  if (variable_name == "feature_conc") {
+    data@is_quantitated <- TRUE
+  }
   data
 }
 
@@ -759,42 +978,57 @@ set_intensity_var <- function(data = NULL, variable_name, auto_select = FALSE, w
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_analyses <- function(data = NULL, analyses, clear_existing ){
+exclude_analyses <- function(data = NULL, analyses, clear_existing) {
   check_data(data)
 
   if (all(is.na(analyses)) | length(analyses) == 0) {
-    if(!clear_existing){
-      cli_abort(cli::col_red("No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `clear_existing = TRUE`."))
-    } else{
-      cli::cli_alert_info(cli::col_green("All exclusions removed, and thus all analyses are now included for subsequent steps. Please reprocess data."))
+    if (!clear_existing) {
+      cli_abort(cli::col_red(
+        "No `analysis_id` provided. To (re)include all analyses, use `analysis_ids_exlude = NA` and `clear_existing = TRUE`."
+      ))
+    } else {
+      cli::cli_alert_info(cli::col_green(
+        "All exclusions removed, and thus all analyses are now included for subsequent steps. Please reprocess data."
+      ))
       data@analyses_excluded <- NA
-      data@annot_analyses <- data@annot_analyses |> mutate(valid_analysis = TRUE)
+      data@annot_analyses <- data@annot_analyses |>
+        mutate(valid_analysis = TRUE)
       data <- link_data_metadata(data)
       return(data)
-      }
+    }
   }
   if (any(!c(analyses) %in% data@annot_analyses$analysis_id)) {
-    cli_abort(cli::col_red("One or more provided `analysis_id` to exclude are not present. Please verify the analysis metadata."))
+    cli_abort(cli::col_red(
+      "One or more provided `analysis_id` to exclude are not present. Please verify the analysis metadata."
+    ))
   }
-  if(!clear_existing){
+  if (!clear_existing) {
     data@annot_analyses <- data@annot_analyses |>
-      mutate(valid_analysis = !(.data$analysis_id %in% analyses) & .data$valid_analysis)
-    cli_alert_info(cli::col_green("A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses are now excluded for downstream processing. Please reprocess data."))
-    data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
+      mutate(
+        valid_analysis = !(.data$analysis_id %in% analyses) &
+          .data$valid_analysis
+      )
+    cli_alert_info(cli::col_green(
+      "A total of {data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses are now excluded for downstream processing. Please reprocess data."
+    ))
+    data@analyses_excluded <- data@annot_analyses |>
+      filter(!.data$valid_analysis) |>
+      pull(.data$analysis_id)
   } else {
     data@annot_analyses <- data@annot_analyses |>
       mutate(valid_analysis = !(.data$analysis_id %in% analyses))
-    cli_alert_info(cli::col_green("{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."))
-    data@analyses_excluded <- data@annot_analyses |> filter(!.data$valid_analysis) |> pull(.data$analysis_id)
-    }
+    cli_alert_info(cli::col_green(
+      "{data@annot_analyses |> filter(!.data$valid_analysis) |> nrow()} analyses were excluded for downstream processing. Please reprocess data."
+    ))
+    data@analyses_excluded <- data@annot_analyses |>
+      filter(!.data$valid_analysis) |>
+      pull(.data$analysis_id)
+  }
 
   data <- link_data_metadata(data)
 
   data
 }
-
-
-
 
 
 #' @title Exclude features from the dataset
@@ -813,14 +1047,18 @@ exclude_analyses <- function(data = NULL, analyses, clear_existing ){
 #' @return A modified `MidarExperiment` object with the specified analyses defined as excluded.
 #' @export
 
-exclude_features <- function(data = NULL, features, clear_existing ){
+exclude_features <- function(data = NULL, features, clear_existing) {
   check_data(data)
 
   if (all(is.na(features)) | length(features) == 0) {
-    if(!clear_existing){
-      cli_abort(cli::col_red("No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `clear_existing = TRUE`."))
-    } else{
-      cli::cli_alert_info(cli::col_green("All exlusions were removed, i.e. all features are included. Please reprocess data."))
+    if (!clear_existing) {
+      cli_abort(cli::col_red(
+        "No `feature_id` provided. To (re)include all analyses, use `feature_ids_exlude = NA` and `clear_existing = TRUE`."
+      ))
+    } else {
+      cli::cli_alert_info(cli::col_green(
+        "All exlusions were removed, i.e. all features are included. Please reprocess data."
+      ))
       data@features_excluded <- NA
       data@annot_features <- data@annot_features |> mutate(valid_feature = TRUE)
       data <- link_data_metadata(data)
@@ -828,25 +1066,33 @@ exclude_features <- function(data = NULL, features, clear_existing ){
     }
   }
   if (any(!c(features) %in% data@annot_features$feature_id)) {
-    cli_abort(cli::col_red("One or more provided `feature_id` are not present. Please verify the feature metadata."))
+    cli_abort(cli::col_red(
+      "One or more provided `feature_id` are not present. Please verify the feature metadata."
+    ))
   }
-  if(!clear_existing){
+  if (!clear_existing) {
     data@annot_features <- data@annot_features |>
-      mutate(valid_feature = !(.data$feature_id %in% features) & .data$valid_feature)
-    cli_alert_info(cli::col_green("A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."))
-    data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
-  }
-  else {
+      mutate(
+        valid_feature = !(.data$feature_id %in% features) & .data$valid_feature
+      )
+    cli_alert_info(cli::col_green(
+      "A total of {data@annot_features |> filter(!.data$valid_feature) |> nrow()} features are now excluded for downstream processing. Please reprocess data."
+    ))
+    data@features_excluded <- data@annot_features |>
+      filter(!.data$valid_feature) |>
+      pull(.data$feature_id)
+  } else {
     data@annot_features <- data@annot_features |>
       mutate(valid_feature = !(.data$feature_id %in% features))
-    cli_alert_info(cli::col_green("{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."))
-    data@features_excluded <- data@annot_features |> filter(!.data$valid_feature) |> pull(.data$feature_id)
+    cli_alert_info(cli::col_green(
+      "{data@annot_features |> filter(!.data$valid_feature) |> nrow()} features were excluded for downstream processing. Please reprocess data."
+    ))
+    data@features_excluded <- data@annot_features |>
+      filter(!.data$valid_feature) |>
+      pull(.data$feature_id)
   }
 
   data <- link_data_metadata(data)
 
   data
 }
-
-
-

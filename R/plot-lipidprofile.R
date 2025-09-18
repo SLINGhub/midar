@@ -9,6 +9,7 @@ plot_abundanceprofile <- function(data,
                                   include_feature_filter = NA,
                                   exclude_feature_filter = NA,
                                   lipiomics = NA,
+                                  feature_cat_color = NA,
                                   scalef,
                                   xlim = NA,
                                   unit,
@@ -25,8 +26,6 @@ plot_abundanceprofile <- function(data,
   variable_sym = rlang::sym(variable)     
   check_var_in_dataset(data@dataset, variable)  
   
-  if(!(is.numeric(y_min) || is.na(y_min)))
-    cli::cli_abort(cli::col_red("`y_min` must be a numeric value or `NA`."))
 
 
   d_filt <- get_dataset_subset(
@@ -46,7 +45,7 @@ plot_abundanceprofile <- function(data,
     
   if(data@analysis_type == "lipidomics"){
     d_filt <-d_filt |> 
-      mutate(feature_class = factor(feature_class, levels = rev(pkg.env$lipid_class_themes$lipid_class_order))) |> 
+      mutate(feature_class = factor(.data$feature_class, levels = rev(pkg.env$lipid_class_themes$lipid_class_order))) |> 
       arrange(.data$feature_class)
   }
 
@@ -64,7 +63,7 @@ plot_abundanceprofile <- function(data,
   if(!is.na(exclude_classes)){
     d_filt <- d_filt |>
       filter(
-        !(class_index %in% exclude_classes
+        !(.data$class_index %in% exclude_classes
         )
       )
   }
@@ -83,9 +82,9 @@ plot_abundanceprofile <- function(data,
   d_sum <- d_filt |>
     group_by(.data$analysis_id, .data$feature_class_index, .data$feature_class) |>
     summarise(
-      abundance_sum = sum(!!variable_sym,, na.rm = T)
+      abundance_sum = sum(!!variable_sym, na.rm = T)
     ) |>
-    group_by(class_name) |>
+    group_by(.data$class_name) |>
     summarise(
       abundance_sum_mean = mean(.data$abundance_sum, na.rm = TRUE),
       CV = sd(.data$abundance_sum, na.rm = TRUE) / .data$abundance_sum_mean * 100
@@ -121,7 +120,7 @@ plot_abundanceprofile <- function(data,
       limits = c(10^xlim[1], 10^xlim[2]),
       breaks = breaks,
       minor_breaks = minor_breaks,
-      labels = trans_format("log10", math_format(10^.x))
+      labels = scales::trans_format("log10", function(x) scales::math_format()(log10(x)))
     ) +
     ggplot2::annotation_logticks(
       base = 10,
@@ -135,12 +134,12 @@ plot_abundanceprofile <- function(data,
     geom_rect(
       data = d_class,
       aes(
-        xmin = abundance_min * 0.8,
-        xmax = abundance_max * 1.2,
-        ymin = as.numeric(as.character(feature_class_index)) - 0.4,
-        ymax = as.numeric(as.character(feature_class_index)) + 0.4,
-        group = feature_class,
-        fill = feature_class
+        xmin = .data$abundance_min * 0.8,
+        xmax = .data$abundance_max * 1.2,
+        ymin = as.numeric(as.character(.data$feature_class_index)) - 0.4,
+        ymax = as.numeric(as.character(.data$feature_class_index)) + 0.4,
+        group = .data$feature_class,
+        fill = .data$feature_class
       ),
       inherit.aes = FALSE,
       show.legend = FALSE,
@@ -153,10 +152,10 @@ plot_abundanceprofile <- function(data,
     #                  inherit.aes = FALSE, show.legend = F, pattern = "gradient",  pattern_orientation = "horizontal", pattern_density = .3, colour = NA) +
     geom_segment(
       aes(
-        x = conc_mean,
-        y = as.numeric(as.character(feature_class_index)) - 0.3,
-        xend = conc_mean,
-        yend = as.numeric(as.character(feature_class_index)) + 0.3
+        x = .data$conc_mean,
+        y = as.numeric(as.character(.data$feature_class_index)) - 0.3,
+        xend = .data$conc_mean,
+        yend = as.numeric(as.character(.data$feature_class_index)) + 0.3
       ),
       color = "black",
       size = 0.25,
@@ -167,9 +166,9 @@ plot_abundanceprofile <- function(data,
     geom_point(
       data = d_class,
       aes(
-        x = conc_sum_mean,
-        y = as.numeric(as.character(class_index)),
-        color = feature_class
+        x = .data$conc_sum_mean,
+        y = as.numeric(as.character(.data$class_index)),
+        color = .data$feature_class
       ),
       size = 1.3,
       shape = 23,

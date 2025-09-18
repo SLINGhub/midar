@@ -15,7 +15,6 @@
 #' @export
 
 normalize_by_istd <- function(data = NULL, ignore_missing_annotation = FALSE) {
-
   check_data(data)
 
   if (nrow(data@annot_features) < 1) cli::cli_abort("No feature metadata available. Please add matching feature metadata.")
@@ -72,6 +71,7 @@ normalize_by_istd <- function(data = NULL, ignore_missing_annotation = FALSE) {
     dplyr::ungroup()
 
   # Add normalized intensities to dataset table
+
   data@dataset <- data@dataset |>
     dplyr::inner_join(d_temp |> dplyr::select("analysis_id", "feature_id", "feature_norm_intensity"), by = c("analysis_id", "feature_id"))
 

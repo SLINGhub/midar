@@ -353,30 +353,7 @@ desaturate_colors <- function(colors, amount = 0.5) {
   })
 }
 
-# find closest available number in a vector
-find_closest <- function(x, available_numbers, method = "absolute") {
-    method <- match.arg(method, c("absolute", "lower", "higher"))
-    
-    switch(method,
-        "absolute" = {
-            available_numbers[which.min(abs(available_numbers - x))]
-        },
-        "lower" = {
-            valid_nums <- available_numbers[available_numbers <= x]
-            if(length(valid_nums) == 0) {
-                return(min(available_numbers))
-            }
-            max(valid_nums)
-        },
-        "higher" = {
-            valid_nums <- available_numbers[available_numbers >= x]
-            if(length(valid_nums) == 0) {
-                return(max(available_numbers))
-            }
-            min(valid_nums)
-        }
-    )
-}
+
 
 
 #
