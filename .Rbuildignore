@@ -15,3 +15,15 @@ plot-methods.R
 .covrignore
 ^doc$
 ^Meta$
+^\.git$
+^renv$
+^renv\.lock$
+^_targets$
+^node_modules$
+^_book$
+^_site$
+^dist$
+^build$
+^results$
+^outputs$
+^\.DS_Store$
