@@ -48,7 +48,6 @@
 
 plot_qc_interference <- function(data,
                                   qc_types = c("SPL", "TQC", "PBLK", "BQC"),
-                                  batchwise_normalization = TRUE,
                                   include_qualifier = FALSE,
                                   include_istd = TRUE,
                                   include_feature_filter = NA,
@@ -94,13 +93,12 @@ plot_qc_interference <- function(data,
 
   df <- d_filt |>
     dplyr::select("feature_id", "qc_type", "batch_id", "is_istd", "interference_corrected", "feature_intensity", "feature_intensity_orig") |> 
-    filter(interference_corrected) |> 
-    mutate(perc_change = (feature_intensity / feature_intensity_orig)  * 100) 
+    filter(.data$interference_corrected) |> 
+    mutate(perc_change = (.data$feature_intensity / .data$feature_intensity_orig)  * 100) 
 
   df$qc_type <- factor(df$qc_type, levels = c("PBLK", "TQC", "BQC", "LQC","MQC","HQC", "SPL", "NIST", "LTR"))
 
 
-  #grp <- if(batchwise_normalization) c("feature_id", "batch_id") else "feature_id"
   df_std <- df 
 
   ggplot2::ggplot(df_std, ggplot2::aes(
