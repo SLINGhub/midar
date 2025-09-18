@@ -19,7 +19,7 @@
 #' @return MidarExperiment object
 #' @export
 
-detect_outlier <- function(
+detect_outlier_pca <- function(
   data = NULL,
   variable,
   filter_data,
