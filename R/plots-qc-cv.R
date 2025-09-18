@@ -8,7 +8,7 @@
 #' * Difference plot: (CV after - CV before) vs mean CV
 #' * Ratio plot: log2 of (CV after / CV before) vs mean CV
 #'
-#' Features can be grouped and visualized by their fature class using facets. 
+#' Features can be grouped and visualized by their fature class using facets.
 #'
 #' The resulting visualization helps assess whether normalization improved measurement
 #' precision across different features and sample/QC types.
@@ -18,7 +18,7 @@
 #'   table to be used for the x-axis (before normalization).
 #' @param after_norm_var A string specifying the variable from the QC metrics
 #'   table to be used for the y-axis (after normalization).
-#' @param plot_type A character string specifying the type of plot to generate. 
+#' @param plot_type A character string specifying the type of plot to generate.
 #' Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the before and after normalization CV values
 #' as a scatter plot, "diff" plots the difference between the two CV values against the average CV, and "ratio" plots the log2 ratio of the two CV values against the average CV.
 #' @param qc_types A character vector specifying the QC types to plot. It
@@ -78,78 +78,106 @@
 #' )
 #'
 #' @export
-plot_normalization_qc <- function(data = NULL,
-                                  before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
-                                  after_norm_var = c("norm_intensity", "conc", "conc_raw"),
-                                  plot_type = c("scatter", "diff", "ratio"),
-                                  qc_types,
-                                  facet_by_class = FALSE,
-                                  filter_data = FALSE,
-                                  include_qualifier = FALSE,
-                                  cv_threshold_value = 25,
-                                  xlim = c(0, NA),
-                                  ylim = c(0, NA),
-                                  cols_page = 5,
-                                  point_size = 1,
-                                  point_alpha = 0.5,
-                                  font_base_size = 8) {
-
+plot_normalization_qc <- function(
+  data = NULL,
+  before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
+  after_norm_var = c("norm_intensity", "conc", "conc_raw"),
+  plot_type = c("scatter", "diff", "ratio"),
+  qc_types,
+  facet_by_class = FALSE,
+  filter_data = FALSE,
+  include_qualifier = FALSE,
+  cv_threshold_value = 25,
+  xlim = c(0, NA),
+  ylim = c(0, NA),
+  cols_page = 5,
+  point_size = 1,
+  point_alpha = 0.5,
+  font_base_size = 8
+) {
   check_data(data)
 
   # Match and clean variable names
   before_norm_var <- str_remove(before_norm_var, "feature_")
-  rlang::arg_match(before_norm_var, c("intensity", "norm_intensity", "conc_raw"))
+  rlang::arg_match(
+    before_norm_var,
+    c("intensity", "norm_intensity", "conc_raw")
+  )
 
   after_norm_var <- str_remove(after_norm_var, "feature_")
   rlang::arg_match(after_norm_var, c("norm_intensity", "conc", "conc_raw"))
-  
+
   rlang::arg_match(plot_type, c("scatter", "diff", "ratio"))
 
   # Match qc_type
   #rlang::arg_match(qc_type, c("SPL", "BQC", "TQC", "NIST", "LTR", "PQC", "SST", "RQC"))
 
-
-  if(all(is.na(qc_types))){
-    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "TQC", "HQC", "MQC", "LQC", "NIST", "LTR", "SBLK", "PBLK", "IBLK", "QC"))
+  if (all(is.na(qc_types))) {
+    qc_types <- intersect(
+      data$dataset$qc_type,
+      c(
+        "SPL",
+        "TQC",
+        "BQC",
+        "TQC",
+        "HQC",
+        "MQC",
+        "LQC",
+        "NIST",
+        "LTR",
+        "SBLK",
+        "PBLK",
+        "IBLK",
+        "QC"
+      )
+    )
   }
 
   if (!all(qc_types %in% unique(data$dataset$qc_type))) {
-    cli::cli_abort(col_red("One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."))
+    cli::cli_abort(col_red(
+      "One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."
+    ))
   }
 
   start_regex <- paste(c(before_norm_var, after_norm_var), collapse = "|")
   middle_string <- "_cv_"
   end_regex <- paste(qc_types, collapse = "|")
 
-
- #col_pattern <- paste0("^(", start_regex, ")", middle_string, "(", end_regex, ")$")
-
-
+  #col_pattern <- paste0("^(", start_regex, ")", middle_string, "(", end_regex, ")$")
 
   # Generate variable names for CV metrics
   x_variable <- stringr::str_c(before_norm_var, "_cv")
   y_variable <- stringr::str_c(after_norm_var, "_cv")
 
- if (x_variable == y_variable) {
-  cli::cli_abort(col_red("`before_norm_var` and `after_norm_var` cannot be the same."))
- }
+  if (x_variable == y_variable) {
+    cli::cli_abort(col_red(
+      "`before_norm_var` and `after_norm_var` cannot be the same."
+    ))
+  }
 
   # Check if QC metrics table is available
   if (nrow(data@metrics_qc) == 0) {
-    cli::cli_abort(col_red("No QC metrics available yet. Please run `calc_qc_metrics()`, or apply QC filters first."))
+    cli::cli_abort(col_red(
+      "No QC metrics available yet. Please run `calc_qc_metrics()`, or apply QC filters first."
+    ))
   }
 
-  if(!data@is_istd_normalized) {
-    cli::cli_abort(col_red("Data has not yet been normalized. Please run `normalize_by_istd()` first."))
+  if (!data@is_istd_normalized) {
+    cli::cli_abort(col_red(
+      "Data has not yet been normalized. Please run `normalize_by_istd()` first."
+    ))
   } else {
-    if(!data@is_quantitated & after_norm_var == "conc") {
-      cli::cli_abort(col_red("Data has not yet been quantitated. Please run one of the`quantitate_...()` functions first."))
+    if (!data@is_quantitated & after_norm_var == "conc") {
+      cli::cli_abort(col_red(
+        "Data has not yet been quantitated. Please run one of the`quantitate_...()` functions first."
+      ))
     }
   }
 
-   # Call plot_qcmetrics_comparison to generate the plot
+  # Call plot_qcmetrics_comparison to generate the plot
   plot_qcmetrics_comparison(
-    data = data,plot_type = plot_type,
+    data = data,
+    plot_type = plot_type,
     facet_type = "wrap",
     filter_data = filter_data,
     facet_by_class = facet_by_class,
@@ -174,7 +202,7 @@ plot_normalization_qc <- function(data = NULL,
 #' This function generates scatter plots comparing two QC metrics variables
 #' across feature classes. A list of available QC metrics is available from the
 #' [calc_qc_metrics()] documentation.
-#' 
+#'
 #' The comparison is visualized through one of three plot types:
 #' * Scatter plot: Values of `y_variable` vs `x_variable`
 #' * Difference plot: (`y_variable` - `x_variable``) vs mean of both values
@@ -182,7 +210,7 @@ plot_normalization_qc <- function(data = NULL,
 #'
 #'
 #' @param data A `MidarExperiment` object containing pre-calculated QC metrics.
-#' @param plot_type A character string specifying the type of plot to generate. 
+#' @param plot_type A character string specifying the type of plot to generate.
 #' Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
 #' as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.
 #' @param facet_type A character string specifying the type of faceting to apply. "grid" creates a grid of facets with shared axes, while "wrap" creates a wrapped layout of facets, each with its own axes. Default is "wrap".
@@ -190,7 +218,7 @@ plot_normalization_qc <- function(data = NULL,
 #'   x-axis.
 #' @param y_variable The name of the QC metric variable to be plotted on the
 #'   y-axis.
-#' @param qc_types A character vector specifying the QC types to plot. 
+#' @param qc_types A character vector specifying the QC types to plot.
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
 #' @param filter_data Logical; whether to use all data (default) or only
@@ -201,7 +229,7 @@ plot_normalization_qc <- function(data = NULL,
 #'   identical values in both compared variables (default is `FALSE`).
 #' @param threshold_value Numeric; threshold value to be shown as dashed lines
 #'   from both axes on the plot (default is `NA`).
-#' @param log_scale Logical, whether to use a log10 scale the axes. 
+#' @param log_scale Logical, whether to use a log10 scale the axes.
 #' @param xlim Numeric vector of length 2 for x-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param ylim Numeric vector of length 2 for y-axis limits. Use `NA` for
@@ -226,37 +254,38 @@ plot_normalization_qc <- function(data = NULL,
 #' [calc_qc_metrics()], [filter_features_qc()], [plot_normalization_qc()], [normalize_by_istd()]
 #'
 #' @export
-plot_qcmetrics_comparison <- function(data = NULL,
-                                      plot_type = c("scatter", "diff", "ratio"),
-                                      facet_type = c("grid", "wrap"),
-                                      x_variable,
-                                      y_variable,
-                                      qc_types = NA,
-                                      facet_by_class = FALSE,
-                                      filter_data = FALSE,
-                                      include_qualifier = TRUE,
-                                      equality_line = FALSE,
-                                      threshold_value = NA,
-                                      log_scale = FALSE,
-                                      xlim = c(0, NA),
-                                      ylim = c(0, NA),
-                                      cols_page = 5,
-                                      point_size = 1,
-                                      point_alpha = 0.5,
-                                      font_base_size = 8) {
-
-   
+plot_qcmetrics_comparison <- function(
+  data = NULL,
+  plot_type = c("scatter", "diff", "ratio"),
+  facet_type = c("grid", "wrap"),
+  x_variable,
+  y_variable,
+  qc_types = NA,
+  facet_by_class = FALSE,
+  filter_data = FALSE,
+  include_qualifier = TRUE,
+  equality_line = FALSE,
+  threshold_value = NA,
+  log_scale = FALSE,
+  xlim = c(0, NA),
+  ylim = c(0, NA),
+  cols_page = 5,
+  point_size = 1,
+  point_alpha = 0.5,
+  font_base_size = 8
+) {
   # Check if data is provided and valid
   check_data(data)
 
-rlang::arg_match(plot_type, c("scatter", "diff", "ratio"))
-rlang::arg_match(facet_type, c("grid", "wrap"))
-
+  rlang::arg_match(plot_type, c("scatter", "diff", "ratio"))
+  rlang::arg_match(facet_type, c("grid", "wrap"))
 
   # Check if QC metrics table is available
   if (nrow(data@metrics_qc) == 0) {
-    cli::cli_abort(col_red("No QC metrics available yet. Please run
-                           `calc_qc_metrics()`, or apply QC filters first."))
+    cli::cli_abort(col_red(
+      "No QC metrics available yet. Please run
+                           `calc_qc_metrics()`, or apply QC filters first."
+    ))
   }
 
   # if(!all(c(x_variable, y_variable) %in% colnames(data@metrics_qc))) {
@@ -264,7 +293,6 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
   #                          and `y_variable`) are not present in the QC metrics
   #                          table. Please verify the help page"))
   # }
-
 
   d_qc <- data@metrics_qc
 
@@ -274,40 +302,42 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
   }
   col_pattern <- paste0(x_variable, "|", y_variable)
   # Filter data based on valid features
- 
-  d_qc <- d_qc|>
+
+  d_qc <- d_qc |>
     filter(.data$valid_feature) |>
     select("feature_id", "feature_class", dplyr::matches(col_pattern))
-
-
 
   var_match <- str_remove(x_variable, "_(TQC|BQC|SPL)$") ==
     str_remove(y_variable, "_(TQC|BQC|SPL)$")
 
   if (!var_match) {
     d_qc <- d_qc |>
-        tidyr::pivot_longer(
-          cols = dplyr::matches(col_pattern),
-          names_to = c(".value", "qc_type"),
-          names_pattern = "^(.*)_(.*)$"
-        )
+      tidyr::pivot_longer(
+        cols = dplyr::matches(col_pattern),
+        names_to = c(".value", "qc_type"),
+        names_pattern = "^(.*)_(.*)$"
+      )
   } else {
     d_qc$qc_type <- "SPL"
   }
 
   d_qc <- d_qc |>
     mutate(across(c(!!x_variable, !!y_variable), ~ ifelse(.x == 0, NA, .x))) |>
-    drop_na() |> 
+    drop_na() |>
     filter(.data$qc_type %in% qc_types)
 
-  if(plot_type == "diff") {
+  if (plot_type == "diff") {
     d_qc <- d_qc |>
-      mutate(y_values = (!!rlang::sym(y_variable) - !!rlang::sym(x_variable)),
-             x_values = (!!rlang::sym(x_variable) + !!rlang::sym(y_variable)) /2)
-  } else if(plot_type == "ratio") {
+      mutate(
+        y_values = (!!rlang::sym(y_variable) - !!rlang::sym(x_variable)),
+        x_values = (!!rlang::sym(x_variable) + !!rlang::sym(y_variable)) / 2
+      )
+  } else if (plot_type == "ratio") {
     d_qc <- d_qc |>
-      mutate(y_values = log2(!!rlang::sym(y_variable) / !!rlang::sym(x_variable)),
-             x_values = (!!rlang::sym(x_variable) + !!rlang::sym(y_variable)) /2)
+      mutate(
+        y_values = log2(!!rlang::sym(y_variable) / !!rlang::sym(x_variable)),
+        x_values = (!!rlang::sym(x_variable) + !!rlang::sym(y_variable)) / 2
+      )
   }
 
   # Apply additional QC filtering if requested
@@ -315,10 +345,11 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
     if (data@is_filtered) {
       d_qc <- d_qc |> filter(.data$all_filter_pass)
     } else {
-      cli_abort(cli::col_red("Data has not yet been QC-filtered. Apply filter, or set `filter_data = FALSE`."))
+      cli_abort(cli::col_red(
+        "Data has not yet been QC-filtered. Apply filter, or set `filter_data = FALSE`."
+      ))
     }
   }
-
 
   x_label <- case_when(
     plot_type == "scatter" ~ paste("QC metric:", x_variable),
@@ -333,41 +364,67 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
   )
 
   # Check if feature_class exists and is valid
-  if (facet_by_class && (!"feature_class" %in% names(d_qc) || all(is.na(d_qc$feature_class)))) {
-    cli::cli_abort(col_red("`feature_class` to be defined in the metadata. Please ammend metadata or set `facet_by_class = FALSE`."))
+  if (
+    facet_by_class &&
+      (!"feature_class" %in% names(d_qc) || all(is.na(d_qc$feature_class)))
+  ) {
+    cli::cli_abort(col_red(
+      "`feature_class` to be defined in the metadata. Please ammend metadata or set `facet_by_class = FALSE`."
+    ))
   }
-
-
 
   if (plot_type == "scatter") {
-    g <- ggplot(data = d_qc, aes(x = !!rlang::sym(x_variable),
-                                 y = !!rlang::sym(y_variable)),
-                                 color = .data$qc_type,
-                                 fill = .data$qc_type,
-                                 shape = .data$qc_type)
-  } else  {
-    g <- ggplot(data = d_qc, aes(x = .data$x_values,
-                                 y = .data$y_values,
-                                color = .data$qc_type,
-                                fill = .data$qc_type,
-                                shape = .data$qc_type)) +
-        geom_hline(yintercept = 0, linetype = "dashed", color = "red")
+    g <- ggplot(
+      data = d_qc,
+      aes(x = !!rlang::sym(x_variable), y = !!rlang::sym(y_variable)),
+      color = .data$qc_type,
+      fill = .data$qc_type,
+      shape = .data$qc_type
+    )
+  } else {
+    g <- ggplot(
+      data = d_qc,
+      aes(
+        x = .data$x_values,
+        y = .data$y_values,
+        color = .data$qc_type,
+        fill = .data$qc_type,
+        shape = .data$qc_type
+      )
+    ) +
+      geom_hline(yintercept = 0, linetype = "dashed", color = "red")
   }
- 
+
   # Apply faceting if requested
   if (facet_by_class) {
-    if(facet_type == "wrap") {
-      if (is.na(ylim[1])) scalemode <- "free_y" else scalemode <- "fixed"
-      g <- g + facet_wrap( vars(.data$feature_class), scales = scalemode, ncol = cols_page )
+    if (facet_type == "wrap") {
+      if (is.na(ylim[1])) {
+        scalemode <- "free_y"
+      } else {
+        scalemode <- "fixed"
+      }
+      g <- g +
+        facet_wrap(
+          vars(.data$feature_class),
+          scales = scalemode,
+          ncol = cols_page
+        )
     } else if (facet_type == "grid") {
-      g <- g + facet_wrap(vars(.data$feature_class), scales = "free", ncol  = cols_page)
+      g <- g +
+        facet_wrap(vars(.data$feature_class), scales = "free", ncol = cols_page)
     } else {
       cli::cli_abort(col_red("Invalid `facet_type`. Use 'stacked' or 'grid'."))
     }
   }
 
   # Plot points
-  g <- g + geom_point(size = point_size, alpha = point_alpha, stroke = 0.3, na.rm = TRUE)
+  g <- g +
+    geom_point(
+      size = point_size,
+      alpha = point_alpha,
+      stroke = 0.3,
+      na.rm = TRUE
+    )
 
   # Plot equality line if specified
   if (equality_line && plot_type == "scatter") {
@@ -375,57 +432,93 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
     # used for hidden points that ensure both axis have the same scale
     d_qc <- d_qc |>
       group_by(.data$feature_class) |>
-      mutate(xy_max = max(!!rlang::sym(x_variable), !!rlang::sym(y_variable), na.rm = TRUE)) |>
+      mutate(
+        xy_max = max(
+          !!rlang::sym(x_variable),
+          !!rlang::sym(y_variable),
+          na.rm = TRUE
+        )
+      ) |>
       ungroup()
-    g <- g + geom_abline(intercept = 0, slope = 1, linewidth = 0.3, color = "orange")
+    g <- g +
+      geom_abline(intercept = 0, slope = 1, linewidth = 0.3, color = "orange")
   }
 
   # Add threshold lines if specified
   if (!is.na(threshold_value)) {
     g <- g +
-      geom_hline(yintercept = threshold_value, linetype = "dashed", color = "darkgreen") +
-      geom_vline(xintercept = threshold_value, linetype = "dashed", color = "darkgreen")
+      geom_hline(
+        yintercept = threshold_value,
+        linetype = "dashed",
+        color = "darkgreen"
+      ) +
+      geom_vline(
+        xintercept = threshold_value,
+        linetype = "dashed",
+        color = "darkgreen"
+      )
   }
 
   # Set axis limits
   g <- g +
 
-    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
-    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
-    ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
+    ggplot2::scale_color_manual(
+      values = pkg.env$qc_type_annotation$qc_type_col,
+      drop = TRUE
+    ) +
+    ggplot2::scale_fill_manual(
+      values = pkg.env$qc_type_annotation$qc_type_fillcol,
+      drop = TRUE
+    ) +
+    ggplot2::scale_shape_manual(
+      values = pkg.env$qc_type_annotation$qc_type_shape,
+      drop = TRUE
+    )
 
   if (log_scale) {
     g <- g +
-      ggplot2::scale_x_log10(#labels = scientific_format_end,
-                             #limits = c(0.1, NA),
-                             name = x_label,
-                              limits = xlim,
-                             expand = ggplot2::expansion(mult = c(0, 0.02))) +
-      ggplot2::scale_y_log10(#labels = scientific_format_end,
-                              limits = ylim,
-                              name = y_label,
-                             expand = ggplot2::expansion(mult = c(0, 0.02)))
+      ggplot2::scale_x_log10(
+        #labels = scientific_format_end,
+        #limits = c(0.1, NA),
+        name = x_label,
+        limits = xlim,
+        expand = ggplot2::expansion(mult = c(0, 0.02))
+      ) +
+      ggplot2::scale_y_log10(
+        #labels = scientific_format_end,
+        limits = ylim,
+        name = y_label,
+        expand = ggplot2::expansion(mult = c(0, 0.02))
+      )
   } else {
     g <- g +
-      ggplot2::scale_x_continuous(#labels = scientific_format_end,
-                                  name = x_label,
-                                  limits = xlim,
-                                  expand = ggplot2::expansion(mult = c(0, 0.02))) +
-      ggplot2::scale_y_continuous(#labels = scientific_format_end,
-                                  limits = ylim,
-                                  name = y_label,
-                                  expand = ggplot2::expansion(mult = c(0, 0.02)))
+      ggplot2::scale_x_continuous(
+        #labels = scientific_format_end,
+        name = x_label,
+        limits = xlim,
+        expand = ggplot2::expansion(mult = c(0, 0.02))
+      ) +
+      ggplot2::scale_y_continuous(
+        #labels = scientific_format_end,
+        limits = ylim,
+        name = y_label,
+        expand = ggplot2::expansion(mult = c(0, 0.02))
+      )
   }
 
   # Customize plot theme
-  g <- g + theme_bw(base_size = font_base_size) +
+  g <- g +
+    theme_bw(base_size = font_base_size) +
     theme(
       plot.title = element_text(size = font_base_size, face = "bold"),
       strip.text = ggplot2::element_text(size = font_base_size, face = "bold"),
       axis.text = element_text(size = font_base_size),
       axis.title = element_text(size = font_base_size, face = "bold"),
       panel.grid = element_line(linewidth = 0.001),
-      strip.background = ggplot2::element_rect(linewidth = 0.0001, fill = "#00283d"),
+      strip.background = ggplot2::element_rect(
+        linewidth = 0.0001,
+        fill = "#00283d"
+      ),
       strip.text.x = ggplot2::element_text(color = "white"),
       #strip.switch.pad.wrap = ggplot2::unit(1, "mm"),
       panel.border = element_rect(linewidth = 0.5, color = "grey40"),
@@ -434,4 +527,3 @@ rlang::arg_match(facet_type, c("grid", "wrap"))
 
   return(g)
 }
-
