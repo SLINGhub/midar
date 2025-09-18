@@ -37,6 +37,7 @@ Imports:
     ggplot2 (>= 3.5.0)
 Suggests: 
     enviPat,
+    qpdf,
     ggvenn,
     patchwork,
     ggbeeswarm,
@@ -57,7 +58,8 @@ Suggests:
     bibtex,
     here,
     testthat (>= 3.0.0),
-    vdiffr
+    vdiffr,
+    mirai
 VignetteBuilder: 
     knitr
 biocViews:
@@ -83,6 +85,7 @@ Collate:
     'data-import.R'
     'data-managment.R'
     'data-outlier.R'
+    'data-summarize.R'
     'datasets.R'
     'functions-chem.R'
     'functions-math.R'
@@ -90,13 +93,16 @@ Collate:
     'lipidomics.R'
     'metadata-import.R'
     'midar-package.R'
+    'plot-lipidprofile.R'
     'plot-qc-correlations.R'
-    'plot_qc_matrixeffects.R'
+    'plot-qc-matrixeffects.R'
+    'plot-runscatter.R'
     'plots-calibcurves.R'
     'plots-eda.R'
     'plots-qc-cv.R'
     'plots-qc-filtering.R'
     'plots-qc-identification.R'
+    'plots-qc-interference.R'
     'plots-qc-pca.R'
     'plots-qc-responsecurves.R'
     'plots-qc-runorder.R'
