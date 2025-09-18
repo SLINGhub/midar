@@ -212,7 +212,7 @@ plot_qc_summary_overall <- function(data = NULL,
         label = .data$count_pass,
         hjust = ifelse(.data$count_pass < max(.data$count_pass) / 1.5, -2, 2), # <- Here lies the magic
       ),
-      size = 2
+      size = font_base_size/ 3.5,
     ) +
     labs(x = "", y= "Number of features") +
   # facet_wrap(~Tissue) +
@@ -249,8 +249,8 @@ plot_qc_summary_overall <- function(data = NULL,
       fill_color = c("#d9d5b6", "#F44336", "#abdeed"),
       fill_alpha = 0.5,
       stroke_size = 0.0,
-      text_size = 2,
-      set_name_size = 2
+      text_size = font_base_size/3.5,
+      set_name_size = font_base_size/3.5
     ) # + ggplot2::coord_cartesian(clip="off")
 
 
