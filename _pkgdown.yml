@@ -76,6 +76,7 @@ reference:
   - $,MidarExperiment-method
   - set_analysis_order
   - get_batch_boundaries
+  - data_sum_features
   - exclude_analyses
   - exclude_features
   - get_analyticaldata
@@ -163,7 +164,7 @@ reference:
   contents:
   - calc_qc_metrics
   - filter_features_qc
-  - detect_outlier
+  - detect_outlier_pca
   - plot_qc_summary_byclass
   - plot_qc_summary_overall
 - title: Quality Control Plots
@@ -180,6 +181,7 @@ reference:
   - plot_qc_matrixeffects
   - plot_normalization_qc
   - plot_qcmetrics_comparison
+  - plot_qc_interferences
 - title: Response Curves
   description: |
     Functions to calculate and visualize response curves
@@ -218,5 +220,8 @@ reference:
   - fun_cspline
   - fun_gam_smooth
   - get_mad_tails
+  - get_iqr_tails
+  - get_outlier_bounds
   - order_chained_columns_tbl
+
 
