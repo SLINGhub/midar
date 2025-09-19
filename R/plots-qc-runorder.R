@@ -856,12 +856,17 @@ plot_rla_boxplot <- function(
 
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
 
-  if (show_plot) {
-    print(p)
-  }
-
-  list(
+  res <-   list(
     outliers = if (is.null(d_outliers)) NULL else d_outliers,
     plot = p
   )
+
+  if (show_plot) {
+    print(p)
+    invisible(res)
+  } else {
+    res
+  }
+
+
 }
