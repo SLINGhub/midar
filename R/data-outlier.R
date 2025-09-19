@@ -23,8 +23,8 @@ detect_outlier_pca <- function(
   data = NULL,
   variable,
   filter_data,
-  qc_types,
   pca_component,
+  qc_types = NA,
   fence_multiplicator,
   summarize_fun = c("pca", "rma"),
   outlier_detection = c("sd", "mad"),
@@ -49,7 +49,16 @@ detect_outlier_pca <- function(
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
 
-  #qc_types <- rlang::arg_match(qc_types, c("BQC", "TQC", "SPL", "LTR", "NIST", "QC"))
+  if(all(is.na(qc_types))){
+    qc_types <- c("BQC", "TQC", "SPL", "LTR", "NIST", "QC")
+  } else{
+    missing_qc_types <- setdiff(qc_types, unique(data@dataset$qc_type))
+
+    if (length(missing_qc_types) > 0) {
+      cli::cli_abort(col_red("Following specified QC types are missing in the dataset: {paste(missing_qc_types, collapse = ", ")}"))
+    }
+  }
+
   summarize_fun <- rlang::arg_match(summarize_fun, c("pca", "rma"))
   outlier_detection <- rlang::arg_match(outlier_detection, c("sd", "mad"))
 
