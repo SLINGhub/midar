@@ -42,7 +42,8 @@
 <url><loc>https://slinghub.github.io/midar/reference/cv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/cv_log.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/data_load_example.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/detect_outlier.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/data_sum_features.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/detect_outlier_pca.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/exclude_analyses.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/exclude_features.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/filter_features_qc.html</loc></url>
@@ -62,7 +63,9 @@
 <url><loc>https://slinghub.github.io/midar/reference/get_feature_correlations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_feature_count.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_featurelist.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/get_iqr_tails.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_mad_tails.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/get_outlier_bounds.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_qc_bias_variability.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_response_curve_stats.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/get_runtime_median.html</loc></url>
@@ -94,6 +97,8 @@
 <url><loc>https://slinghub.github.io/midar/reference/plot_feature_correlations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_normalization_qc.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_pca.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_pca_loading.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_qc_interference.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_matrixeffects.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_summary_byclass.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_summary_overall.html</loc></url>

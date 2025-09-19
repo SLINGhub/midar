@@ -7,10 +7,11 @@
 filter_features_qc(
   data = NULL,
   clear_existing = TRUE,
+  recalc_metrics = FALSE,
   use_batch_medians = FALSE,
   use_robust_cv = FALSE,
-  include_qualifier,
-  include_istd,
+  include_qualifier = FALSE,
+  include_istd = FALSE,
   features.to.keep = NA,
   max.prop.missing.intensity.spl = NA,
   max.prop.missing.normintensity.spl = NA,
@@ -51,6 +52,8 @@ filter_features_qc(
 \item{data}{MidarExperiment object.}
 
 \item{clear_existing}{Logical. If \code{TRUE}, replaces any existing filters; if \code{FALSE}, adds new filters on top of existing ones. Default is \code{TRUE}.}
+
+\item{recalc_metrics}{Logical. If \code{TRUE}, recalculates QC metrics before filtering. Default is \code{FALSE}.}
 
 \item{use_batch_medians}{Logical. If \code{TRUE}, uses batch-wise median QC values for filtering. Default is \code{FALSE}.}
 

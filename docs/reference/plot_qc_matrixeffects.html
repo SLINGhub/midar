@@ -60,7 +60,7 @@ features is 100%. Points are grouped by qc_type and spread using quasirandom jit
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Plot standardized feature intensities grouped by QC type</h1>
-      <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/R/plot_qc_matrixeffects.R" class="external-link"><code>R/plot_qc_matrixeffects.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/R/plot-qc-matrixeffects.R" class="external-link"><code>R/plot-qc-matrixeffects.R</code></a></small>
       <div class="d-none name"><code>plot_qc_matrixeffects.Rd</code></div>
     </div>
 
@@ -76,11 +76,13 @@ features is 100%. Points are grouped by <code>qc_type</code> and spread using qu
 <span>  <span class="va">data</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"intensity"</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"TQC"</span>, <span class="st">"PBLK"</span>, <span class="st">"BQC"</span><span class="op">)</span>,</span>
+<span>  batchwise_normalization <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  only_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_feature_filter <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  exclude_feature_filter <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  min_median_value <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  dodge_width <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>  point_alpha <span class="op">=</span> <span class="fl">0.3</span>,</span>
@@ -112,14 +114,18 @@ of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
 "NIST", "LTR") will be plotted if present in the dataset.</p></dd>
 
 
+<dt id="arg-batchwise-normalization">batchwise_normalization<a class="anchor" aria-label="anchor" href="#arg-batchwise-normalization"></a></dt>
+<dd><p>A logical value indicating whether to normalize the signals by batch instead of globally.</p></dd>
+
+
 <dt id="arg-include-qualifier">include_qualifier<a class="anchor" aria-label="anchor" href="#arg-include-qualifier"></a></dt>
 <dd><p>A logical value indicating whether to include
 qualifier features. Default is <code>TRUE</code>.</p></dd>
 
 
-<dt id="arg-include-istd">include_istd<a class="anchor" aria-label="anchor" href="#arg-include-istd"></a></dt>
-<dd><p>A logical value indicating whether to include internal
-standard (ISTD) features. Default is <code>TRUE</code>.</p></dd>
+<dt id="arg-only-istd">only_istd<a class="anchor" aria-label="anchor" href="#arg-only-istd"></a></dt>
+<dd><p>A logical value indicating whether to include features used as internal
+standards (ISTD).  Default is <code>TRUE</code>. Set to <code>FALSE</code> in combination with feature_filter parameters to show other features.</p></dd>
 
 
 <dt id="arg-include-feature-filter">include_feature_filter<a class="anchor" aria-label="anchor" href="#arg-include-feature-filter"></a></dt>
@@ -146,6 +152,10 @@ PCA analysis. <code>NA</code> (default) means no filtering will be applied. This
 parameter provides an fast way to exclude noisy features from the
 analysis. However, it is recommended to use <code>filter_data</code> with
 <code><a href="filter_features_qc.html">filter_features_qc()</a></code>.</p></dd>
+
+
+<dt id="arg-ylim">ylim<a class="anchor" aria-label="anchor" href="#arg-ylim"></a></dt>
+<dd><p>A numeric vector of length 2 specifying the y-axis limits.</p></dd>
 
 
 <dt id="arg-point-size">point_size<a class="anchor" aria-label="anchor" href="#arg-point-size"></a></dt>
@@ -183,19 +193,6 @@ plot text elements. Default is 8.</p></dd>
     <p>A <code>ggplot</code> object showing the grouped standardized beeswarm plot.</p>
     </div>
 
-    <div class="section level2">
-    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/eclarke/ggbeeswarm" class="external-link">ggbeeswarm</a></span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">example_df</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  feature_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F1"</span>, <span class="st">"F2"</span>, <span class="st">"F3"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  qc_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"QC1"</span>, <span class="st">"QC2"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span>, times <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  intensity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">500</span>, <span class="fl">1500</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">plot_standardized_qc_beeswarm</span><span class="op">(</span><span class="va">example_df</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
-</code></pre></div>
-    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

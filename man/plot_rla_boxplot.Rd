@@ -9,17 +9,23 @@ plot_rla_boxplot(
   rla_type_batch = c("within", "across"),
   variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
     "fwhm", "width"),
-  filter_data = FALSE,
   qc_types = NA,
+  plot_range = NA,
+  rla_limit_to_range = FALSE,
+  remove_gaps = TRUE,
+  filter_data = FALSE,
   include_qualifier = TRUE,
   include_istd = TRUE,
   include_feature_filter = NA,
   exclude_feature_filter = NA,
-  plot_range = NA,
   show_timestamp = FALSE,
   min_feature_intensity = 0,
   y_lim = NA,
-  ignore_outliers = FALSE,
+  outlier_detection = TRUE,
+  outlier_hide = FALSE,
+  outlier_method = "mad",
+  outlier_qctypes = c("SPL", "TQC", "BQC", "LTR", "NIST"),
+  outlier_k = NULL,
   show_batches = TRUE,
   batch_zebra_stripe = FALSE,
   batch_line_color = "#b6f0c5",
@@ -27,7 +33,8 @@ plot_rla_boxplot(
   x_gridlines = FALSE,
   linewidth = 0.2,
   base_font_size = 8,
-  relative_log_abundances = TRUE
+  relative_log_abundances = TRUE,
+  show_plot = TRUE
 )
 }
 \arguments{
@@ -38,9 +45,16 @@ plot_rla_boxplot(
 \item{variable}{Variable to plot, must be one of "intensity", "norm_intensity", "conc", "area", "height", "fwhm", or one of
 "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"}
 
-\item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{filter_features_qc()}.}
-
 \item{qc_types}{QC types to be plotted. Can be a vector of QC types or a regular expression pattern. \code{NA} (default) displays all available QC/Sample types.}
+
+\item{plot_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
+
+\item{rla_limit_to_range}{Logical, whether to limit the RLA values to the specified \code{plot_range}. Default is \code{FALSE}, which means RLA values are calculated for all samples.}
+
+\item{remove_gaps}{Logical, whether to remove gaps in the x-axis, occuring from QC types that were not selected. Default is \code{TRUE}.
+is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
+
+\item{filter_data}{Logical, whether to use QC-filtered data based on criteria set via \code{filter_features_qc()}.}
 
 \item{include_qualifier}{Logical, whether to include qualifier features. Default is \code{TRUE}.}
 
@@ -51,19 +65,26 @@ If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. 
 is supplied, only features with exactly these names are selected (applied individually as OR conditions).}
 
 \item{exclude_feature_filter}{A regex pattern or a vector of feature names to exclude features by feature_id.
-If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied,
-is supplied, only features with exactly these names are excluded (applied individually as OR conditions).}
-
-\item{plot_range}{Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. \code{NA} plots all samples.}
+If \code{NA} or an empty string (\code{""}) is provided, the filter is ignored. When a vector of length > 1 is supplied.}
 
 \item{show_timestamp}{Logical, whether to use the acquisition timestamp as
 the x-axis instead of the run sequence number}
 
 \item{min_feature_intensity}{Numeric, exclude features with overall median signal below this value}
 
-\item{y_lim}{Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is \code{NA}, which uses limits calculated based on \code{ignore_outliers}.}
+\item{y_lim}{Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is \code{NA}, which uses limits calculated based on \code{outlier_hide}.}
 
-\item{ignore_outliers}{Logical, whether to exclude outlier values based on 4x MAD (median absolute deviation) fences}
+\item{outlier_detection}{Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by \code{outlier_method}.}
+
+\item{outlier_hide}{Logical, whether to exclude outlier values from the plot. Default is \code{FALSE}, which means outliers are shown.}
+
+\item{outlier_method}{Character, method used for outlier detection. Default is "mad" (median absolute deviation).
+Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.}
+
+\item{outlier_qctypes}{Character vector, QC types to use for outlier detection. Default is \code{c("SPL", "TQC", "BQC")}.}
+
+\item{outlier_k}{Numeric, multiplier for the outlier detection method. Default is \code{NULL}, which uses the default value for the selected method.
+See get_outlier_bounds() for details. When using the "fold" method, either single numeric value or a vector with two values (lower and upper fences) can be supplied.}
 
 \item{show_batches}{Logical, whether to show batch separators in the plot}
 
@@ -80,9 +101,11 @@ the x-axis instead of the run sequence number}
 \item{base_font_size}{Numeric, base font size for the plot}
 
 \item{relative_log_abundances}{Logical, whether to use relative log abundances (RLA) or just log-transformed values}
+
+\item{show_plot}{Logical, whether to display the plot. Default is \code{TRUE}.}
 }
 \value{
-A ggplot object representing the RLA plot
+A list with the ggplot object representing the RLA plot and a table with detected outliers if \code{outlier_detection = TRUE}.
 }
 \description{
 Relative log abundance (RLA) plots show standardized feature abundances across samples. Standardization is done by removing either the within-batch or across-batch median from each feature

@@ -113,62 +113,6 @@ When saving the MiDAR XLSX report via \code{save_report_xlsx()}, availble unfilt
 will be included by default. To include filtered normalized feature abundances, set \code{filtered_variable = "[VARIABLE]_normalized"}.
 }
 }
-\examples{
-
-dat_file = system.file("extdata", "S1P_MHQuant.csv", package = "midar")
-meta_file = system.file("extdata", "S1P_metadata_tables.xlsx", package = "midar")
-# Load data and metadata
-mexp <- MidarExperiment()
-mexp <- import_data_masshunter(mexp, dat_file, import_metadata = FALSE)
-mexp <- import_metadata_analyses(mexp, path = meta_file, sheet = "Analyses")
-mexp <- import_metadata_features(mexp, path = meta_file, sheet = "Features")
-mexp <- import_metadata_istds(mexp, path = meta_file, sheet = "ISTDs")
-
-# Load known feature concentrations in the reference sample
-mexp <- import_metadata_qcconcentrations(mexp, path = meta_file, sheet = "QCconcentrations")
-mexp <- normalize_by_istd(mexp)
-mexp <- quantify_by_istd(mexp)
-
-# Absolute calibration
-# --------------------
-
-  mexp <- calibrate_by_reference(
-    data = mexp,
-    variable = "conc",
-    reference_sample_id = "SRM1950",
-    absolute_calibration = TRUE,
-    batch_wise = FALSE,
-    summarize_fun = "mean",
-    undefined_conc_action = "original"
-  )
-
-  # Export absolute calibration concentrations
-  save_dataset_csv(mexp, "calibrated.csv", variable = "conc", filter_data = FALSE)
-
-  # Export non-calibrated concentrations
-  save_dataset_csv(mexp, "noncalibrated.csv", variable = "conc_beforecal", filter_data = FALSE)
-
-  # Create XLSX report with calibrated concentrations as filtered dataset
-  save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc")
-
-# Relative calibration
-# --------------------
-
-  mexp <- calibrate_by_reference(
-    data = mexp,
-    variable = "conc",
-    reference_sample_id = "SRM1950",
-    batch_wise = FALSE,
-    absolute_calibration = FALSE
-  )
-
-  # Export SRM1950-normalized concentrations
-  save_dataset_csv(mexp, "normalized.csv", variable = "conc_normalized", filter_data = FALSE)
-
-  # Create XLSX report with SRM1950-normalized concentrations as filtered dataset
-  save_report_xlsx(mexp, "report.xlsx", filtered_variable = "conc_normalized")
-
-}
 \seealso{
 \code{\link[=normalize_by_istd]{normalize_by_istd()}}, \code{\link[=quantify_by_istd]{quantify_by_istd()}}, \code{\link[=quantify_by_calibration]{quantify_by_calibration()}}
 }

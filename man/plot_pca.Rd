@@ -19,6 +19,7 @@ plot_pca(
   exclude_feature_filter = NA,
   min_median_value = NA,
   show_labels = TRUE,
+  labels_column = "analysis_id",
   labels_threshold_mad = 3,
   shared_labeltext_hide = NA,
   label_font_size = 3,
@@ -89,6 +90,9 @@ analysis. However, it is recommended to use \code{filter_data} with
 \item{show_labels}{A logical value indicating whether to show analysis_id
 labels for points outside k * MAD of the selected PCA dimensions. Default
 is \code{TRUE}.}
+
+\item{labels_column}{A character string indicating the column to be use for the point labels. Typically "analysis_id" or "analysis_order".
+Default is "analysis_id".}
 
 \item{labels_threshold_mad}{A numeric value determining the threshold
 for showing labels based on the median absolute deviation (MAD). Default

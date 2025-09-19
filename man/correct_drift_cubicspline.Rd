@@ -38,7 +38,7 @@ correct_drift_cubicspline(
 
 \item{cv}{Ordinary leave-one-out (TRUE) or ‘generalized’ cross-validation (GCV) when FALSE; is used for smoothing parameter computation only when spar is not specified}
 
-\item{spar}{Smoothing parameter for cubic spline smoothing. If not specified or \code{NULL}, the smoothing parameter is computed using the specified cv method. Typically (but not necessarily) in in (0,1].}
+\item{spar}{Smoothing parameter for cubic spline smoothing. If not specified or \code{NULL}, the smoothing parameter is computed using the specified cv method. Typically (but not necessarily)  (0,1].}
 
 \item{lambda}{Regularization parameter for cubic spline smoothing. Default is 0, which means no regularization.}
 

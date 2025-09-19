@@ -187,99 +187,6 @@ will be included by default. To include filtered normalized feature abundances, 
     <div class="dont-index"><p><code><a href="normalize_by_istd.html">normalize_by_istd()</a></code>, <code><a href="quantify_by_istd.html">quantify_by_istd()</a></code>, <code><a href="quantify_by_calibration.html">quantify_by_calibration()</a></code></p></div>
     </div>
 
-    <div class="section level2">
-    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">dat_file</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"S1P_MHQuant.csv"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">meta_file</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"S1P_metadata_tables.xlsx"</span>, package <span class="op">=</span> <span class="st">"midar"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># Load data and metadata</span></span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="MidarExperiment.html">MidarExperiment</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_data_masshunter.html">import_data_masshunter</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="va">dat_file</span>, import_metadata <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Imported 65 analyses with 16 features</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">`feature_area` selected as default feature intensity. Modify with `set_intensity_var()`.</span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_metadata_analyses.html">import_metadata_analyses</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"Analyses"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_metadata_features.html">import_metadata_features</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"Features"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 16 features.</span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_metadata_istds.html">import_metadata_istds</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"ISTDs"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 16 features.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 2 ISTDs.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Load known feature concentrations in the reference sample</span></span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="import_metadata_qcconcentrations.html">import_metadata_qcconcentrations</a></span><span class="op">(</span><span class="va">mexp</span>, path <span class="op">=</span> <span class="va">meta_file</span>, sheet <span class="op">=</span> <span class="st">"QCconcentrations"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Metadata has following warnings and notifications:</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Type Table             Column     Issue                                  Count</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> N    QC concentrations analyte_id Non-ISTD analytes missing from QC con…     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">E = Error, W = Warning, W* = Supressed Warning, N = Note</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="font-style: italic;">--------------------------------------------------------------------------------------------</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Analysis metadata associated with 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Feature metadata associated with 16 features.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Internal Standard metadata associated with 2 ISTDs.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">QC concentration metadata associated with 1 annotated samples and 6 annotated analytes</span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interfering features defined in metadata, but no correction was applied. Use `correct_interferences()` to correct.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">14 features normalized with 2 ISTDs in 65 analyses.</span></span>
-<span class="r-in"><span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">mexp</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">14 feature concentrations calculated based on 2 ISTDs and sample amounts of 65 analyses.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in μmol/L.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Absolute calibration</span></span></span>
-<span class="r-in"><span><span class="co"># --------------------</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu">calibrate_by_reference</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    data <span class="op">=</span> <span class="va">mexp</span>,</span></span>
-<span class="r-in"><span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span></span>
-<span class="r-in"><span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span></span>
-<span class="r-in"><span>    absolute_calibration <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
-<span class="r-in"><span>    batch_wise <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>    summarize_fun <span class="op">=</span> <span class="st">"mean"</span>,</span></span>
-<span class="r-in"><span>    undefined_conc_action <span class="op">=</span> <span class="st">"original"</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">One or more feature concentration are not defined in the reference sample SRM1950. Original values will be returned for these. To change this, modify `undefined_conc_action` argument.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">6 feature concentrations were re-calibrated using the reference sample SRM1950.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in umol/L.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Export absolute calibration concentrations</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"calibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 65 analyses and 7 features have been exported to 'calibrated.csv'.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Export non-calibrated concentrations</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"noncalibrated.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_beforecal"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_beforecal values for 65 analyses and 16 features have been exported to 'noncalibrated.csv'.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Create XLSX report with calibrated concentrations as filtered dataset</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"report.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Saving report to disk - please wait...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report has been saved to 'report.xlsx'.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Relative calibration</span></span></span>
-<span class="r-in"><span><span class="co"># --------------------</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu">calibrate_by_reference</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    data <span class="op">=</span> <span class="va">mexp</span>,</span></span>
-<span class="r-in"><span>    variable <span class="op">=</span> <span class="st">"conc"</span>,</span></span>
-<span class="r-in"><span>    reference_sample_id <span class="op">=</span> <span class="st">"SRM1950"</span>,</span></span>
-<span class="r-in"><span>    batch_wise <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
-<span class="r-in"><span>    absolute_calibration <span class="op">=</span> <span class="cn">FALSE</span></span></span>
-<span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">All features were normalized with reference sample SRM1950 features.</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Unit is: sample [conc] / SRM1950 [conc]</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Export SRM1950-normalized concentrations</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"normalized.csv"</span>, variable <span class="op">=</span> <span class="st">"conc_normalized"</span>, filter_data <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Conc_normalized values for 65 analyses and 16 features have been exported to 'normalized.csv'.</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Create XLSX report with SRM1950-normalized concentrations as filtered dataset</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">mexp</span>, <span class="st">"report.xlsx"</span>, filtered_variable <span class="op">=</span> <span class="st">"conc_normalized"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Saving report to disk - please wait...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report has been saved to 'report.xlsx'.</span></span>
-<span class="r-in"><span></span></span>
-</code></pre></div>
-    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

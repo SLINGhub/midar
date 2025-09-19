@@ -90,6 +90,7 @@ visual elements to enhance the visualization.</p>
 <span>  exclude_feature_filter <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  min_median_value <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  show_labels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  labels_column <span class="op">=</span> <span class="st">"analysis_id"</span>,</span>
 <span>  labels_threshold_mad <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  shared_labeltext_hide <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  label_font_size <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -191,6 +192,11 @@ analysis. However, it is recommended to use <code>filter_data</code> with
 <dd><p>A logical value indicating whether to show analysis_id
 labels for points outside k * MAD of the selected PCA dimensions. Default
 is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-labels-column">labels_column<a class="anchor" aria-label="anchor" href="#arg-labels-column"></a></dt>
+<dd><p>A character string indicating the column to be use for the point labels. Typically "analysis_id" or "analysis_order".
+Default is "analysis_id".</p></dd>
 
 
 <dt id="arg-labels-threshold-mad">labels_threshold_mad<a class="anchor" aria-label="anchor" href="#arg-labels-threshold-mad"></a></dt>

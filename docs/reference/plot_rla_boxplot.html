@@ -74,17 +74,23 @@ RLA plots are useful for visualizing technical effects that impact all features 
 <span>  rla_type_batch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"within"</span>, <span class="st">"across"</span><span class="op">)</span>,</span>
 <span>  variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"intensity"</span>, <span class="st">"norm_intensity"</span>, <span class="st">"conc"</span>, <span class="st">"conc_raw"</span>, <span class="st">"area"</span>, <span class="st">"height"</span>,</span>
 <span>    <span class="st">"fwhm"</span>, <span class="st">"width"</span><span class="op">)</span>,</span>
-<span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  plot_range <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  rla_limit_to_range <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  remove_gaps <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  include_feature_filter <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  exclude_feature_filter <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  plot_range <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  show_timestamp <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  min_feature_intensity <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  y_lim <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  ignore_outliers <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  outlier_detection <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  outlier_hide <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  outlier_method <span class="op">=</span> <span class="st">"mad"</span>,</span>
+<span>  outlier_qctypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span>, <span class="st">"TQC"</span>, <span class="st">"BQC"</span>, <span class="st">"LTR"</span>, <span class="st">"NIST"</span><span class="op">)</span>,</span>
+<span>  outlier_k <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_batches <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  batch_zebra_stripe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  batch_line_color <span class="op">=</span> <span class="st">"#b6f0c5"</span>,</span>
@@ -92,7 +98,8 @@ RLA plots are useful for visualizing technical effects that impact all features 
 <span>  x_gridlines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linewidth <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  base_font_size <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  relative_log_abundances <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  relative_log_abundances <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  show_plot <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,12 +120,25 @@ RLA plots are useful for visualizing technical effects that impact all features 
 "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "conc_raw", "conc_before"</p></dd>
 
 
-<dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>
-<dd><p>Logical, whether to use QC-filtered data based on criteria set via <code><a href="filter_features_qc.html">filter_features_qc()</a></code>.</p></dd>
-
-
 <dt id="arg-qc-types">qc_types<a class="anchor" aria-label="anchor" href="#arg-qc-types"></a></dt>
 <dd><p>QC types to be plotted. Can be a vector of QC types or a regular expression pattern. <code>NA</code> (default) displays all available QC/Sample types.</p></dd>
+
+
+<dt id="arg-plot-range">plot_range<a class="anchor" aria-label="anchor" href="#arg-plot-range"></a></dt>
+<dd><p>Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. <code>NA</code> plots all samples.</p></dd>
+
+
+<dt id="arg-rla-limit-to-range">rla_limit_to_range<a class="anchor" aria-label="anchor" href="#arg-rla-limit-to-range"></a></dt>
+<dd><p>Logical, whether to limit the RLA values to the specified <code>plot_range</code>. Default is <code>FALSE</code>, which means RLA values are calculated for all samples.</p></dd>
+
+
+<dt id="arg-remove-gaps">remove_gaps<a class="anchor" aria-label="anchor" href="#arg-remove-gaps"></a></dt>
+<dd><p>Logical, whether to remove gaps in the x-axis, occuring from QC types that were not selected. Default is <code>TRUE</code>.
+is supplied, only features with exactly these names are excluded (applied individually as OR conditions).</p></dd>
+
+
+<dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>
+<dd><p>Logical, whether to use QC-filtered data based on criteria set via <code><a href="filter_features_qc.html">filter_features_qc()</a></code>.</p></dd>
 
 
 <dt id="arg-include-qualifier">include_qualifier<a class="anchor" aria-label="anchor" href="#arg-include-qualifier"></a></dt>
@@ -137,12 +157,7 @@ is supplied, only features with exactly these names are selected (applied indivi
 
 <dt id="arg-exclude-feature-filter">exclude_feature_filter<a class="anchor" aria-label="anchor" href="#arg-exclude-feature-filter"></a></dt>
 <dd><p>A regex pattern or a vector of feature names to exclude features by feature_id.
-If <code>NA</code> or an empty string (<code>""</code>) is provided, the filter is ignored. When a vector of length &gt; 1 is supplied,
-is supplied, only features with exactly these names are excluded (applied individually as OR conditions).</p></dd>
-
-
-<dt id="arg-plot-range">plot_range<a class="anchor" aria-label="anchor" href="#arg-plot-range"></a></dt>
-<dd><p>Numeric vector of length 2, specifying the start and end indices of the analysis order to be plotted. <code>NA</code> plots all samples.</p></dd>
+If <code>NA</code> or an empty string (<code>""</code>) is provided, the filter is ignored. When a vector of length &gt; 1 is supplied.</p></dd>
 
 
 <dt id="arg-show-timestamp">show_timestamp<a class="anchor" aria-label="anchor" href="#arg-show-timestamp"></a></dt>
@@ -155,11 +170,29 @@ the x-axis instead of the run sequence number</p></dd>
 
 
 <dt id="arg-y-lim">y_lim<a class="anchor" aria-label="anchor" href="#arg-y-lim"></a></dt>
-<dd><p>Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is <code>NA</code>, which uses limits calculated based on <code>ignore_outliers</code>.</p></dd>
+<dd><p>Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is <code>NA</code>, which uses limits calculated based on <code>outlier_hide</code>.</p></dd>
 
 
-<dt id="arg-ignore-outliers">ignore_outliers<a class="anchor" aria-label="anchor" href="#arg-ignore-outliers"></a></dt>
-<dd><p>Logical, whether to exclude outlier values based on 4x MAD (median absolute deviation) fences</p></dd>
+<dt id="arg-outlier-detection">outlier_detection<a class="anchor" aria-label="anchor" href="#arg-outlier-detection"></a></dt>
+<dd><p>Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by <code>outlier_method</code>.</p></dd>
+
+
+<dt id="arg-outlier-hide">outlier_hide<a class="anchor" aria-label="anchor" href="#arg-outlier-hide"></a></dt>
+<dd><p>Logical, whether to exclude outlier values from the plot. Default is <code>FALSE</code>, which means outliers are shown.</p></dd>
+
+
+<dt id="arg-outlier-method">outlier_method<a class="anchor" aria-label="anchor" href="#arg-outlier-method"></a></dt>
+<dd><p>Character, method used for outlier detection. Default is "mad" (median absolute deviation).
+Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.</p></dd>
+
+
+<dt id="arg-outlier-qctypes">outlier_qctypes<a class="anchor" aria-label="anchor" href="#arg-outlier-qctypes"></a></dt>
+<dd><p>Character vector, QC types to use for outlier detection. Default is <code>c("SPL", "TQC", "BQC")</code>.</p></dd>
+
+
+<dt id="arg-outlier-k">outlier_k<a class="anchor" aria-label="anchor" href="#arg-outlier-k"></a></dt>
+<dd><p>Numeric, multiplier for the outlier detection method. Default is <code>NULL</code>, which uses the default value for the selected method.
+See get_outlier_bounds() for details. When using the "fold" method, either single numeric value or a vector with two values (lower and upper fences) can be supplied.</p></dd>
 
 
 <dt id="arg-show-batches">show_batches<a class="anchor" aria-label="anchor" href="#arg-show-batches"></a></dt>
@@ -193,10 +226,14 @@ the x-axis instead of the run sequence number</p></dd>
 <dt id="arg-relative-log-abundances">relative_log_abundances<a class="anchor" aria-label="anchor" href="#arg-relative-log-abundances"></a></dt>
 <dd><p>Logical, whether to use relative log abundances (RLA) or just log-transformed values</p></dd>
 
+
+<dt id="arg-show-plot">show_plot<a class="anchor" aria-label="anchor" href="#arg-show-plot"></a></dt>
+<dd><p>Logical, whether to display the plot. Default is <code>TRUE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A ggplot object representing the RLA plot</p>
+    <p>A list with the ggplot object representing the RLA plot and a table with detected outliers if <code>outlier_detection = TRUE</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
