@@ -226,7 +226,7 @@ get_assert_summary_table <- function(list_of_errors, data=NULL, warn = TRUE, ...
 
   if (is.null(list_of_errors)) return(NULL)
   res <- as_tibble(do.call(rbind, list_of_errors))
- # browser()
+
   res <- res |>
     rowwise() |>
     select("message", "description", "num.violations") |>
@@ -318,7 +318,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
    # Columns with all values =  NA will be ignored
 
   metadata_new <- metadata
-
+   
 # retrieve vom data if available and if not provided as metadata (for single annot adding)
  if(is.null(metadata$annot_analyses)) metadata$annot_analyses <- data@annot_analyses
  if(is.null(metadata$annot_features)) metadata$annot_features <- data@annot_features
@@ -500,7 +500,7 @@ print_assertion_summary <- function(data, metadata_new, data_label, assert_type 
 
 
   metadata
-}
+ }
 
 
  #' @title Add metadata an MidarExperiment object
