@@ -1,8 +1,8 @@
-#' Plot the results of interference correction 
-#'  
-#' This function generates grouped standardized beeswarm plots to visualize the results of interference correction 
-#' across different QC types. 
-#' 
+#' Plot the results of interference correction
+#'
+#' This function generates grouped standardized beeswarm plots to visualize the results of interference correction
+#' across different QC types.
+#'
 #' @param data A MidarExperiment object
 #'
 #' @param qc_types A character vector specifying the QC types to plot. It
@@ -12,7 +12,7 @@
 #' @param include_qualifier A logical value indicating whether to include
 #' qualifier features. Default is `TRUE`.
 #' @param include_istd A logical value indicating whether to include internal
-#' standards (ISTD) features.  Default is `TRUE`. 
+#' standards (ISTD) features.  Default is `TRUE`.
 #' @param include_feature_filter A character or regex pattern used to filter
 #' features by `feature_id`. If `NA` or an empty string (`""`) is provided,
 #' the filter is ignored. When a vector of length > 1 is supplied, only
@@ -46,28 +46,41 @@
 #' @return A `ggplot` object showing the grouped standardized beeswarm plot.
 #' @export
 
-plot_qc_interference <- function(data,
-                                  qc_types = c("SPL", "TQC", "PBLK", "BQC"),
-                                  include_qualifier = FALSE,
-                                  include_istd = TRUE,
-                                  include_feature_filter = NA,
-                                  exclude_feature_filter = NA,
-                                  min_median_value = NA,
-                                  ylim = c(-NA, NA),
-                                  point_size = 0.5,
-                                  dodge_width = 0.6,
-                                  point_alpha = 0.3,
-                                  box_alpha = 0.3,
-                                  box_linewidth = 0.5,
-                                  font_base_size  = 8,
-                                  angle_x = 45) {
-
-
-  if(all(is.na(qc_types))){
-    qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "HQC", "MQC", "LQC", "QC", "NIST", "LTR", "PBLK", "SBLK"))
+plot_qc_interferences <- function(
+  data,
+  qc_types = c("SPL", "TQC", "PBLK", "BQC"),
+  include_qualifier = FALSE,
+  include_istd = TRUE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
+  min_median_value = NA,
+  ylim = c(-NA, NA),
+  point_size = 0.5,
+  dodge_width = 0.6,
+  point_alpha = 0.3,
+  box_alpha = 0.3,
+  box_linewidth = 0.5,
+  font_base_size = 8,
+  angle_x = 45
+) {
+  if (all(is.na(qc_types))) {
+    qc_types <- intersect(
+      data$dataset$qc_type,
+      c(
+        "SPL",
+        "TQC",
+        "BQC",
+        "HQC",
+        "MQC",
+        "LQC",
+        "QC",
+        "NIST",
+        "LTR",
+        "PBLK",
+        "SBLK"
+      )
+    )
   }
-
-
 
   d_filt <- get_dataset_subset(
     data,
@@ -79,34 +92,58 @@ plot_qc_interference <- function(data,
     exclude_feature_filter = exclude_feature_filter
   )
 
-
-  if(!is.na(min_median_value)){
+  if (!is.na(min_median_value)) {
     d_minsignal <- d_filt |>
-      summarise(median_signal = median(.data$feature_intensity, na.rm = TRUE), .by = "feature_id") |>
+      summarise(
+        median_signal = median(.data$feature_intensity, na.rm = TRUE),
+        .by = "feature_id"
+      ) |>
       filter(.data$median_signal >= min_median_value)
-    if(nrow(d_minsignal) == 0)
-      cli_abort(col_red("No features passed the `min_median_value` filter. Please review the filter value, `variable` and data."))
-    else if(nrow(d_minsignal) == 1)      cli_abort(col_red("Only 1 feature passed the `min_median_value` filter. Please review the filter value, `variable`, and data."))
+    if (nrow(d_minsignal) == 0) {
+      cli_abort(col_red(
+        "No features passed the `min_median_value` filter. Please review the filter value, `variable` and data."
+      ))
+    } else if (nrow(d_minsignal) == 1) {
+      cli_abort(col_red(
+        "Only 1 feature passed the `min_median_value` filter. Please review the filter value, `variable`, and data."
+      ))
+    }
 
     d_filt <- d_filt |> semi_join(d_minsignal, by = "feature_id")
   }
 
   df <- d_filt |>
-    dplyr::select("feature_id", "qc_type", "batch_id", "is_istd", "interference_corrected", "feature_intensity", "feature_intensity_orig") |> 
-    filter(.data$interference_corrected) |> 
-    mutate(perc_change = (.data$feature_intensity / .data$feature_intensity_orig)  * 100) 
+    dplyr::select(
+      "feature_id",
+      "qc_type",
+      "batch_id",
+      "is_istd",
+      "interference_corrected",
+      "feature_intensity",
+      "feature_intensity_orig"
+    ) |>
+    filter(.data$interference_corrected) |>
+    mutate(
+      perc_change = (.data$feature_intensity / .data$feature_intensity_orig) *
+        100
+    )
 
-  df$qc_type <- factor(df$qc_type, levels = c("PBLK", "TQC", "BQC", "LQC","MQC","HQC", "SPL", "NIST", "LTR"))
+  df$qc_type <- factor(
+    df$qc_type,
+    levels = c("PBLK", "TQC", "BQC", "LQC", "MQC", "HQC", "SPL", "NIST", "LTR")
+  )
 
+  df_std <- df
 
-  df_std <- df 
-
-  ggplot2::ggplot(df_std, ggplot2::aes(
-    x = .data$feature_id,
-    y = .data$perc_change,
-    color = .data$qc_type,
-    fill = .data$qc_type,
-  )) +
+  ggplot2::ggplot(
+    df_std,
+    ggplot2::aes(
+      x = .data$feature_id,
+      y = .data$perc_change,
+      color = .data$qc_type,
+      fill = .data$qc_type,
+    )
+  ) +
     ggbeeswarm::geom_quasirandom(
       dodge.width = dodge_width,
       alpha = point_alpha,
@@ -120,13 +157,24 @@ plot_qc_interference <- function(data,
       outlier.shape = NA,
       linewidth = box_linewidth,
     ) +
-    ggplot2::geom_hline(yintercept = 100, linewidth = 0.5, color = "grey80", linetype = "dashed") +
+    ggplot2::geom_hline(
+      yintercept = 100,
+      linewidth = 0.5,
+      color = "grey80",
+      linetype = "dashed"
+    ) +
     # ggplot2::labs(
     #   x = NULL,
     #   y = ""
     # ) +
-    ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
-    ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
+    ggplot2::scale_color_manual(
+      values = pkg.env$qc_type_annotation$qc_type_col,
+      drop = TRUE
+    ) +
+    ggplot2::scale_fill_manual(
+      values = pkg.env$qc_type_annotation$qc_type_fillcol,
+      drop = TRUE
+    ) +
     ggplot2::coord_cartesian(ylim = ylim, expand = FALSE) +
     ggplot2::theme_bw(base_size = font_base_size) +
     ylab("Standardized Intensity (% of global mean)") +
@@ -142,11 +190,10 @@ plot_qc_interference <- function(data,
       axis.title = element_text(size = font_base_size * 1, face = "plain"),
       panel.border = element_rect(linewidth = 0.7, color = "grey40"),
       legend.position = "inside",
-      legend.direction = "horizontal",         # vertical layout
-      legend.text = element_text(size = font_base_size*0.8), # text size
-      legend.title = element_text(size = font_base_size*0.8),
-      legend.key.size = unit(font_base_size *0.8, "pt"),   # box size
+      legend.direction = "horizontal", # vertical layout
+      legend.text = element_text(size = font_base_size * 0.8), # text size
+      legend.title = element_text(size = font_base_size * 0.8),
+      legend.key.size = unit(font_base_size * 0.8, "pt"), # box size
       legend.position.inside = c(0.6, 0.1)
     )
-
 }
