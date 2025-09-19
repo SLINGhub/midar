@@ -631,16 +631,16 @@ plot_rla_boxplot <- function(
       )
     }
   }
-
+  #TODO cleanup
   p <- p +
     scale_x_continuous(
       breaks = breaks,
-      labels = labels,
-      limits = if (remove_gaps) {
-        range(d_filt$analysis_order_index)
-      } else {
-        range(d_filt$analysis_order)
-      },
+      labels = if(show_timestamp) labels else breaks, #ToDo
+      # limits = if (remove_gaps) {
+      #   range(d_filt$analysis_order_index)
+      # } else {
+      #   range(d_filt$analysis_order)
+      # },
       expand = c(0.02, 0.02)
     )
 
@@ -661,9 +661,9 @@ plot_rla_boxplot <- function(
         )
       ) |>
       left_join(order_map, by = c("mapped_start" = "analysis_order")) |>
-      rename(id_batch_start_index = .data$analysis_order_index) |>
+      rename(id_batch_start_index = "analysis_order_index") |>
       left_join(order_map, by = c("mapped_end" = "analysis_order")) |>
-      rename(id_batch_end_index = .data$analysis_order_index)
+      rename(id_batch_end_index = "analysis_order_index")
 
     if (!batch_zebra_stripe) {
       if (remove_gaps) {
@@ -750,7 +750,7 @@ plot_rla_boxplot <- function(
       values = pkg.env$qc_type_annotation$qc_type_col
     ) +
     ggplot2::guides(
-      color = ggplot2::guide_legend(name = NULL, override.aes = list(size = 3))
+      color = ggplot2::guide_legend(title = NULL, override.aes = list(size = 3))
     ) +
     theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(variable)))) +
