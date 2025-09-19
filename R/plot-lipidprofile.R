@@ -1,32 +1,47 @@
-
-plot_abundanceprofile <- function(data,
-                                  variable, 
-                                  qc_types,
-                                  exclude_classes = NA,
-                                  filter_data = FALSE,
-                                  include_qualifier = FALSE,
-                                  include_istd = FALSE,
-                                  include_feature_filter = NA,
-                                  exclude_feature_filter = NA,
-                                  lipiomics = NA,
-                                  feature_cat_color = NA,
-                                  scalef,
-                                  xlim = NA,
-                                  unit,
-                                  legend_pos = "right",
-                                  d_QC = NULL) {
-  
-
+plot_abundanceprofile <- function(
+  data,
+  variable,
+  qc_types,
+  exclude_classes = NA,
+  filter_data = FALSE,
+  include_qualifier = FALSE,
+  include_istd = FALSE,
+  include_feature_filter = NA,
+  exclude_feature_filter = NA,
+  lipiomics = NA,
+  feature_cat_color = NA,
+  scalef,
+  xlim = NA,
+  unit,
+  legend_pos = "right",
+  d_QC = NULL
+) {
   # Load required packages  # Match the selected variable with predefined options
   variable <- str_remove(variable, "feature_")
-  rlang::arg_match(variable, c("area", "height", "intensity", "norm_intensity",
-                               "intensity_raw", "intensity_before", "norm_intensity_raw", "norm_intensity_before", "response",
-                               "conc", "conc_raw", "conc_before", "rt", "fwhm", "width", "symmetry"))
+  rlang::arg_match(
+    variable,
+    c(
+      "area",
+      "height",
+      "intensity",
+      "norm_intensity",
+      "intensity_raw",
+      "intensity_before",
+      "norm_intensity_raw",
+      "norm_intensity_before",
+      "response",
+      "conc",
+      "conc_raw",
+      "conc_before",
+      "rt",
+      "fwhm",
+      "width",
+      "symmetry"
+    )
+  )
   variable <- stringr::str_c("feature_", variable)
-  variable_sym = rlang::sym(variable)     
-  check_var_in_dataset(data@dataset, variable)  
-  
-
+  variable_sym = rlang::sym(variable)
+  check_var_in_dataset(data@dataset, variable)
 
   d_filt <- get_dataset_subset(
     data,
@@ -38,38 +53,52 @@ plot_abundanceprofile <- function(data,
     exclude_feature_filter = exclude_feature_filter
   )
 
-
-  d_filt <-d_filt |>  
-    select("feature_id", "analysis_id", "qc_type", "feature_class", !!variable_sym) |> 
+  d_filt <- d_filt |>
+    select(
+      "feature_id",
+      "analysis_id",
+      "qc_type",
+      "feature_class",
+      !!variable_sym
+    ) |>
     distinct()
-    
-  if(data@analysis_type == "lipidomics"){
-    d_filt <-d_filt |> 
-      mutate(feature_class = factor(.data$feature_class, levels = rev(pkg.env$lipid_class_themes$lipid_class_order))) |> 
+
+  if (data@analysis_type == "lipidomics") {
+    d_filt <- d_filt |>
+      mutate(
+        feature_class = factor(
+          .data$feature_class,
+          levels = rev(pkg.env$lipid_class_themes$lipid_class_order)
+        )
+      ) |>
       arrange(.data$feature_class)
   }
 
-
   feature_classes <- d_filt$feature_class |> unique()
-  feature_classes_indices <- setNames(feature_classes, (1:length(feature_classes)))  
+  feature_classes_indices <- setNames(
+    feature_classes,
+    (1:length(feature_classes))
+  )
 
   d_filt$feature_class_index <- d_filt$feature_class
   levels(dat$feature_class_index) <- as.list(feature_classes_indices)
-    
+
   d_filt <- d_filt |>
     mutate(!!variable_sym := !!variable_sym * scalef)
 
-
-  if(!is.na(exclude_classes)){
+  if (!is.na(exclude_classes)) {
     d_filt <- d_filt |>
       filter(
-        !(.data$class_index %in% exclude_classes
-        )
+        !(.data$class_index %in% exclude_classes)
       )
   }
 
-  d_filt <- d_filt |> 
-    group_by(.data$feature_id, .data$feature_class_index, .data$feature_class) |> 
+  d_filt <- d_filt |>
+    group_by(
+      .data$feature_id,
+      .data$feature_class_index,
+      .data$feature_class
+    ) |>
     summarise(abundance_mean = mean(!!variable_sym, na.rm = TRUE))
 
   d_filt_minmax <- d_filt |>
@@ -79,18 +108,39 @@ plot_abundanceprofile <- function(data,
       abundance_max = max(.data$abundance_mean, na.rm = TRUE)
     )
 
+  d_class <- d_filt |>
+    group_by(
+      .data$analysis_id,
+      .data$feature_class_index,
+      .data$feature_class
+    ) |>
+    summarise(
+      conc_sum = sum(.data$feature_conc, na.rm = T)
+    ) |>
+    group_by(.data$feature_class) |>
+    summarise(
+      conc_sum_mean = mean(.data$conc_sum, na.rm = T),
+      CV = sd(.data$conc_sum, na.rm = T) / .data$conc_sum_mean * 100
+    ) |>
+    left_join(d_filt_minmax)
+
   d_sum <- d_filt |>
-    group_by(.data$analysis_id, .data$feature_class_index, .data$feature_class) |>
+    group_by(
+      .data$analysis_id,
+      .data$feature_class_index,
+      .data$feature_class
+    ) |>
     summarise(
       abundance_sum = sum(!!variable_sym, na.rm = T)
     ) |>
     group_by(.data$class_name) |>
     summarise(
       abundance_sum_mean = mean(.data$abundance_sum, na.rm = TRUE),
-      CV = sd(.data$abundance_sum, na.rm = TRUE) / .data$abundance_sum_mean * 100
+      CV = sd(.data$abundance_sum, na.rm = TRUE) /
+        .data$abundance_sum_mean *
+        100
     ) |>
     left_join(d_filt_minmax)
-
 
   breaks <- 10^(xlim[1]:xlim[2])
   minor_breaks <- rep(1:10, 1) * (10^rep(xlim[1]:xlim[2], each = 9))
@@ -120,7 +170,9 @@ plot_abundanceprofile <- function(data,
       limits = c(10^xlim[1], 10^xlim[2]),
       breaks = breaks,
       minor_breaks = minor_breaks,
-      labels = scales::trans_format("log10", function(x) scales::math_format()(log10(x)))
+      labels = scales::trans_format("log10", function(x) {
+        scales::math_format()(log10(x))
+      })
     ) +
     ggplot2::annotation_logticks(
       base = 10,
@@ -203,4 +255,4 @@ plot_abundanceprofile <- function(data,
     ggplot2::guides(fill = FALSE)
 
   plt
-  }
+}
