@@ -9,3 +9,4 @@ inst/doc
 .quarto
 vignettes/articles/output/
 docs
+..Rcheck
