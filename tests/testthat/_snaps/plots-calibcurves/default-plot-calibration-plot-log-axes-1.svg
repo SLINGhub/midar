@@ -45,16 +45,16 @@
 <polyline points='157.02,279.60 157.02,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='217.87,279.60 217.87,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='278.72,279.60 278.72,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polygon points='324.24,38.93 326.87,43.49 321.60,43.49 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,66.90 326.87,71.46 321.60,71.46 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,34.82 326.87,39.38 321.60,39.38 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,40.59 326.87,45.15 321.60,45.15 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,42.89 326.87,47.45 321.60,47.45 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='51.18,260.16 53.82,255.60 48.55,255.60 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='51.18,259.82 53.82,255.26 48.55,255.26 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='51.18,258.21 53.82,253.65 48.55,253.65 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='51.18,259.54 53.82,254.98 48.55,254.98 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='51.18,260.94 53.82,256.38 48.55,256.38 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,39.13 326.69,43.39 321.78,43.39 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,67.10 326.69,71.36 321.78,71.36 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,35.02 326.69,39.28 321.78,39.28 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,40.79 326.69,45.05 321.78,45.05 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,43.09 326.69,47.35 321.78,47.35 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='51.18,259.96 53.64,255.70 48.73,255.70 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='51.18,259.62 53.64,255.36 48.73,255.36 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='51.18,258.01 53.64,253.75 48.73,253.75 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='51.18,259.34 53.64,255.08 48.73,255.08 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='51.18,260.74 53.64,256.48 48.73,256.48 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <text x='35.31' y='36.32' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
 <text x='35.31' y='44.51' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='43.97px' lengthAdjust='spacingAndGlyphs'>Regression failed</text>
 <rect x='20.87' y='26.35' width='317.81' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
@@ -87,11 +87,11 @@
 <polyline points='487.68,279.60 487.68,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='548.54,279.60 548.54,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='609.39,279.60 609.39,26.35 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polygon points='381.85,48.19 384.49,43.63 379.22,43.63 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.85,103.51 384.49,98.95 379.22,98.95 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.85,52.43 384.49,47.88 379.22,47.88 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.85,40.90 384.49,36.34 379.22,36.34 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.85,63.14 384.49,58.58 379.22,58.58 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.85,47.99 384.31,43.73 379.39,43.73 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.85,103.31 384.31,99.05 379.39,99.05 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.85,52.23 384.31,47.98 379.39,47.98 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.85,40.70 384.31,36.44 379.39,36.44 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.85,62.94 384.31,58.68 379.39,58.68 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <text x='365.98' y='36.32' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
 <text x='365.98' y='44.51' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='43.97px' lengthAdjust='spacingAndGlyphs'>Regression failed</text>
 <rect x='351.54' y='26.35' width='317.81' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
@@ -124,16 +124,16 @@
 <polyline points='157.74,556.34 157.74,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='218.95,556.34 218.95,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='280.16,556.34 280.16,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polygon points='324.24,311.56 326.87,316.12 321.60,316.12 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,354.21 326.87,358.77 321.60,358.77 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,374.84 326.87,379.40 321.60,379.40 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,345.07 326.87,349.63 321.60,349.63 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='324.24,374.32 326.87,378.88 321.60,378.88 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='50.75,541.26 53.38,536.70 48.11,536.70 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='50.75,540.84 53.38,536.28 48.11,536.28 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='50.75,540.22 53.38,535.66 48.11,535.66 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='50.75,540.54 53.38,535.98 48.11,535.98 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='50.75,542.62 53.38,538.06 48.11,538.06 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,311.76 326.69,316.02 321.78,316.02 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,354.41 326.69,358.67 321.78,358.67 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,375.04 326.69,379.30 321.78,379.30 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,345.27 326.69,349.53 321.78,349.53 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='324.24,374.52 326.69,378.78 321.78,378.78 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='50.75,541.05 53.21,536.80 48.29,536.80 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='50.75,540.64 53.21,536.38 48.29,536.38 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='50.75,540.02 53.21,535.76 48.29,535.76 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='50.75,540.34 53.21,536.08 48.29,536.08 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='50.75,542.42 53.21,538.16 48.29,538.16 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <text x='35.31' y='313.06' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
 <text x='35.31' y='321.26' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='43.97px' lengthAdjust='spacingAndGlyphs'>Regression failed</text>
 <rect x='20.87' y='303.09' width='317.81' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
@@ -168,16 +168,16 @@
 <polyline points='488.41,556.34 488.41,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='549.62,556.34 549.62,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
 <polyline points='610.83,556.34 610.83,303.09 ' style='stroke-width: 0.43; stroke: #B3B3B3; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polygon points='654.90,323.78 657.54,328.34 652.27,328.34 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='654.90,359.79 657.54,364.35 652.27,364.35 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='654.90,364.32 657.54,368.88 652.27,368.88 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='654.90,311.56 657.54,316.12 652.27,316.12 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='654.90,381.75 657.54,386.31 652.27,386.31 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.41,541.71 384.05,537.15 378.78,537.15 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.41,539.97 384.05,535.41 378.78,535.41 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.41,538.77 384.05,534.21 378.78,534.21 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.41,541.32 384.05,536.76 378.78,536.76 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
-<polygon points='381.41,541.89 384.05,537.33 378.78,537.33 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='654.90,323.98 657.36,328.24 652.44,328.24 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='654.90,359.99 657.36,364.25 652.44,364.25 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='654.90,364.52 657.36,368.78 652.44,368.78 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='654.90,311.76 657.36,316.02 652.44,316.02 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='654.90,381.95 657.36,386.21 652.44,386.21 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.41,541.51 383.87,537.25 378.95,537.25 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.41,539.77 383.87,535.51 378.95,535.51 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.41,538.57 383.87,534.31 378.95,534.31 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.41,541.12 383.87,536.86 378.95,536.86 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
+<polygon points='381.41,541.69 383.87,537.43 378.95,537.43 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <text x='365.98' y='313.06' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='24.68px' lengthAdjust='spacingAndGlyphs'>Quadratic</text>
 <text x='365.98' y='321.26' style='font-size: 5.69px; font-style: italic; fill: #5C5C5C; font-family: sans;' textLength='43.97px' lengthAdjust='spacingAndGlyphs'>Regression failed</text>
 <rect x='351.54' y='303.09' width='317.81' height='253.25' style='stroke-width: 0.68; stroke: #B3B3B3;' />
@@ -312,9 +312,9 @@
 <rect x='676.32' y='265.70' width='40.19' height='51.29' style='stroke-width: 0.68; stroke: none; fill: #FFFFFF;' />
 <text x='679.81' y='274.73' style='font-size: 7.00px; font-family: sans;' textLength='24.52px' lengthAdjust='spacingAndGlyphs'>qc_type</text>
 <rect x='679.81' y='278.95' width='17.28' height='17.28' style='stroke-width: 0.68; stroke: none; fill: #FFFFFF;' />
-<polygon points='688.45,284.55 691.08,289.11 685.82,289.11 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='688.45,284.75 690.91,289.00 685.99,289.00 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <rect x='679.81' y='296.23' width='17.28' height='17.28' style='stroke-width: 0.68; stroke: none; fill: #FFFFFF;' />
-<polygon points='688.45,307.90 691.08,303.35 685.82,303.35 ' style='stroke-width: 0.71; stroke: #F27507; fill: #F5C969;' />
+<polygon points='688.45,307.70 690.91,303.45 685.99,303.45 ' style='stroke-width: 0.45; stroke: #F27507; fill: #F5C969;' />
 <text x='700.58' y='289.51' style='font-size: 5.60px; font-family: sans;' textLength='12.45px' lengthAdjust='spacingAndGlyphs'>HQC</text>
 <text x='700.58' y='306.79' style='font-size: 5.60px; font-family: sans;' textLength='11.52px' lengthAdjust='spacingAndGlyphs'>LQC</text>
 <text x='20.87' y='9.27' style='font-size: 8.40px; font-family: sans;' textLength='142.90px' lengthAdjust='spacingAndGlyphs'>default plot_calibration plot log_axes 1</text>

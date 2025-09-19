@@ -836,3 +836,4 @@ expect_error(
   )
  vdiffr::expect_doppelganger("runscatterrange_filter",p)
 })
+
