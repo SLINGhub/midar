@@ -310,7 +310,6 @@ plot_qcmetrics_comparison <- function(
   var_match <- str_remove(x_variable, "_(TQC|BQC|SPL)$") ==
     str_remove(y_variable, "_(TQC|BQC|SPL)$")
 
-
   if (!var_match) {
     d_qc <- d_qc |>
       tidyr::pivot_longer(
@@ -322,12 +321,11 @@ plot_qcmetrics_comparison <- function(
     d_qc$qc_type <- "SPL"
   }
 
-
   d_qc <- d_qc |>
     mutate(across(c(!!x_variable, !!y_variable), ~ ifelse(.x == 0, NA, .x))) |>
-    drop_na() 
+    drop_na()
 
-  if(!is.na(qc_types)){
+  if (all(!is.na(qc_types))) {
     d_qc <- d_qc |>
       filter(.data$qc_type %in% qc_types)
   }
@@ -382,10 +380,13 @@ plot_qcmetrics_comparison <- function(
   if (plot_type == "scatter") {
     g <- ggplot(
       data = d_qc,
-      aes(x = !!rlang::sym(x_variable), y = !!rlang::sym(y_variable)),
-      color = .data$qc_type,
-      fill = .data$qc_type,
-      shape = .data$qc_type
+      aes(
+        x = !!rlang::sym(x_variable),
+        y = !!rlang::sym(y_variable),
+        color = .data$qc_type,
+        fill = .data$qc_type,
+        shape = .data$qc_type
+      )
     )
   } else {
     g <- ggplot(
