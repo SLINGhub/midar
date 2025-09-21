@@ -110,6 +110,8 @@ get_outlier_bounds <- function(
 ) {
   method <- match.arg(method)
 
+  browser()
+
   if (length(x) < 2) {
     return(c(NA_real_, NA_real_))
   }
@@ -178,9 +180,9 @@ get_outlier_bounds <- function(
       k <- 2
     }
     med <- median(x)
-    delta <- log2(k)
-    lower <- med - delta
-    upper <- med + delta
+    delta <- log2(abs(k))
+    lower <- med - delta[1]
+    upper <- med + delta[2]
   }
 
   lo <- min(x[x >= lower], na.rm = TRUE)
