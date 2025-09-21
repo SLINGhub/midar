@@ -402,48 +402,7 @@ plot_runscatter <- function(
         )
       )
 
-  #   d_filt <- d_filt |>
-  #     dplyr::group_by(.data$feature_id) |>
-  #     dplyr::mutate(
-  #       value_max_spl = median(
-  #         .data$value[.data$qc_type == "SPL"],
-  #         na.rm = TRUE
-  #       ) +
-  #         cap_sample_k_mad *
-  #           mad(.data$value[.data$qc_type == "SPL"], na.rm = TRUE),
-  #       value_max_tqc = median(
-  #         .data$value[.data$qc_type == "TQC"],
-  #         na.rm = TRUE
-  #       ) +
-  #         cap_qc_k_mad * mad(.data$value[.data$qc_type == "TQC"], na.rm = TRUE),
-  #       value_max_bqc = median(
-  #         .data$value[.data$qc_type == "BQC"],
-  #         na.rm = TRUE
-  #       ) +
-  #         cap_qc_k_mad * mad(.data$value[.data$qc_type == "BQC"], na.rm = TRUE),
-  #       value_max = pmax(
-  #         .data$value_max_spl,
-  #         .data$value_max_tqc,
-  #         .data$value_max_bqc,
-  #         na.rm = TRUE
-  #       ),
-  #       value_max = ifelse(
-  #         is.infinite(.data$value_max),
-  #         .data$value,
-  #         .data$value_max
-  #       ),
-  #       value_mod = dplyr::if_else(
-  #         .data$value > .data$value_max,
-  #         if (!all(is.na(.data$value))) {
-  #           max(.data$value[.data$value <= .data$value_max], na.rm = TRUE) *
-  #             outlier_offset_ratio
-  #         } else {
-  #           NA_real_
-  #         },
-  #         .data$value
-  #       )
-  #     ) |>
-  #     dplyr::ungroup()
+
   } else {
      d_filt <- d_filt |>
        dplyr::mutate(value_mod = .data$value)
@@ -510,6 +469,7 @@ plot_runscatter <- function(
     reference_fill_color = reference_fill_color,
     reference_linewidth = reference_linewidth,
     trend_color = trend_color,
+    show_progress = show_progress,
     use_dingbats = use_dingbats
   )
   # subset the dataset with only the rows used for plotting the facets of the selected page
@@ -585,7 +545,7 @@ plot_runscatter <- function(
         runscatter_plot_pages = runscatter_plot_pages,
         arglist = arglist
       ),
-      .progress = TRUE
+      .progress = show_progress
     )
   } else {
     p_list <- purrr::map2(
@@ -596,7 +556,7 @@ plot_runscatter <- function(
                     arglist)
           do.call(runscatter_plot_pages, args)
         },
-      .progress = FALSE
+      .progress = show_progress
     )
   }
   #tock <- Sys.time()
@@ -662,6 +622,7 @@ runscatter_plot_pages <- function(
   reference_fill_color,
   reference_linewidth,
   trend_color,
+  show_progress,
   use_dingbats
 ) {
 
@@ -1118,7 +1079,7 @@ runscatter_plot_pages <- function(
       # Combine page-specific arguments with arglist
       #args <- c(list())
       ~ runscatter_one_page(d_subset = .x),
-    .progress = !multithreading
+    .progress = show_progress
   )
 
 
