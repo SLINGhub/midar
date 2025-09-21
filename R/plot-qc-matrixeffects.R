@@ -146,7 +146,7 @@ plot_qc_matrixeffects <- function(data,
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
     ggplot2::coord_cartesian(ylim = ylim, expand = FALSE) +
     ggplot2::theme_bw(base_size = font_base_size) +
-    ylab("Standardized Intensity (% of global mean)") +
+    ylab("Standardized Intensity (% of uncorrected)") +
     xlab("Internal Standard") +
     theme(
       axis.text.x = ggplot2::element_text(angle = angle_x, hjust = 1),
