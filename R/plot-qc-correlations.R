@@ -111,7 +111,7 @@ get_feature_correlations <- function(tbl, cor_min_neg, cor_min) {
 #'
 #' @return A ggplot object showing scatter plots of highly correlated feature pairs.
 #' Returns NULL if no correlations meet the threshold criteria.
-#'
+#' @export
 
 plot_feature_correlations <- function(data,
                               variable,
