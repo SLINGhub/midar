@@ -272,8 +272,8 @@ plot_pca <- function(data = NULL,
     ggplot2::geom_vline(xintercept = 0, linewidth = 0.5, color = "grey80", linetype = "dashed")
 
   if(show_labels){
-        p <- p +
-          ggrepel::geom_text_repel(aes(label = .data$label_outlier), size = label_font_size, na.rm = TRUE, seed = 1237)
+        p <- suppressWarnings(p +
+          ggrepel::geom_text_repel(aes(label = .data$label_outlier), size = label_font_size, na.rm = TRUE, seed = 1237, max.overlaps = 30))
 
 
   }
