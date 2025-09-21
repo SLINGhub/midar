@@ -110,8 +110,6 @@ get_outlier_bounds <- function(
 ) {
   method <- match.arg(method)
 
-  browser()
-
   if (length(x) < 2) {
     return(c(NA_real_, NA_real_))
   }
