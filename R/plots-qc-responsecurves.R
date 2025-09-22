@@ -216,7 +216,7 @@ plot_responsecurves <- function(data = NULL,
   progress_suffix <- if (show_progress) ":" else "..."
 
   # Output formatted message
-  message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"))
+  message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"), appendLF = FALSE)
 
   # Initialize progress bar if requested
   if (show_progress) pb <- txtProgressBar(min = 0, max = max(page_range),
@@ -248,7 +248,7 @@ plot_responsecurves <- function(data = NULL,
   }
 
   if (output_pdf) dev.off()  # Close PDF device
-  message(" - done!")  # Completion message
+  message("  done!")  # Completion message
   if (show_progress) close(pb)  # Close progress bar if open
 
   # Return plot list or invisible

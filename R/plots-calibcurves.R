@@ -580,7 +580,7 @@ plot_calibrationcurves <- function(data = NULL,
   }
 
   # Output formatted message
-  message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"))
+  message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"), appendLF = FALSE)
 
   # Initialize progress bar if requested
   if (show_progress) {
@@ -638,7 +638,7 @@ plot_calibrationcurves <- function(data = NULL,
   if (output_pdf) {
     dev.off()
   } # Close PDF device
-  message(" - done!") # Completion message
+  message("  done!") # Completion message
   if (show_progress) {
     close(pb)
   } # Close progress bar if open

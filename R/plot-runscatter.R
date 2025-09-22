@@ -525,7 +525,8 @@ plot_runscatter <- function(
   }
   message(cli::col_green(glue::glue(
     "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}"
-  )))
+  )), appendLF = FALSE
+  )
   # if (show_progress) {
   #   pb <- txtProgressBar(min = 0, max = max(page_range), width = 30, style = 3)
   # }
@@ -573,7 +574,7 @@ plot_runscatter <- function(
 
 
 
-  message(cli::col_green(" - done!"))
+  message(cli::col_green("  done!"))
   # if (show_progress) {
   #   close(pb)
   # }
