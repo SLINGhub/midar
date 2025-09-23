@@ -170,7 +170,7 @@ plot_responsecurves <- function(data = NULL,
   } else {
     # If color_curves is provided, check if it has enough colors
     num_levels <- length(unique(d_rqc$curve_id))
-    fill_curves <- desaturate_colors(color_curves, 0.3)  
+    fill_curves <- desaturate_colors(color_curves, 0.3)
     if (length(color_curves) < num_levels) {
       cli::cli_abort(
         cli::col_red(paste("Insufficient colors in `color_curves`. Provide at least",
@@ -290,7 +290,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
     ) +
     ggpmisc::stat_poly_eq(
       aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
-      size = font_base_size * 0.4, rr.digits = 4, vstep = 0.02
+      size = font_base_size * 0.4, rr.digits = 4, vstep = 0.02, na.rm = TRUE, n.min = 3
     ) +
     scale_color_manual(values = color_curves) +
     scale_fill_manual(values = fill_curves) +
