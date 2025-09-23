@@ -211,7 +211,7 @@ plot_rt_vs_chain <- function(
 
   avg_rt_median <- d_plot |>
     group_by(.data$lipid_class_lcb, !!sym(x_var), !!sym(group_var)) |>
-    summarise(avg_rt = mean(.data$rt_median)) |> # Calculate average rt_median for the current group
+    summarise(avg_rt = mean(.data$rt_median, na.rm = TRUE)) |> # Calculate average rt_median for the current group
     ungroup() |> # Ungroup to access the entire dataset
     arrange(.data$lipid_class_lcb) |> # Sort by lipid_class to ensure proper order
     group_by(.data$lipid_class_lcb, !!sym(group_var)) |> # Regroup to access the current group
@@ -306,9 +306,8 @@ plot_rt_vs_chain <- function(
     unique() |>
     length()
 
-  #browser()
   p <- ggplot(
-    d_plot |> drop_na(!!sym(x_var)),
+    d_plot |> drop_na(!!sym(x_var), rt_median),
     aes(x = !!sym(x_var), y = .data$rt_median, group = !!sym(group_var))
   )
 
