@@ -561,7 +561,6 @@ fun_correct_drift <- function(
     adj_groups <- c("feature_id")
   }
 
-
   # call smooth function for each feature and each batch
   d_smooth_res <- ds |>
     select(
@@ -590,26 +589,34 @@ fun_correct_drift <- function(
   #   pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
   # }
 
-
   arglist <- list(...)
 
   if (is.character(smooth_fun)) {
     fun_smooth <- get(smooth_fun, mode = "function")
   }
-      
-      
+
   d_smooth_res_mapped <- d_smooth_res |>
     purrr::map(
       .f = purrr::in_parallel(
-        ~ do.call(fun_smooth, c(list(.x, ref_qc_types = ref_qc_types, log_transform_internal = log_transform_internal), arglist)),
+        ~ do.call(
+          fun_smooth,
+          c(
+            list(
+              .x,
+              ref_qc_types = ref_qc_types,
+              log_transform_internal = log_transform_internal
+            ),
+            arglist
+          )
+        ),
         fun_smooth = fun_smooth,
-        ref_qc_types = ref_qc_types, 
+        ref_qc_types = ref_qc_types,
         log_transform_internal = log_transform_internal,
         arglist = arglist
       ),
       .progress = show_progress
     )
-    
+
   d_smooth_res <- d_smooth_res_mapped |> bind_rows()
 
   # if (show_progress) {
@@ -630,17 +637,27 @@ fun_correct_drift <- function(
       #group_by(across(all_of(adj_groups))) |>
       group_split(!!!syms(adj_groups))
 
-      d_smooth_recalc <- d_smooth_recalc |>
-        purrr::map(
-          .f = purrr::in_parallel(
-            ~ do.call(fun_smooth, c(list(.x, ref_qc_types = ref_qc_types, log_transform_internal = log_transform_internal), arglist)),
-            fun_smooth = fun_smooth,
-            ref_qc_types = ref_qc_types, 
-            log_transform_internal = log_transform_internal,
-            arglist = arglist
+    d_smooth_recalc <- d_smooth_recalc |>
+      purrr::map(
+        .f = purrr::in_parallel(
+          ~ do.call(
+            fun_smooth,
+            c(
+              list(
+                .x,
+                ref_qc_types = ref_qc_types,
+                log_transform_internal = log_transform_internal
+              ),
+              arglist
+            )
           ),
-          .progress = show_progress
-        )
+          fun_smooth = fun_smooth,
+          ref_qc_types = ref_qc_types,
+          log_transform_internal = log_transform_internal,
+          arglist = arglist
+        ),
+        .progress = show_progress
+      )
 
     d_smooth_recalc <- d_smooth_recalc |>
       bind_rows() |>
@@ -1155,7 +1172,8 @@ correct_drift_gaussiankernel <- function(
     outlier_ksd = outlier_ksd,
     location_smooth = location_smooth,
     scale_smooth = scale_smooth,
-    kernel_size = kernel_size
+    kernel_size = kernel_size,
+    show_progress = show_progress
   )
 }
 
@@ -1242,6 +1260,8 @@ correct_drift_loess <- function(
   data = NULL,
   variable,
   ref_qc_types,
+  span = 0.75,
+  degree = 2,
   batch_wise = TRUE,
   ignore_istd = TRUE,
   replace_previous = TRUE,
@@ -1252,8 +1272,8 @@ correct_drift_loess <- function(
   cv_diff_threshold = 0,
   use_original_if_fail = FALSE,
   extrapolate = FALSE,
-  span = 0.75,
-  degree = 2
+
+  show_progress = TRUE
 ) {
   check_data(data)
 
@@ -1284,6 +1304,7 @@ correct_drift_loess <- function(
     recalc_trend_after = recalc_trend_after,
     cv_diff_threshold = cv_diff_threshold,
     use_original_if_fail = use_original_if_fail,
+    show_progress = show_progress
   )
 }
 
@@ -1389,7 +1410,8 @@ correct_drift_cubicspline <- function(
   log_transform_internal = TRUE,
   feature_list = NULL,
   cv_diff_threshold = 0,
-  use_original_if_fail = FALSE
+  use_original_if_fail = FALSE,
+  show_progress = TRUE
 ) {
   check_data(data)
 
@@ -1416,6 +1438,7 @@ correct_drift_cubicspline <- function(
     recalc_trend_after = recalc_trend_after,
     cv_diff_threshold = cv_diff_threshold,
     use_original_if_fail = use_original_if_fail,
+    show_progress = show_progress,
     smooth_fun = "fun_cspline",
     cv = cv,
     spar = spar,
@@ -1504,7 +1527,8 @@ correct_drift_gam <- function(
   recalc_trend_after = FALSE,
   feature_list = NULL,
   cv_diff_threshold = 0,
-  use_original_if_fail = FALSE
+  use_original_if_fail = FALSE,
+  show_progress = TRUE
 ) {
   # {ggpmisc} neeeded for plots
   check_installed("mgcv")
@@ -1528,6 +1552,7 @@ correct_drift_gam <- function(
     recalc_trend_after = recalc_trend_after,
     cv_diff_threshold = cv_diff_threshold,
     use_original_if_fail = use_original_if_fail,
+    show_progress = show_progress,
     smooth_fun = "fun_gam_smooth",
     bs = bs,
     k = k,
