@@ -258,7 +258,7 @@ plot_feature_correlations <- function(data,
   } else {
     glue::glue("{max(page_range)} page")
   }
-  progress_suffix <- if (show_progress) ":" else "..."
+  progress_suffix <- if (show_progress) "..." else ""
 
   # Output formatted message
   message(glue::glue("{action_text} ({page_suffix}){progress_suffix}"), appendLF = FALSE)
@@ -294,7 +294,7 @@ plot_feature_correlations <- function(data,
   }
 
   if (output_pdf) dev.off()  # Close PDF device
-  message("  done!")  # Completion message
+  if(output_pdf) message("  done!")  # Completion message
   if (show_progress) close(pb)  # Close progress bar if open
 
   # Return plot list or invisible
