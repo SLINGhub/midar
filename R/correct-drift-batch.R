@@ -586,9 +586,9 @@ fun_correct_drift <- function(
     }
   }
 
-  if (show_progress) {
-    pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
-  }
+  # if (show_progress) {
+  #   pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
+  # }
 
 
   arglist <- list(...)
@@ -607,21 +607,21 @@ fun_correct_drift <- function(
         log_transform_internal = log_transform_internal,
         arglist = arglist
       ),
-      .progress = TRUE
+      .progress = show_progress
     )
     
   d_smooth_res <- d_smooth_res_mapped |> bind_rows()
 
-  if (show_progress) {
-    setTxtProgressBar(pb, total_groups)
-    cat(cli::col_green(" - trend smoothing done!"))
-    close(pb)
-  }
+  # if (show_progress) {
+  #   setTxtProgressBar(pb, total_groups)
+  #   cat(cli::col_green(" - trend smoothing done!"))
+  #   close(pb)
+  # }
 
   if (recalc_trend_after) {
-    if (show_progress) {
-      pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
-    }
+    # if (show_progress) {
+    #   pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
+    # }
 
     d_smooth_recalc <- d_smooth_res |> rename(y = "y_adj")
 
@@ -639,7 +639,7 @@ fun_correct_drift <- function(
             log_transform_internal = log_transform_internal,
             arglist = arglist
           ),
-          .progress = TRUE
+          .progress = show_progress
         )
 
     d_smooth_recalc <- d_smooth_recalc |>
@@ -652,11 +652,11 @@ fun_correct_drift <- function(
         y_fit_after = "y_fit"
       )
 
-    if (show_progress) {
-      setTxtProgressBar(pb, total_groups)
-      cat(cli::col_green(" - trend recalc done!"))
-      close(pb)
-    }
+    # if (show_progress) {
+    #   setTxtProgressBar(pb, total_groups)
+    #   cat(cli::col_green(" - trend recalc done!"))
+    #   close(pb)
+    # }
 
     d_smooth_res <- d_smooth_res |>
       left_join(
