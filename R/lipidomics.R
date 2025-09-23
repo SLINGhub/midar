@@ -31,6 +31,7 @@ get_analyte_id <- function(transition_name, remove_nl_transitions) {
   analyte_id <- str_replace(analyte_id, "(?<= |\\()[dmt](?=\\d{2}:\\d{1})", "")
   analyte_id <- str_replace(analyte_id, "^AC", "CAR")
   analyte_id <- str_replace(analyte_id, "^Acyl[cC]arnitine", "CAR")
+  analyte_id <- str_replace(analyte_id, "^DE", "SE 27:2/")
   analyte_id <- str_replace(analyte_id, "^Sph", "SPB")
   analyte_id <- str_replace(analyte_id, "^S1P", "SPBP")
   analyte_id <- str_replace(analyte_id, "^dhCer", "Cer")
@@ -117,6 +118,7 @@ parse_lipid_feature_names <- function(tbl, use_as_feature_class = "lipid_class_l
   dat_temp_rgoslin <- dat_temp |>
     mutate(lipid_name = str_trim(str_replace(.data$analyte_id, "\\[.*?\\]", ""))) |>
     mutate(lipid_name = str_replace(.data$lipid_name, "\\s*\\(.*?\\)", "")) |>
+    mutate(lipid_name = str_replace(.data$lipid_name, "\\s*/\\s*", "/")) |>
    mutate(lipid_name = str_replace(.data$lipid_name, "^(\\S+\\s+\\S+).*", "\\1"))   #Remove all text after 2nd space
   d_goslin <- suppressMessages(rgoslin::parseLipidNames(dat_temp_rgoslin$lipid_name))
 
