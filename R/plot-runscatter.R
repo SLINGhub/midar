@@ -630,6 +630,7 @@ runscatter_plot_pages <- function(
 
   runscatter_one_page <- function(d_subset) {
 
+
     # For debugging
     # p <- ggplot(data = data.frame(speed = 1:4, dist = cumsum(runif(4, 0, 22))), aes(x = speed, y = dist)) + geom_point()
     # plot(p)
@@ -807,7 +808,8 @@ runscatter_plot_pages <- function(
             ),
             fill = reference_fill_color,
             linewidth = reference_linewidth,
-            alpha = .15
+            alpha = .15,
+            na.rm = TRUE
           )
       }
     }
@@ -819,7 +821,8 @@ runscatter_plot_pages <- function(
           ggplot2::aes(yintercept = .data$y_max),
           color = "#ffefbf",
           linewidth = 3,
-          alpha = 1
+          alpha = 1,
+          na.rm = TRUE
         )
     }
 
@@ -886,9 +889,11 @@ runscatter_plot_pages <- function(
             color = reference_line_color,
             linewidth = reference_linewidth,
             alpha = 1,
-            linetype = "longdash"
+            linetype = "longdash",
+            na.rm = TRUE
           )
       }
+
       if (!is.na(reference_k_sd) && !reference_sd_shade) {
         if (reference_batchwise) {
           p <- p +
@@ -930,7 +935,8 @@ runscatter_plot_pages <- function(
               color = reference_line_color,
               linewidth = reference_linewidth,
               alpha = 1,
-              linetype = "dashed"
+              linetype = "dashed",
+              na.rm = TRUE
             ) +
             ggplot2::geom_hline(
               data = d_subset_stats,
@@ -938,7 +944,8 @@ runscatter_plot_pages <- function(
               color = reference_line_color,
               linewidth = reference_linewidth,
               alpha = 1,
-              linetype = "dashed"
+              linetype = "dashed",
+              na.rm = TRUE
             )
         }
       }
