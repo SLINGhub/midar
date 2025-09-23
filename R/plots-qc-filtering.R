@@ -510,7 +510,7 @@ plot_qc_summary_overall <- function(
 
     plt <- patchwork::wrap_plots(p_bar, p_venn) +
       patchwork::plot_layout(ncol = 2, widths = c(1.3, 1)) +
-      patchwork::plot_annotation(tag_levels = c("A", "B")) &
+      patchwork::plot_annotation(tag_levels = c("A", "B")) +
       theme(
         plot.tag = element_text(
           face = 'bold',
