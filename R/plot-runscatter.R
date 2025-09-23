@@ -534,7 +534,7 @@ plot_runscatter <- function(
   }
   message(
     cli::col_green(glue::glue(
-      "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}"
+      "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, '', '...')}"
     )),
     appendLF = FALSE
   )
