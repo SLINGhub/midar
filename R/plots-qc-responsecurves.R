@@ -276,21 +276,30 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
 
   dat_subset <- dataset |>
     arrange(.data$feature_id, .data$curve_id) |>
-    slice(row_start:row_end)
+    slice(row_start:row_end) |>
+    group_by(.data$feature_id) |>
+    mutate(not_zero = sum(!!plot_var != 0) > 2)
 
-  p <- ggplot(
+  p <-
+    ggplot(
     data = dat_subset,
     aes(x = .data$analyzed_amount, y = !!plot_var, color = .data$curve_id, fill = .data$curve_id)
   ) +
     geom_smooth(
-      data = subset(dat_subset, dat_subset$analyzed_amount <= max_regression_value),
+      data = subset(dat_subset , dat_subset$analyzed_amount <= max_regression_value),
       aes(x = .data$analyzed_amount, y = !!plot_var, color = .data$curve_id),
       method = "lm", formula = y ~ x,
       se = FALSE, na.rm = TRUE, linewidth = line_width , inherit.aes = FALSE
     ) +
     ggpmisc::stat_poly_eq(
+      data = dat_subset |> filter(not_zero),
       aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
-      size = font_base_size * 0.4, rr.digits = 4, vstep = 0.02, na.rm = TRUE, n.min = 3
+      size = font_base_size * 0.4,
+      rr.digits = 4,
+      vstep = 0.02,
+      na.rm = TRUE,
+      rsquared.conf.level = NA,
+      n.min = 3
     ) +
     scale_color_manual(values = color_curves) +
     scale_fill_manual(values = fill_curves) +
@@ -306,6 +315,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
       strip.text = element_text(size = font_base_size , face = "bold"),
       strip.background = element_rect(linewidth = 0.0001, fill = "#496875")
     )
+
 
   p
 }
