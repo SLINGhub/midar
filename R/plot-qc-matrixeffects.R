@@ -35,7 +35,7 @@
 #' parameter provides an fast way to exclude noisy features from the
 #' analysis. However, it is recommended to use `filter_data` with
 #' [filter_features_qc()].
-#' @param ylim A numeric vector of length 2 specifying the y-axis limits.
+#' @param y_lim A numeric vector of length 2 specifying the y-axis limits.
 #' @param point_size A numeric value indicating the size of points in
 #' millimeters. Default is 2.
 #' @param dodge_width Numeric. Width used to dodge overlapping points by `qc_type`. Default is `0.6`.
@@ -61,7 +61,7 @@ plot_qc_matrixeffects <- function(data,
                                   include_feature_filter = NA,
                                   exclude_feature_filter = NA,
                                   min_median_value = NA,
-                                  ylim = c(-NA, NA),
+                                  y_lim = c(-NA, NA),
                                   point_size = 0.5,
                                   dodge_width = 0.6,
                                   point_alpha = 0.3,
@@ -80,8 +80,6 @@ plot_qc_matrixeffects <- function(data,
   if(all(is.na(qc_types))){
     qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "HQC", "MQC", "LQC", "QC", "NIST", "LTR", "PBLK", "SBLK"))
   }
-
-
 
   d_filt <- get_dataset_subset(
     data,
@@ -116,7 +114,8 @@ plot_qc_matrixeffects <- function(data,
   grp <- if(batchwise_normalization) c("feature_id", "batch_id") else "feature_id"
   df_std <- df |>
     group_by(across(all_of(grp))) |>
-    dplyr::mutate(scaled_intensity = !!variable_sym / mean(!!variable_sym, na.rm = TRUE) * 100)
+    dplyr::mutate(scaled_intensity = !!variable_sym / mean(!!variable_sym, na.rm = TRUE) * 100) |> 
+    drop_na(.data$scaled_intensity)
 
   ggplot2::ggplot(df_std, ggplot2::aes(
     x = .data$feature_id,
@@ -144,7 +143,7 @@ plot_qc_matrixeffects <- function(data,
     # ) +
     ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
-    ggplot2::coord_cartesian(ylim = ylim, expand = FALSE) +
+    ggplot2::coord_cartesian(ylim = y_lim, expand = FALSE) +
     ggplot2::theme_bw(base_size = font_base_size) +
     ylab("Standardized Intensity (% of uncorrected)") +
     xlab("Internal Standard") +

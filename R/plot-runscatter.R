@@ -104,8 +104,7 @@
 #' @param y_label_text Override the default y-axis label text.
 #' @param pages_per_core Number of pages to be plotted by core when multithreading is enabled. Default is `6`. Changing this number may improve performance.
 #' @param show_gridlines Whether to show major x and y gridlines.
-#' @param y_min Lower y-axis value. Default is `0`. If `NA`, the minimum value is set automatically per facet based on the data
-#' @param y_max Upper y-axis value. Default is `NA`. If `NA`, the maximum value is set automatically per facet based on the data.
+#' @param y_lim Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is `c(0,NA)``, which sets the lower limit to 0 and the upper limit automatically.
 #' @param log_scale Logical, whether to use a log10 scale for the y-axis.
 #'
 #' @param rows_page Number of rows per page.
@@ -180,8 +179,7 @@ plot_runscatter <- function(
   trend_color = "#22e06b",
 
   # Plot customization
-  y_min = 0,
-  y_max = NA,
+  y_lim = c(0, NA),
   log_scale = FALSE,
   show_gridlines = FALSE,
   point_size = 1.5,
@@ -268,8 +266,8 @@ plot_runscatter <- function(
     ))
   }
 
-  if (!(is.numeric(y_min) || is.na(y_min))) {
-    cli::cli_abort(cli::col_red("`y_min` must be a numeric value or `NA`."))
+  if (!all(is.numeric(y_lim) || is.na(y_lim))) {
+    cli::cli_abort(cli::col_red("`y_lim` must have numeric values or `NA`s."))
   }
 
   if (show_reference_lines && is.na(ref_qc_types)) {
@@ -465,8 +463,8 @@ plot_runscatter <- function(
     base_font_size = base_font_size,
     point_border_width = point_border_width,
     show_grid = show_gridlines,
-    y_min = y_min,
-    y_max = y_max,
+    y_min = y_lim[1],
+    y_max = y_lim[2],
     log_scale = log_scale,
     plot_range = plot_range,
     show_reference_lines = show_reference_lines,
@@ -534,7 +532,7 @@ plot_runscatter <- function(
   }
   message(
     cli::col_green(glue::glue(
-      "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, '', '...')}"
+      "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, '...', '')}"
     )),
     appendLF = FALSE
   )

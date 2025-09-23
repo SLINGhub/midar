@@ -33,9 +33,9 @@
 #'   (default is `TRUE`).
 #' @param cv_threshold_value Numerical threshold value to be shown as dashed
 #'   lines in the plot (default is `25`).
-#' @param xlim Numeric vector of length 2 for x-axis limits. Use `NA` for
+#' @param x_lim Numeric vector of length 2 for x-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
-#' @param ylim Numeric vector of length 2 for y-axis limits. Use `NA` for
+#' @param y_lim Numeric vector of length 2 for y-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param cols_page Number of facet columns per page, representing
 #'   different feature classes (default is `5`). Only used if
@@ -88,8 +88,8 @@ plot_normalization_qc <- function(
   filter_data = FALSE,
   include_qualifier = FALSE,
   cv_threshold_value = 25,
-  xlim = c(0, NA),
-  ylim = c(0, NA),
+  x_lim = c(0, NA),
+  y_lim = c(0, NA),
   cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
@@ -187,8 +187,8 @@ plot_normalization_qc <- function(
     threshold_value = cv_threshold_value,
     equality_line = TRUE,
     include_qualifier = include_qualifier,
-    xlim = xlim,
-    ylim = ylim,
+    x_lim = x_lim,
+    y_lim = y_lim,
     cols_page = cols_page,
     point_size = point_size,
     point_alpha = point_alpha,
@@ -230,9 +230,9 @@ plot_normalization_qc <- function(
 #' @param threshold_value Numeric; threshold value to be shown as dashed lines
 #'   from both axes on the plot (default is `NA`).
 #' @param log_scale Logical, whether to use a log10 scale the axes.
-#' @param xlim Numeric vector of length 2 for x-axis limits. Use `NA` for
+#' @param x_lim Numeric vector of length 2 for x-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
-#' @param ylim Numeric vector of length 2 for y-axis limits. Use `NA` for
+#' @param y_lim Numeric vector of length 2 for y-axis limits. Use `NA` for
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param cols_page Integer; number of facet columns per page (default is `5`).
 #' @param point_size Numeric; size of points in millimeters (default is `1`).
@@ -267,8 +267,8 @@ plot_qcmetrics_comparison <- function(
   equality_line = FALSE,
   threshold_value = NA,
   log_scale = FALSE,
-  xlim = c(0, NA),
-  ylim = c(0, NA),
+  x_lim = c(0, NA),
+  y_lim = c(0, NA),
   cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
@@ -405,7 +405,7 @@ plot_qcmetrics_comparison <- function(
   # Apply faceting if requested
   if (facet_by_class) {
     if (facet_type == "wrap") {
-      if (is.na(ylim[1])) {
+      if (is.na(y_lim[1])) {
         scalemode <- "free_y"
       } else {
         scalemode <- "fixed"
@@ -488,12 +488,12 @@ plot_qcmetrics_comparison <- function(
         #labels = scientific_format_end,
         #limits = c(0.1, NA),
         name = x_label,
-        limits = xlim,
+        limits = x_lim,
         expand = ggplot2::expansion(mult = c(0, 0.02))
       ) +
       ggplot2::scale_y_log10(
         #labels = scientific_format_end,
-        limits = ylim,
+        limits = y_lim,
         name = y_label,
         expand = ggplot2::expansion(mult = c(0, 0.02))
       )
@@ -502,12 +502,12 @@ plot_qcmetrics_comparison <- function(
       ggplot2::scale_x_continuous(
         #labels = scientific_format_end,
         name = x_label,
-        limits = xlim,
+        limits = x_lim,
         expand = ggplot2::expansion(mult = c(0, 0.02))
       ) +
       ggplot2::scale_y_continuous(
         #labels = scientific_format_end,
-        limits = ylim,
+        limits = y_lim,
         name = y_label,
         expand = ggplot2::expansion(mult = c(0, 0.02))
       )
