@@ -377,36 +377,45 @@ plot_runscatter <- function(
         dplyr::ungroup()
     }
 
-
     thresholds <- d_filt |>
       group_by(.data$feature_id) |>
       summarise(
         max_spl = median(.data$value[.data$qc_type == "SPL"], na.rm = TRUE) +
-          cap_sample_k_mad * mad(.data$value[.data$qc_type == "SPL"], na.rm = TRUE),
+          cap_sample_k_mad *
+            mad(.data$value[.data$qc_type == "SPL"], na.rm = TRUE),
         max_tqc = median(.data$value[.data$qc_type == "TQC"], na.rm = TRUE) +
           cap_qc_k_mad * mad(.data$value[.data$qc_type == "TQC"], na.rm = TRUE),
         max_bqc = median(.data$value[.data$qc_type == "BQC"], na.rm = TRUE) +
           cap_qc_k_mad * mad(.data$value[.data$qc_type == "BQC"], na.rm = TRUE),
         .groups = "drop"
       ) |>
-      mutate(value_max = pmax(.data$max_spl, .data$max_tqc, .data$max_bqc, na.rm = TRUE))
+      mutate(
+        value_max = pmax(
+          .data$max_spl,
+          .data$max_tqc,
+          .data$max_bqc,
+          na.rm = TRUE
+        )
+      )
 
     d_filt <- d_filt |>
       left_join(thresholds, by = "feature_id") |>
       mutate(
-        value_max = ifelse(is.infinite(.data$value_max), .data$value, .data$value_max),
+        value_max = ifelse(
+          is.infinite(.data$value_max),
+          .data$value,
+          .data$value_max
+        ),
         value_mod = if_else(
           .data$value > .data$value_max,
           .data$value_max * outlier_offset_ratio,
           .data$value
         )
       )
-
-
   } else {
-     d_filt <- d_filt |>
-       dplyr::mutate(value_mod = .data$value)
-   }
+    d_filt <- d_filt |>
+      dplyr::mutate(value_mod = .data$value)
+  }
   if (log_scale) {
     # check if value_mod contains any negative or zero
     if (any(d_filt$value_mod <= 0)) {
@@ -523,15 +532,16 @@ plot_runscatter <- function(
     page_group_files <- seq_along(page_group_list)
     action_text <- "Generating plots"
   }
-  message(cli::col_green(glue::glue(
-    "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}"
-  )), appendLF = FALSE
+  message(
+    cli::col_green(glue::glue(
+      "{action_text} ({max(page_range)} {ifelse(max(page_range) > 1, 'pages', 'page')}){ifelse(show_progress, ':', '...')}"
+    )),
+    appendLF = FALSE
   )
   # if (show_progress) {
   #   pb <- txtProgressBar(min = 0, max = max(page_range), width = 30, style = 3)
   # }
   # flush.console()
-
 
   if (multithreading) {
     p_list <- purrr::map2(
@@ -539,8 +549,7 @@ plot_runscatter <- function(
       page_group_files,
       purrr::in_parallel(
         .f = function(pg_group, file) {
-          args <- c(list(d_subset = pg_group, file = file),
-                    arglist)
+          args <- c(list(d_subset = pg_group, file = file), arglist)
           do.call(runscatter_plot_pages, args)
         },
         runscatter_plot_pages = runscatter_plot_pages,
@@ -552,19 +561,21 @@ plot_runscatter <- function(
     p_list <- purrr::map2(
       page_group_list,
       page_group_files,
-        .f = function(pg_group, file) {
-          args <- c(list(d_subset = pg_group, file = file),
-                    arglist)
-          do.call(runscatter_plot_pages, args)
-        },
+      .f = function(pg_group, file) {
+        args <- c(list(d_subset = pg_group, file = file), arglist)
+        do.call(runscatter_plot_pages, args)
+      },
       .progress = show_progress
     )
   }
-  #tock <- Sys.time()
-  #print(tock - tick)
-
 
   p_list <- purrr::flatten(p_list)
+  flush.console()
+
+
+  if(output_pdf) message(cli::col_green("  done!"))
+
+  flush.console()
   if (multithreading && output_pdf) {
     check_installed("qpdf")
     # Combine individual page PDFs into a single PDF
@@ -572,9 +583,6 @@ plot_runscatter <- function(
     fs::dir_delete(tmp_dir)
   }
 
-
-
-  message(cli::col_green("  done!"))
   # if (show_progress) {
   #   close(pb)
   # }
@@ -583,6 +591,8 @@ plot_runscatter <- function(
 
   if (return_plots) {
     return(p_list[page_range])
+  } else {
+    invisible()
   }
 }
 
@@ -626,11 +636,7 @@ runscatter_plot_pages <- function(
   show_progress,
   use_dingbats
 ) {
-
-
   runscatter_one_page <- function(d_subset) {
-
-
     # For debugging
     # p <- ggplot(data = data.frame(speed = 1:4, dist = cumsum(runif(4, 0, 22))), aes(x = speed, y = dist)) + geom_point()
     # plot(p)
@@ -735,7 +741,8 @@ runscatter_plot_pages <- function(
             na.rm = TRUE
           )
       } else {
-        d_batches_temp <- d_batch_data |> dplyr::filter(.data$batch_no %% 2 != 1)
+        d_batches_temp <- d_batch_data |>
+          dplyr::filter(.data$batch_no %% 2 != 1)
         p <- p +
           ggplot2::geom_rect(
             data = d_batches_temp,
@@ -1047,13 +1054,8 @@ runscatter_plot_pages <- function(
     }
 
     plot(p)
-    if(return_plots) return(p)
+    if (return_plots) return(p)
   }
-
-
-
-
-
 
   # Split into list of page groups for parallel processing if multithreading is enabled otherwise include all pages in one group
   #tick <- Sys.time()
@@ -1063,15 +1065,15 @@ runscatter_plot_pages <- function(
   ##rint("Start PDF FILE")
 
   if (output_pdf) {
-      pdf(
-        file = file,
-        onefile = !multithreading,
-        #paper = "A4r",
-        useDingbats = use_dingbats,
-        useKerning = TRUE,
-        width = ifelse(page_orientation == "LANDSCAPE", 28 / 2.54, 20 / 2.54),
-        height = ifelse(page_orientation == "LANDSCAPE", 20 / 2.54, 28 / 2.54)
-      )
+    pdf(
+      file = file,
+      onefile = !multithreading,
+      #paper = "A4r",
+      useDingbats = use_dingbats,
+      useKerning = TRUE,
+      width = ifelse(page_orientation == "LANDSCAPE", 28 / 2.54, 20 / 2.54),
+      height = ifelse(page_orientation == "LANDSCAPE", 20 / 2.54, 28 / 2.54)
+    )
   }
 
   # # add a ggplot test plot with penguins
@@ -1084,16 +1086,15 @@ runscatter_plot_pages <- function(
   p_list <- purrr::map(
     page_list,
     #function(pg) {
-      # Combine page-specific arguments with arglist
-      #args <- c(list())
-      ~ runscatter_one_page(d_subset = .x),
+    # Combine page-specific arguments with arglist
+    #args <- c(list())
+    ~ runscatter_one_page(d_subset = .x),
     .progress = show_progress
   )
 
-
-  if (output_pdf) dev.off()
+  if (output_pdf) {
+    dev.off()
+  }
 
   return(p_list)
 }
-
-
