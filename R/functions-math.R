@@ -109,7 +109,6 @@ get_outlier_bounds <- function(
   na.rm = FALSE
 ) {
   method <- match.arg(method)
-
   if (length(x) < 2) {
     return(c(NA_real_, NA_real_))
   }
@@ -183,9 +182,13 @@ get_outlier_bounds <- function(
     upper <- med + delta[2]
   }
 
-  lo <- min(x[x >= lower], na.rm = TRUE)
-  up <- max(x[x <= upper], na.rm = TRUE)
-  return(c(lo, up))
+  vals_lo <- x[x >= lower]
+  lo <- if (length(vals_lo) > 0) min(vals_lo, na.rm = TRUE) else NA_real_
+
+  vals_up <- x[x <= upper]
+  up <- if (length(vals_up) > 0) max(vals_up, na.rm = TRUE) else NA_real_
+
+  c(lo, up)
 }
 
 
