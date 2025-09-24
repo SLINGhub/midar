@@ -497,7 +497,7 @@ plot_qc_summary_overall <- function(
     x2 <- list(sb_failed, cva_failed, lin_failed)
     names(x2) <- c(sb_label, cva_label, lin_label)
 
-    p_venn <- ggvenn::ggvenn(
+    p_venn <- ggvenn_nowarning(
       x2,
       c(sb_label, cva_label, lin_label),
       show_percentage = FALSE,
