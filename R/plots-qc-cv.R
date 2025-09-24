@@ -450,20 +450,23 @@ plot_qcmetrics_comparison <- function(
     g <- g +
       geom_abline(intercept = 0, slope = 1, linewidth = 0.3, color = "orange")
   }
-
   # Add threshold lines if specified
   if (!is.na(threshold_value)) {
     g <- g +
-      geom_hline(
-        yintercept = threshold_value,
-        linetype = "dashed",
-        color = "darkgreen"
-      ) +
       geom_vline(
         xintercept = threshold_value,
         linetype = "dashed",
         color = "darkgreen"
       )
+    if(plot_type == "scatter"){
+        g <- g +
+        geom_hline(
+          yintercept = threshold_value,
+          linetype = "dashed",
+          color = "darkgreen"
+        )
+    }
+
   }
 
   # Set axis limits
