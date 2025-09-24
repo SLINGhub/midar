@@ -315,7 +315,5 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
       strip.text = element_text(size = font_base_size , face = "bold"),
       strip.background = element_rect(linewidth = 0.0001, fill = "#496875")
     )
-
-
   p
 }

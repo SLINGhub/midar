@@ -408,7 +408,6 @@ plot_rla_boxplot <- function(
   if (nrow(data@dataset) < 1) {
     cli::cli_abort("No data available. Please import data and metadata first.")
   }
-
   rlang::arg_match(rla_type_batch, c("within", "across"))
 
   # Check if selected variable is valid
@@ -853,6 +852,7 @@ plot_rla_boxplot <- function(
       xlim = plot_range
     }
   }
+
 
   p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
 

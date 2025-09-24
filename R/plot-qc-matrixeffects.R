@@ -105,7 +105,7 @@ plot_qc_matrixeffects <- function(data,
   }
 
   df <- d_filt |>
-    dplyr::select("feature_id", "qc_type", "batch_id", "is_istd", variable) 
+    dplyr::select("feature_id", "qc_type", "batch_id", "is_istd", variable)
   if(only_istd) df <- df |> filter(.data$is_istd)
 
   df$qc_type <- factor(df$qc_type, levels = c("PBLK", "TQC", "BQC", "LQC","MQC","HQC", "SPL", "NIST", "LTR"))
@@ -114,7 +114,7 @@ plot_qc_matrixeffects <- function(data,
   grp <- if(batchwise_normalization) c("feature_id", "batch_id") else "feature_id"
   df_std <- df |>
     group_by(across(all_of(grp))) |>
-    dplyr::mutate(scaled_intensity = !!variable_sym / mean(!!variable_sym, na.rm = TRUE) * 100) |> 
+    dplyr::mutate(scaled_intensity = !!variable_sym / mean(!!variable_sym, na.rm = TRUE) * 100) |>
     drop_na(.data$scaled_intensity)
 
   ggplot2::ggplot(df_std, ggplot2::aes(
