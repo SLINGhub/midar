@@ -292,7 +292,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
       se = FALSE, na.rm = TRUE, linewidth = line_width , inherit.aes = FALSE
     ) +
     ggpmisc::stat_poly_eq(
-      data = dat_subset |> filter(not_zero),
+      data = dat_subset |> filter(.data$not_zero),
       aes(group = .data$curve_id, label = ggplot2::after_stat(.data$rr.label)),
       size = font_base_size * 0.4,
       rr.digits = 4,

@@ -26,4 +26,6 @@ The QC filtering process follows a hierarchical structure, where features are fi
 Only features that pass these basic criteria are then subjected to higher-level filters like the coefficient of variation (CV) or linear regression results.
 A feature will only fail a higher-level filter (such as \code{CV} or \code{R-squared}) if it has passed all previous lower-level filters.
 This ensures that features are evaluated progressively, starting from fundamental quality checks up to more stringent filtering criteria.
+
+Note: The function currently shows a warning \code{Using }size\verb{ aesthetic for lines was deprecated in ggplot2 3.4.0.} which can be ignored.
 }

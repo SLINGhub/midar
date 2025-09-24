@@ -579,11 +579,11 @@ fun_correct_drift <- function(
   update_frequency <- ceiling(total_groups * 0.02)
 
   # Setup progress bar, as the build-in  based on cli does not work in quarto
-  update_progress <- function(i) {
-    if (i %% update_frequency == 0) {
-      setTxtProgressBar(pb, i)
-    }
-  }
+  # update_progress <- function(i) {
+  #   if (i %% update_frequency == 0) {
+  #     setTxtProgressBar(pb, i)
+  #   }
+  # }
 
   # if (show_progress) {
   #   pb <- txtProgressBar(min = 0, max = total_groups, style = 3, width = 44)
@@ -1254,6 +1254,7 @@ correct_drift_gaussiankernel <- function(
 #' @param feature_list Subset the features for correction whose names matches the specified text using regular expression. Default is `NULL` which means all features are selected.
 #' @param ignore_istd Do not apply corrections to ISTDs
 #' @param use_original_if_fail Determines the action when smoothing fails or results in invalid values for a feature. If `FALSE` (default), the result for each feature will `NA` for all batches, if `TRUE`, the original data is kept.
+#' @param show_progress Logical. Display progress bars if `TRUE`; disable for notebook rendering by setting to `FALSE`.
 #' @return MidarExperiment object
 #' @export
 correct_drift_loess <- function(
@@ -1272,7 +1273,6 @@ correct_drift_loess <- function(
   cv_diff_threshold = 0,
   use_original_if_fail = FALSE,
   extrapolate = FALSE,
-
   show_progress = TRUE
 ) {
   check_data(data)
@@ -1381,6 +1381,7 @@ correct_drift_loess <- function(
 #' @param cv_diff_threshold Maximum allowable change in CV ratio before and after smoothing for correction to be applied.
 #' @param feature_list Subset the features for correction whose names match the specified text using regular expression. Default is `NULL`.
 #' @param use_original_if_fail Determines the action when smoothing fails or results in invalid values for a feature. If `FALSE` (default), the result for each feature will `NA` for all batches, if `TRUE`, the original data is kept.
+#' @param show_progress Logical. Display progress bars if `TRUE`; disable for notebook rendering by setting to `FALSE`.
 #' @return MidarExperiment object
 #' @export
 #' @references  Dunn, W., Broadhurst, D., Begley, P. et al. Procedures for
@@ -1508,6 +1509,7 @@ correct_drift_cubicspline <- function(
 #' @param cv_diff_threshold Maximum allowable change in CV ratio before and after smoothing for correction to be applied.
 #' @param feature_list Subset the features for correction whose names match the specified text using regular expression. Default is `NULL`.
 #' @param use_original_if_fail Determines the action when smoothing fails or results in invalid values for a feature. If `FALSE` (default), the result for each feature will `NA` for all batches, if `TRUE`, the original data is kept.
+#' @param show_progress Logical. Display progress bars if `TRUE`; disable for notebook rendering by setting to `FALSE`.
 #' @return MidarExperiment object
 #' @export
 #'

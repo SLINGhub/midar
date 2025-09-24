@@ -8,6 +8,8 @@ correct_drift_loess(
   data = NULL,
   variable,
   ref_qc_types,
+  span = 0.75,
+  degree = 2,
   batch_wise = TRUE,
   ignore_istd = TRUE,
   replace_previous = TRUE,
@@ -18,8 +20,7 @@ correct_drift_loess(
   cv_diff_threshold = 0,
   use_original_if_fail = FALSE,
   extrapolate = FALSE,
-  span = 0.75,
-  degree = 2
+  show_progress = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ correct_drift_loess(
 \item{variable}{The variable to be corrected for drift effects. Must be one of "intensity", "norm_intensity", or "conc"}
 
 \item{ref_qc_types}{QC types used for drift correction}
+
+\item{span}{Loess span width (default is 0.75)}
+
+\item{degree}{Degree of the polynomial to be used in the loess smoothing, normally 1 (default) or 2}
 
 \item{batch_wise}{Logical. Apply the correction to each batch separately
 (\code{TRUE}, default) or across all batches (\code{FALSE}).}
@@ -53,9 +58,7 @@ A value of 0 (the default) requires the CV to improve, while a value above 0 all
 
 \item{extrapolate}{Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.}
 
-\item{span}{Loess span width (default is 0.75)}
-
-\item{degree}{Degree of the polynomial to be used in the loess smoothing, normally 1 (default) or 2}
+\item{show_progress}{Logical. Display progress bars if \code{TRUE}; disable for notebook rendering by setting to \code{FALSE}.}
 }
 \value{
 MidarExperiment object

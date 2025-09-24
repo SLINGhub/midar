@@ -17,8 +17,8 @@ plot_qcmetrics_comparison(
   equality_line = FALSE,
   threshold_value = NA,
   log_scale = FALSE,
-  xlim = c(0, NA),
-  ylim = c(0, NA),
+  x_lim = c(0, NA),
+  y_lim = c(0, NA),
   cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
@@ -59,10 +59,10 @@ from both axes on the plot (default is \code{NA}).}
 
 \item{log_scale}{Logical, whether to use a log10 scale the axes.}
 
-\item{xlim}{Numeric vector of length 2 for x-axis limits. Use \code{NA} for
+\item{x_lim}{Numeric vector of length 2 for x-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
 
-\item{ylim}{Numeric vector of length 2 for y-axis limits. Use \code{NA} for
+\item{y_lim}{Numeric vector of length 2 for y-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
 
 \item{cols_page}{Integer; number of facet columns per page (default is \code{5}).}

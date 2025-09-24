@@ -20,7 +20,8 @@ correct_drift_cubicspline(
   log_transform_internal = TRUE,
   feature_list = NULL,
   cv_diff_threshold = 0,
-  use_original_if_fail = FALSE
+  use_original_if_fail = FALSE,
+  show_progress = TRUE
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ correct_drift_cubicspline(
 \item{cv_diff_threshold}{Maximum allowable change in CV ratio before and after smoothing for correction to be applied.}
 
 \item{use_original_if_fail}{Determines the action when smoothing fails or results in invalid values for a feature. If \code{FALSE} (default), the result for each feature will \code{NA} for all batches, if \code{TRUE}, the original data is kept.}
+
+\item{show_progress}{Logical. Display progress bars if \code{TRUE}; disable for notebook rendering by setting to \code{FALSE}.}
 }
 \value{
 MidarExperiment object

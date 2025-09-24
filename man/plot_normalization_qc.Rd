@@ -14,8 +14,8 @@ plot_normalization_qc(
   filter_data = FALSE,
   include_qualifier = FALSE,
   cv_threshold_value = 25,
-  xlim = c(0, NA),
-  ylim = c(0, NA),
+  x_lim = c(0, NA),
+  y_lim = c(0, NA),
   cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
@@ -52,10 +52,10 @@ QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_
 \item{cv_threshold_value}{Numerical threshold value to be shown as dashed
 lines in the plot (default is \code{25}).}
 
-\item{xlim}{Numeric vector of length 2 for x-axis limits. Use \code{NA} for
+\item{x_lim}{Numeric vector of length 2 for x-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
 
-\item{ylim}{Numeric vector of length 2 for y-axis limits. Use \code{NA} for
+\item{y_lim}{Numeric vector of length 2 for y-axis limits. Use \code{NA} for
 auto-scaling (default is \code{c(0, NA)}).}
 
 \item{cols_page}{Number of facet columns per page, representing

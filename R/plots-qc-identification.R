@@ -307,7 +307,7 @@ plot_rt_vs_chain <- function(
     length()
 
   p <- ggplot(
-    d_plot |> drop_na(!!sym(x_var), rt_median),
+    d_plot |> drop_na(!!sym(x_var), .data$rt_median),
     aes(x = !!sym(x_var), y = .data$rt_median, group = !!sym(group_var))
   )
 

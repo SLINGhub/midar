@@ -14,7 +14,7 @@ plot_qc_matrixeffects(
   include_feature_filter = NA,
   exclude_feature_filter = NA,
   min_median_value = NA,
-  ylim = c(-NA, NA),
+  y_lim = c(-NA, NA),
   point_size = 0.5,
   dodge_width = 0.6,
   point_alpha = 0.3,
@@ -64,7 +64,7 @@ parameter provides an fast way to exclude noisy features from the
 analysis. However, it is recommended to use \code{filter_data} with
 \code{\link[=filter_features_qc]{filter_features_qc()}}.}
 
-\item{ylim}{A numeric vector of length 2 specifying the y-axis limits.}
+\item{y_lim}{A numeric vector of length 2 specifying the y-axis limits.}
 
 \item{point_size}{A numeric value indicating the size of points in
 millimeters. Default is 2.}
