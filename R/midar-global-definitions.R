@@ -1,4 +1,3 @@
-
 # Initializing
 pkg.env <- new.env()
 setOldClass(c("tbl_df", "tbl", "data.frame")) # allow S4 to see the S3 tbl_df
@@ -27,7 +26,6 @@ pkg.env$table_templates <- list(
     "is_istd" = logical(),
     "is_quantifier" = logical(),
     "feature_intensity" = numeric()
-
   ),
   annot_analyses_template = dplyr::tibble(
     "analysis_order" = integer(),
@@ -93,8 +91,26 @@ pkg.env$table_templates <- list(
 
 pkg.env$qc_type_annotation <- list(
   qc_type_levels = c(
-    "SBLK", "TBLK", "UBLK", "HQC", "MQC", "LQC",  "QC", "PBLK", "CAL","EQA", "PQC", "TQC", "BQC", "RQC", "EQC", "NIST",
-    "LTR",  "SPL", "SST", "MBLK"
+    "SBLK",
+    "TBLK",
+    "UBLK",
+    "HQC",
+    "MQC",
+    "LQC",
+    "QC",
+    "PBLK",
+    "CAL",
+    "EQA",
+    "PQC",
+    "TQC",
+    "BQC",
+    "RQC",
+    "EQC",
+    "NIST",
+    "LTR",
+    "SPL",
+    "SST",
+    "MBLK"
   ),
   qc_type_col = c(
     "SBLK" = "#1854f9",
@@ -165,58 +181,73 @@ pkg.env$qc_type_annotation <- list(
 )
 
 
-pkg.env$lipid_class_themes <- list(
-  lipid_class_order = c(
-    "Cer 18:0;O2",
-    "Cer 18:1;O2",
-    "Cer 18:2;O2",
-    "SM",
-    "GM3",
-    "Hex2Cer",
-    "Hex3Cer",
-    "HexCer",
-    "LPC",
-    "LPE",
-    "LPC-O",
-    "PC",
-    "PE",
-    "PI",
-    "PG",
-    "PS",
-    "PC-O",
-    "PC-P",
-    "PE-O",
-    "PE-P",
-    "CE",
-    "DG",
-    "TG",
-    "TG-O"
-  ),
-  lipid_class_color = c(
-    "Cer 18:0;O2" = "#FFDF0D",
+pkg.env$lipid_class_annotations <- list(
+  lipid_class_map = c(
+    "S1P" = "#ff1f84ff",
+    "SA1P" = "#ff1f84ff",
+    "LCBP" = "#ff1f84ff",
+    "Sph" = "#f78bbbff",
+    "SA" = "#f78bbbff",
+    "LCB" = "#f78bbbff",
+    "Cer 16:0;O2" = "#d4fb48ff",
+    "Cer 18:0;O2" = "#d4fb48ff",
+    "Cer 16:1;O2" = "#FFDF0D",
+    "Cer 17:1;O2" = "#f0a802",
     "Cer 18:1;O2" = "#f0a802",
-    "Cer 18:2;O2" = "#ffb802",
-    "SM" = "#d8b8ff",
-    "GM3" = "#a7cc00",
+    "Cer 19:1;O2" = "#ffb802",
+    "Cer 20:1;O2" = "#ffb802",
+    "Cer 18:2;O2" = "#000000ff",
+    "Cer 18:0;O" = "#e96357ff",
+    "Cer 18:1;O" = "#e96357ff",
+    "Cer d16:0" = "#d4fb48ff",
+    "Cer d18:0" = "#d4fb48ff",
+    "Cer d16:1" = "#FFDF0D",
+    "Cer d17:1" = "#f0a802",
+    "Cer d18:1" = "#f0a802",
+    "Cer d19:1" = "#ffb802",
+    "Cer d20:1" = "#ffb802",
+    "Cer d18:2" = "#ffb802",
+    "Cer m18:0" = "#e96357ff",
+    "Cer m18:1" = "#e96357ff",
+    "dhCer" = "#d4fb48ff",
+    "Cer" = "#FFDF0D",
+    "deoxyCer" = "#e96357ff",
+    "HexCer" = "#a7cc00",
+    "Hex1Cer" = "#a7cc00",
     "Hex2Cer" = "#a7cc00",
     "Hex3Cer" = "#a7cc00",
-    "HexCer" = "#a7cc00",
+    "SHexCer" = "#a7cc00",
+    "GM1" = "#a7cc00",
+    "GM3" = "#a7cc00",
     "LPC" = "#89faf8",
     "LPE" = "#89faf8",
+    "LPI" = "#89faf8",
+    "LPA" = "#89faf8",
+    "LPS" = "#89faf8",
     "LPC-O" = "#5ce095",
+    "LPC-P" = "#5ce095",
+    "LPE-P" = "#5ce095",
     "PC" = "#74C0E6",
     "PE" = "#74C0E6",
     "PI" = "#74C0E6",
+    "PA" = "#74C0E6",
     "PG" = "#74C0E6",
-    "PS" = "#74C0E6",
+    "PS" = "#8159caff",
     "PC-O" = "#5ce095",
     "PC-P" = "#5ce095",
     "PE-O" = "#5ce095",
     "PE-P" = "#5ce095",
+    "DG" = "#f37d7dff",
+    "TG" = "#ff0000ff",
+    "TG-O" = "#a96d6dff",
+    "CL" = "#ff0000ff",
     "CE" = "#635352",
-    "DG" = "#db3d3d",
-    "TG" = "#9c2f2f",
-    "TG-O" = "#9c2f2f",
+    "DE" = "#a7827fff",
+    "COH" = "#675656ff",
+    "CAR" = "#04c043ff",
+    "FFA" = "#c88dc0ff",
+    "FA" = "#c88dc0ff",
+    "BA" = "#19ad11ff",
     "NA" = "grey90"
-  ) 
+  )
 )
