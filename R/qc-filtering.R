@@ -306,43 +306,43 @@ calc_qc_metrics <- function(
       summarise(
         .by = all_of(grp),
 
-        rt_min_SPL = safe_min(
+        rt_min_spl = safe_min(
           .data$feature_rt[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        rt_max_SPL = safe_max(
+        rt_max_spl = safe_max(
           .data$feature_rt[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        rt_min_BQC = safe_min(
+        rt_min_bqc = safe_min(
           .data$feature_rt[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        rt_min_TQC = safe_min(
+        rt_min_tqc = safe_min(
           .data$feature_rt[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
-        rt_median_PBLK = median(
+        rt_median_pblk = median(
           .data$feature_rt[.data$qc_type == "PBLK"],
           na.rm = TRUE
         ),
-        rt_median_SPL = median(
+        rt_median_spl = median(
           .data$feature_rt[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        rt_median_BQC = median(
+        rt_median_bqc = median(
           .data$feature_rt[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        rt_median_TQC = median(
+        rt_median_tqc = median(
           .data$feature_rt[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
-        rt_median_NIST = median(
+        rt_median_nist = median(
           .data$feature_rt[.data$qc_type == "NIST"],
           na.rm = TRUE
         ),
-        rt_median_LTR = median(
+        rt_median_ltr = median(
           .data$feature_rt[.data$qc_type == "LTR"],
           na.rm = TRUE
         )
@@ -356,93 +356,93 @@ calc_qc_metrics <- function(
       summarise(
         .by = all_of(grp),
 
-        intensity_min_SPL = safe_min(
+        intensity_min_spl = safe_min(
           .data$feature_intensity[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        intensity_max_SPL = safe_max(
+        intensity_max_spl = safe_max(
           .data$feature_intensity[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
 
-        intensity_min_BQC = safe_min(
+        intensity_min_bqc = safe_min(
           .data$feature_intensity[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        intensity_min_TQC = safe_min(
+        intensity_min_tqc = safe_min(
           .data$feature_intensity[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
-        intensity_max_BQC = safe_max(
+        intensity_max_bqc = safe_max(
           .data$feature_intensity[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        intensity_max_TQC = safe_max(
+        intensity_max_tqc = safe_max(
           .data$feature_intensity[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
 
-        intensity_median_PBLK = median(
+        intensity_median_pblk = median(
           .data$feature_intensity[.data$qc_type == "PBLK"],
           na.rm = TRUE
         ),
-        intensity_median_UBLK = median(
+        intensity_median_ublk = median(
           .data$feature_intensity[.data$qc_type == "UBLK"],
           na.rm = TRUE
         ),
-        intensity_median_SBLK = median(
+        intensity_median_sblk = median(
           .data$feature_intensity[.data$qc_type == "SBLK"],
           na.rm = TRUE
         ),
-        intensity_median_SPL = median(
+        intensity_median_spl = median(
           .data$feature_intensity[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        intensity_median_BQC = median(
+        intensity_median_bqc = median(
           .data$feature_intensity[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        intensity_median_TQC = median(
+        intensity_median_tqc = median(
           .data$feature_intensity[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
-        intensity_median_NIST = median(
+        intensity_median_nist = median(
           .data$feature_intensity[.data$qc_type == "NIST"],
           na.rm = TRUE
         ),
-        intensity_median_LTR = median(
+        intensity_median_ltr = median(
           .data$feature_intensity[.data$qc_type == "LTR"],
           na.rm = TRUE
         ),
 
-        intensity_cv_TQC = cv(
+        intensity_cv_tqc = cv(
           .data$feature_intensity[.data$qc_type == "TQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        intensity_cv_BQC = cv(
+        intensity_cv_bqc = cv(
           .data$feature_intensity[.data$qc_type == "BQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        intensity_cv_SPL = cv(
+        intensity_cv_spl = cv(
           .data$feature_intensity[.data$qc_type == "SPL"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        intensity_cv_LTR = cv(
+        intensity_cv_ltr = cv(
           .data$feature_intensity[.data$qc_type == "LTR"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        intensity_cv_NIST = cv(
+        intensity_cv_nist = cv(
           .data$feature_intensity[.data$qc_type == "NIST"],
           na.rm = TRUE,
           use_robust_cv
         ),
 
         # Calculate quantiles within summarise
-        intensity_q10_SPL = quantile(
+        intensity_q10_spl = quantile(
           .data$feature_intensity[.data$qc_type == "SPL"],
           probs = 0.1,
           na.rm = TRUE,
@@ -450,13 +450,13 @@ calc_qc_metrics <- function(
         )
       ) |>
       mutate(
-        sb_ratio_q10_pbk = .data$intensity_q10_SPL /
-          .data$intensity_median_PBLK,
-        sb_ratio_pblk = .data$intensity_median_SPL /
-          .data$intensity_median_PBLK,
-        sb_ratio_ublk = .data$intensity_median_SPL /
-          .data$intensity_median_UBLK,
-        sb_ratio_sblk = .data$intensity_median_SPL / .data$intensity_median_SBLK
+        sb_ratio_q10_pbk = .data$intensity_q10_spl /
+          .data$intensity_median_pblk,
+        sb_ratio_pblk = .data$intensity_median_spl /
+          .data$intensity_median_pblk,
+        sb_ratio_ublk = .data$intensity_median_spl /
+          .data$intensity_median_ublk,
+        sb_ratio_sblk = .data$intensity_median_spl / .data$intensity_median_sblk
       )
     d_stats_var_final <- d_stats_var_final |>
       left_join(d_stats_var_int, by = grp)
@@ -475,27 +475,27 @@ calc_qc_metrics <- function(
     d_stats_var_norm_int <- d_stats_var |>
       summarise(
         .by = all_of(grp),
-        norm_intensity_cv_TQC = cv(
+        norm_intensity_cv_tqc = cv(
           .data$feature_norm_intensity[.data$qc_type == "TQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        norm_intensity_cv_BQC = cv(
+        norm_intensity_cv_bqc = cv(
           .data$feature_norm_intensity[.data$qc_type == "BQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        norm_intensity_cv_SPL = cv(
+        norm_intensity_cv_spl = cv(
           .data$feature_norm_intensity[.data$qc_type == "SPL"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        norm_intensity_cv_LTR = cv(
+        norm_intensity_cv_ltr = cv(
           .data$feature_norm_intensity[.data$qc_type == "LTR"],
           na.rm = TRUE
         ),
         use_robust_cv,
-        norm_intensity_cv_NIST = cv(
+        norm_intensity_cv_nist = cv(
           .data$feature_norm_intensity[.data$qc_type == "NIST"],
           na.rm = TRUE,
           use_robust_cv
@@ -547,48 +547,48 @@ calc_qc_metrics <- function(
     d_stats_var_conc <- d_stats_var |>
       summarise(
         .by = all_of(grp),
-        conc_median_TQC = median(
+        conc_median_tqc = median(
           .data$feature_conc[.data$qc_type == "TQC"],
           na.rm = TRUE
         ),
-        conc_median_BQC = median(
+        conc_median_bqc = median(
           .data$feature_conc[.data$qc_type == "BQC"],
           na.rm = TRUE
         ),
-        conc_median_SPL = median(
+        conc_median_spl = median(
           .data$feature_conc[.data$qc_type == "SPL"],
           na.rm = TRUE
         ),
-        conc_median_NIST = median(
+        conc_median_nist = median(
           .data$feature_conc[.data$qc_type == "NIST"],
           na.rm = TRUE
         ),
-        conc_median_LTR = median(
+        conc_median_ltr = median(
           .data$feature_conc[.data$qc_type == "LTR"],
           na.rm = TRUE
         ),
 
-        conc_cv_TQC = cv(
+        conc_cv_tqc = cv(
           .data$feature_conc[.data$qc_type == "TQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        conc_cv_BQC = cv(
+        conc_cv_bqc = cv(
           .data$feature_conc[.data$qc_type == "BQC"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        conc_cv_SPL = cv(
+        conc_cv_spl = cv(
           .data$feature_conc[.data$qc_type == "SPL"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        conc_cv_NIST = cv(
+        conc_cv_nist = cv(
           .data$feature_conc[.data$qc_type == "NIST"],
           na.rm = TRUE,
           use_robust_cv
         ),
-        conc_cv_LTR = cv(
+        conc_cv_ltr = cv(
           .data$feature_conc[.data$qc_type == "LTR"],
           na.rm = TRUE
         ),
@@ -969,43 +969,43 @@ filter_features_qc <- function(
         list(
           compare_values(
             metrics_qc_local,
-            "intensity_min_BQC",
+            "intensity_min_bqc",
             min.intensity.lowest.bqc,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_min_TQC",
+            "intensity_min_tqc",
             min.intensity.lowest.tqc,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_min_SPL",
+            "intensity_min_spl",
             min.intensity.lowest.spl,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_median_BQC",
+            "intensity_median_bqc",
             min.intensity.median.bqc,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_median_TQC",
+            "intensity_median_tqc",
             min.intensity.median.tqc,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_median_SPL",
+            "intensity_median_spl",
             min.intensity.median.spl,
             ">"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_max_SPL",
+            "intensity_max_spl",
             min.intensity.highest.spl,
             ">"
           )
@@ -1052,29 +1052,29 @@ filter_features_qc <- function(
 
       pass_cva = comp_lgl_vec(
         list(
-          compare_values(metrics_qc_local, "conc_cv_BQC", max.cv.conc.bqc, "<"),
-          compare_values(metrics_qc_local, "conc_cv_TQC", max.cv.conc.tqc, "<"),
+          compare_values(metrics_qc_local, "conc_cv_bqc", max.cv.conc.bqc, "<"),
+          compare_values(metrics_qc_local, "conc_cv_tqc", max.cv.conc.tqc, "<"),
           compare_values(
             metrics_qc_local,
-            "norm_intensity_cv_BQC",
+            "norm_intensity_cv_bqc",
             max.cv.normintensity.bqc,
             "<"
           ),
           compare_values(
             metrics_qc_local,
-            "norm_intensity_cv_TQC",
+            "norm_intensity_cv_tqc",
             max.cv.normintensity.tqc,
             "<"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_cv_BQC",
+            "intensity_cv_bqc",
             max.cv.intensity.bqc,
             "<"
           ),
           compare_values(
             metrics_qc_local,
-            "intensity_cv_TQC",
+            "intensity_cv_tqc",
             max.cv.intensity.tqc,
             "<"
           )
