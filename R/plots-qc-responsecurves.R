@@ -178,6 +178,7 @@ plot_responsecurves <- function(data = NULL,
     }
   }
 
+
   # Prepare PDF output
   if (output_pdf && !is.na(path)) { # nocov start
     path <- ifelse(stringr::str_detect(path, ".pdf"), path,
@@ -268,7 +269,9 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
 
   plot_var <- rlang::sym(response_variable)
   dataset$curve_id <- as.character(dataset$curve_id)
+  
 
+  
   # Subset dataset for current page
   n_samples <- length(unique(dataset$analysis_id))
   row_start <- n_samples * cols_page * rows_page * (specific_page - 1) + 1
@@ -279,6 +282,8 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
     slice(row_start:row_end) |>
     group_by(.data$feature_id) |>
     mutate(not_zero = sum(!!plot_var != 0) > 2)
+
+  dat_subset$curve_id <- factor(dat_subset$curve_id)
 
   p <-
     ggplot(
