@@ -138,7 +138,7 @@ add_missing_column <- function(data, col_name, init_value, make_lowercase, all_n
 get_conc_unit <- function(sample_amount_unit, analyte_amount_unit) {
   units <- tolower(unique(sample_amount_unit))
   analyte_units <- tolower(unique(analyte_amount_unit))
-
+  if (length(units) == 0) return(NA_character_) 
   if (length(units) > 1) {
     conc_unit <- glue::glue("{analyte_amount_unit}/sample amount unit (multiple units)")
   } else if (analyte_amount_unit == "pmol"  && (units == "ul" | units == "\U003BCl")) {
@@ -150,6 +150,7 @@ get_conc_unit <- function(sample_amount_unit, analyte_amount_unit) {
   } else {
     conc_unit <- analyte_amount_unit
   }
+  
   unique(conc_unit)
 }
 
@@ -342,7 +343,7 @@ scientific_format_end <- function(x) {
 
 # Used to desaturate colors to be used as fill colors in plots
 desaturate_colors <- function(colors, amount = 0.5) {
-  sapply(colors, function(col) {
+  x <- sapply(colors, function(col) {
     rgb_vals <- grDevices::col2rgb(col)
     hsv_vals <- grDevices::rgb2hsv(r = rgb_vals[1], 
                         g = rgb_vals[2], 
@@ -351,6 +352,7 @@ desaturate_colors <- function(colors, amount = 0.5) {
         s = hsv_vals["s",] * amount, 
         v = hsv_vals["v",])
   })
+  if(all(is.null(names(colors)))) unname(x) else x
 }
 
 
