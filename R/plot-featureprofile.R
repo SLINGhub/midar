@@ -486,7 +486,7 @@ plot_abundanceprofile <- function(
       ggplot2::annotation_logticks(
         base = 10,
         sides = "b",
-        size = 0.3,
+        linewidth = 0.3,
         colour = "grey80",
         long = ggplot2::unit(1, "mm"),
         mid = ggplot2::unit(0.5, "mm"),
@@ -518,12 +518,12 @@ plot_abundanceprofile <- function(
       axis.text.x = ggplot2::element_text(size = font_base_size - 1),
       axis.title.x = ggplot2::element_text(face = "bold"),
       axis.text.y = ggplot2::element_text(size = font_base_size - 1),
-      axis.ticks = ggplot2::element_line(colour = "grey40", size = 0.5),
+      axis.ticks = ggplot2::element_line(colour = "grey40", linewidth = 0.5),
       axis.ticks.length = ggplot2::unit(3, "pt"),
       panel.border = ggplot2::element_rect(
         color = "grey40",
         fill = NA,
-        size = 0.5
+        linewidth = 0.5
       ),
       plot.margin = ggplot2::unit(c(0, 0.0, 0.0, 0.0), "cm")
     )
@@ -592,11 +592,14 @@ plot_abundanceprofile <- function(
         panel.border = ggplot2::element_rect(
           color = "grey40",
           fill = NA,
-          size = 0.5
+          linewidth = 0.5
         ),
         axis.ticks.length = ggplot2::unit(3, "pt"),
         axis.text.y = ggplot2::element_text(size = font_base_size - 1),
-        axis.ticks.y = ggplot2::element_line(colour = "grey40", size = 0.5),
+        axis.ticks.y = ggplot2::element_line(
+          colour = "grey40",
+          linewidth = 0.5
+        ),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
         axis.title = ggplot2::element_blank(),
