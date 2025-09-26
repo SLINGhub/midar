@@ -9,25 +9,14 @@ get_iqr_tails(x, k = 1.5, na.rm = FALSE)
 \arguments{
 \item{x}{A numeric vector.}
 
-\item{k}{A numeric multiplier for the IQR. Default is \code{1.5} (standard Tukey fences).}
+\item{k}{A numeric multiplier for the IQR. Default is \code{1.5}.}
 
 \item{na.rm}{Logical. Should missing values be removed? Default is \code{FALSE}.}
 }
 \value{
-A numeric vector of length 2: \code{c(lower_tail, upper_tail)} representing
-the smallest and largest observed values within the fences.
+A numeric vector of length 2: \code{c(lower_tail, upper_tail)}.
 }
 \description{
 Computes the lower and upper boundaries based on Tukey's Interquartile Range (IQR)
-fences from a numeric vector. The function returns the lowest and highest observed values
-\strong{within} the lower and upper fences:
-\deqn{\text{lower fence} = Q1 - k \times IQR}
-\deqn{\text{upper fence} = Q3 + k \times IQR}
-}
-\details{
-If the input vector has less than 2 elements, returns \code{c(NA_real_, NA_real_)}.
-}
-\examples{
-get_iqr_tails(c(-100, -1, -2, -3,  1, 2, 3, 4, 100), k = 1.5)
-
+fences from a numeric vector.
 }

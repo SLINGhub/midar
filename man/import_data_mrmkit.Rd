@@ -24,10 +24,7 @@ integration results. The input files must be in a long format with columns
 for the raw data file name, feature ID, peak intensity, and other arguments
 Additional information, such as retention time, FWHM, precursor/product m/z,
 and CE will also be imported and made available in the \code{MidarExperiment}
-object for downstream analyses. Concentrations will also be imported if present,
-whereby when both \verb{Calc. Conc.} and \verb{Final Conc.} are present in the files,
-the argument \code{conc_column} can be used to specify which concentration field as
-'concentration' to use in downstream analyses.
+object for downstream analyses.
 
 When a directory path is provided, all matching files in that directory will
 be imported and merged into a single dataset. This is useful when importing

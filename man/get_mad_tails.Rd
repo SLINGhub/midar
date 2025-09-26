@@ -19,10 +19,5 @@ a numeric vector of length 2 with the lower and upper boundaries.
 \description{
 Computes the lower and upper boundaries based on Median Absolute Deviation
 (MAD) from a numeric vector. Returns c(NA_real_, NA_real_) if the input vector
-has less than 2 elements.
-}
-\examples{
-x <- c(-100,1, 2, 3, 4, 100)
-k <- 1.5
-get_mad_tails(x, k)
+has less than 2 elements or if no values fall within the computed fences.
 }

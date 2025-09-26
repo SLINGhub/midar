@@ -4,7 +4,7 @@
 \alias{data_sum_features}
 \title{Sum up feature intensities per analyte}
 \usage{
-data_sum_features(data, qualifier_action = "separate", feature_classes = NA)
+data_sum_features(data, qualifier_action = "include", feature_classes = NA)
 }
 \arguments{
 \item{data}{MidarExperiment object}
@@ -18,6 +18,12 @@ to include them in the sum if quantifier select "include", to not sum them up se
 MidarExperiment object
 }
 \description{
-Retrieves analysis IDs of data outliers based  the principal components PCA
-with SD or MAD fences
+This function sums up feature intensities per analyte_id.
+
+THis is is useful when you have multiple features (e.g. adducts, isotopes, in-source fragments) or isomers that you
+want to combine into a single analyte intensity value, such as LPC sn1 and sn2 species.
+
+NOTE: This is still an experimental function! It will overwrite the feature_id in the dataset and analysis metadata
+of featured that share same analyte_id. Currently the original feature_id is not backed up anywhere. Use with caution
+and check results carefully!
 }
