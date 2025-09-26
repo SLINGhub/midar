@@ -103,11 +103,7 @@ plot_qc_interferences <- function(
       cli_abort(col_red(
         "No features passed the `min_median_value` filter. Please review the filter value, `variable` and data."
       ))
-    } else if (nrow(d_minsignal) == 1) {
-      cli_abort(col_red(
-        "Only 1 feature passed the `min_median_value` filter. Please review the filter value, `variable`, and data."
-      ))
-    }
+    } 
 
     d_filt <- d_filt |> semi_join(d_minsignal, by = "feature_id")
   }
@@ -178,7 +174,7 @@ plot_qc_interferences <- function(
     ggplot2::coord_cartesian(ylim = y_lim, expand = FALSE) +
     ggplot2::theme_bw(base_size = font_base_size) +
     ylab("Standardized Intensity (% of uncorrected)") +
-    xlab("Internal Standard") +
+    xlab("Corrected Features") +
     theme(
       axis.text.x = ggplot2::element_text(angle = angle_x, hjust = 1),
       panel.grid.major.y = element_blank(),
