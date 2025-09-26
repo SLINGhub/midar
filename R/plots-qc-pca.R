@@ -216,7 +216,7 @@ plot_pca <- function(data = NULL,
 
   pca_annot <- pca_annot |>
     select("analysis_id":stringr::str_c(".fittedPC", max(pca_dims))) |>
-    left_join(d_outlier |> select(labels_column), by = labels_column, keep = TRUE, suffix = c("", "_outlier")) |> 
+    left_join(d_outlier |> select(any_of(labels_column)), by = labels_column, keep = TRUE, suffix = c("", "_outlier")) |> 
     rename(label_outlier = sym(paste0(labels_column, "_outlier")))
 
   if (!is.na(shared_labeltext_hide)) {
