@@ -313,7 +313,7 @@ plot_responsecurves_page <- function(dataset, output_pdf, response_variable,
     ggh4x::facet_wrap2(
       vars(.data$feature_id), scales = "free", nrow = rows_page, ncol = cols_page, trim_blank = FALSE
     ) +
-    geom_point(size = point_size, shape = 21) +
+    geom_point(size = point_size, shape = 21, na.rm = TRUE) +
     labs(x = x_axis_title, y = stringr::str_remove(response_variable, "feature_")) +
     theme_light(base_size = font_base_size) +
     theme(
