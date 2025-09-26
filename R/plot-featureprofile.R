@@ -537,8 +537,12 @@ plot_abundanceprofile <- function(
     } else {
       d_features$abundance_mean
     }
+
+    x_range <- range(x_for_density)
+
     dens <- stats::density(x_for_density, n = 1000, na.rm = TRUE)
-    dens_df <- data.frame(x = dens$x, density = dens$y)
+    dens_df <- data.frame(x = dens$x, density = dens$y) |>
+      dplyr::filter(.data$x >= x_range[1] & .data$x <= x_range[2])
     dens_df$density <- dens_df$density / max(dens_df$density)
     tile_width <- diff(dens_df$x)[1]
 
@@ -546,7 +550,7 @@ plot_abundanceprofile <- function(
       ggplot2::geom_tile(
         ggplot2::aes(fill = .data$density),
         height = 1,
-        width = tile_width
+        width = tile_width, na.rm = FALSE
       ) +
       ggplot2::scale_fill_gradientn(
         colors = grDevices::colorRampPalette(c(
