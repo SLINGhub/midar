@@ -138,7 +138,6 @@ plot_normalization_qc <- function(
       "One or more specified `qc_types` are not present in the dataset. Please verify data or analysis metadata."
     ))
   }
-
   start_regex <- paste(c(before_norm_var, after_norm_var), collapse = "|")
   middle_string <- "_cv_"
   end_regex <- paste(qc_types, collapse = "|")
@@ -307,8 +306,8 @@ plot_qcmetrics_comparison <- function(
     filter(.data$valid_feature) |>
     select("feature_id", "feature_class", dplyr::matches(col_pattern))
 
-  var_match <- str_remove(x_variable, "_(TQC|BQC|SPL)$") ==
-    str_remove(y_variable, "_(TQC|BQC|SPL)$")
+  var_match <- str_remove(x_variable, "_(tqc|bqc|spl)$") ==
+    str_remove(y_variable, "_(tqc|bqc|spl)$")
 
   if (!var_match) {
     d_qc <- d_qc |>
@@ -318,7 +317,7 @@ plot_qcmetrics_comparison <- function(
         names_pattern = "^(.*)_(.*)$"
       )
   } else {
-    d_qc$qc_type <- "SPL"
+    d_qc$qc_type <- "spl"
   }
 
   d_qc <- d_qc |>
@@ -327,7 +326,7 @@ plot_qcmetrics_comparison <- function(
 
   if (all(!is.na(qc_types))) {
     d_qc <- d_qc |>
-      filter(.data$qc_type %in% qc_types)
+      filter(.data$qc_type %in% tolower(qc_types))
   }
 
   if (plot_type == "diff") {
@@ -376,6 +375,8 @@ plot_qcmetrics_comparison <- function(
       "`feature_class` to be defined in the metadata. Please ammend metadata or set `facet_by_class = FALSE`."
     ))
   }
+
+  d_qc$qc_type <- toupper(d_qc$qc_type)
 
   if (plot_type == "scatter") {
     g <- ggplot(
@@ -469,19 +470,20 @@ plot_qcmetrics_comparison <- function(
 
   }
 
+
   # Set axis limits
   g <- g +
 
     ggplot2::scale_color_manual(
-      values = pkg.env$qc_type_annotation$qc_type_col,
+      values = (pkg.env$qc_type_annotation$qc_type_col),
       drop = TRUE
     ) +
     ggplot2::scale_fill_manual(
-      values = pkg.env$qc_type_annotation$qc_type_fillcol,
+      values = (pkg.env$qc_type_annotation$qc_type_fillcol),
       drop = TRUE
     ) +
     ggplot2::scale_shape_manual(
-      values = pkg.env$qc_type_annotation$qc_type_shape,
+      values = (pkg.env$qc_type_annotation$qc_type_shape),
       drop = TRUE
     )
 
