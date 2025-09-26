@@ -57,7 +57,6 @@ get_dataset_subset <- function(
   exclude_feature_filter = NULL
 ) {
   check_data(data)
-
   # Check if include and exclude filters contain overlapping items, unless both are NULL or NA
   if (
     all(!is.null(include_feature_filter)) &&

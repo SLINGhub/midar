@@ -140,7 +140,6 @@ save_report_xlsx <- function(data = NULL, path, filtered_variable = "conc", norm
   } else{
     d_wide_all_normalized <- tibble("No reference sample normalized data available." = NA) |> tibble::add_row()
   }
-
   if(data@is_quantitated && data@status_processing == "Calibration-quantitated data")
     conc_unit_origin <- unique(data@annot_qcconcentrations$concentration_unit)
   else
