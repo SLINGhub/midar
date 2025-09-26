@@ -53,7 +53,7 @@ providing critical insights into data quality."><meta property="og:image" conten
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -169,8 +169,7 @@ providing critical insights into data quality.</p>
 <span>  reference_linewidth <span class="op">=</span> <span class="fl">0.75</span>,</span>
 <span>  show_trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  trend_color <span class="op">=</span> <span class="st">"#22e06b"</span>,</span>
-<span>  y_min <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  y_max <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  log_scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  show_gridlines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1.5</span>,</span>
@@ -326,12 +325,8 @@ If <code>NA</code> (default), the color assigned to the qc_type is used.</p></dd
 <dd><p>Color of the trend curve.</p></dd>
 
 
-<dt id="arg-y-min">y_min<a class="anchor" aria-label="anchor" href="#arg-y-min"></a></dt>
-<dd><p>Lower y-axis value. Default is <code>0</code>. If <code>NA</code>, the minimum value is set automatically per facet based on the data</p></dd>
-
-
-<dt id="arg-y-max">y_max<a class="anchor" aria-label="anchor" href="#arg-y-max"></a></dt>
-<dd><p>Upper y-axis value. Default is <code>NA</code>. If <code>NA</code>, the maximum value is set automatically per facet based on the data.</p></dd>
+<dt id="arg-y-lim">y_lim<a class="anchor" aria-label="anchor" href="#arg-y-lim"></a></dt>
+<dd><p>Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is `c(0,NA)“, which sets the lower limit to 0 and the upper limit automatically.</p></dd>
 
 
 <dt id="arg-log-scale">log_scale<a class="anchor" aria-label="anchor" href="#arg-log-scale"></a></dt>

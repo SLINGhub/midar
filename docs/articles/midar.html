@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Getting Started</h1>
                         <h4 data-toc-skip class="author">Bo Burla</h4>
             
-            <h4 data-toc-skip class="date">2025-09-19</h4>
+            <h4 data-toc-skip class="date">2025-09-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/SLINGhub/midar/blob/HEAD/vignettes/midar.Rmd" class="external-link"><code>vignettes/midar.Rmd</code></a></small>
       <div class="d-none name"><code>midar.Rmd</code></div>
@@ -171,7 +171,6 @@ introduction and comprehensive documentation on this package.</p>
 <span><span class="co"># Drift and batch-effect correction</span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_drift_cubicspline.html">correct_drift_cubicspline</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
-<span><span class="co">#&gt;   |                                                    |                                            |   0%  |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend smoothing done!</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 19 of 19 features (batch-wise).</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">0.57%</span><span style="color: #555555;"> (range: -0.72% to 2.66%). The median absolute CV of all features across batches </span><span style="color: #555555; font-weight: bold;">increased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">33.20% to 35.31%</span><span style="color: #555555;">.</span></span></span>
 <span><span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span><span class="va">mexp</span>, variable <span class="op">=</span> <span class="st">"conc"</span>, ref_qc_types <span class="op">=</span> <span class="st">"BQC"</span><span class="op">)</span></span>
@@ -188,8 +187,8 @@ introduction and comprehensive documentation on this package.</p>
 <span>                path <span class="op">=</span> <span class="st">"./output/runscatter_istd.pdf"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (4 pages):</span></span></span></code></pre></div>
 <p><img src="midar_files/figure-html/unnamed-chunk-2-1.png" alt="RunScatter plot" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-2.png" alt="RunScatter plot" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-3.png" alt="RunScatter plot" width="700"><img src="midar_files/figure-html/unnamed-chunk-2-4.png" alt="RunScatter plot" width="700"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span></span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># Set features QC-filter criteria   </span></span>
 <span> <span class="va">mexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">mexp</span>,</span>
 <span>                            max.cv.conc.bqc <span class="op">=</span> <span class="fl">25</span>,</span>
@@ -204,7 +203,7 @@ introduction and comprehensive documentation on this package.</p>
 <span>                   path <span class="op">=</span> <span class="st">"mydata.csv"</span>, </span>
 <span>                   variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
 <span>                   filter_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 499 analyses and 19 features have been exported to 'mydata.csv'.</span></span></span></code></pre>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 499 analyses and 19 features have been exported to 'mydata.csv'.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="contributor-code-of-conduct">Contributor Code of Conduct<a class="anchor" aria-label="anchor" href="#contributor-code-of-conduct"></a>

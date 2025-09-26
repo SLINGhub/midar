@@ -79,7 +79,7 @@ stats::loess().'><meta property="og:image" content="https://slinghub.github.io/m
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -178,6 +178,8 @@ definitive criteria for correction (see Details below).</p>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">variable</span>,</span>
 <span>  <span class="va">ref_qc_types</span>,</span>
+<span>  span <span class="op">=</span> <span class="fl">0.75</span>,</span>
+<span>  degree <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  batch_wise <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ignore_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  replace_previous <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -188,8 +190,7 @@ definitive criteria for correction (see Details below).</p>
 <span>  cv_diff_threshold <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  use_original_if_fail <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  extrapolate <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  span <span class="op">=</span> <span class="fl">0.75</span>,</span>
-<span>  degree <span class="op">=</span> <span class="fl">2</span></span>
+<span>  show_progress <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -207,6 +208,14 @@ definitive criteria for correction (see Details below).</p>
 
 <dt id="arg-ref-qc-types">ref_qc_types<a class="anchor" aria-label="anchor" href="#arg-ref-qc-types"></a></dt>
 <dd><p>QC types used for drift correction</p></dd>
+
+
+<dt id="arg-span">span<a class="anchor" aria-label="anchor" href="#arg-span"></a></dt>
+<dd><p>Loess span width (default is 0.75)</p></dd>
+
+
+<dt id="arg-degree">degree<a class="anchor" aria-label="anchor" href="#arg-degree"></a></dt>
+<dd><p>Degree of the polynomial to be used in the loess smoothing, normally 1 (default) or 2</p></dd>
 
 
 <dt id="arg-batch-wise">batch_wise<a class="anchor" aria-label="anchor" href="#arg-batch-wise"></a></dt>
@@ -253,12 +262,8 @@ A value of 0 (the default) requires the CV to improve, while a value above 0 all
 <dd><p>Extrapolate loess smoothing. WARNING: It is generally not recommended to extrapolate outside of the range spanned by the QCs used for smoothing. See details below.</p></dd>
 
 
-<dt id="arg-span">span<a class="anchor" aria-label="anchor" href="#arg-span"></a></dt>
-<dd><p>Loess span width (default is 0.75)</p></dd>
-
-
-<dt id="arg-degree">degree<a class="anchor" aria-label="anchor" href="#arg-degree"></a></dt>
-<dd><p>Degree of the polynomial to be used in the loess smoothing, normally 1 (default) or 2</p></dd>
+<dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
+<dd><p>Logical. Display progress bars if <code>TRUE</code>; disable for notebook rendering by setting to <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

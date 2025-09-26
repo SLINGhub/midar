@@ -167,6 +167,7 @@ reference:
   - detect_outlier_pca
   - plot_qc_summary_byclass
   - plot_qc_summary_overall
+  - plot_abundanceprofile
 - title: Quality Control Plots
   description: |
     Functions to plots diverse QC visualizatios.

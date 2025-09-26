@@ -93,12 +93,13 @@
 <url><loc>https://slinghub.github.io/midar/reference/parse_plain_long_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_plain_wide_csv.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/parse_skyline_result.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_abundanceprofile.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_calibrationcurves.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_feature_correlations.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_normalization_qc.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_pca.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_pca_loading.html</loc></url>
-<url><loc>https://slinghub.github.io/midar/reference/plot_qc_interference.html</loc></url>
+<url><loc>https://slinghub.github.io/midar/reference/plot_qc_interferences.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_matrixeffects.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_summary_byclass.html</loc></url>
 <url><loc>https://slinghub.github.io/midar/reference/plot_qc_summary_overall.html</loc></url>

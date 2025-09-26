@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -214,9 +214,7 @@ workflow.</p>
 <span>  ref_qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SPL"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">2 feature(s) contain one or more zero or negative `conc` values. Verify your data or use `log_transform_internal = FALSE`.</span></span></span>
-<span><span class="co">#&gt;   |                                                    |                                            |   0%</span></span>
-<span><span class="co">#&gt;  <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span>  99% |  ETA:  0s</span></span>
-<span><span class="co">#&gt;   |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend smoothing done!</span></span></span>
+<span><span class="co">#&gt;  <span style="color: #00BB00;">■■■■■■■■■                       </span>  28% |  ETA:  3s</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features showed no variation in the study sample's original values across analyses. </span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features have invalid values after smoothing. NA will be be returned for all values of these faetures. Set `use_original_if_fail = FALSE to return orginal values..</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 459 of 460 features (batch-wise).</span></span></span>
@@ -263,7 +261,6 @@ different QC sample types. The plot can also be saved to a PDF file.</p>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
 <p><img src="T02_settingup_workflow_files/figure-html/unnamed-chunk-4-1.png" alt="RunScatter plot with 2x3 panels" width="100%"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="exporting-and-sharing-data">Exporting and sharing data<a class="anchor" aria-label="anchor" href="#exporting-and-sharing-data"></a>
@@ -272,7 +269,7 @@ different QC sample types. The plot can also be saved to a PDF file.</p>
 a detailed data report, and share the entire
 <code>MidarExperiment</code> object with someone else without any code,
 who can run own data processing, plots and QC checks.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Saves a detailed report in Excel format with multiple sheets</span></span>
 <span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"./output/myexp-midar_report.xlsx"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>

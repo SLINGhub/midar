@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -227,7 +227,6 @@ save the plots as PDF (see subfolder <code>output</code>).</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (3 pages):</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-1.png" alt="RunScatter plot" width="100%"><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-2.png" alt="RunScatter plot" width="100%"><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-3.png" alt="RunScatter plot" width="100%"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="adding-detailed-metadata">5. Adding detailed metadata<a class="anchor" aria-label="anchor" href="#adding-detailed-metadata"></a>
@@ -249,7 +248,7 @@ Exercises
 <p>Open the <code>XLSM</code> file in the <code>data</code> folder to
 explore the metadata structure (click ‘Disable Macros’).</p>
 </blockquote>
-</details><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="va">file_path</span>, ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -294,7 +293,7 @@ limits manually <code>y_lim = c(-2,2)</code> and display all
 analyses/batches again to inspect the data for other trends or
 fluctuations.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_rla_boxplot.html">plot_rla_boxplot</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  rla_type_batch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"within"</span><span class="op">)</span>,</span>
@@ -310,24 +309,6 @@ fluctuations.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 40 outliers in the 487 shown analyses</span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/rla-plot-1.png" alt="RLA plot" width="100%"></p>
-<pre><code><span><span class="co">#&gt; $outliers</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 40 × 5</span></span></span>
-<span><span class="co">#&gt;    analysis_id          analysis_order batch_id val_res_median qc_type</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                         <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Longit_batch1_PQC 01             13 1                 0.305 BQC    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Longit_batch1_1                  15 1                -<span style="color: #BB0000;">0.340</span> SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Longit_batch1_5                  19 1                 0.407 SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Longit_batch1_PQC 04             38 1                 0.336 BQC    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Longit_batch1_33                 53 1                -<span style="color: #BB0000;">0.313</span> SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Longit_batch1_41                 63 1                 0.310 SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Longit_batch1_PQC 07             74 1                 0.269 BQC    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Longit_batch1_51                 75 1                -<span style="color: #BB0000;">0.415</span> SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Longit_batch1_57                 82 1                 0.322 SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Longit_batch1_62                 88 1                -<span style="color: #BB0000;">0.341</span> SPL    </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 30 more rows</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $plot</span></span></code></pre>
-<p><img src="T01_targetlipidomics_workflow_files/figure-html/rla-plot-2.png" alt="RLA plot" width="100%"></p>
 </div>
 <div class="section level2">
 <h2 id="pca-plot-of-all-qc-types">7. PCA plot of all QC types<a class="anchor" aria-label="anchor" href="#pca-plot-of-all-qc-types"></a>
@@ -344,7 +325,7 @@ Exercises
 <code>"PBLK", "RQC"</code> to <code>qc_types =</code> below. What do you
 think the resulting PCA plot suggests now?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pca.html">plot_pca</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"feature_intensity"</span>, </span>
@@ -371,7 +352,7 @@ Exercises
 <p>What do we now see in the new PCA plot? Explore also different PCA
 dimensions (by modifying <code>pca_dim</code>).</p>
 </blockquote>
-</details><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="co"># Exclude the sample from the processing</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/exclude_analyses.html">exclude_analyses</a></span><span class="op">(</span><span class="va">myexp</span>, analyses <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Longit_batch6_51"</span><span class="op">)</span>, clear_existing  <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">1 analyses were excluded for downstream processing. Please reprocess data.</span></span></span>
@@ -415,7 +396,7 @@ Save a PDF of all lipids by setting <code>output_pdf = TRUE</code> and
 commenting out (add a <code>#</code> in front of)
 <code>include_feature_filter</code></p>
 </blockquote>
-</details><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Exclude very low abundant features</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -441,7 +422,7 @@ commenting out (add a <code>#</code> in front of)
 <span><span class="co">#&gt;   |                                      |                              |   0%</span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/responsecurves-1.png" alt="Response curve plots" width="100%"></p>
 <pre><code><span><span class="co">#&gt;   |                                      |==============================| 100%</span></span>
-<span><span class="co">#&gt;  - done!</span></span></code></pre>
+<span><span class="co">#&gt;   done!</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="isotope-interference-correction">10. Isotope interference correction<a class="anchor" aria-label="anchor" href="#isotope-interference-correction"></a>
@@ -459,11 +440,11 @@ Exercises
 <code>data</code>). Which species were affected? Which information will
 you need? Why should we correct for M+3 isotope interference?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_interferences.html">correct_interferences</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interference correction led to negative or zero values in 2 feature(s) in samples/QCs. Please verify the correction, or set `neg_to_na = TRUE`</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Interference-correction has been applied to 10 of the 502 features.</span></span></span>
-<span><span class="fu"><a href="../reference/plot_qc_interference.html">plot_qc_interferences</a></span><span class="op">(</span><span class="va">myexp</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span>, <span class="st">"TQC"</span>, <span class="st">"LTR"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_qc_interferences.html">plot_qc_interferences</a></span><span class="op">(</span><span class="va">myexp</span>, qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BQC"</span>, <span class="st">"SPL"</span>, <span class="st">"TQC"</span>, <span class="st">"LTR"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/isotope-correction-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -481,7 +462,7 @@ can also try to re-run e.g. above RLA and PCA plots with
 <code>variable = "norm_intensity"</code> or
 <code>variable = "conc"</code> to plot the normalized data.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">460 features normalized with 17 ISTDs in 498 analyses.</span></span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
@@ -511,7 +492,7 @@ potential issues with any of the ISTDs below? What could be possible
 explanations for such an effect? And what would you do in this
 situation?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                                   include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -540,7 +521,7 @@ batch. The summary return by the function below isn’t meant as actual
 diagnostics of the fit, but rather to understand if the fit caused any
 major artefacts. There is also an option to scale along the fit by
 setting <code>scale_smooth = TRUE</code>.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
@@ -560,12 +541,6 @@ setting <code>scale_smooth = TRUE</code>.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Applying `conc` drift correction...</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #BBBB00;">4 feature(s) contain one or more zero or negative `conc` values. Verify your data or use `log_transform_internal = FALSE`.</span></span></span>
-<span><span class="co">#&gt;   |                                                    |                                            |   0%</span></span>
-<span><span class="co">#&gt;  <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■   </span>  95% |  ETA:  0s</span></span>
-<span><span class="co">#&gt;   |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend smoothing done!</span></span></span>
-<span><span class="co">#&gt;   |                                                    |                                            |   0%</span></span>
-<span><span class="co">#&gt;  <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■          </span>  70% |  ETA:  1s</span></span>
-<span><span class="co">#&gt;   |                                                    |============================================| 100%<span style="color: #00BB00;"> - trend recalc done!</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features showed no variation in the study sample's original values across analyses. </span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">1 features have invalid values after smoothing. NA will be be returned for all values of these faetures. Set `use_original_if_fail = FALSE to return orginal values..</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Drift correction was applied to 459 of 460 features (batch-wise).</span></span></span>
@@ -574,7 +549,7 @@ setting <code>scale_smooth = TRUE</code>.</p>
 40:8) before and after the drift and batch correction. As we will be
 using the same plot on several occasions, we create a simple function
 that wraps the plot with many parameters preset.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define a wrapper function</span></span>
 <span></span>
 <span><span class="va">my_trend_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">variable</span>, <span class="va">feature</span><span class="op">)</span><span class="op">{</span></span>
@@ -605,15 +580,14 @@ smoothing across all batches. Would this be a valid alternative? NOTE:
 don’t forget to change back to <code>batch_wise = TRUE</code> after the
 test.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc_before"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/plot-trends-1.png" alt="RunScatter plots with trends before after corrections  " width="100%"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span>
-<span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/plot-trends-2.png" alt="RunScatter plots with trends before after corrections  " width="100%"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="batch-effect-correction">14. Batch-effect correction<a class="anchor" aria-label="anchor" href="#batch-effect-correction"></a>
@@ -631,7 +605,7 @@ Exercises
 <p>Change the sample type to <code>qc_type = "BQC"</code> to use the BQC
 to center the batches. What do you observe?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -647,7 +621,6 @@ to center the batches. What do you observe?</p>
 <span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/batch-effect-corr-1.png" alt="RunScatter plots with trends after corrections" width="100%"></p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BB00;"> - done!</span></span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="saving-runscatter-plots-of-all-features-as-pdf">15. Saving <em>runscatter</em> plots of all features as PDF<a class="anchor" aria-label="anchor" href="#saving-runscatter-plots-of-all-features-as-pdf"></a>
@@ -667,7 +640,7 @@ Exercises
 <code>TRUE</code>or <code>FALSE</code>. Run <code>?runscatter</code> in
 the console or press <code>F2</code> on the function name to see all
 available options for <code><a href="../reference/plot_runscatter.html">plot_runscatter()</a></code>.</p>
-</details><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -702,7 +675,7 @@ Exercises
 thresholds. The plot below in section 17 can be run in order to examine
 the effects visually.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
@@ -743,7 +716,7 @@ analytical performance? What are the identified QC issues and what are
 possible explanations for these? What could be the implications if you
 want to run the next analysis?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_byclass.html">plot_qc_summary_byclass</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/qc-summary-1-1.png" alt="Feature QC filter plot by class" width="100%"></p>
 <p>The following plot provides a further summary of the feature
@@ -759,7 +732,7 @@ Exercises
 non-linear response (e.g. r2 &lt; 0.8), what could be the reasons for
 this?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_overall.html">plot_qc_summary_overall</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
@@ -767,9 +740,7 @@ this?</p>
 <span><span class="co">#&gt;   Please report the issue to the authors.</span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
-<span><span class="co">#&gt; Warning: annotation$theme is not a valid theme.</span></span>
-<span><span class="co">#&gt; Please use `theme()` to construct themes.</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/qc-summary-2-1.png" alt="Feature QC filter plot overall" width="100%"></p>
 </div>
 <div class="section level2">
@@ -786,7 +757,7 @@ Exercises
 <p>Explore the report that was saved in the <code>output</code>
 folder.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"./output/myexp-midar_report.xlsx"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report of experiment 'sPerfect' has been saved to './output/myexp-midar_report.xlsx'.</span></span></span></code></pre></div>
@@ -799,7 +770,7 @@ Exercises
 <p>Specify which data to export using function arguments and check the
 generated CSV files.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  path <span class="op">=</span> <span class="st">"./output/sperfect_filt_uM.csv"</span>,</span>
@@ -825,7 +796,7 @@ Exercises
 Check the status comparing it with the dataset generated in the workflow
 above (<code>mexp</code>)</p>
 </blockquote>
-</details><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">myexp</span>, file <span class="op">=</span> <span class="st">"./output/myexp-midar.rds"</span>, compress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">my_saved_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"./output/myexp-midar.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>

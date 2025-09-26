@@ -27,7 +27,7 @@ precision across different features and sample/QC types."><meta property="og:ima
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,8 +103,8 @@ precision across different features and sample/QC types.</p>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  cv_threshold_value <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
-<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  x_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  point_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
@@ -163,12 +163,12 @@ QC-filtered data (filtered via <code><a href="filter_features_qc.html">filter_fe
 lines in the plot (default is <code>25</code>).</p></dd>
 
 
-<dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
+<dt id="arg-x-lim">x_lim<a class="anchor" aria-label="anchor" href="#arg-x-lim"></a></dt>
 <dd><p>Numeric vector of length 2 for x-axis limits. Use <code>NA</code> for
 auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
 
 
-<dt id="arg-ylim">ylim<a class="anchor" aria-label="anchor" href="#arg-ylim"></a></dt>
+<dt id="arg-y-lim">y_lim<a class="anchor" aria-label="anchor" href="#arg-y-lim"></a></dt>
 <dd><p>Numeric vector of length 2 for y-axis limits. Use <code>NA</code> for
 auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
 
@@ -228,18 +228,6 @@ metadata or retrieved via specific functions, e.g., <code><a href="parse_lipid_f
 <span class="r-in"><span>  facet_by_class <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>  cv_threshold_value <span class="op">=</span> <span class="fl">25</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Arguments in `...` must be used.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Problematic arguments:</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> color = qc_type</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> fill = qc_type</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">•</span> shape = qc_type</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Did you misspell an argument name?</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">colour</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">fill</span> values.</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>No shared levels found between `names(values)` of the manual scale and the</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> data's <span style="color: #00BB00;">shape</span> values.</span>
 <span class="r-plt img"><img src="plot_normalization_qc-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

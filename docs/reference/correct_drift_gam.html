@@ -59,7 +59,7 @@ stats::spline().'><meta property="og:image" content="https://slinghub.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -159,7 +159,8 @@ definitive criteria for correction (see Details below).</p>
 <span>  recalc_trend_after <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  feature_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cv_diff_threshold <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  use_original_if_fail <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  use_original_if_fail <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  show_progress <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -225,6 +226,10 @@ definitive criteria for correction (see Details below).</p>
 
 <dt id="arg-use-original-if-fail">use_original_if_fail<a class="anchor" aria-label="anchor" href="#arg-use-original-if-fail"></a></dt>
 <dd><p>Determines the action when smoothing fails or results in invalid values for a feature. If <code>FALSE</code> (default), the result for each feature will <code>NA</code> for all batches, if <code>TRUE</code>, the original data is kept.</p></dd>
+
+
+<dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
+<dd><p>Logical. Display progress bars if <code>TRUE</code>; disable for notebook rendering by setting to <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

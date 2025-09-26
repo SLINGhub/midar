@@ -11,7 +11,7 @@ calc_qc_metrics() documentation."><meta property="og:image" content="https://sli
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,8 +85,8 @@ across feature classes. A list of available QC metrics is available from the
 <span>  equality_line <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  threshold_value <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  log_scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
-<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  x_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  point_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
@@ -155,12 +155,12 @@ from both axes on the plot (default is <code>NA</code>).</p></dd>
 <dd><p>Logical, whether to use a log10 scale the axes.</p></dd>
 
 
-<dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
+<dt id="arg-x-lim">x_lim<a class="anchor" aria-label="anchor" href="#arg-x-lim"></a></dt>
 <dd><p>Numeric vector of length 2 for x-axis limits. Use <code>NA</code> for
 auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
 
 
-<dt id="arg-ylim">ylim<a class="anchor" aria-label="anchor" href="#arg-ylim"></a></dt>
+<dt id="arg-y-lim">y_lim<a class="anchor" aria-label="anchor" href="#arg-y-lim"></a></dt>
 <dd><p>Numeric vector of length 2 for y-axis limits. Use <code>NA</code> for
 auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
 
