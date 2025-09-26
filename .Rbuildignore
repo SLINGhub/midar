@@ -1,29 +1,46 @@
+# --- RStudio / Development Files ---
 ^midar\.Rproj$
 ^\.Rproj\.user$
+^\.Rhistory$
+^\.Rapp\.history$
+
+# --- Version Control ---
+^\.git$
+^\.gitignore$
+^\.github$
+
+# --- Documentation / Website ---
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
-^\.github$
-^\.testing$
+^_book$
+^_site$
+
+# --- CI / Coverage ---
 ^codecov\.yml$
-.travis.yml
+^\.travis\.yml$
+^\.covrignore$
+
+# --- Data and Artifacts ---
 ^raw-data$
 ^data-raw$
-plot-methods.R
-.covrignore
+^\.testing$
+^results$
+^outputs$
+
+# --- Build / Temp Directories ---
+^dist$
+^build$
 ^doc$
 ^Meta$
-^\.git$
 ^renv$
 ^renv\.lock$
 ^_targets$
 ^node_modules$
-^_book$
-^_site$
-^dist$
-^build$
-^results$
-^outputs$
-^\.DS_Store$
+
+# --- Files to Ignore Recursively ---
+# This is the key fix: ignore these files in ANY directory
+\.DS_Store$
+.*\.swp$
