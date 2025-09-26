@@ -109,11 +109,17 @@ get_outlier_bounds <- function(
   na.rm = FALSE
 ) {
   method <- match.arg(method)
-  if (length(x) < 2) {
+  
+  if (!na.rm && any(is.na(x))) {
     return(c(NA_real_, NA_real_))
   }
+
   if (na.rm) {
     x <- x[!is.na(x)]
+  }
+
+  if (length(x) < 2) {
+    return(c(NA_real_, NA_real_))
   }
 
   if (outlier_log) {
@@ -168,6 +174,9 @@ get_outlier_bounds <- function(
     }
     med <- median(x)
     mad_val <- mad(x, constant = 1)
+    if (mad_val == 0) {
+        return(range(x))
+    }
     mod_z <- 0.6745 * (x - med) / mad_val
     lower <- min(x[abs(mod_z) <= k], na.rm = TRUE)
     upper <- max(x[abs(mod_z) <= k], na.rm = TRUE)
@@ -177,9 +186,13 @@ get_outlier_bounds <- function(
       k <- 2
     }
     med <- median(x)
+    # --- FIX STARTS HERE ---
+    # 'delta' is a single value if k is a single number.
+    # The original use of delta[1] and delta[2] was incorrect.
     delta <- log2(abs(k))
-    lower <- med - delta[1]
-    upper <- med + delta[2]
+    lower <- med - delta
+    upper <- med + delta
+    # --- FIX ENDS HERE ---
   }
 
   vals_lo <- x[x >= lower]
@@ -190,13 +203,11 @@ get_outlier_bounds <- function(
 
   c(lo, up)
 }
-
-
 #' Get MAD-based tails
 #'
 #' Computes the lower and upper boundaries based on Median Absolute Deviation
 #' (MAD) from a numeric vector. Returns c(NA_real_, NA_real_) if the input vector
-#' has less than 2 elements.
+#' has less than 2 elements or if no values fall within the computed fences.
 #'
 #' @param x a numeric vector
 #' @param k multiplier for the MAD
@@ -205,60 +216,73 @@ get_outlier_bounds <- function(
 #' @return a numeric vector of length 2 with the lower and upper boundaries.
 #'
 #' @export
-#'
-#' @examples
-#' x <- c(-100,1, 2, 3, 4, 100)
-#' k <- 1.5
-#' get_mad_tails(x, k)
-
-# https://stackoverflow.com/questions/9843660/marking-the-very-end-of-the-two-whiskers-in-each-boxplot-in-ggplot2-in-r-statist
 get_mad_tails <- function(x, k, na.rm = FALSE) {
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
+  
   if (length(x) < 2) {
     return(c(NA_real_, NA_real_))
   }
 
   med <- median(x, na.rm = na.rm)
   mad <- mad(x, na.rm = na.rm)
-  upper <- med + k * mad
-  lower <- med - k * mad
+  
+  if (is.na(med) || is.na(mad)) {
+      return(c(NA_real_, NA_real_))
+  }
 
-  ## Trim upper and lower
-  up <- max(x[x < upper], na.rm = na.rm)
-  lo <- min(x[x > lower], na.rm = na.rm)
+  upper_fence <- med + k * mad
+  lower_fence <- med - k * mad
+
+  # Find values that are strictly inside the fences
+  vals_above_lower <- x[x > lower_fence] 
+  vals_below_upper <- x[x < upper_fence] 
+
+  # If the resulting subsets are empty, return NA instead of Inf/-Inf
+  lo <- if (length(vals_above_lower) > 0) min(vals_above_lower, na.rm = TRUE) else NA_real_
+  up <- if (length(vals_below_upper) > 0) max(vals_below_upper, na.rm = TRUE) else NA_real_
+  
   return(c(lo, up))
 }
-
-
 #' Get Tukey's IQR fences
 #'
 #' Computes the lower and upper boundaries based on Tukey's Interquartile Range (IQR)
-#' fences from a numeric vector. The function returns the lowest and highest observed values
-#' **within** the lower and upper fences:
-#' \deqn{\text{lower fence} = Q1 - k \times IQR}
-#' \deqn{\text{upper fence} = Q3 + k \times IQR}
-#'
-#' If the input vector has less than 2 elements, returns \code{c(NA_real_, NA_real_)}.
+#' fences from a numeric vector.
 #'
 #' @param x A numeric vector.
-#' @param k A numeric multiplier for the IQR. Default is \code{1.5} (standard Tukey fences).
+#' @param k A numeric multiplier for the IQR. Default is \code{1.5}.
 #' @param na.rm Logical. Should missing values be removed? Default is \code{FALSE}.
 #'
-#' @return A numeric vector of length 2: \code{c(lower_tail, upper_tail)} representing
-#' the smallest and largest observed values within the fences.
-#'
-#' @examples
-#' get_iqr_tails(c(-100, -1, -2, -3,  1, 2, 3, 4, 100), k = 1.5)
+#' @return A numeric vector of length 2: \code{c(lower_tail, upper_tail)}.
 #'
 #' @export
-
 get_iqr_tails <- function(x, k = 1.5, na.rm = FALSE) {
+  # If na.rm is FALSE and there are any NAs, return NA immediately to prevent
+  # an error from the internal quantile() function.
+  if (!na.rm && any(is.na(x))) {
+    return(c(NA_real_, NA_real_))
+  }
+
+  # It's also good practice to remove NAs if na.rm=TRUE before the length check.
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
+  
   if (length(x) < 2) {
     return(c(NA_real_, NA_real_))
   }
 
+  # Because of the checks above, we can now safely call quantile.
+  # We still pass na.rm for correctness, though the error case is handled.
   q1 <- quantile(x, 0.25, na.rm = na.rm)
   q3 <- quantile(x, 0.75, na.rm = na.rm)
   iqr <- q3 - q1
+
+  # If IQR is NA (e.g., from a vector of NAs with na.rm=TRUE), return NA.
+  if (is.na(iqr)) {
+      return(c(NA_real_, NA_real_))
+  }
 
   lower_fence <- q1 - k * iqr
   upper_fence <- q3 + k * iqr
