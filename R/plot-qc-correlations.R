@@ -298,6 +298,7 @@ plot_feature_correlations <- function(data,
   if (show_progress) close(pb)  # Close progress bar if open
 
   # Return plot list or invisible
+
   if (return_plots) {
     return(p_list[page_range])
   } else {
@@ -339,10 +340,6 @@ plot_feature_correlations_page <- function(d_plot, ...){
     ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
   if (args$log_scale) {
     p <- p +
-      # ggplot2::scale_x_log10(
-      #                        expand = ggplot2::expansion(mult = c(0, 0.05))) +
-      # ggplot2::scale_y_log10(
-      #                        expand = ggplot2::expansion(mult = c(0, 0.05)))
       ggplot2::scale_x_log10(labels = scientific_format_end,
                              expand = ggplot2::expansion(mult = c(0, 0.05))) +
       ggplot2::scale_y_log10(labels = scientific_format_end,
