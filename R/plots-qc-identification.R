@@ -67,13 +67,16 @@ plot_rt_vs_chain <- function(
         "All values in the second column must be numeric, as they are interpreted as retention times. Please check your data."
       ))
     }
-    data <- MidarExperiment()
-    data@dataset <- tibble(
+    data_new <- MidarExperiment()
+    data_new@dataset <- tibble(
       analysis_id = "NA",
       qc_type = "SPL",
-      feature_id = data[, 1],
-      feature_rt = data[, 2]
+      is_istd = FALSE,
+      is_quantifier = TRUE,
+      feature_id = data[[1]],
+      feature_rt = data[[2]]
     )
+    data <- data_new
   } else {
     cli::cli_abort(
       "The input data must be a `MidarExperiment` object or a `data.frame`."
@@ -89,14 +92,20 @@ plot_rt_vs_chain <- function(
       "qc_type",
       "is_istd",
       "is_quantifier",
-      "feature_class",
       "feature_rt"
     ) |>
-    filter(.data$qc_type %in% qc_types) |>
+    filter(.data$qc_type %in% qc_types)
+
+  # -- Remove qualifiers if requested --
+  if (!include_qualifier) {
+    d_lipid_info <- d_lipid_info |> filter(.data$is_quantifier)
+  }
+
+  d_lipid_info <- d_lipid_info |>
     group_by(.data$feature_id) |>
     summarise(
       rt_median = median(.data$feature_rt, na.rm = TRUE),
-      lipid_class = dplyr::first(.data$feature_class),
+      #lipid_class = dplyr::first(.data$feature_class),
       is_istd = dplyr::first(.data$is_istd),
       is_quantifier = dplyr::first(.data$is_quantifier),
       .groups = "drop"
@@ -127,11 +136,6 @@ plot_rt_vs_chain <- function(
     group_var <- "total_c"
     col_var <- "total_c"
     x_title <- "Total Double Bond Number (DB) of the chains"
-  }
-
-  # -- Remove qualifiers if requested --
-  if (!include_qualifier) {
-    d_lipid_info <- d_lipid_info |> filter(.data$is_quantifier)
   }
 
   d_lipid_info$lipid_class_lcb <- factor(d_lipid_info$lipid_class_lcb)
