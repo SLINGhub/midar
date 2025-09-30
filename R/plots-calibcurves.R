@@ -50,7 +50,7 @@
 #'   Set to `TRUE` to enable logarithmic scaling; otherwise, set to `FALSE` for a linear scale.
 #'   Note: If `TRUE`, any regression curves or standard error regions with negative
 #'   values will be omitted from display.
-#' @param show_istd_reference Logical. If TRUE, displays the ISTD reference line, which represents the expected
+
 #' equimolar response of spiked-in non-labelled and labelled standards. At a normalized intensity of 1,
 #' assuming an equimolar response, both types of standards are present at equal concentrations.
 #' @param filter_data Logical, if `TRUE`, uses QC filtered data; otherwise uses
@@ -906,30 +906,31 @@ plot_calibcurves_page <- function(d_pred,
         trim_blank = FALSE
       )
 
-  if(show_istd_reference){
-    p <- p +
-      geom_line(
-        data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) ,
-        aes(
-          x = .data$concentration,
-          y = .data$theo_norm_intensity
-        ),
-        inherit.aes = FALSE,
-        color = "green",
-        linewidth = line_width * 0.8,
-        na.rm = TRUE
-      ) +
-      geom_vline(
-        data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) |> select("feature_id", "istd_conc_spiked") |> distinct(),
-        aes(
-          xintercept = .data$istd_conc_spiked,
-        ),
-        color = "lightgreen",
-        linewidth = line_width * 0.8,
-        linetype = "dashed",
-        na.rm = TRUE
-      )
-  }
+  # TODO: NEEDS TO BE TESTED
+  # if(show_istd_reference){
+  #   p <- p +
+  #     geom_line(
+  #       data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) ,
+  #       aes(
+  #         x = .data$concentration,
+  #         y = .data$theo_norm_intensity
+  #       ),
+  #       inherit.aes = FALSE,
+  #       color = "green",
+  #       linewidth = line_width * 0.8,
+  #       na.rm = TRUE
+  #     ) +
+  #     geom_vline(
+  #       data = d_istd |>  dplyr::semi_join(dat_subset, by = c("feature_id")) |> select("feature_id", "istd_conc_spiked") |> distinct(),
+  #       aes(
+  #         xintercept = .data$istd_conc_spiked,
+  #       ),
+  #       color = "lightgreen",
+  #       linewidth = line_width * 0.8,
+  #       linetype = "dashed",
+  #       na.rm = TRUE
+  #     )
+  # }
 
   p <- p +
     geom_point(
