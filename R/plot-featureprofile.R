@@ -275,15 +275,15 @@ plot_abundanceprofile <- function(
       if (stringr::str_detect(variable_clean, "cv")) {
         x_label <- "Coefficient of Variation (%)"
       } else if (stringr::str_detect(variable_clean, "rt")) {
-        x_label <- "Retention Time (min)"
+        x_label <- "Retention Time"
       } else if (stringr::str_detect(variable_clean, "dratio")) {
         x_label <- "D-ratio"
       } else if (stringr::str_detect(variable_clean, "prop")) {
-        x_label <- "Proportion"
-      } else if (stringr::str_detect(variable_clean, "signalblank")) {
+        x_label <- "Missingness (Proportion of Samples)"
+      } else if (stringr::str_detect(variable_clean, "sb")) {
         x_label <- "Signal/Blank Ratio"
-      } else if (stringr::str_detect(variable_clean, "response")) {
-        x_label <- "Response"
+      } else if (stringr::str_detect(variable_clean, "r2")) {
+        x_label <- "R2 of Response Curve"
       } else if (stringr::str_detect(variable_clean, "conc")) {
         if (
           data@is_quantitated &&
