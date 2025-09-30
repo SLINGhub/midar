@@ -204,8 +204,9 @@ plot_runscatter <- function(
 ) {
   # Check the validity of input data
   check_data(data)
+
   if (nrow(data@dataset) < 1) {
-    cli::cli_abort("No data available. Please import data and metadata first.")
+    cli::cli_abort(col_red("No data available. Please import data and metadata first."))
   }
 
   # Handle saving output to PDF
@@ -256,15 +257,7 @@ plot_runscatter <- function(
 
   # Check arguments are valid
   check_var_in_dataset(data@dataset, variable)
-  if (
-    str_detect(variable, "\\_raw") &&
-      !any(data@var_drift_corrected) &&
-      !any(data@var_batch_corrected)
-  ) {
-    cli::cli_abort(cli::col_red(
-      "`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."
-    ))
-  }
+
 
   if (!all(is.numeric(y_lim) || is.na(y_lim))) {
     cli::cli_abort(cli::col_red("`y_lim` must have numeric values or `NA`s."))
@@ -359,7 +352,7 @@ plot_runscatter <- function(
       cap_qc_k_mad <- Inf
     }
 
-    if (!is.na(cap_top_n_outliers) & cap_top_n_outliers > 0) {
+    if (!is.na(cap_top_n_outliers) && cap_top_n_outliers > 0) {
       d_filt <- d_filt |>
         dplyr::group_by(.data$feature_id) |>
         dplyr::arrange(desc(.data$value)) |>
