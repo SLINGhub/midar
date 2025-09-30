@@ -56,7 +56,7 @@ plot_runsequence <- function(
     distinct()
 
   # Filter QC types if provided
-  if (!all(is.na(qc_types)) && length(qc_types) > 0) {
+  if (!all(is.na(qc_types))) {
     d_filt <- d_filt |>
       filter(
         if (is.vector(qc_types) && length(qc_types) > 1) {
@@ -330,7 +330,7 @@ plot_runsequence <- function(
 #'
 #'
 #' @param outlier_detection Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by `outlier_method`.
-#' @param outlier_hide Logical, whether to exclude outlier values from the plot. Default is `FALSE`, which means outliers are shown.
+#' @param outlier_excludeLogical, whether to exclude outlier values from the plot. Default is `FALSE`, which means outliers are shown.
 #' @param outlier_method Character, method used for outlier detection. Default is "mad" (median absolute deviation).
 #' Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.
 #' @param outlier_qctypes Character vector, QC types to use for outlier detection. Default is `c("SPL", "TQC", "BQC")`.
@@ -338,7 +338,7 @@ plot_runsequence <- function(
 #' See get_outlier_bounds() for details. When using the "fold" method, either single numeric value or a vector with two values (lower and upper fences) can be supplied.
 #'
 #' @param min_feature_intensity Numeric, exclude features with overall median signal below this value
-#' @param y_lim Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is `NA`, which uses limits calculated based on `outlier_hide`.
+#' @param y_lim Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is `NA`, which uses limits calculated based on `outlier_exclude`.
 
 #' @param show_batches Logical, whether to show batch separators in the plot
 #' @param batch_zebra_stripe Logical, whether to show batches as shaded areas instead of line separators
@@ -361,21 +361,12 @@ plot_runsequence <- function(
 # TODO: Add minor ticks to x-axis
 plot_rla_boxplot <- function(
   data = NULL,
-  rla_type_batch = c("within", "across"),
-  variable = c(
-    "intensity",
-    "norm_intensity",
-    "conc",
-    "conc_raw",
-    "area",
-    "height",
-    "fwhm",
-    "width"
-  ),
+  rla_type_batch,
+  variable,
   qc_types = NA,
   plot_range = NA,
   rla_limit_to_range = FALSE,
-  remove_gaps = TRUE,
+  remove_gaps = FALSE,
 
   filter_data = FALSE,
   include_qualifier = TRUE,
@@ -389,7 +380,7 @@ plot_rla_boxplot <- function(
   y_lim = NA,
 
   outlier_detection = TRUE,
-  outlier_hide = FALSE,
+  outlier_exclude = FALSE,
   outlier_method = "mad",
   outlier_qctypes = c("SPL", "TQC", "BQC", "LTR", "NIST"),
   outlier_k = NULL,
@@ -408,6 +399,17 @@ plot_rla_boxplot <- function(
   if (nrow(data@dataset) < 1) {
     cli::cli_abort("No data available. Please import data and metadata first.")
   }
+
+  if (missing(rla_type_batch)) {
+    cli::cli_abort(
+      "{.arg rla_type_batch} must be supplied ('within', 'across')."
+    )
+  }
+
+  if (missing(variable)) {
+    cli::cli_abort("{.arg variable} must be supplied.")
+  }
+
   rlang::arg_match(rla_type_batch, c("within", "across"))
 
   # Check if selected variable is valid
@@ -434,16 +436,12 @@ plot_rla_boxplot <- function(
 
   # Check arguments are valid
   check_var_in_dataset(data@dataset, variable)
-  if (
-    str_detect(variable, "\\_raw") &&
-      !any(data@var_drift_corrected) &&
-      !any(data@var_batch_corrected)
-  ) {
-    cli::cli_abort(cli::col_red(
-      "`{variable} is only available after drift or/and batch correction. Please run drift and/or batch corrections, or choose another variable."
-    ))
-  }
+
   variable_sym = rlang::sym(variable)
+
+  if (!is.null(outlier_k) && length(outlier_k) > 2) {
+    cli::cli_abort("{.arg outlier_k} must be of length 1 or 2.")
+  }
 
   # Subset dataset according to arguments
   d_filt <- get_dataset_subset(
@@ -463,15 +461,6 @@ plot_rla_boxplot <- function(
   }
 
   x_axis_variable_sym <- rlang::sym(x_axis_variable)
-
-  if (!all(is.na(plot_range)) && rla_limit_to_range) {
-    d_filt <- d_filt |>
-      dplyr::filter(
-        .data$analysis_order >= plot_range[1] &
-          .data$analysis_order <= plot_range[2]
-      ) |>
-      droplevels()
-  }
 
   d_filt <- d_filt |>
     mutate(value = ifelse(is.infinite(!!variable_sym), NA, !!variable_sym))
@@ -503,7 +492,22 @@ plot_rla_boxplot <- function(
       grp = c("feature_id")
     }
 
-    d_filt_medians <- d_filt |>
+    if (!all(is.na(plot_range))) {
+      if (rla_limit_to_range) {
+        d_filt_subset <- d_filt |>
+          dplyr::filter(
+            .data$analysis_order >= plot_range[1] &
+              .data$analysis_order <= plot_range[2]
+          ) |>
+          droplevels()
+      } else {
+        d_filt_subset <- d_filt
+      }
+    } else {
+      d_filt_subset <- d_filt
+    }
+
+    d_filt_medians <- d_filt_subset |>
       group_by(across(all_of(grp))) |>
       summarise(val_median = median(.data$val, na.rm = TRUE)) |>
       ungroup()
@@ -515,10 +519,19 @@ plot_rla_boxplot <- function(
     d_filt <- d_filt |> mutate(val_res = log2(!!variable_sym))
   }
 
+  if (!all(is.na(plot_range))) {
+    n_samples <- max(d_filt$analysis_order) - min(d_filt$analysis_order) + 1
+    n_ticks <- n_samples / (plot_range[2] - plot_range[1]) * 10
+  } else {
+    n_ticks <- 10
+  }
+
   unique_orders <- sort(unique(d_filt$analysis_order))
+  unique_timestamps <- sort(unique(d_filt$acquisition_time_stamp))
 
   order_map <- tibble(
     analysis_order = unique_orders,
+    time_stamp = unique_timestamps,
     analysis_order_index = seq_along(unique_orders)
   )
 
@@ -560,10 +573,6 @@ plot_rla_boxplot <- function(
         outlier_bounds <- c(-outlier_k, outlier_k)
       } else if (length(outlier_k) == 2) {
         outlier_bounds <- outlier_k
-      } else {
-        cli::cli_abort(
-          "When using the 'fold' method, `outlier_k` must be a single numeric value or a vector of two values (lower and upper fences)."
-        )
       }
     }
 
@@ -584,16 +593,37 @@ plot_rla_boxplot <- function(
   }
 
   # Get labels corresponding to the breaks. TODO: write it more elegant and clear
-  if (x_axis_variable != "analysis_order") {
-    labels <- unique(d_filt[[x_axis_variable]])[seq(
-      1,
-      length(unique(d_filt[[x_axis_variable]])),
-      length.out = 10
-    )]
-    breaks <- d_filt |>
-      filter(!!x_axis_variable_sym %in% labels) |>
-      pull(.data$analysis_order) |>
-      unique()
+
+  if (remove_gaps) {
+    # If remove_gaps is TRUE, we use the analysis_order_index
+    #n_ticks = 50
+    breaks <- scales::breaks_pretty(n = n_ticks)(seq_along(unique_orders))
+    breaks <- breaks[breaks > 0 & breaks <= max(unique_orders)]
+    breaks <- breaks[breaks %% 1 == 0]
+    if (x_axis_variable == "analysis_order") {
+      labels <- order_map$analysis_order[breaks]
+    } else {
+      labels <- order_map$time_stamp[breaks]
+    }
+
+    p <- ggplot(
+      d_filt,
+      aes(
+        x = .data$analysis_order_index,
+        y = .data$val_res,
+        group = .data$analysis_order_index
+      )
+    )
+  } else {
+    breaks <- scales::breaks_pretty(n = n_ticks)(unique_orders)
+    breaks <- breaks[breaks > 0 & breaks <= max(unique_orders)]
+    breaks <- breaks[breaks %% 1 == 0]
+    if (x_axis_variable == "analysis_order") {
+      labels <- breaks
+    } else {
+      labels <- order_map$time_stamp[breaks]
+    }
+    # If remove_gaps is FALSE, we use the analysis_order
     p <- ggplot(
       d_filt,
       aes(
@@ -602,39 +632,13 @@ plot_rla_boxplot <- function(
         group = .data$analysis_order
       )
     )
-  } else {
-    n_breaks <- 10
-    breaks <- scales::breaks_pretty(n = n_breaks)(seq_along(unique_orders))
-    breaks <- breaks[breaks > 0 & breaks <= length(unique_orders)]
-    if (remove_gaps) {
-      # If remove_gaps is TRUE, we use the analysis_order_index
-      labels <- unique_orders[breaks] |> round(-2) |> format(big.mark = ",")
-      p <- ggplot(
-        d_filt,
-        aes(
-          x = .data$analysis_order_index,
-          y = .data$val_res,
-          group = .data$analysis_order_index
-        )
-      )
-    } else {
-      # If remove_gaps is FALSE, we use the analysis_order
-      labels <- breaks |> round(-2) |> format(big.mark = ",")
-      p <- ggplot(
-        d_filt,
-        aes(
-          x = .data$analysis_order,
-          y = .data$val_res,
-          group = .data$analysis_order
-        )
-      )
-    }
   }
+
   #TODO cleanup
   p <- p +
     scale_x_continuous(
       breaks = breaks,
-      labels = if(show_timestamp) labels else breaks, #ToDo
+      labels = labels,
       # limits = if (remove_gaps) {
       #   range(d_filt$analysis_order_index)
       # } else {
@@ -668,7 +672,7 @@ plot_rla_boxplot <- function(
       if (remove_gaps) {
         p <- p +
           geom_vline(
-            data = d_batches |> slice(-1),
+            data = d_batches,
             aes(xintercept = .data$id_batch_start_index - 0.5),
             colour = batch_line_color,
             linetype = "solid",
@@ -677,7 +681,7 @@ plot_rla_boxplot <- function(
       } else {
         p <- p +
           geom_vline(
-            data = d_batches |> slice(-1),
+            data = d_batches,
             aes(xintercept = .data$id_batch_start - 0.5),
             colour = batch_line_color,
             linetype = "solid",
@@ -685,13 +689,10 @@ plot_rla_boxplot <- function(
           )
       }
     } else {
-      d_batch_2nd <- d_batches |>
-        slice(-1) |>
-        filter(.data$batch_no %% 2 != 1)
       if (remove_gaps) {
         p <- p +
           geom_rect(
-            data = d_batch_2nd,
+            data = d_batches |> filter(.data$batch_no %% 2 != 1),
             aes(
               xmin = .data$id_batch_start_index - 0.5,
               xmax = .data$id_batch_end_index + 0.5,
@@ -709,7 +710,7 @@ plot_rla_boxplot <- function(
       } else {
         p <- p +
           geom_rect(
-            data = d_batch_2nd,
+            data = d_batches |> filter(.data$batch_no %% 2 != 1),
             aes(
               xmin = .data$id_batch_start - 0.5,
               xmax = .data$id_batch_end + 0.5,
@@ -753,7 +754,7 @@ plot_rla_boxplot <- function(
     ) +
     theme_bw(base_size = base_font_size) +
     ylab(bquote(bold(log[2] ~ .(variable)))) +
-    xlab("Analysis order") +
+    xlab("Analysis Order No.") +
     theme(
       panel.grid.major.y = element_blank(),
       panel.grid.minor.y = element_blank(),
@@ -818,7 +819,7 @@ plot_rla_boxplot <- function(
   # Set y-axis limits
   if (!all(is.na(y_lim))) {
     ylim = y_lim
-  } else if (outlier_hide) {
+  } else if (outlier_exclude) {
     tails <- get_outlier_bounds(
       d_filt$val_res,
       method = outlier_method,
@@ -853,11 +854,16 @@ plot_rla_boxplot <- function(
     }
   }
 
+  ##if(!rla_limit_to_range){
+  p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim, expand = TRUE)
+  ##}
 
-  p <- p + ggplot2::coord_cartesian(xlim = xlim, ylim = ylim)
-
-  res <-   list(
-    outliers = if (is.null(d_outliers)) NULL else d_outliers,
+  res <- list(
+    outliers = if (!outlier_detection) {
+      NULL
+    } else {
+      d_outliers
+    },
     plot = p
   )
 
@@ -867,6 +873,4 @@ plot_rla_boxplot <- function(
   } else {
     res
   }
-
-
 }
