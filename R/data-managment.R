@@ -463,24 +463,18 @@ check_var_in_dataset <- function(table, variable) {
   if (variable == "feature_conc" & !"feature_conc" %in% names(table)) {
     cli_abort(cli::col_red(
       "Concentration data are not available, please process data or choose another variable.",
-      show = "none",
-      parent = NULL,
       call = NULL
     ))
   }
   if (variable == "feature_area" & !"feature_area" %in% names(table)) {
     cli_abort(cli::col_red(
       "Peak area data are not available, please choose another variable.",
-      show = "none",
-      parent = NULL,
       call = NULL
     ))
   }
   if (variable == "feature_response" & !"feature_response" %in% names(table)) {
     cli_abort(cli::col_red(
       "Response is not available, please choose another variable.",
-      show = "none",
-      parent = NULL,
       call = NULL
     ))
   }
@@ -490,24 +484,24 @@ check_var_in_dataset <- function(table, variable) {
   ) {
     cli_abort(cli::col_red(
       "Normalized intensities not available, please process data, or choose another variable.",
-      show = "none",
-      parent = NULL,
       call = NULL
     ))
   }
   if (variable == "feature_height" & !"feature_height" %in% names(table)) {
     cli_abort(cli::col_red(
       "Peak height data are not available, please choose another variable.",
-      show = "none",
-      parent = NULL,
-      call = NULL
     ))
   }
-  if (variable == "feature_conc_raw" & !"feature_conc_raw" %in% names(table)) {
+  if (
+    variable == "feature_conc_raw" &
+      !"feature_conc_raw" %in% names(table) ||
+      variable == "feature_norm_intensity_raw" &
+        !"feature_norm_intensity_raw" %in% names(table) ||
+      variable == "feature_intensity_raw" &
+        !"feature_intensity_raw" %in% names(table)
+  ) {
     cli_abort(cli::col_red(
-      "Concentration data are not available, please process data, or choose another variable.",
-      show = "none",
-      parent = NULL,
+      "Raw feature abundance data is only available after drift and/or batch correction.",
       call = NULL
     ))
   }
