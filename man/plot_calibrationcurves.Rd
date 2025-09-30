@@ -80,9 +80,7 @@ scale and ommitted in log-log scale.}
 \item{log_axes}{Logical. Determines whether the x and y axes are displayed in a logarithmic scale (log-log scale).
 Set to \code{TRUE} to enable logarithmic scaling; otherwise, set to \code{FALSE} for a linear scale.
 Note: If \code{TRUE}, any regression curves or standard error regions with negative
-values will be omitted from display.}
-
-\item{show_istd_reference}{Logical. If TRUE, displays the ISTD reference line, which represents the expected
+values will be omitted from display.
 equimolar response of spiked-in non-labelled and labelled standards. At a normalized intensity of 1,
 assuming an equimolar response, both types of standards are present at equal concentrations.}
 

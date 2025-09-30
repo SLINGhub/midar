@@ -27,20 +27,6 @@
 </defs>
 <g clip-path='url(#cpMzAuMjV8NzE2LjAxfDE2LjU3fDU1Mi4xMA==)'>
 <rect x='30.25' y='16.57' width='685.77' height='535.53' style='stroke-width: 0.78; stroke: none; fill: #FFFFFF;' />
-<polyline points='108.73,552.10 108.73,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='174.83,552.10 174.83,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='240.93,552.10 240.93,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='307.03,552.10 307.03,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='373.13,552.10 373.13,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='439.23,552.10 439.23,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='505.33,552.10 505.33,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='571.43,552.10 571.43,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<polyline points='637.53,552.10 637.53,16.57 ' style='stroke-width: 0.64; stroke: #BDBDBD; stroke-dasharray: 1.00,3.00; stroke-linecap: butt;' />
-<line x1='166.24' y1='552.10' x2='166.24' y2='16.57' style='stroke-width: 2.13; stroke: #B6F0C5; stroke-linecap: butt;' />
-<line x1='274.64' y1='552.10' x2='274.64' y2='16.57' style='stroke-width: 2.13; stroke: #B6F0C5; stroke-linecap: butt;' />
-<line x1='384.37' y1='552.10' x2='384.37' y2='16.57' style='stroke-width: 2.13; stroke: #B6F0C5; stroke-linecap: butt;' />
-<line x1='492.77' y1='552.10' x2='492.77' y2='16.57' style='stroke-width: 2.13; stroke: #B6F0C5; stroke-linecap: butt;' />
-<line x1='599.85' y1='552.10' x2='599.85' y2='16.57' style='stroke-width: 2.13; stroke: #B6F0C5; stroke-linecap: butt;' />
 <line x1='43.96' y1='197.05' x2='43.96' y2='60.03' style='stroke-width: 0.43; stroke: #1854F9; stroke-linecap: butt;' />
 <line x1='43.96' y1='341.25' x2='43.96' y2='400.34' style='stroke-width: 0.43; stroke: #1854F9; stroke-linecap: butt;' />
 <polygon points='43.46,197.05 43.46,341.25 44.45,341.25 44.45,197.05 43.46,197.05 ' style='stroke-width: 0.43; stroke: #1854F9; stroke-linecap: butt; stroke-linejoin: miter; fill: #9FB7F9;' />
@@ -2863,7 +2849,7 @@
 <text x='505.33' y='562.03' text-anchor='middle' style='font-size: 8.00px; fill: #4D4D4D; font-family: sans;' textLength='13.35px' lengthAdjust='spacingAndGlyphs'>350</text>
 <text x='571.43' y='562.03' text-anchor='middle' style='font-size: 8.00px; fill: #4D4D4D; font-family: sans;' textLength='13.35px' lengthAdjust='spacingAndGlyphs'>400</text>
 <text x='637.53' y='562.03' text-anchor='middle' style='font-size: 8.00px; fill: #4D4D4D; font-family: sans;' textLength='13.35px' lengthAdjust='spacingAndGlyphs'>450</text>
-<text x='373.13' y='570.35' text-anchor='middle' style='font-size: 8.00px; font-weight: bold; font-family: sans;' textLength='50.70px' lengthAdjust='spacingAndGlyphs'>Analysis order</text>
+<text x='373.13' y='570.35' text-anchor='middle' style='font-size: 8.00px; font-weight: bold; font-family: sans;' textLength='67.15px' lengthAdjust='spacingAndGlyphs'>Analysis Order No.</text>
 <text transform='translate(9.78,325.58) rotate(-90)' style='font-size: 8.00px; font-weight: bold; font-family: sans;' textLength='1.78px' lengthAdjust='spacingAndGlyphs'>l</text>
 <text transform='translate(9.78,323.80) rotate(-90)' style='font-size: 8.00px; font-weight: bold; font-family: sans;' textLength='4.45px' lengthAdjust='spacingAndGlyphs'>o</text>
 <text transform='translate(9.78,319.35) rotate(-90)' style='font-size: 8.00px; font-weight: bold; font-family: sans;' textLength='4.45px' lengthAdjust='spacingAndGlyphs'>g</text>
@@ -2939,6 +2925,6 @@
 <text x='455.33' y='507.28' style='font-size: 6.40px; font-family: sans;' textLength='12.10px' lengthAdjust='spacingAndGlyphs'>SPL</text>
 <text x='488.74' y='494.22' style='font-size: 6.40px; font-family: sans;' textLength='13.51px' lengthAdjust='spacingAndGlyphs'>TQC</text>
 <text x='488.74' y='507.28' style='font-size: 6.40px; font-family: sans;' textLength='16.72px' lengthAdjust='spacingAndGlyphs'>UBLK</text>
-<text x='30.25' y='10.59' style='font-size: 9.60px; font-family: sans;' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>x_gridlines_rla</text>
+<text x='30.25' y='10.59' style='font-size: 9.60px; font-family: sans;' textLength='110.49px' lengthAdjust='spacingAndGlyphs'>plot_rla_boxplot nobzebra</text>
 </g>
 </svg>

@@ -6,16 +6,17 @@
 \usage{
 plot_normalization_qc(
   data = NULL,
-  before_norm_var = c("intensity", "norm_intensity", "conc_raw"),
-  after_norm_var = c("norm_intensity", "conc", "conc_raw"),
-  plot_type = c("scatter", "diff", "ratio"),
-  qc_types,
+  before_norm_var,
+  after_norm_var,
+  plot_type,
+  qc_types = NA,
   facet_by_class = FALSE,
+  share_y = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
   cv_threshold_value = 25,
-  x_lim = c(0, NA),
-  y_lim = c(0, NA),
+  x_lim = c(0, NA_real_),
+  y_lim = c(0, NA_real_),
   cols_page = 5,
   point_size = 1,
   point_alpha = 0.5,
@@ -42,6 +43,9 @@ of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
 
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
+
+\item{share_y}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
+If \code{FALSE} (default), each facet has its own y-axis scale.}
 
 \item{filter_data}{Whether to use all data (default) or only
 QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}

@@ -42,8 +42,6 @@ test_that("plot_feature_correlations handles invalid inputs", {
 })
 
 test_that("plot_feature_correlations handles empty results", {
-
-
   # Should return NULL with message
   expect_null(
     plot_feature_correlations(
@@ -94,19 +92,21 @@ test_that("plot_feature_correlations respects QC types", {
 
   vdiffr::expect_doppelganger("default plot_feature_correlations plot", p)
 
-  # Test QC type filtering
+
+
+
+    # Sort by occurrence in data
   p <- plot_feature_correlations(
     mexp,
-    variable = "area",
+    variable = "area", sort_by_corr = FALSE,
     cor_min = 0.8,
-    cor_min_neg = -0.9, log_scale = TRUE, return_plot = TRUE
+    cor_min_neg = -0.9, log_scale = FALSE, return_plot = TRUE
   )
 
   # Check that only QC samples are included
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[3]]
-  expect_equal(plot_data[1,"label"], "r = 0.969")
+  expect_equal(plot_data[1,"label"], "r = 0.860")
 
-  vdiffr::expect_doppelganger("log plot_feature_correlations plot", p)
 
   p <- plot_feature_correlations(
     mexp,
@@ -151,6 +151,80 @@ test_that("plot_feature_correlations respects QC types", {
     ),
       "Selected page exceeds the total number of pages"
   )
+
+})
+
+test_that("plot_feature_correlations min intensity", {
+  expect_error(
+    plot_feature_correlations(
+      mexp,
+      variable = "intensity",
+      cor_min = 0.80,min_median_value = 1E8,
+      cor_min_neg = -0.99
+    ),
+    "No features passed the", fixed = TRUE)
+})
+
+
+test_that("plot_feature_correlations min int left 1 feature", {
+  expect_error(
+    plot_feature_correlations(
+      mexp,
+      variable = "intensity",
+      cor_min = 0.80,min_median_value = 1E7,
+      cor_min_neg = -0.99
+    ),
+    "Only 1 feature passed the", fixed = TRUE)
+})
+
+test_that("plot_feature_correlations exceed page", {
+  expect_error(
+    plot_feature_correlations(
+      mexp,
+      variable = "intensity",
+      cor_min = 0.80,
+      cor_min_neg = -0.99,
+      specific_page  = 2
+    ),
+    "Selected page exceeds the total number of pages", fixed = TRUE)
+})
+
+test_that("plot_feature_correlations specific page", {
+   p <- plot_feature_correlations(
+      mexp,
+      variable = "intensity",
+      cor_min = 0.80,rows_page = 1, cols_page = 2,
+      cor_min_neg = -0.99,  return_plot = TRUE
+    )
+  expect_equal(length(p), 5)
+
+     p <- plot_feature_correlations(
+      mexp,
+      variable = "intensity",
+      cor_min = 0.80,rows_page = 1, cols_page = 2,
+      cor_min_neg = -0.99,  
+      specific_page = 2,
+      return_plot = TRUE
+    )
+  expect_equal(length(p), 1)
+})
+
+
+
+test_that("plot_feature_correlations  logscale", {
+  # Test QC type filtering
+  p <- plot_feature_correlations(
+    mexp,
+    variable = "area",
+    cor_min = 0.8,
+    cor_min_neg = -0.9, log_scale = TRUE, return_plot = TRUE
+  )
+
+  # Check that only QC samples are included
+  plot_data <- ggplot2::ggplot_build(p[[1]])$data[[3]]
+  expect_equal(plot_data[1,"label"], "r = 0.969")
+
+  vdiffr::expect_doppelganger("plot_feature_correlations logscale", p)
 
 })
 

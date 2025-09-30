@@ -7,13 +7,14 @@
 mexp <- quant_lcms_dataset
 
 mexp <- normalize_by_istd(mexp)
-mexp <- calc_calibration_results(mexp,
-                                 fit_overwrite = TRUE,
-                                 fit_model = "quadratic",
-                                 fit_weighting = "1/x")
+mexp <- calc_calibration_results(
+  mexp,
+  fit_overwrite = TRUE,
+  fit_model = "quadratic",
+  fit_weighting = "1/x"
+)
 
 test_that("plot_responsecurves generates a plot", {
-
   mexp_temp <- mexp
   mexp_temp@annot_qcconcentrations$concentration[19] <- NA
 
@@ -31,6 +32,18 @@ test_that("plot_responsecurves generates a plot", {
   # Check how many pages
   expect_equal(length(p), 2)
   vdiffr::expect_doppelganger("default plot_calibration plot 1", p[[1]])
+
+  p <- plot_calibrationcurves(
+    data = mexp_temp,
+    fit_overwrite = TRUE,
+    fit_model = "quadratic",
+    fit_weighting = "1/x",
+    rows_page = 2,
+    cols_page = 2,
+    specific_page = 2,
+    return_plots = TRUE
+  )
+  expect_equal(length(p), 1)
 
   # Test with valid arguments and using fit param from feature metadata
   p <- plot_calibrationcurves(
@@ -88,46 +101,59 @@ test_that("plot_responsecurves generates a plot", {
       rows_page = 2,
       cols_page = 2,
       return_plots = TRUE
-  ), "Regions of the regression confidence intervals are partially")
-    vdiffr::expect_doppelganger("log-log plot_calibration plot with ci ", p[[1]])
+    ),
+    "Regions of the regression confidence intervals are partially"
+  )
+  vdiffr::expect_doppelganger("log-log plot_calibration plot with ci ", p[[1]])
 
+  mexp_temp <- mexp
+  mexp_temp@dataset <- mexp_temp@dataset |>
+    mutate(
+      feature_norm_intensity = if_else(
+        str_detect(analyte_id, "Cortiso") & analysis_id == "CalA",
+        0.000001,
+        feature_norm_intensity
+      )
+    )
+  mexp_temp@dataset <- mexp_temp@dataset |>
+    mutate(
+      feature_norm_intensity = if_else(
+        str_detect(analyte_id, "Cortiso") & analysis_id == "CalB",
+        0.000001,
+        feature_norm_intensity
+      )
+    )
 
-    mexp_temp <- mexp
-    mexp_temp@dataset<- mexp_temp@dataset|>
-      mutate(feature_norm_intensity = if_else(str_detect(analyte_id, "Cortiso") & analysis_id =="CalA", 0.000001, feature_norm_intensity))
-    mexp_temp@dataset<- mexp_temp@dataset|>
-      mutate(feature_norm_intensity = if_else(str_detect(analyte_id, "Cortiso") & analysis_id =="CalB", 0.000001, feature_norm_intensity))
+  # Test with valid arguments
+  expect_message(
+    p <- plot_calibrationcurves(
+      data = mexp_temp,
+      fit_overwrite = TRUE,
+      fit_model = "linear",
+      fit_weighting = "1/x",
+      log_axes = TRUE,
+      rows_page = 2,
+      cols_page = 2,
+      return_plots = TRUE
+    ),
+    "Regions of the regression curve are partially"
+  )
 
-
-    # Test with valid arguments
-    expect_message(
-      p <- plot_calibrationcurves(
-        data = mexp_temp,
-        fit_overwrite = TRUE,
-        fit_model = "linear",
-        fit_weighting = "1/x",
-        log_axes = TRUE,
-        rows_page = 2,
-        cols_page = 2,
-        return_plots = TRUE
-      ),
-      "Regions of the regression curve are partially")
-
-    # Test with valid arguments
-    expect_message(
-      p <- plot_calibrationcurves(
-        data = mexp_temp,
-        fit_overwrite = TRUE,
-        ci_show = TRUE,
-        fit_model = "linear",
-        fit_weighting = "1/x",
-        log_axes = TRUE,
-        rows_page = 2,
-        cols_page = 2,
-        return_plots = TRUE
-      ),
-      "Regions of the regression curve and confidence intervals are partially")
-
+  # Test with valid arguments
+  expect_message(
+    p <- plot_calibrationcurves(
+      data = mexp_temp,
+      fit_overwrite = TRUE,
+      ci_show = TRUE,
+      fit_model = "linear",
+      fit_weighting = "1/x",
+      log_axes = TRUE,
+      rows_page = 2,
+      cols_page = 2,
+      return_plots = TRUE
+    ),
+    "Regions of the regression curve and confidence intervals are partially"
+  )
 
   # Test if the number of points in the plot matches the expected value
   plot_data <- ggplot2::ggplot_build(p[[1]])$data[[1]]
@@ -213,12 +239,10 @@ test_that("plot_responsecurves generates a plot", {
     ),
     "The argument "
   )
-
 })
 
 
 test_that("plot_responsecurves handles missing data", {
-
   expect_error(
     p <- plot_calibrationcurves(
       data = mexp,
@@ -265,7 +289,8 @@ test_that("plot_responsecurves handles missing data", {
   )
 
   mexp_defect <- mexp
-  mexp_defect@annot_qcconcentrations <- mexp_defect@annot_qcconcentrations  |> dplyr::slice_head(n = 0)
+  mexp_defect@annot_qcconcentrations <- mexp_defect@annot_qcconcentrations |>
+    dplyr::slice_head(n = 0)
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -290,7 +315,7 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_color = c("red","green"),
+      point_color = c("red", "green"),
       output_pdf = FALSE,
       return_plots = TRUE
     ),
@@ -304,7 +329,7 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_fill = c("red","green"),
+      point_fill = c("red", "green"),
       output_pdf = FALSE,
       return_plots = TRUE
     ),
@@ -318,7 +343,7 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_shape = c(1,2),
+      point_shape = c(1, 2),
       output_pdf = FALSE,
       return_plots = TRUE
     ),
@@ -333,14 +358,29 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_fill = c("red","green", "blue"),
+      point_fill = c("red", "green", "blue"),
       output_pdf = FALSE,
       return_plots = TRUE
-    ))
+    )
+  )
   p_data <- ggplot2::ggplot_build(p[[1]])$data
   expect_equal(unique(p_data[[7]]$fill), c("red", "green", "blue"))
 
-
+  expect_error(
+    p <- plot_calibrationcurves(
+      data = mexp,
+      fit_model = "quadratic",
+      fit_weighting = "1/x",
+      rows_page = 2,
+      cols_page = 2,
+      point_color = c("CAL" = "red", "green", "blue"),
+      point_fill = c("CAL" = "red", "green", "blue"),
+      point_shape = c("CAL" = 22, 21, 23),
+      output_pdf = FALSE,
+      return_plots = TRUE
+    ),
+    "The names in \\`point_color\\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -349,13 +389,14 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_color = c("CAL" = "red","green", "blue"),
-      point_fill = c("CAL" = "red","green", "blue"),
-      point_shape = c("CAL" = 22,21, 23),
+      point_fill = c("CAL" = "red", "green", "blue"),
+      point_shape = c("CAL" = 22, 21, 23),
+
       output_pdf = FALSE,
       return_plots = TRUE
     ),
-    "The names in \\`point_color\\`")
+    "The names in \\`point_fill\\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -364,13 +405,13 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_fill = c("CAL" = "red","green", "blue"),
-      point_shape = c("CAL" = 22,21, 23),
+      point_shape = c("CAL" = 22, 21, 23),
 
       output_pdf = FALSE,
       return_plots = TRUE
     ),
-    "The names in \\`point_fill\\`")
+    "The names in \\`point_shape\\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -379,26 +420,12 @@ test_that("curve color definition works", {
       fit_weighting = "1/x",
       rows_page = 2,
       cols_page = 2,
-      point_shape = c("CAL" = 22,21, 23),
-
+      point_color = c("CAL" = "red", "QC" = "green", "LQC" = "blue"),
       output_pdf = FALSE,
       return_plots = TRUE
     ),
-    "The names in \\`point_shape\\`")
-
-  expect_error(
-    p <- plot_calibrationcurves(
-      data = mexp,
-      fit_model = "quadratic",
-      fit_weighting = "1/x",
-      rows_page = 2,
-      cols_page = 2,
-      point_color = c("CAL" = "red","QC"="green", "LQC"="blue"),
-      output_pdf = FALSE,
-      return_plots = TRUE
-    ),
-    "The names in \\`point_color\`")
-
+    "The names in \\`point_color\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -411,7 +438,8 @@ test_that("curve color definition works", {
       output_pdf = FALSE,
       return_plots = TRUE
     ),
-    "One or more specified \\`qc_types\\`")
+    "One or more specified \\`qc_types\\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -424,7 +452,8 @@ test_that("curve color definition works", {
       output_pdf = FALSE,
       return_plots = TRUE
     ),
-    "One or more selected \\`qc_types\\`")
+    "One or more selected \\`qc_types\\`"
+  )
 
   expect_error(
     p <- plot_calibrationcurves(
@@ -436,33 +465,57 @@ test_that("curve color definition works", {
       cols_page = 2,
       return_plots = TRUE
     ),
-    "Data has not been QC-filtered")
+    "Data has not been QC-filtered"
+  )
 
+  expect_error(
+    p <- plot_calibrationcurves(
+      data = mexp,
+      filter_data = FALSE,
+      fit_overwrite = TRUE,
+      fit_model = "quadratic",
+      fit_weighting = "1/x",
+      rows_page = 2,
+      specific_page = 7,
+      cols_page = 2,
+      return_plots = TRUE
+    ),
+    "Selected page exceeds the total number",
+    fixed = TRUE
+  )
 })
 
 
 test_that("plot_responsecurves generates a plot with calib failes", {
-
   mexp_temp <- mexp
   mexp_temp@annot_qcconcentrations <- mexp_temp@annot_qcconcentrations |>
-    mutate(concentration = if_else(str_detect(analyte_id, "Cortiso") & str_detect(sample_id, "CAL"), NA_real_, concentration))
+    mutate(
+      concentration = if_else(
+        str_detect(analyte_id, "Cortiso") & str_detect(sample_id, "CAL"),
+        NA_real_,
+        concentration
+      )
+    )
 
   # Test with valid arguments
   expect_message(
-  p <- plot_calibrationcurves(
-    data = mexp_temp,
-    fit_overwrite = TRUE,
-    fit_model = "quadratic",
-    fit_weighting = "1/x",
-    rows_page = 2,
-    cols_page = 2,
-    return_plots = TRUE
-  ),
-  "Regression failed for 4 features")
+    p <- plot_calibrationcurves(
+      data = mexp_temp,
+      fit_overwrite = TRUE,
+      fit_model = "quadratic",
+      fit_weighting = "1/x",
+      rows_page = 2,
+      cols_page = 2,
+      return_plots = TRUE
+    ),
+    "Regression failed for 4 features"
+  )
   expect_s3_class(p[[1]], "gg")
   expect_equal(length(p), 2)
-  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 1", p[[2]])
-
+  vdiffr::expect_doppelganger(
+    "default plot_calibration plot log_axes 1",
+    p[[2]]
+  )
 
   p <- plot_calibrationcurves(
     data = mexp_temp,
@@ -476,16 +529,23 @@ test_that("plot_responsecurves generates a plot with calib failes", {
   )
   expect_s3_class(p[[1]], "gg")
   expect_equal(length(p), 2)
-  vdiffr::expect_doppelganger("default plot_calibration plot log_axes 2", p[[1]])
-
+  vdiffr::expect_doppelganger(
+    "default plot_calibration plot log_axes 2",
+    p[[1]]
+  )
 })
 
 
 test_that("plot_responsecurves generates a plot with some calib concs is NA ", {
   mexp_temp <- mexp
   mexp_temp@annot_qcconcentrations <- mexp_temp@annot_qcconcentrations |>
-    mutate(concentration = if_else(str_detect(sample_id, "CAL-F"), NA_real_, concentration))
-
+    mutate(
+      concentration = if_else(
+        str_detect(sample_id, "CAL-F"),
+        NA_real_,
+        concentration
+      )
+    )
 
   p <- plot_calibrationcurves(
     data = mexp_temp,
@@ -497,6 +557,5 @@ test_that("plot_responsecurves generates a plot with some calib concs is NA ", {
     cols_page = 2,
     return_plots = TRUE
   )
-vdiffr::expect_doppelganger("plot_calibration somecal na", p[[1]])
-
+  vdiffr::expect_doppelganger("plot_calibration somecal na", p[[1]])
 })

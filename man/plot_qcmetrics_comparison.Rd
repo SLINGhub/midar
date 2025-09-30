@@ -6,22 +6,26 @@
 \usage{
 plot_qcmetrics_comparison(
   data = NULL,
-  plot_type = c("scatter", "diff", "ratio"),
-  facet_type = c("grid", "wrap"),
+  plot_type,
   x_variable,
   y_variable,
   qc_types = NA,
   facet_by_class = FALSE,
+  share_y = FALSE,
   filter_data = FALSE,
-  include_qualifier = TRUE,
+  include_qualifier = FALSE,
   equality_line = FALSE,
-  threshold_value = NA,
+  threshold_values = NA_real_,
   log_scale = FALSE,
-  x_lim = c(0, NA),
-  y_lim = c(0, NA),
+  x_lim = c(NA_real_, NA_real_),
+  y_lim = c(NA_real_, NA_real_),
   cols_page = 5,
-  point_size = 1,
+  point_size = 1.5,
+  point_color = "#0460acff",
+  point_fill = "#4da2e7ff",
+  point_shape = 21,
   point_alpha = 0.5,
+  point_stroke = 0.5,
   font_base_size = 8
 )
 }
@@ -30,9 +34,7 @@ plot_qcmetrics_comparison(
 
 \item{plot_type}{A character string specifying the type of plot to generate.
 Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
-as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.}
-
-\item{facet_type}{A character string specifying the type of faceting to apply. "grid" creates a grid of facets with shared axes, while "wrap" creates a wrapped layout of facets, each with its own axes. Default is "wrap".}
+as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.c}
 
 \item{x_variable}{The name of the QC metric variable to be plotted on the
 x-axis.}
@@ -42,8 +44,8 @@ y-axis.}
 
 \item{qc_types}{A character vector specifying the QC types to plot.}
 
-\item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
-in the feature metadata.}
+\item{share_y}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
+If \code{FALSE} (default), each facet has its own y-axis scale.}
 
 \item{filter_data}{Logical; whether to use all data (default) or only
 QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_qc()}}).}
@@ -54,7 +56,7 @@ QC-filtered data (filtered via \code{\link[=filter_features_qc]{filter_features_
 \item{equality_line}{Logical; whether to show a line indicating
 identical values in both compared variables (default is \code{FALSE}).}
 
-\item{threshold_value}{Numeric; threshold value to be shown as dashed lines
+\item{threshold_values}{Numeric single value or vector with 2 elements; threshold valus to be shown as dashed lines
 from both axes on the plot (default is \code{NA}).}
 
 \item{log_scale}{Logical, whether to use a log10 scale the axes.}
@@ -72,6 +74,8 @@ auto-scaling (default is \code{c(0, NA)}).}
 \item{point_alpha}{Numeric; transparency of points (default is \code{0.5}).}
 
 \item{font_base_size}{Numeric; base font size in points (default is \code{8}).}
+
+\item{y_shared}{If \code{FALSE} (default) each facet has its own y-axis scale. If \code{TRUE}, all facets share the same y-axis scale.}
 }
 \value{
 A \code{ggplot2} object representing the scatter plot.

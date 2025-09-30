@@ -296,6 +296,10 @@ test_that("check_var_in_dataset returns correct error if column not present", {
 
   expect_error(check_var_in_dataset(mexp$dataset, "feature_conc"),
                  "Concentration data are not available, please process data")
+  
+    expect_error(check_var_in_dataset(mexp$dataset, "feature_conc_raw"),
+                 "Raw feature abundance data is only available after drift and/or batch correction")
+
 
   expect_error(check_var_in_dataset(mexp$dataset, "feature_norm_intensity"),
                "Normalized intensities not available, please process")

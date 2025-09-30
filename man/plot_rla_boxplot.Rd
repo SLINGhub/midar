@@ -6,13 +6,12 @@
 \usage{
 plot_rla_boxplot(
   data = NULL,
-  rla_type_batch = c("within", "across"),
-  variable = c("intensity", "norm_intensity", "conc", "conc_raw", "area", "height",
-    "fwhm", "width"),
+  rla_type_batch,
+  variable,
   qc_types = NA,
   plot_range = NA,
   rla_limit_to_range = FALSE,
-  remove_gaps = TRUE,
+  remove_gaps = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
   include_istd = TRUE,
@@ -22,7 +21,7 @@ plot_rla_boxplot(
   min_feature_intensity = 0,
   y_lim = NA,
   outlier_detection = TRUE,
-  outlier_hide = FALSE,
+  outlier_exclude = FALSE,
   outlier_method = "mad",
   outlier_qctypes = c("SPL", "TQC", "BQC", "LTR", "NIST"),
   outlier_k = NULL,
@@ -72,11 +71,9 @@ the x-axis instead of the run sequence number}
 
 \item{min_feature_intensity}{Numeric, exclude features with overall median signal below this value}
 
-\item{y_lim}{Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is \code{NA}, which uses limits calculated based on \code{outlier_hide}.}
+\item{y_lim}{Numeric vector of length 2, specifying the lower and upper y-axis limits. Default is \code{NA}, which uses limits calculated based on \code{outlier_exclude}.}
 
 \item{outlier_detection}{Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by \code{outlier_method}.}
-
-\item{outlier_hide}{Logical, whether to exclude outlier values from the plot. Default is \code{FALSE}, which means outliers are shown.}
 
 \item{outlier_method}{Character, method used for outlier detection. Default is "mad" (median absolute deviation).
 Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.}
@@ -103,6 +100,8 @@ See get_outlier_bounds() for details. When using the "fold" method, either singl
 \item{relative_log_abundances}{Logical, whether to use relative log abundances (RLA) or just log-transformed values}
 
 \item{show_plot}{Logical, whether to display the plot. Default is \code{TRUE}.}
+
+\item{outlier_excludeLogical, }{whether to exclude outlier values from the plot. Default is \code{FALSE}, which means outliers are shown.}
 }
 \value{
 A list with the ggplot object representing the RLA plot and a table with detected outliers if \code{outlier_detection = TRUE}.
