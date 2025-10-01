@@ -217,6 +217,20 @@ plot_abundanceprofile <- function(
   }
 
   # --- 3. Common Data Preparation & Y-Axis Setup ---
+  if (all(is.na(d_features$feature_class))) {
+    if(!is.na(feature_map) && feature_map == "lipidomics"){
+      d_features <- parse_lipid_feature_names(
+        d_features,
+        add_chain_composition = FALSE,
+        use_as_feature_class = "lipid_class_lcb",
+        add_transition_names = FALSE
+      )
+    } else {
+      cli_abort(col_red("Feature classes are not defined in the data. Please provide feature classes via metadata or use feature_map = 'lipidomics' to automatically map lipid classes from lipi species names."))
+    }
+  }  
+    
+    
   if (!is.na(exclude_classes)) {
     d_features <- d_features |>
       dplyr::filter(!(.data$feature_class %in% exclude_classes))
@@ -630,4 +644,4 @@ plot_abundanceprofile <- function(
     plt <- p_density / plt + patchwork::plot_layout(heights = c(0.4, 9.6))
   }
   plt + theme(plot.margin = margin(0, 0, 0, 0))
-}
+  }
