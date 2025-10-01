@@ -2,8 +2,12 @@
 #'
 #' @description Generates a Principal Component Analysis (PCA) plot for
 #' visualizing samples including quality control (QC) samples. This function
-#' provides options for filtering data, applying transformations, and customizing
-#' visual elements to enhance the visualization.
+#' provides options for filtering data, applying transformations,
+#' and labelling of outliers.
+#'
+#' Experimental batches can be visualized as ellipses to assess batch effects.
+#'
+#' This function returns a ggplot object. Identified outliers can be printed to the console.
 #'
 #' @param data A MidarExperiment object
 #'
@@ -488,6 +492,10 @@ plot_pca <- function(
 
 #' Plot PCA loadings
 #'
+#' Generates a plot of PCA loadings, illustrating the contribution of
+#' features to each principal component. This function can be used to
+#' investigate which feature (groups) are contributing to the variance seen in the plot and which need further investigation.
+#'
 #' @param data A MidarExperiment object
 #'
 #' @param variable A character string indicating the variable to use for PCA
@@ -553,7 +561,7 @@ plot_pca_loading <- function(
   font_base_size = 7
 ) {
   # ... (all data prep code remains the same) ...
-  
+
   check_data(data)
   variable <- str_remove(variable, "feature_")
   rlang::arg_match(
@@ -729,7 +737,7 @@ plot_pca_loading <- function(
         axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, hjust = 1)
       )
   }
-  
+
   if (abs_loading) {
     p <- p + ggplot2::scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
   }

@@ -10,6 +10,7 @@
 #' Setting `show_timestamp = TRUE` allows you to check for any interruptions in
 #' the analysis timeline.
 #'
+#'
 #' @param data MidarExperiment object
 #' @param qc_types QC types to be plotted. Can be a vector of QC types or a
 #' regular expression pattern. `NA` (default) displays all available QC/Sample
@@ -301,9 +302,19 @@ plot_runsequence <- function(
 #' Relative Log Abundance (RLA) Plot
 #'
 #' @description
-#' Relative log abundance (RLA) plots show standardized feature abundances across samples. Standardization is done by removing either the within-batch or across-batch median from each feature
+#' The Relative Log Abundance (RLA) plot visualizes standardized
+#' feature abundances distributions across samples. RLA standardization involves
+#' subtracting either the within-batch or across-batch median from each
+#' feature's log-transformed abundance. Thse plots are effective for
+#' identifying systematic technical variations, such as batch effects,
+#' instrument drift, or sample handling inconsistencies, by providing a
+#' robust representation less susceptible to global intensity shifts.
 #'
-#' RLA plots are useful for visualizing technical effects that impact all features in a similar manner, such as batch effects due to changes in instrument response, pipetting errors, or sample spillage. Unlike plots of raw or normalized abundances, RLA plots are more robust to these types of effects.
+#' The function also incorporates optional outlier detection and
+#' visualization functionalities to identify anomalous samples based on
+#' their median RLA values.
+#'
+#' This funcion returns a list with the ggplot  object representing the RLA plot and a table with detected outliers (if `outlier_detection = TRUE`).
 #'
 #' @param data MidarExperiment
 #' @param rla_type_batch Character, must be either "within" or "across", defining whether to use within-batch or across-batch RLA
@@ -330,7 +341,7 @@ plot_runsequence <- function(
 #'
 #'
 #' @param outlier_detection Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by `outlier_method`.
-#' @param outlier_excludeLogical, whether to exclude outlier values from the plot. Default is `FALSE`, which means outliers are shown.
+#' @param outlier_exclude Logical, whether to exclude outlier values from the plot. Default is `FALSE`, which means outliers are shown.
 #' @param outlier_method Character, method used for outlier detection. Default is "mad" (median absolute deviation).
 #' Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.
 #' @param outlier_qctypes Character vector, QC types to use for outlier detection. Default is `c("SPL", "TQC", "BQC")`.
@@ -443,6 +454,8 @@ plot_rla_boxplot <- function(
     cli::cli_abort("{.arg outlier_k} must be of length 1 or 2.")
   }
 
+
+
   # Subset dataset according to arguments
   d_filt <- get_dataset_subset(
     data,
@@ -534,6 +547,7 @@ plot_rla_boxplot <- function(
     time_stamp = unique_timestamps,
     analysis_order_index = seq_along(unique_orders)
   )
+
 
   d_filt <- d_filt |>
     left_join(order_map, by = "analysis_order")
