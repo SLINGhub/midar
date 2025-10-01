@@ -136,6 +136,12 @@ test_that("method 'fold_change' calculates bounds correctly", {
     range(x2),
     tolerance = 1e-6
   )
+
+  expect_equal(
+    get_outlier_bounds(x2, "fold_change", k = c(-3,3)),
+    range(x2),
+    tolerance = 1e-6
+  )
 })
 
 

@@ -77,6 +77,20 @@ test_that("Argument validation and errors are handled", {
     ),
     "will be ignored"
   )
+
+  mexp_temp <- mexp
+  mexp_temp@dataset$feature_class <- NA
+
+  expect_error(
+    plot_abundanceprofile(
+      data = mexp_temp,
+      variable = "conc",
+      qc_types = "SPL",
+      log_scale = TRUE,
+      use_qc_metrics = FALSE
+    ),
+    "Feature classes are not defined in the data"
+  )
 })
 
 test_that("Filtering flags work correctly", {
@@ -354,3 +368,20 @@ test_that("plot_abundanceprofiledensity strip log range", {
     p_density$plot
   )
 })
+
+
+test_that("plot_abundanceprofile lipid automap", {
+  mexp_temp <- mexp
+  mexp_temp@dataset$feature_class <- NA
+
+    p <- plot_abundanceprofile(
+      data = mexp_temp,
+      variable = "conc",
+      qc_types = "SPL",
+      log_scale = TRUE,
+      use_qc_metrics = FALSE,
+      feature_map = "lipidomics"
+    )
+
+    vdiffr::expect_doppelganger("plot_abundanceprofile lipid automap", p$plot)
+  })
