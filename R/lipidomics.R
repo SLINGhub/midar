@@ -74,6 +74,8 @@ parse_lipid_feature_names <- function(tbl, use_as_feature_class = "lipid_class_l
   check_installed("rgoslin")
   use_as_feature_class_s <- rlang::sym(use_as_feature_class)
 
+
+
   dat <- tbl |>
     select("feature_id") |>
     unique()
@@ -221,7 +223,6 @@ convert_triglycerides <- function(dat){
 }
 
 covert_lyso_pl <- function(dat){
-
   d_lyso <- dat |>
     filter(str_detect(.data$analyte_id, "^LPC|^LPE|^LPI|^LPS") & !str_detect(.data$analyte_id, "O\\-|P\\-|\\-O|\\-P" )) |>
     mutate(analyte_id_temp = str_replace(.data$analyte_id, "(?i)(\\[sn1\\] |-sn1)", " (sn1)")) |>
@@ -230,7 +231,8 @@ covert_lyso_pl <- function(dat){
     distinct() |>
     mutate(analyte_id_temp = str_remove(.data$analyte_id_temp, "\\(")) |>
     mutate(analyte_id_temp = str_remove(.data$analyte_id_temp, "\\)")) |>
-    tidyr::separate(.data$analyte_id_temp, into = c("class", "chain", "isomer1", "isomer2"), fill = "right", sep = " ", remove = FALSE) |>
+    tidyr::separate(.data$analyte_id_temp, into = c("class", "chain", "isomer1", "isomer2"), fill = "right", 
+      extra = "drop", sep = " ", remove = FALSE) |>
     mutate(analyte_new = case_when(
       (.data$isomer1 == "a" | .data$isomer1 == "sn2") & !is.na(.data$isomer1) ~ glue::glue("{class} 0:0/{chain} ({isomer2})"),
       (.data$isomer1 == "b" | .data$isomer1 == "sn1") & !is.na(.data$isomer1) ~ glue::glue("{class} {chain}/0:0 ({isomer2})"),
