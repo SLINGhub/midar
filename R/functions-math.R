@@ -186,13 +186,16 @@ get_outlier_bounds <- function(
       k <- 2
     }
     med <- median(x)
-    # --- FIX STARTS HERE ---
-    # 'delta' is a single value if k is a single number.
-    # The original use of delta[1] and delta[2] was incorrect.
+    
+    if (length(k) == 1) {
+      k <- c(k, k)
+    } else if (length(k) != 2) {
+      cli::cli_abort(col_red("k must be a single number or a vector of length 2."))
+    }
     delta <- log2(abs(k))
-    lower <- med - delta
-    upper <- med + delta
-    # --- FIX ENDS HERE ---
+    lower <- med - delta[1]
+    upper <- med + delta[2]
+
   }
 
   vals_lo <- x[x >= lower]
