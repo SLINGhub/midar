@@ -82,5 +82,7 @@ plot text elements. Default is 7.}
 ggplot object with PCA loadings plot
 }
 \description{
-Plot PCA loadings
+Generates a plot of PCA loadings, illustrating the contribution of
+features to each principal component. This function can be used to
+investigate which feature (groups) are contributing to the variance seen in the plot and which need further investigation.
 }

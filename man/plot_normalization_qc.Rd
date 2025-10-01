@@ -11,7 +11,7 @@ plot_normalization_qc(
   plot_type,
   qc_types = NA,
   facet_by_class = FALSE,
-  share_y = FALSE,
+  y_shared = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
   cv_threshold_value = 25,
@@ -44,7 +44,7 @@ of the non-blank QC types ("SPL", "TQC", "BQC", "HQC", "MQC", "LQC",
 \item{facet_by_class}{If \code{TRUE}, facets the plot by \code{feature_class}, as defined
 in the feature metadata.}
 
-\item{share_y}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
+\item{y_shared}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
 If \code{FALSE} (default), each facet has its own y-axis scale.}
 
 \item{filter_data}{Whether to use all data (default) or only

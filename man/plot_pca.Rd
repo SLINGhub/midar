@@ -137,6 +137,10 @@ A ggplot object with the PCA plot
 \description{
 Generates a Principal Component Analysis (PCA) plot for
 visualizing samples including quality control (QC) samples. This function
-provides options for filtering data, applying transformations, and customizing
-visual elements to enhance the visualization.
+provides options for filtering data, applying transformations,
+and labelling of outliers.
+
+Experimental batches can be visualized as ellipses to assess batch effects.
+
+This function returns a ggplot object. Identified outliers can be printed to the console.
 }

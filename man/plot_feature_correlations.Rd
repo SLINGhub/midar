@@ -136,4 +136,6 @@ Returns NULL if no correlations meet the threshold criteria.
 \description{
 Creates scatter plots for pairs of features that have correlations outside specified thresholds.
 Each pair is displayed in a separate facet with its correlation coefficient.
+
+This plot can be used to visually inspect highly correlated features, that may represent duplicate identifications or represent isomers.
 }

@@ -75,6 +75,8 @@ the x-axis instead of the run sequence number}
 
 \item{outlier_detection}{Logical, whether to show outlier fences on the plot and return a table with detect outliers based on the method defined by \code{outlier_method}.}
 
+\item{outlier_exclude}{Logical, whether to exclude outlier values from the plot. Default is \code{FALSE}, which means outliers are shown.}
+
 \item{outlier_method}{Character, method used for outlier detection. Default is "mad" (median absolute deviation).
 Other possible values are "iqr", "sd", "z_normal", "z_robust", "quantile", and "fold". See get_outlier_bounds() for details.}
 
@@ -100,16 +102,24 @@ See get_outlier_bounds() for details. When using the "fold" method, either singl
 \item{relative_log_abundances}{Logical, whether to use relative log abundances (RLA) or just log-transformed values}
 
 \item{show_plot}{Logical, whether to display the plot. Default is \code{TRUE}.}
-
-\item{outlier_excludeLogical, }{whether to exclude outlier values from the plot. Default is \code{FALSE}, which means outliers are shown.}
 }
 \value{
 A list with the ggplot object representing the RLA plot and a table with detected outliers if \code{outlier_detection = TRUE}.
 }
 \description{
-Relative log abundance (RLA) plots show standardized feature abundances across samples. Standardization is done by removing either the within-batch or across-batch median from each feature
+The Relative Log Abundance (RLA) plot visualizes standardized
+feature abundances distributions across samples. RLA standardization involves
+subtracting either the within-batch or across-batch median from each
+feature's log-transformed abundance. Thse plots are effective for
+identifying systematic technical variations, such as batch effects,
+instrument drift, or sample handling inconsistencies, by providing a
+robust representation less susceptible to global intensity shifts.
 
-RLA plots are useful for visualizing technical effects that impact all features in a similar manner, such as batch effects due to changes in instrument response, pipetting errors, or sample spillage. Unlike plots of raw or normalized abundances, RLA plots are more robust to these types of effects.
+The function also incorporates optional outlier detection and
+visualization functionalities to identify anomalous samples based on
+their median RLA values.
+
+This funcion returns a list with the ggplot  object representing the RLA plot and a table with detected outliers (if \code{outlier_detection = TRUE}).
 }
 \references{
 De Livera et al. (2012) Normalizing and integrating metabolomics data. Analytical Chemistry 10768-10776

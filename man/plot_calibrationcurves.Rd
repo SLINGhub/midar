@@ -15,7 +15,6 @@ plot_calibrationcurves(
   ci_clip = TRUE,
   zoom_n_points = NA,
   log_axes = FALSE,
-  show_istd_reference = FALSE,
   filter_data = FALSE,
   include_qualifier = TRUE,
   include_istd = FALSE,

@@ -11,7 +11,7 @@ plot_qcmetrics_comparison(
   y_variable,
   qc_types = NA,
   facet_by_class = FALSE,
-  share_y = FALSE,
+  y_shared = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
   equality_line = FALSE,
@@ -44,7 +44,9 @@ y-axis.}
 
 \item{qc_types}{A character vector specifying the QC types to plot.}
 
-\item{share_y}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
+\item{facet_by_class}{Logical; if \code{TRUE}, facets the plot by \code{feature_class}, as defined}
+
+\item{y_shared}{Logical; if \code{TRUE}, all facets share the same y-axis scale.
 If \code{FALSE} (default), each facet has its own y-axis scale.}
 
 \item{filter_data}{Logical; whether to use all data (default) or only
@@ -71,11 +73,26 @@ auto-scaling (default is \code{c(0, NA)}).}
 
 \item{point_size}{Numeric; size of points in millimeters (default is \code{1}).}
 
+\item{point_color}{A vector specifying the colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused colors will be ignored.
+Default is \code{NA} which corresponds to the default colors for QC types defined in the package.}
+
+\item{point_fill}{A vector specifying the fill colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused fill colors will be ignored.
+Default is \code{NA} which corresponds to the default fill colors for QC types defined in the package.}
+
+\item{point_shape}{A vector specifying the shapes for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused shapes will be ignored.
+Default is \code{NA} which corresponds to the default shapes for QC types defined in the package.}
+
 \item{point_alpha}{Numeric; transparency of points (default is \code{0.5}).}
 
-\item{font_base_size}{Numeric; base font size in points (default is \code{8}).}
+\item{point_stroke}{Numeric; thickness of point borders (default is \code{0.5}).}
 
-\item{y_shared}{If \code{FALSE} (default) each facet has its own y-axis scale. If \code{TRUE}, all facets share the same y-axis scale.}
+\item{font_base_size}{Numeric; base font size in points (default is \code{8}).}
 }
 \value{
 A \code{ggplot2} object representing the scatter plot.
