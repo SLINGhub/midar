@@ -27,7 +27,7 @@
 #' "NIST", "LTR") will be plotted if present in the dataset.
 #' @param facet_by_class If `TRUE`, facets the plot by `feature_class`, as defined
 #'   in the feature metadata.
-#' @param share_y Logical; if `TRUE`, all facets share the same y-axis scale. 
+#' @param y_shared Logical; if `TRUE`, all facets share the same y-axis scale. 
 #'   If `FALSE` (default), each facet has its own y-axis scale. 
 #' @param filter_data Whether to use all data (default) or only
 #'   QC-filtered data (filtered via [filter_features_qc()]).
@@ -87,7 +87,7 @@ plot_normalization_qc <- function(
   plot_type,
   qc_types = NA,
   facet_by_class = FALSE,
-  share_y = FALSE,
+  y_shared = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
   cv_threshold_value = 25,
@@ -194,7 +194,7 @@ plot_normalization_qc <- function(
   plot_qcmetrics_comparison(
     data = data,
     plot_type = plot_type,
-    share_y = share_y,
+    y_shared = y_shared,
     filter_data = filter_data,
     facet_by_class = facet_by_class,
     x_variable = x_variable,
@@ -229,13 +229,13 @@ plot_normalization_qc <- function(
 #' @param plot_type A character string specifying the type of plot to generate.
 #' Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
 #' as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.c
-#' @param y_shared If `FALSE` (default) each facet has its own y-axis scale. If `TRUE`, all facets share the same y-axis scale.
 #' @param x_variable The name of the QC metric variable to be plotted on the
 #'   x-axis.
 #' @param y_variable The name of the QC metric variable to be plotted on the
 #'   y-axis.
 #' @param qc_types A character vector specifying the QC types to plot.
-#' @param share_y Logical; if `TRUE`, all facets share the same y-axis scale. 
+#' @param facet_by_class Logical; if `TRUE`, facets the plot by `feature_class`, as defined
+#' @param y_shared Logical; if `TRUE`, all facets share the same y-axis scale. 
 #'   If `FALSE` (default), each facet has its own y-axis scale. 
 #' @param filter_data Logical; whether to use all data (default) or only
 #'   QC-filtered data (filtered via [filter_features_qc()]).
@@ -252,6 +252,19 @@ plot_normalization_qc <- function(
 #'   auto-scaling (default is `c(0, NA)`).
 #' @param cols_page Integer; number of facet columns per page (default is `5`).
 #' @param point_size Numeric; size of points in millimeters (default is `1`).
+#' @param point_color A vector specifying the colors for points corresponding
+#'   to different QC types. This can be either an unnamed vector or a named
+#'   vector, with names corresponding to QC types. Unused colors will be ignored.
+#'   Default is `NA` which corresponds to the default colors for QC types defined in the package.
+#' @param point_fill A vector specifying the fill colors for points corresponding
+#'   to different QC types. This can be either an unnamed vector or a named
+#'   vector, with names corresponding to QC types. Unused fill colors will be ignored.
+#'   Default is `NA` which corresponds to the default fill colors for QC types defined in the package.
+#' @param point_shape A vector specifying the shapes for points corresponding
+#'   to different QC types. This can be either an unnamed vector or a named
+#'   vector, with names corresponding to QC types. Unused shapes will be ignored.
+#'   Default is `NA` which corresponds to the default shapes for QC types defined in the package.
+#' @param point_stroke Numeric; thickness of point borders (default is `0.5`).
 #' @param point_alpha Numeric; transparency of points (default is `0.5`).
 #' @param font_base_size Numeric; base font size in points (default is `8`).
 #'
@@ -277,7 +290,7 @@ plot_qcmetrics_comparison <- function(
   y_variable,
   qc_types = NA,
   facet_by_class = FALSE,
-  share_y = FALSE,
+  y_shared = FALSE,
   filter_data = FALSE,
   include_qualifier = FALSE,
   equality_line = FALSE,
@@ -465,7 +478,7 @@ plot_qcmetrics_comparison <- function(
 
   # Apply faceting if requested
   if (facet_by_class) {
-    if (share_y) {
+    if (y_shared) {
       if (is.na(y_lim[2]) | is.na(y_lim[2])) {
         scalemode <- "free_x"
       } else {
