@@ -36,6 +36,8 @@ get_feature_correlations <- function(tbl, cor_min_neg, cor_min) {
 #' @description
 #' Creates scatter plots for pairs of features that have correlations outside specified thresholds.
 #' Each pair is displayed in a separate facet with its correlation coefficient.
+#' 
+#' This plot can be used to visually inspect highly correlated features, that may represent duplicate identifications or represent isomers.
 #'
 #' @param data A data frame containing numeric columns for correlation analysis
 #'
@@ -149,8 +151,6 @@ plot_feature_correlations <- function(data,
   variable <- stringr::str_c("feature_", variable)
   check_var_in_dataset(data@dataset, variable)
   variable_sym = rlang::sym(variable)
-
-
 
   if(all(is.na(qc_types))){
     qc_types <- intersect(data$dataset$qc_type, c("SPL", "TQC", "BQC", "HQC", "MQC", "LQC", "QC", "NIST", "LTR"))
@@ -326,32 +326,38 @@ plot_feature_correlations_page <- function(d_plot, ...){
   }
 
   d_plot <- d_plot |>
-    slice(row_start:row_end)
+    slice(row_start:row_end) |> 
+    mutate(x = ifelse(y <= 0, NA_real_, y)) |> 
+    drop_na()
 
+  #browser()
   # Create plot
   p <- d_plot |>
     ggplot2::ggplot(ggplot2::aes(x = .data$x, y = .data$y)) +
     ggplot2::geom_point(size = args$point_size,
                         aes(color = .data$qc_type, shape = .data$qc_type, fill = .data$qc_type),
                         alpha = args$point_alpha,
-                        stroke = args$point_stroke) +
+                        stroke = args$point_stroke, 
+                        na.rm = TRUE) +
     ggplot2::scale_color_manual(values = pkg.env$qc_type_annotation$qc_type_col, drop = TRUE) +
     ggplot2::scale_fill_manual(values = pkg.env$qc_type_annotation$qc_type_fillcol, drop = TRUE) +
     ggplot2::scale_shape_manual(values = pkg.env$qc_type_annotation$qc_type_shape, drop = TRUE)
+
+
   if (args$log_scale) {
     p <- p +
       ggplot2::scale_x_log10(labels = scientific_format_end,
-                             expand = ggplot2::expansion(mult = c(0, 0.05))) +
+                             expand = ggplot2::expansion(mult = c(0.01, 0.05))) +
       ggplot2::scale_y_log10(labels = scientific_format_end,
-                             expand = ggplot2::expansion(mult = c(0, 0.05)))
+                             expand = ggplot2::expansion(mult = c(0.01, 0.05)))
   } else {
     p <- p +
       ggplot2::scale_x_continuous(labels = scientific_format_end,
                                   limits = function(x) c(0, max(x)),
-                                  expand = ggplot2::expansion(mult = c(0, 0.05))) +
+                                  expand = ggplot2::expansion(mult = c(0.01, 0.05))) +
       ggplot2::scale_y_continuous(labels = scientific_format_end,
                                   limits = function(x) c(0, max(x)),
-                                  expand = ggplot2::expansion(mult = c(0, 0.05)))
+                                  expand = ggplot2::expansion(mult = c(0.01, 0.05)))
   }
 
   p <- p +
