@@ -23,42 +23,42 @@ navbar:
       text: Tutorials & Recipes
       menu:
       - text: Tutorials
+      - text: Lipidomics data processing (full workflow)
+        href: articles/T01_targetlipidomics_workflow.html
       - text: Preparing and importing data
         href: articles/T01_prepdata.html
-      - text: Setting Up a Basic MiDAR Workflow
+      - text: Basic MiDAR workflow
         href: articles/T02_settingup_workflow.html
-      - text: Targeted lipidomics with QC
-        href: articles/T01_targetlipidomics_workflow.html
-      - text: Drift Correction
+      - text: Drift correction
         href: articles/T_DriftCorrect.html
-      - text: Batch Correction
+      - text: Batch correction
         href: articles/T_BatchCorrect.html
-      - text: Calibration by a Reference Sample
+      - text: Calibration by a reference sample
         href: articles/T_CalibRef.html
-      - text: External Calibration and QC
+      - text: External calibration and QC
         href: articles/R01_quantms.html
       - text: '-------'
       - text: Recipes
     articles:
       text: Manual
       menu:
-      - text: Key Concepts
-      - text: Data Structures
+      - text: Key concepts
+      - text: Data structures
         href: articles/01_datastructure.html
-      - text: Data Indentifier
+      - text: Data indentifier
         href: articles/02_keydataids.html
-      - text: Feature Variables
+      - text: Feature variables
         href: articles/02b_keyfeaturevar.html
       - text: '-------'
-      - text: Data and Metadata
+      - text: Data and metadata
       - text: MidarExperiment Object
         href: articles/03_midarexperiment.html
-      - text: Data Import
+      - text: Data import
         href: articles/04_dataimport.html
-      - text: Metadata Import
+      - text: Metadata import
         href: articles/05_metadataimport.html
       - text: '-------'
-      - text: Batch/Drift Correction
+      - text: Batch/drift correction
         href: articles/07_driftbatchcorr.html
     news:
       text: News

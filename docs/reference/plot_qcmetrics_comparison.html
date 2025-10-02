@@ -11,7 +11,7 @@ calc_qc_metrics() documentation."><meta property="og:image" content="https://sli
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,29 +23,29 @@ calc_qc_metrics() documentation."><meta property="og:image" content="https://sli
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials &amp; Recipes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes"><li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Lipidomics data processing (full workflow)</a></li>
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
-    <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
-    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
-    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
-    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
-    <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a Reference Sample</a></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
+    <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Basic MiDAR workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a reference sample</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External calibration and QC</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data Indentifier</a></li>
-    <li><a class="dropdown-item" href="../articles/02b_keyfeaturevar.html">Feature Variables</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-manual"><li><h6 class="dropdown-header" data-toc-skip>Key concepts</h6></li>
+    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data structures</a></li>
+    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data indentifier</a></li>
+    <li><a class="dropdown-item" href="../articles/02b_keyfeaturevar.html">Feature variables</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Data and metadata</h6></li>
     <li><a class="dropdown-item" href="../articles/03_midarexperiment.html">MidarExperiment Object</a></li>
-    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
-    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
+    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data import</a></li>
+    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/07_driftbatchcorr.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_driftbatchcorr.html">Batch/drift correction</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
@@ -74,22 +74,26 @@ across feature classes. A list of available QC metrics is available from the
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_qcmetrics_comparison</span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scatter"</span>, <span class="st">"diff"</span>, <span class="st">"ratio"</span><span class="op">)</span>,</span>
-<span>  facet_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grid"</span>, <span class="st">"wrap"</span><span class="op">)</span>,</span>
+<span>  <span class="va">plot_type</span>,</span>
 <span>  <span class="va">x_variable</span>,</span>
 <span>  <span class="va">y_variable</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  facet_by_class <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  y_shared <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  filter_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  include_qualifier <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  equality_line <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  threshold_value <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  threshold_values <span class="op">=</span> <span class="cn">NA_real_</span>,</span>
 <span>  log_scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  x_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
-<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  x_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
+<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="cn">NA_real_</span><span class="op">)</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  point_size <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  point_size <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  point_color <span class="op">=</span> <span class="st">"#0460acff"</span>,</span>
+<span>  point_fill <span class="op">=</span> <span class="st">"#4da2e7ff"</span>,</span>
+<span>  point_shape <span class="op">=</span> <span class="fl">21</span>,</span>
 <span>  point_alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  point_stroke <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  font_base_size <span class="op">=</span> <span class="fl">8</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -105,11 +109,7 @@ across feature classes. A list of available QC metrics is available from the
 <dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
 <dd><p>A character string specifying the type of plot to generate.
 Must be one of "scatter", "diff", or "ratio". Selecting "scatter" plots the "y_variable" against the "y_variable" values
-as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.</p></dd>
-
-
-<dt id="arg-facet-type">facet_type<a class="anchor" aria-label="anchor" href="#arg-facet-type"></a></dt>
-<dd><p>A character string specifying the type of faceting to apply. "grid" creates a grid of facets with shared axes, while "wrap" creates a wrapped layout of facets, each with its own axes. Default is "wrap".</p></dd>
+as a scatter plot, "diff" plots the difference between the two values against the average value, and "ratio" plots the log2 ratio of the two values against the average value.c</p></dd>
 
 
 <dt id="arg-x-variable">x_variable<a class="anchor" aria-label="anchor" href="#arg-x-variable"></a></dt>
@@ -127,8 +127,12 @@ y-axis.</p></dd>
 
 
 <dt id="arg-facet-by-class">facet_by_class<a class="anchor" aria-label="anchor" href="#arg-facet-by-class"></a></dt>
-<dd><p>If <code>TRUE</code>, facets the plot by <code>feature_class</code>, as defined
-in the feature metadata.</p></dd>
+<dd><p>Logical; if <code>TRUE</code>, facets the plot by <code>feature_class</code>, as defined</p></dd>
+
+
+<dt id="arg-y-shared">y_shared<a class="anchor" aria-label="anchor" href="#arg-y-shared"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, all facets share the same y-axis scale.
+If <code>FALSE</code> (default), each facet has its own y-axis scale.</p></dd>
 
 
 <dt id="arg-filter-data">filter_data<a class="anchor" aria-label="anchor" href="#arg-filter-data"></a></dt>
@@ -146,8 +150,8 @@ QC-filtered data (filtered via <code><a href="filter_features_qc.html">filter_fe
 identical values in both compared variables (default is <code>FALSE</code>).</p></dd>
 
 
-<dt id="arg-threshold-value">threshold_value<a class="anchor" aria-label="anchor" href="#arg-threshold-value"></a></dt>
-<dd><p>Numeric; threshold value to be shown as dashed lines
+<dt id="arg-threshold-values">threshold_values<a class="anchor" aria-label="anchor" href="#arg-threshold-values"></a></dt>
+<dd><p>Numeric single value or vector with 2 elements; threshold valus to be shown as dashed lines
 from both axes on the plot (default is <code>NA</code>).</p></dd>
 
 
@@ -173,8 +177,33 @@ auto-scaling (default is <code>c(0, NA)</code>).</p></dd>
 <dd><p>Numeric; size of points in millimeters (default is <code>1</code>).</p></dd>
 
 
+<dt id="arg-point-color">point_color<a class="anchor" aria-label="anchor" href="#arg-point-color"></a></dt>
+<dd><p>A vector specifying the colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused colors will be ignored.
+Default is <code>NA</code> which corresponds to the default colors for QC types defined in the package.</p></dd>
+
+
+<dt id="arg-point-fill">point_fill<a class="anchor" aria-label="anchor" href="#arg-point-fill"></a></dt>
+<dd><p>A vector specifying the fill colors for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused fill colors will be ignored.
+Default is <code>NA</code> which corresponds to the default fill colors for QC types defined in the package.</p></dd>
+
+
+<dt id="arg-point-shape">point_shape<a class="anchor" aria-label="anchor" href="#arg-point-shape"></a></dt>
+<dd><p>A vector specifying the shapes for points corresponding
+to different QC types. This can be either an unnamed vector or a named
+vector, with names corresponding to QC types. Unused shapes will be ignored.
+Default is <code>NA</code> which corresponds to the default shapes for QC types defined in the package.</p></dd>
+
+
 <dt id="arg-point-alpha">point_alpha<a class="anchor" aria-label="anchor" href="#arg-point-alpha"></a></dt>
 <dd><p>Numeric; transparency of points (default is <code>0.5</code>).</p></dd>
+
+
+<dt id="arg-point-stroke">point_stroke<a class="anchor" aria-label="anchor" href="#arg-point-stroke"></a></dt>
+<dd><p>Numeric; thickness of point borders (default is <code>0.5</code>).</p></dd>
 
 
 <dt id="arg-font-base-size">font_base_size<a class="anchor" aria-label="anchor" href="#arg-font-base-size"></a></dt>

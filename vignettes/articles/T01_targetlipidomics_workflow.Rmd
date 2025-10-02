@@ -108,7 +108,6 @@ plot_runsequence(
   batch_fill_color = "#fffbdb", 
   segment_linewidth = 0.5,
   show_timestamp = FALSE)
-
 ```
 
 ## 4. Overview Chromatographic Separation
@@ -129,7 +128,25 @@ plot_abundanceprofile(
   feature_map = "lipidomics")
 ```
 
-## 5. Signal trends of Internal Standards
+
+## 5. Peak picking QC
+
+To check for potential peak picking errors, the retention time (RT) of lipid features can be plotted against the total carbon count and double bond number. Featyures that deviate  from the trend are labelled and indicate potential misannotations or peak picking errors. However, the robustness of this approach depends on the comprehensiveness of the lipid species covered in the analysis. In this example, only a limited number of lipid featires were measured, and thus the trend is not well defined for some classes and double bond counts.
+
+
+```{r chunk13-peakpickingqc}
+#| fig-height: 6.5
+plot_rt_vs_chain(
+  myexp, 
+  qc_types = "SPL", 
+  x_var = "total_c", outlier_residual_min = 0.3,
+  base_font_size = 8, 
+  point_size = 1)  
+```
+
+
+
+## 6. Signal trends of Internal Standards
 
 We can look at the internal standards (ISTDs) in all samples across all
 six batches to see how the analyses went. The same ISTD amount was
@@ -165,7 +182,7 @@ plot_runscatter(
 )
 ```
 
-## 6. Adding detailed metadata
+## 7. Adding detailed metadata
 
 To proceed with further processing, we require additional metadata
 describing the samples and features. The `MiDAR Excel template` provides
@@ -188,15 +205,13 @@ metadata by working through these warnings, or proceed using
 </details>
 
 ```{r import-metadat}
-
 file_path <- "datasets/sPerfect_Metadata.xlsm"
 myexp <- import_metadata_msorganiser(myexp, path = file_path, ignore_warnings = TRUE)
 myexp <- set_analysis_order(myexp, order_by = "timestamp")
 myexp <- set_intensity_var(myexp, variable_name = "area")
-
 ```
 
-## 7. Overall trends and possible outlier
+## 8. Overall trends and possible outlier
 
 To examine overall technical trends and issues affecting the majority of
 analytes (features), the RLA (Relative Log Abundance) plot is a useful
@@ -238,7 +253,7 @@ midar::plot_rla_boxplot(
 )
 ```
 
-## 8. PCA plot of all QC types
+## 9. PCA plot of all QC types
 
 A principal component analysis (PCA) plot provides an alternative method
 for obtaining an overview of the study and quality control (QC) samples,
@@ -270,7 +285,7 @@ plot_pca(
   include_istd = FALSE)
 ```
 
-## 9. Exclude technical outliers
+## 10. Exclude technical outliers
 
 Based on the above RLA and PCA plots, we flagged a technical outlier and
 decided to remove it from all downstream processing via the function
@@ -305,7 +320,7 @@ plot_pca(
   shared_labeltext_hide = NA)
 ```
 
-## 10. Response curves
+## 11. Response curves
 
 A linear response in quantification is a prerequisite for to compared
 differences in analyte concentrations between samples. Given the
@@ -337,8 +352,6 @@ myexp <- midar::filter_features_qc(myexp,
                                    include_qualifier = FALSE,
                                    include_istd = TRUE,
                                    min.intensity.median.spl = 200)
-
-#Plot the curves
 plot_responsecurves(
   data = myexp,
   variable = "intensity",
@@ -349,7 +362,7 @@ plot_responsecurves(
 )
 ```
 
-## 11. Isotope interference correction
+## 12. Isotope interference correction
 
 As demonstrated in the course presentation, there are several instances
 where the peaks of interest were co-integrated with the interfering
@@ -374,7 +387,7 @@ myexp <- midar::correct_interferences(myexp)
 plot_qc_interferences(myexp, qc_types = c("BQC", "SPL", "TQC", "LTR"))
 ```
 
-## 12. Normalization and quantification based on ISTDs
+## 13. Normalization and quantification based on ISTDs
 
 The first step is to normalize each lipid species with its corresponding
 internal standard (ISTD). Subsequently, the concentrations are
@@ -395,10 +408,9 @@ concentration of the ISTDs in this solution, and the sample volume.
 ```{r normalization}
 myexp <- midar::normalize_by_istd(myexp)
 myexp <- midar::quantify_by_istd(myexp)
-
 ```
 
-## 13. Examine the effects of class-wide ISTD normalization
+## 14. Examine the effects of class-wide ISTD normalization
 
 The use of class-specific ISTDs is common practice in lipidomics.
 However, non-authentic internal standards may elute at different times,
@@ -440,10 +452,9 @@ midar::plot_normalization_qc(
   facet_by_class = TRUE,
   qc_types = c("TQC", "BQC", "SPL"),
   y_lim = c(-5, 15))
-  
 ```
 
-## 14. Drift correction
+## 15. Drift correction
 
 We're going to use a Gaussian kernel smoothing based on the study sample
 to correct for any drifts in the concentration data within each batch.
@@ -480,9 +491,7 @@ that wraps the plot with many parameters preset.
 ```{r trendplot-fun}
 #| fig.alt: >
 #|   RunScatter plots with trends before and after corrections
-
 # Define a wrapper function
-
 my_trend_plot <- function(variable, feature){
   plot_runscatter(
     data = myexp,
@@ -523,7 +532,7 @@ my_trend_plot("conc_before", "PC 40:8")
 my_trend_plot("conc", "PC 40:8")
 ```
 
-## 15. Batch-effect correction
+## 16. Batch-effect correction
 
 As we observed, the trend lines of the different batches are not
 aligned. We will use `correct_batcheffects()` to correct for median
@@ -557,7 +566,7 @@ myexp <- midar::correct_batch_centering(
 my_trend_plot("conc", "PC 40:8")
 ```
 
-## 16. Saving *runscatter* plots of all features as PDF
+## 17. Saving *runscatter* plots of all features as PDF
 
 For additional inspection and documentation, we can save plots for all
 or a selected subset of species. It is often preferable to exclude
@@ -599,7 +608,7 @@ plot_runscatter(
 )
 ```
 
-## 17. QC-based feature filtering
+## 18. QC-based feature filtering
 
 Finally, we apply a set of filters to exclude features that don't meet
 specific QC criteria. The available criteria can be seen by pressing
@@ -620,7 +629,6 @@ filters.
 </details>
 
 ```{r qc-filter}
-
 myexp <- filter_features_qc(
   data = myexp, 
   clear_existing = TRUE,
@@ -637,10 +645,9 @@ myexp <- filter_features_qc(
   max.cv.conc.bqc = 25,
   features.to.keep = c("CE 20:4", "CE 22:5", "CE 22:6", "CE 16:0", "CE 18:0")
 )
-
 ```
 
-## 18. Summary of the QC filtering
+## 19. Summary of the QC filtering
 
 The plot below provides an overview of the data quality and the feature
 filtering. The segments in green indicate the number of species that
@@ -692,7 +699,7 @@ midar::plot_qc_summary_overall(myexp)
 ```
 
 
-## 19. Lipidome Profile
+## 20. Lipidome Profile
 
 As a final overview, the feature concentration profile of the filtered dataset is shown below. Validating the concentrations, for example, those of the most abundant species, the summed concentrations per lipid class, or the ratios between lipid classes, against in-house reference values or literature data helps ensure that the quantification is within expected ranges and that no major quantification errors are present.
 
@@ -708,7 +715,7 @@ plot_abundanceprofile(
   feature_map = "lipidomics")
 ```
 
-## 20. Saving a report with data, metadata and processing details
+## 21. Saving a report with data, metadata and processing details
 
 A detailed summary of the data post-processing can be generated in the
 form of an formatted `Excel` workbook comprising multiple sheets, each
@@ -751,7 +758,7 @@ midar::save_dataset_csv(
   filter_data = TRUE)
 ```
 
-## 21. Sharing the `MidarExperiment` dataset
+## 22. Sharing the `MidarExperiment` dataset
 
 The `myexp` object can be saved as an `RDS` file and shared. `RDS` files
 are serialized R variables/objects that can be opened in R by anyone,

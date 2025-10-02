@@ -30,7 +30,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">midar</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,13 +44,13 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials-recipes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials &amp; Recipes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials-recipes">
 <li><h6 class="dropdown-header" data-toc-skip>Tutorials</h6></li>
+    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Lipidomics data processing (full workflow)</a></li>
     <li><a class="dropdown-item" href="../articles/T01_prepdata.html">Preparing and importing data</a></li>
-    <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Setting Up a Basic MiDAR Workflow</a></li>
-    <li><a class="dropdown-item" href="../articles/T01_targetlipidomics_workflow.html">Targeted lipidomics with QC</a></li>
-    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift Correction</a></li>
-    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch Correction</a></li>
-    <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a Reference Sample</a></li>
-    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External Calibration and QC</a></li>
+    <li><a class="dropdown-item" href="../articles/T02_settingup_workflow.html">Basic MiDAR workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/T_DriftCorrect.html">Drift correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_BatchCorrect.html">Batch correction</a></li>
+    <li><a class="dropdown-item" href="../articles/T_CalibRef.html">Calibration by a reference sample</a></li>
+    <li><a class="dropdown-item" href="../articles/R01_quantms.html">External calibration and QC</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Recipes</h6></li>
   </ul>
@@ -58,17 +58,17 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-manual" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Manual</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-manual">
-<li><h6 class="dropdown-header" data-toc-skip>Key Concepts</h6></li>
-    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data Structures</a></li>
-    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data Indentifier</a></li>
-    <li><a class="dropdown-item" href="../articles/02b_keyfeaturevar.html">Feature Variables</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>Key concepts</h6></li>
+    <li><a class="dropdown-item" href="../articles/01_datastructure.html">Data structures</a></li>
+    <li><a class="dropdown-item" href="../articles/02_keydataids.html">Data indentifier</a></li>
+    <li><a class="dropdown-item" href="../articles/02b_keyfeaturevar.html">Feature variables</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Data and Metadata</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Data and metadata</h6></li>
     <li><a class="dropdown-item" href="../articles/03_midarexperiment.html">MidarExperiment Object</a></li>
-    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data Import</a></li>
-    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata Import</a></li>
+    <li><a class="dropdown-item" href="../articles/04_dataimport.html">Data import</a></li>
+    <li><a class="dropdown-item" href="../articles/05_metadataimport.html">Metadata import</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/07_driftbatchcorr.html">Batch/Drift Correction</a></li>
+    <li><a class="dropdown-item" href="../articles/07_driftbatchcorr.html">Batch/drift correction</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -198,7 +198,45 @@ Have there been long interruptions within and between the batches?</p>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/runsequence-1.png" alt="RunSequence plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="signal-trends-of-internal-standards">4. Signal trends of Internal Standards<a class="anchor" aria-label="anchor" href="#signal-trends-of-internal-standards"></a>
+<h2 id="overview-chromatographic-separation">4. Overview Chromatographic Separation<a class="anchor" aria-label="anchor" href="#overview-chromatographic-separation"></a>
+</h2>
+<p>The following plot shows the retention time distribution of all
+detected lipid species.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_abundanceprofile.html">plot_abundanceprofile</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
+<span>  log_scale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  variable <span class="op">=</span> <span class="st">"rt"</span>, </span>
+<span>  density_strip <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  qc_types <span class="op">=</span> <span class="st">"SPL"</span>,</span>
+<span>  show_sum <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  x_label <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  feature_map <span class="op">=</span> <span class="st">"lipidomics"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="T01_targetlipidomics_workflow_files/figure-html/chunk6b-rtplot-1.png" alt="RLA plot - overview of all analyses" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="peak-picking-qc">5. Peak picking QC<a class="anchor" aria-label="anchor" href="#peak-picking-qc"></a>
+</h2>
+<p>To check for potential peak picking errors, the retention time (RT)
+of lipid features can be plotted against the total carbon count and
+double bond number. Featyures that deviate from the trend are labelled
+and indicate potential misannotations or peak picking errors. However,
+the robustness of this approach depends on the comprehensiveness of the
+lipid species covered in the analysis. In this example, only a limited
+number of lipid featires were measured, and thus the trend is not well
+defined for some classes and double bond counts.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_rt_vs_chain.html">plot_rt_vs_chain</a></span><span class="op">(</span></span>
+<span>  <span class="va">myexp</span>, </span>
+<span>  qc_types <span class="op">=</span> <span class="st">"SPL"</span>, </span>
+<span>  x_var <span class="op">=</span> <span class="st">"total_c"</span>, outlier_residual_min <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  base_font_size <span class="op">=</span> <span class="fl">8</span>, </span>
+<span>  point_size <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>  </span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The following features were flagged as potential annotation outliers: DG 18:1_20:0 [-18:1], DG 14:1_20:0 [-20:0], PC 32:1, PC 32:2, SM 40:1, SM 39:1, SM 36:2, SM 36:2 d9 (ISTD), SM 38:3|PC 33:1 d7 M+2, TG O-51:2 [-18:1]</span></span></code></pre></div>
+<p><img src="T01_targetlipidomics_workflow_files/figure-html/chunk13-peakpickingqc-1.png" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="signal-trends-of-internal-standards">6. Signal trends of Internal Standards<a class="anchor" aria-label="anchor" href="#signal-trends-of-internal-standards"></a>
 </h2>
 <p>We can look at the internal standards (ISTDs) in all samples across
 all six batches to see how the analyses went. The same ISTD amount was
@@ -210,7 +248,7 @@ Exercises
 <p>What do you observe? You can set <code>output_pdf = TRUE</code> to
 save the plots as PDF (see subfolder <code>output</code>).</p>
 </blockquote>
-</details><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"intensity"</span>,</span>
@@ -225,11 +263,11 @@ save the plots as PDF (see subfolder <code>output</code>).</p>
 <span>  path <span class="op">=</span> <span class="st">"./output/runscatter_istd.pdf"</span>,</span>
 <span>  cols_page <span class="op">=</span> <span class="fl">4</span>, rows_page <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (3 pages):</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (3 pages)...</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-1.png" alt="RunScatter plot" width="100%"><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-2.png" alt="RunScatter plot" width="100%"><img src="T01_targetlipidomics_workflow_files/figure-html/runscatter-3.png" alt="RunScatter plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="adding-detailed-metadata">5. Adding detailed metadata<a class="anchor" aria-label="anchor" href="#adding-detailed-metadata"></a>
+<h2 id="adding-detailed-metadata">7. Adding detailed metadata<a class="anchor" aria-label="anchor" href="#adding-detailed-metadata"></a>
 </h2>
 <p>To proceed with further processing, we require additional metadata
 describing the samples and features. The
@@ -248,9 +286,8 @@ Exercises
 <p>Open the <code>XLSM</code> file in the <code>data</code> folder to
 explore the metadata structure (click ‘Disable Macros’).</p>
 </blockquote>
-</details><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span></span>
+</details><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">file_path</span> <span class="op">&lt;-</span> <span class="st">"datasets/sPerfect_Metadata.xlsm"</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_metadata_msorganiser.html">import_metadata_msorganiser</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="va">file_path</span>, ignore_warnings <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Metadata has following warnings and notifications:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #000000;">--------------------------------------------------------------------------------------------</span></span></span>
@@ -272,7 +309,7 @@ explore the metadata structure (click ‘Disable Macros’).</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Default feature intensity variable set to </span><span style="color: #0000BB;">"feature_area"</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="overall-trends-and-possible-outlier">6. Overall trends and possible outlier<a class="anchor" aria-label="anchor" href="#overall-trends-and-possible-outlier"></a>
+<h2 id="overall-trends-and-possible-outlier">8. Overall trends and possible outlier<a class="anchor" aria-label="anchor" href="#overall-trends-and-possible-outlier"></a>
 </h2>
 <p>To examine overall technical trends and issues affecting the majority
 of analytes (features), the RLA (Relative Log Abundance) plot is a
@@ -293,7 +330,7 @@ limits manually <code>y_lim = c(-2,2)</code> and display all
 analyses/batches again to inspect the data for other trends or
 fluctuations.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_rla_boxplot.html">plot_rla_boxplot</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  rla_type_batch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"within"</span><span class="op">)</span>,</span>
@@ -303,7 +340,7 @@ fluctuations.</p>
 <span>  <span class="co">#analysis_range = get_batch_boundaries(myexp, batch_indices = c(5,6)), </span></span>
 <span>  <span class="co">#y_lim = c(-3,3),</span></span>
 <span>  show_timestamp <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  outlier_hide <span class="op">=</span> <span class="cn">FALSE</span>, x_gridlines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  outlier_exclude<span class="op">=</span> <span class="cn">FALSE</span>, x_gridlines <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  batch_zebra_stripe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linewidth <span class="op">=</span> <span class="fl">0.1</span></span>
 <span><span class="op">)</span></span>
@@ -311,7 +348,7 @@ fluctuations.</p>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/rla-plot-1.png" alt="RLA plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="pca-plot-of-all-qc-types">7. PCA plot of all QC types<a class="anchor" aria-label="anchor" href="#pca-plot-of-all-qc-types"></a>
+<h2 id="pca-plot-of-all-qc-types">9. PCA plot of all QC types<a class="anchor" aria-label="anchor" href="#pca-plot-of-all-qc-types"></a>
 </h2>
 <p>A principal component analysis (PCA) plot provides an alternative
 method for obtaining an overview of the study and quality control (QC)
@@ -325,7 +362,7 @@ Exercises
 <code>"PBLK", "RQC"</code> to <code>qc_types =</code> below. What do you
 think the resulting PCA plot suggests now?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pca.html">plot_pca</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"feature_intensity"</span>, </span>
@@ -341,7 +378,7 @@ think the resulting PCA plot suggests now?</p>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/pca-before-1.png" alt="PCA plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="exclude-technical-outliers">8. Exclude technical outliers<a class="anchor" aria-label="anchor" href="#exclude-technical-outliers"></a>
+<h2 id="exclude-technical-outliers">10. Exclude technical outliers<a class="anchor" aria-label="anchor" href="#exclude-technical-outliers"></a>
 </h2>
 <p>Based on the above RLA and PCA plots, we flagged a technical outlier
 and decided to remove it from all downstream processing via the function
@@ -352,7 +389,7 @@ Exercises
 <p>What do we now see in the new PCA plot? Explore also different PCA
 dimensions (by modifying <code>pca_dim</code>).</p>
 </blockquote>
-</details><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="co"># Exclude the sample from the processing</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/exclude_analyses.html">exclude_analyses</a></span><span class="op">(</span><span class="va">myexp</span>, analyses <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Longit_batch6_51"</span><span class="op">)</span>, clear_existing  <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">1 analyses were excluded for downstream processing. Please reprocess data.</span></span></span>
@@ -374,7 +411,7 @@ dimensions (by modifying <code>pca_dim</code>).</p>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/outlier-removal-1.png" alt="PCA plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="response-curves">9. Response curves<a class="anchor" aria-label="anchor" href="#response-curves"></a>
+<h2 id="response-curves">11. Response curves<a class="anchor" aria-label="anchor" href="#response-curves"></a>
 </h2>
 <p>A linear response in quantification is a prerequisite for to compared
 differences in analyte concentrations between samples. Given the
@@ -396,7 +433,7 @@ Save a PDF of all lipids by setting <code>output_pdf = TRUE</code> and
 commenting out (add a <code>#</code> in front of)
 <code>include_feature_filter</code></p>
 </blockquote>
-</details><div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Exclude very low abundant features</span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -404,8 +441,6 @@ commenting out (add a <code>#</code> in front of)
 <span>                                   min.intensity.median.spl <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Calculating feature QC metrics - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 437 of 448 quantifier features meet QC criteria (including the 25 quantifier ISTD features).</span></span></span>
-<span></span>
-<span><span class="co">#Plot the curves</span></span>
 <span><span class="fu"><a href="../reference/plot_responsecurves.html">plot_responsecurves</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"intensity"</span>,</span>
@@ -425,7 +460,7 @@ commenting out (add a <code>#</code> in front of)
 <span><span class="co">#&gt;   done!</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="isotope-interference-correction">10. Isotope interference correction<a class="anchor" aria-label="anchor" href="#isotope-interference-correction"></a>
+<h2 id="isotope-interference-correction">12. Isotope interference correction<a class="anchor" aria-label="anchor" href="#isotope-interference-correction"></a>
 </h2>
 <p>As demonstrated in the course presentation, there are several
 instances where the peaks of interest were co-integrated with the
@@ -440,7 +475,7 @@ Exercises
 <code>data</code>). Which species were affected? Which information will
 you need? Why should we correct for M+3 isotope interference?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_interferences.html">correct_interferences</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> <span style="color: #BBBB00;">Interference correction led to negative or zero values in 2 feature(s) in samples/QCs. Please verify the correction, or set `neg_to_na = TRUE`</span></span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Interference-correction has been applied to 10 of the 502 features.</span></span></span>
@@ -448,7 +483,7 @@ you need? Why should we correct for M+3 isotope interference?</p>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/isotope-correction-1.png" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="normalization-and-quantification-based-on-istds">11. Normalization and quantification based on ISTDs<a class="anchor" aria-label="anchor" href="#normalization-and-quantification-based-on-istds"></a>
+<h2 id="normalization-and-quantification-based-on-istds">13. Normalization and quantification based on ISTDs<a class="anchor" aria-label="anchor" href="#normalization-and-quantification-based-on-istds"></a>
 </h2>
 <p>The first step is to normalize each lipid species with its
 corresponding internal standard (ISTD). Subsequently, the concentrations
@@ -462,7 +497,7 @@ can also try to re-run e.g. above RLA and PCA plots with
 <code>variable = "norm_intensity"</code> or
 <code>variable = "conc"</code> to plot the normalized data.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/normalize_by_istd.html">normalize_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">460 features normalized with 17 ISTDs in 498 analyses.</span></span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/quantify_by_istd.html">quantify_by_istd</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
@@ -470,7 +505,7 @@ can also try to re-run e.g. above RLA and PCA plots with
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #00BB00;">Concentrations are given in μmol/L.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="examine-the-effects-of-class-wide-istd-normalization">12. Examine the effects of class-wide ISTD normalization<a class="anchor" aria-label="anchor" href="#examine-the-effects-of-class-wide-istd-normalization"></a>
+<h2 id="examine-the-effects-of-class-wide-istd-normalization">14. Examine the effects of class-wide ISTD normalization<a class="anchor" aria-label="anchor" href="#examine-the-effects-of-class-wide-istd-normalization"></a>
 </h2>
 <p>The use of class-specific ISTDs is common practice in lipidomics.
 However, non-authentic internal standards may elute at different times,
@@ -492,7 +527,7 @@ potential issues with any of the ISTDs below? What could be possible
 explanations for such an effect? And what would you do in this
 situation?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span><span class="va">myexp</span>, </span>
 <span>                                   include_qualifier <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>                                   include_istd <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -507,13 +542,11 @@ situation?</p>
 <span>  point_size <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  facet_by_class <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  qc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TQC"</span>, <span class="st">"BQC"</span>, <span class="st">"SPL"</span><span class="op">)</span>,</span>
-<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Removed 26 rows containing missing values or values outside the scale range</span></span>
-<span><span class="co">#&gt; (`geom_hline()`).</span></span></code></pre></div>
+<span>  y_lim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/norm-effects-1.png" alt="Normalization QC plot" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="drift-correction">13. Drift correction<a class="anchor" aria-label="anchor" href="#drift-correction"></a>
+<h2 id="drift-correction">15. Drift correction<a class="anchor" aria-label="anchor" href="#drift-correction"></a>
 </h2>
 <p>We’re going to use a Gaussian kernel smoothing based on the study
 sample to correct for any drifts in the concentration data within each
@@ -521,7 +554,7 @@ batch. The summary return by the function below isn’t meant as actual
 diagnostics of the fit, but rather to understand if the fit caused any
 major artefacts. There is also an option to scale along the fit by
 setting <code>scale_smooth = TRUE</code>.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_drift_gaussiankernel.html">correct_drift_gaussiankernel</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
@@ -549,9 +582,8 @@ setting <code>scale_smooth = TRUE</code>.</p>
 40:8) before and after the drift and batch correction. As we will be
 using the same plot on several occasions, we create a simple function
 that wraps the plot with many parameters preset.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define a wrapper function</span></span>
-<span></span>
 <span><span class="va">my_trend_plot</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">variable</span>, <span class="va">feature</span><span class="op">)</span><span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="va">myexp</span>,</span>
@@ -580,17 +612,17 @@ smoothing across all batches. Would this be a valid alternative? NOTE:
 don’t forget to change back to <code>batch_wise = TRUE</code> after the
 test.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc_before"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/plot-trends-1.png" alt="RunScatter plots with trends before after corrections  " width="100%"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/plot-trends-2.png" alt="RunScatter plots with trends before after corrections  " width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="batch-effect-correction">14. Batch-effect correction<a class="anchor" aria-label="anchor" href="#batch-effect-correction"></a>
+<h2 id="batch-effect-correction">16. Batch-effect correction<a class="anchor" aria-label="anchor" href="#batch-effect-correction"></a>
 </h2>
 <p>As we observed, the trend lines of the different batches are not
 aligned. We will use <code>correct_batcheffects()</code> to correct for
@@ -605,7 +637,7 @@ Exercises
 <p>Change the sample type to <code>qc_type = "BQC"</code> to use the BQC
 to center the batches. What do you observe?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/correct_batch_centering.html">correct_batch_centering</a></span><span class="op">(</span></span>
 <span>  <span class="va">myexp</span>, </span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -619,11 +651,11 @@ to center the batches. What do you observe?</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="color: #555555;">The median CV change of all features in study samples was </span><span style="color: #555555; font-weight: bold;">-0.29%</span><span style="color: #555555;"> (range: -31.80% to 69.10%).  The median absolute CV of all features </span><span style="color: #555555; font-weight: bold;">increased from</span><span style="color: #555555;"> </span><span style="color: #555555; font-weight: bold;">39.12% to 39.44%</span><span style="color: #555555;">.</span></span></span>
 <span></span>
 <span><span class="fu">my_trend_plot</span><span class="op">(</span><span class="st">"conc"</span>, <span class="st">"PC 40:8"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page):</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BB00;">Generating plots (1 page)...</span></span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/batch-effect-corr-1.png" alt="RunScatter plots with trends after corrections" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="saving-runscatter-plots-of-all-features-as-pdf">15. Saving <em>runscatter</em> plots of all features as PDF<a class="anchor" aria-label="anchor" href="#saving-runscatter-plots-of-all-features-as-pdf"></a>
+<h2 id="saving-runscatter-plots-of-all-features-as-pdf">17. Saving <em>runscatter</em> plots of all features as PDF<a class="anchor" aria-label="anchor" href="#saving-runscatter-plots-of-all-features-as-pdf"></a>
 </h2>
 <p>For additional inspection and documentation, we can save plots for
 all or a selected subset of species. It is often preferable to exclude
@@ -640,7 +672,7 @@ Exercises
 <code>TRUE</code>or <code>FALSE</code>. Run <code>?runscatter</code> in
 the console or press <code>F2</code> on the function name to see all
 available options for <code><a href="../reference/plot_runscatter.html">plot_runscatter()</a></code>.</p>
-</details><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_runscatter.html">plot_runscatter</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
 <span>  variable <span class="op">=</span> <span class="st">"conc"</span>,</span>
@@ -658,7 +690,7 @@ available options for <code><a href="../reference/plot_runscatter.html">plot_run
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="qc-based-feature-filtering">16. QC-based feature filtering<a class="anchor" aria-label="anchor" href="#qc-based-feature-filtering"></a>
+<h2 id="qc-based-feature-filtering">18. QC-based feature filtering<a class="anchor" aria-label="anchor" href="#qc-based-feature-filtering"></a>
 </h2>
 <p>Finally, we apply a set of filters to exclude features that don’t
 meet specific QC criteria. The available criteria can be seen by
@@ -675,9 +707,8 @@ Exercises
 thresholds. The plot below in section 17 can be run in order to examine
 the effects visually.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span></span>
+</details><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">myexp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_features_qc.html">filter_features_qc</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  clear_existing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  use_batch_medians <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -698,7 +729,7 @@ the effects visually.</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">New feature QC filters were defined: 324 of 423 quantifier features meet QC criteria (not including the 25 quantifier ISTD features).</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="summary-of-the-qc-filtering">17. Summary of the QC filtering<a class="anchor" aria-label="anchor" href="#summary-of-the-qc-filtering"></a>
+<h2 id="summary-of-the-qc-filtering">19. Summary of the QC filtering<a class="anchor" aria-label="anchor" href="#summary-of-the-qc-filtering"></a>
 </h2>
 <p>The plot below provides an overview of the data quality and the
 feature filtering. The segments in green indicate the number of species
@@ -716,7 +747,7 @@ analytical performance? What are the identified QC issues and what are
 possible explanations for these? What could be the implications if you
 want to run the next analysis?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_byclass.html">plot_qc_summary_byclass</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/qc-summary-1-1.png" alt="Feature QC filter plot by class" width="100%"></p>
 <p>The following plot provides a further summary of the feature
@@ -732,19 +763,34 @@ Exercises
 non-linear response (e.g. r2 &lt; 0.8), what could be the reasons for
 this?</p>
 </blockquote>
-</details><div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_overall.html">plot_qc_summary_overall</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">ggvenn</span> package.</span></span>
-<span><span class="co">#&gt;   Please report the issue to the authors.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+</details><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/plot_qc_summary_overall.html">plot_qc_summary_overall</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span></code></pre></div>
 <p><img src="T01_targetlipidomics_workflow_files/figure-html/qc-summary-2-1.png" alt="Feature QC filter plot overall" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="saving-a-report-with-data-metadata-and-processing-details">18. Saving a report with data, metadata and processing details<a class="anchor" aria-label="anchor" href="#saving-a-report-with-data-metadata-and-processing-details"></a>
+<h2 id="lipidome-profile">20. Lipidome Profile<a class="anchor" aria-label="anchor" href="#lipidome-profile"></a>
+</h2>
+<p>As a final overview, the feature concentration profile of the
+filtered dataset is shown below. Validating the concentrations, for
+example, those of the most abundant species, the summed concentrations
+per lipid class, or the ratios between lipid classes, against in-house
+reference values or literature data helps ensure that the quantification
+is within expected ranges and that no major quantification errors are
+present.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_abundanceprofile.html">plot_abundanceprofile</a></span><span class="op">(</span></span>
+<span>  data <span class="op">=</span> <span class="va">myexp</span>,</span>
+<span>  log_scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  filter_data <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  variable <span class="op">=</span> <span class="st">"conc"</span>, </span>
+<span>  qc_types <span class="op">=</span> <span class="st">"SPL"</span>,</span>
+<span>  <span class="co">#x_lim = c(-6, 2),</span></span>
+<span>  x_label <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  feature_map <span class="op">=</span> <span class="st">"lipidomics"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="T01_targetlipidomics_workflow_files/figure-html/lipidprofile-1.png" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="saving-a-report-with-data-metadata-and-processing-details">21. Saving a report with data, metadata and processing details<a class="anchor" aria-label="anchor" href="#saving-a-report-with-data-metadata-and-processing-details"></a>
 </h2>
 <p>A detailed summary of the data post-processing can be generated in
 the form of an formatted <code>Excel</code> workbook comprising multiple
@@ -757,7 +803,7 @@ Exercises
 <p>Explore the report that was saved in the <code>output</code>
 folder.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_report_xlsx.html">save_report_xlsx</a></span><span class="op">(</span><span class="va">myexp</span>, path <span class="op">=</span> <span class="st">"./output/myexp-midar_report.xlsx"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Saving report to disk - please wait...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">The data processing report of experiment 'sPerfect' has been saved to './output/myexp-midar_report.xlsx'.</span></span></span></code></pre></div>
@@ -770,7 +816,7 @@ Exercises
 <p>Specify which data to export using function arguments and check the
 generated CSV files.</p>
 </blockquote>
-</details><div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">midar</span><span class="fu">::</span><span class="fu"><a href="../reference/save_dataset_csv.html">save_dataset_csv</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">myexp</span>, </span>
 <span>  path <span class="op">=</span> <span class="st">"./output/sperfect_filt_uM.csv"</span>,</span>
@@ -781,7 +827,7 @@ generated CSV files.</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #00BB00;">Concentration values for 377 analyses and 324 features have been exported to './output/sperfect_filt_uM.csv'.</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="sharing-the-midarexperiment-dataset">19. Sharing the <code>MidarExperiment</code> dataset<a class="anchor" aria-label="anchor" href="#sharing-the-midarexperiment-dataset"></a>
+<h2 id="sharing-the-midarexperiment-dataset">22. Sharing the <code>MidarExperiment</code> dataset<a class="anchor" aria-label="anchor" href="#sharing-the-midarexperiment-dataset"></a>
 </h2>
 <p>The <code>myexp</code> object can be saved as an <code>RDS</code>
 file and shared. <code>RDS</code> files are serialized R
@@ -796,7 +842,7 @@ Exercises
 Check the status comparing it with the dataset generated in the workflow
 above (<code>mexp</code>)</p>
 </blockquote>
-</details><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+</details><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">myexp</span>, file <span class="op">=</span> <span class="st">"./output/myexp-midar.rds"</span>, compress <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">my_saved_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span>file <span class="op">=</span> <span class="st">"./output/myexp-midar.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">myexp</span><span class="op">)</span></span>
