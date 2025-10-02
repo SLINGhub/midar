@@ -1,6 +1,6 @@
-# library(fs)
-# library(vdiffr)
-# library(ggplot2)
+library(fs)
+library(vdiffr)
+library(ggplot2)
 # library(testthat)
 
 mexp_orig <- lipidomics_dataset
