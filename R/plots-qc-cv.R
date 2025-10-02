@@ -386,6 +386,7 @@ plot_qcmetrics_comparison <- function(
     str_detect(x_variable, "(tqc|bqc|spl|ltr|nist|blk|qc)$") ||
     str_detect(y_variable, "(tqc|bqc|spl|ltr|nist|blk|qc)$")
 
+ 
   if (!var_match) {
     if (!var_has_qctype) {
       d_qc <- d_qc |>
@@ -401,19 +402,20 @@ plot_qcmetrics_comparison <- function(
           names_to = c(".value")
         )
       d_qc$qc_type <- "none"
+      if (all(!is.na(qc_types))) { 
+        d_qc <- d_qc |>
+        filter(.data$qc_type %in% tolower(qc_types))
+      }
     }
   } else {
     d_qc$qc_type <- "none"
   }
 
+  d_qc$qc_type <- toupper(d_qc$qc_type)
+
   d_qc <- d_qc |>
     mutate(across(c(!!x_variable, !!y_variable), ~ ifelse(.x == 0, NA, .x))) |>
     drop_na()
-
-  if (all(!is.na(qc_types))) {
-    d_qc <- d_qc |>
-      filter(.data$qc_type %in% tolower(qc_types))
-  }
 
   if (plot_type == "diff") {
     d_qc <- d_qc |>
@@ -445,8 +447,7 @@ plot_qcmetrics_comparison <- function(
 
 
 
-
-   d_qc$qc_type <- toupper(d_qc$qc_type)
+   
   
   if (plot_type == "scatter") {
     g <- ggplot(
@@ -472,7 +473,6 @@ plot_qcmetrics_comparison <- function(
     ) +
       geom_hline(yintercept = 0, linetype = "dashed", color = "red")
   }
-
 
 
 
